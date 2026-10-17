@@ -1,0 +1,10 @@
+{
+  "sourceLanguage" : "zh-Hans",
+  "strings" : {
+    "版本 %@ · 构建 %@" : {
+      "comment" : "启动页底部的版本号，例如「版本 0.1.0 · 构建 12」",
+      "extractionState" : "manual"
+    }
+  },
+  "version" : "1.0"
+}

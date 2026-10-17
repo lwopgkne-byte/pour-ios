@@ -1,0 +1,13 @@
+// 所有构建配置共用的设置。不放任何密钥（密钥不进仓库、不进 App，07 第 5 节）。
+
+// Bundle ID（M0 小方案第 4 节）：
+//   开发用 com.lwopgkne.pour.dev —— 现在挂在免费的个人签名下
+//   正式用 com.lwopgkne.pour     —— 加入苹果开发者计划时才注册，注册后永远不改
+POUR_BUNDLE_ID = com.lwopgkne.pour.dev
+
+MARKETING_VERSION = 0.1.0
+// 构建号：本机默认 1；装到手机时由 ios/scripts/install-device.sh 换成提交数，验收时对得上
+CURRENT_PROJECT_VERSION = 1
+
+// 这台电脑自己的签名团队（DEVELOPMENT_TEAM）写在 Local.xcconfig 里：bootstrap.sh 生成，不提交
+#include? "Local.xcconfig"

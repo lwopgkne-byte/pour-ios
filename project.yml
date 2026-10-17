@@ -1,0 +1,106 @@
+# Pour 的 Xcode 工程（ADR A15：XcodeGen 生成，不提交 .xcodeproj，工程文件不再有合并冲突）
+# 生成：ios/scripts/bootstrap.sh 或 `xcodegen generate --spec ios/project.yml`
+name: Pour
+options:
+  bundleIdPrefix: com.lwopgkne
+  deploymentTarget:
+    iOS: "18.0" # 暂时（2026-10-17 产品主人决定，手机是 iOS 18）；回到方案的 iOS 26 见 ADR A03
+  developmentLanguage: zh-Hans
+  createIntermediateGroups: true
+  xcodeVersion: "26.6"
+
+configFiles:
+  Debug: Config/Debug.xcconfig
+  Release: Config/Release.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_EMIT_LOC_STRINGS: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    DEAD_CODE_STRIPPING: YES
+
+packages:
+  PourKit:
+    path: Packages/PourKit
+
+targets:
+  Pour:
+    type: application
+    platform: iOS
+    sources:
+      - App/Sources
+      - App/Resources
+    dependencies:
+      - package: PourKit
+        product: PourDesign
+    info:
+      path: App/Info.plist # 生成的文件，不提交
+      properties:
+        CFBundleDisplayName: Pour
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: zh-Hans
+        LSRequiresIPhoneOS: true
+        UILaunchScreen:
+          UIColorName: Canvas
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        # 第一版 iPhone 只做竖屏（规范 11 第 3 节）
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIRequiredDeviceCapabilities: [arm64]
+        # 只用系统的 HTTPS，不用自己的加密（出口合规，07 第 7 节）
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(POUR_BUNDLE_ID)
+        PRODUCT_NAME: Pour
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+
+  PourTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [AppTests]
+    dependencies:
+      - target: Pour
+      - package: PourKit
+        product: PourDesign
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(POUR_BUNDLE_ID).tests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Pour.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Pour
+        BUNDLE_LOADER: $(TEST_HOST)
+        GENERATE_INFOPLIST_FILE: YES
+
+  PourUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [AppUITests]
+    dependencies:
+      - target: Pour
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(POUR_BUNDLE_ID).uitests
+        TEST_TARGET_NAME: Pour
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  Pour:
+    build:
+      targets:
+        Pour: all
+        PourTests: [test]
+        PourUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - PourTests
+        - PourUITests
+    archive:
+      config: Release

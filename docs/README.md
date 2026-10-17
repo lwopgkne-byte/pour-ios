@@ -27,16 +27,17 @@
 
 **以后每次**：「读 CLAUDE.md 和 docs/ios/README.md，看 docs/ios/验收/ 和 git log 知道做到哪了，接着做。」
 
-手动的话（M0 会把这里补全成一步步的说明）：
+手动的话：
 
-1. 装最新的 Xcode，打开一次，登录苹果开发者账号
-2. `git clone https://github.com/lwopgkne-byte/pour.git && cd pour`
-3. `ios/scripts/bootstrap.sh`（M0 写好：装工具、生成工程）
-4. 打开 Claude Code：「读 docs/ios/README.md 和 00 提示词，开始 M0」
+1. 装 Xcode 26（现阶段用 26.6，见 [ADR A03](ADR/A03-最低系统.md)），打开一次，在 Xcode → 设置 → Accounts 登录 Apple ID
+2. 装 [Homebrew](https://brew.sh)，然后 `git clone https://github.com/lwopgkne-byte/pour.git && cd pour`
+3. `ios/scripts/bootstrap.sh`：装 XcodeGen、SwiftLint、Node（按 `.nvmrc`），装网页版的依赖、启用推送前检查、生成 Xcode 工程（可以重复运行）
+4. `ios/scripts/check.sh`：iOS 全部检查；`open ios/Pour.xcodeproj` 打开工程
+5. 打开 Claude Code：「读 CLAUDE.md 和 docs/ios/README.md，接着做」
 
 ## 以后会长出来的
 
-- `能力对照表.md`：网页版每一条能力在 iOS 上的对应（M0 生成，每个模块验收时逐条勾）
+- [能力对照表](能力对照表.md)：网页版每一条能力在 iOS 上的对应（M0 生成，每个模块验收时逐条勾）
 - `模块/Mx-名字.md`：每个模块的小方案（开工前确认）
 - `验收/Mx-自验收.md`：每个模块的自验收报告
-- `ADR/`：架构决定记录
+- [ADR/](ADR/README.md)：技术决定记录（A1–A20，M0 写成）

@@ -1,0 +1,40 @@
+# iOS 检查（docs/ios/模块/M0-开工准备.md）：在一台干净的 Mac 上从头生成工程、跑 ios/scripts/check.sh。
+# 只在「合并请求进 main」和手动触发时跑：私有仓库的 macOS 分钟按 10 倍计，平时靠本机的推送前检查。
+# 加入苹果开发者计划后，按原方案换成 Xcode Cloud（构建 → 测试 → TestFlight）。
+name: iOS 检查
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['ios/**', '.github/workflows/ios.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    name: iOS 检查
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: 用 Xcode 26（ADR A3）
+        run: |
+          XCODE="$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
+          echo "用 ${XCODE}"
+          sudo xcode-select -s "${XCODE}"
+          xcodebuild -version
+      - name: 装工具
+        run: brew install xcodegen swiftlint
+      - name: iOS 检查
+        run: ios/scripts/check.sh
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: iOS 测试结果
+          path: |
+            ios/build/*.xcresult
+            ios/build/check-xcodebuild.log
+          retention-days: 7
