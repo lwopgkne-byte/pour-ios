@@ -1,15 +1,15 @@
 #!/bin/bash
 # 自验收的截图矩阵（设计审查清单：亮色、暗色、最大字号 × 小屏 375 点、大屏 440 点）。
-# 用 ios/scripts/check.sh 刚构建好的 App；截图存到指定目录。
-# 用法：ios/scripts/screenshots.sh <输出目录>
+# 用 scripts/check.sh 刚构建好的 App；截图存到指定目录。
+# 用法：scripts/screenshots.sh <输出目录>
 set -euo pipefail
 
-OUT="${1:?用法：ios/scripts/screenshots.sh <输出目录>}"
+OUT="${1:?用法：scripts/screenshots.sh <输出目录>}"
 mkdir -p "${OUT}"
-OUT="$(cd "${OUT}" && pwd)" # 换成完整路径：下面要切到 ios/ 目录
+OUT="$(cd "${OUT}" && pwd)" # 换成完整路径：下面要切到仓库根目录
 cd "$(dirname "$0")/.."
 APP="build/DerivedData/Build/Products/Debug-iphonesimulator/Pour.app"
-[[ -d "${APP}" ]] || { echo "先运行 ios/scripts/check.sh 构建 App"; exit 1; }
+[[ -d "${APP}" ]] || { echo "先运行 scripts/check.sh 构建 App"; exit 1; }
 BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "${APP}/Info.plist")"
 RUNTIME="$(xcrun simctl list runtimes available | awk '/^iOS /{id=$NF} END{print id}')"
 

@@ -18,7 +18,7 @@
 | [A12](A12-按意思搜索.md) | bge-small-zh 转端侧模型（Core ML），向量只在本机 | 已定 |
 | [A13](A13-全文搜索.md) | FTS5 三字切分 + 1–2 个字直接扫描原话 | 已定 |
 | [A14](A14-图表.md) | Swift Charts + Canvas 自绘 | 已定 |
-| [A15](A15-工程生成.md) | XcodeGen（ios/project.yml） | 已定 |
+| [A15](A15-工程生成.md) | XcodeGen（project.yml） | 已定 |
 | [A16](A16-代码风格.md) | SwiftLint + swift-format；令牌检查是自定义规则 | 已定 |
 | [A17](A17-观测.md) | MetricKit + 系统日志标记 + Xcode Organizer | 已定 |
 | [A18](A18-依赖政策.md) | 能用系统的不用第三方；每个第三方库先写 ADR | 已定 |

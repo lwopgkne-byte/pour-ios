@@ -48,7 +48,7 @@ extension Double {
     fileprivate func pow(_ exponent: Double) -> Double { Foundation.pow(self, exponent) }
 }
 
-/// 一个颜色令牌：亮色、暗色各一个值。界面代码只用令牌，不写色值（docs/ios/设计规范/01-颜色.md）。
+/// 一个颜色令牌：亮色、暗色各一个值。界面代码只用令牌，不写色值（docs/设计规范/01-颜色.md）。
 public struct ColorToken: Sendable, Hashable {
     public let light: RGB
     public let dark: RGB

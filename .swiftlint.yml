@@ -47,6 +47,6 @@ custom_rules:
   no_print:
     name: 不许用 print
     regex: '^\s*print\('
-    excluded: 'ios/scripts/'
+    excluded: 'scripts/'
     message: '日志用系统日志（Logger），原话标为私密（03 第 6.2 节）'
     severity: error

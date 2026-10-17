@@ -2,14 +2,14 @@
 # 用数据线把 App 装到产品主人的 iPhone 上（没有 TestFlight 时的验收方式，M0 小方案第 2 节）。
 # 免费的个人签名：装上的 App 7 天后打不开，插上线重新运行本脚本即可。
 # 构建号 = 这个分支的提交数，启动页底部会显示，验收时对得上。
-# 用法：ios/scripts/install-device.sh        （手机用数据线连着 Mac，已经点过「信任」）
+# 用法：scripts/install-device.sh        （手机用数据线连着 Mac，已经点过「信任」）
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 step() { printf '\n▸ %s\n' "$1"; }
 fail() { printf '\n✗ %s\n' "$1"; exit 1; }
 
-[[ -f Config/Local.xcconfig ]] || fail "还没有签名团队：在 Xcode → 设置 → Accounts 登录 Apple ID，再运行 ios/scripts/bootstrap.sh"
+[[ -f Config/Local.xcconfig ]] || fail "还没有签名团队：在 Xcode → 设置 → Accounts 登录 Apple ID，再运行 scripts/bootstrap.sh"
 
 step "找连着的 iPhone"
 JSON="$(mktemp)"
@@ -39,7 +39,7 @@ xcodegen generate --spec project.yml --quiet
 xcodebuild build -project Pour.xcodeproj -scheme Pour -configuration Debug \
   -destination "id=${UDID}" -derivedDataPath build/DeviceData -allowProvisioningUpdates \
   CURRENT_PROJECT_VERSION="${BUILD}" >build/install-device.log 2>&1 \
-  || { grep -E "error:" build/install-device.log | head -10; fail "构建没成功（完整输出：ios/build/install-device.log）"; }
+  || { grep -E "error:" build/install-device.log | head -10; fail "构建没成功（完整输出：build/install-device.log）"; }
 
 step "装到手机上"
 APP="build/DeviceData/Build/Products/Debug-iphoneos/Pour.app"

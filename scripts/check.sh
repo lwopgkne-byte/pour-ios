@@ -1,9 +1,9 @@
 #!/bin/bash
-# iOS 一键检查（M0）：推送前自动跑（.githooks/pre-push，改了 ios/ 才跑），合并前 GitHub Actions 再跑一遍。
+# iOS 一键检查（M0）：推送前自动跑（.githooks/pre-push），合并前 GitHub Actions 再跑一遍。
 #   ① 生成工程 ② 代码格式 ③ SwiftLint（含令牌检查）④ 依赖方向 ⑤ 隐私清单
 #   ⑥ 规则和设计系统的单元测试（Mac 上直接跑）⑦ App 的单元测试和界面测试（模拟器）
-# 用法：ios/scripts/check.sh            全部
-#       ios/scripts/check.sh --no-ui    跳过界面测试（快）
+# 用法：scripts/check.sh            全部
+#       scripts/check.sh --no-ui    跳过界面测试（快）
 # 用一台专用的检查模拟器「Pour 检查」（没有就建），每次先关掉再跑，不受平时手动开的模拟器影响。
 # 机型默认 iPhone 17 Pro，可以用 POUR_SIMULATOR="iPhone 13" 换；这台电脑没有这个机型就用第一个能用的 iPhone
 set -euo pipefail
@@ -28,7 +28,7 @@ xcodegen generate --spec project.yml --quiet || fail "工程生成失败"
 step "② 代码格式（swift-format）"
 xcrun swift-format lint --strict --recursive --configuration .swift-format \
   App AppTests AppUITests Packages/PourKit/Sources Packages/PourKit/Tests Packages/PourKit/Package.swift \
-  || fail "格式不对：运行 xcrun swift-format format -i -r --configuration ios/.swift-format <文件> 自动改好"
+  || fail "格式不对：运行 xcrun swift-format format -i -r --configuration .swift-format <文件> 自动改好"
 
 step "③ SwiftLint（含不许硬编码颜色和字号）"
 swiftlint lint --strict --quiet || fail "SwiftLint 没通过"
@@ -68,8 +68,8 @@ if ! xcodebuild test -project Pour.xcodeproj -scheme Pour \
   -derivedDataPath build/DerivedData -resultBundlePath "${RESULT}" \
   ${EXTRA[@]+"${EXTRA[@]}"} >"${LOG}" 2>&1; then
   grep -E "error:|✘|failed" "${LOG}" | grep -v "known issue" | head -20
-  fail "App 的测试没通过（完整输出：ios/${LOG}，结果：ios/${RESULT}）"
+  fail "App 的测试没通过（完整输出：${LOG}，结果：${RESULT}）"
 fi
 grep -E "Executed [0-9]+ tests|Test run with" "${LOG}" | tail -2
 
-printf '\n✓ iOS 检查全部通过（%d 秒）。测试结果：ios/%s\n' $((SECONDS - START)) "${RESULT}"
+printf '\n✓ iOS 检查全部通过（%d 秒）。测试结果：%s\n' $((SECONDS - START)) "${RESULT}"

@@ -1,8 +1,8 @@
 """
 Pour 的原始色板：按 OKLCH 色彩空间的亮度阶梯生成，并按 WCAG 2.2 公式实测对比度。
-设计规范 docs/ios/设计规范/01-颜色.md 里的每个色值都来自这里，不手调十六进制。
+设计规范 docs/设计规范/01-颜色.md 里的每个色值都来自这里，不手调十六进制。
 
-用法：python ios/scripts/palette.py [输出的 json 路径，默认 ios/scripts/palette.json]
+用法：python scripts/palette.py [输出的 json 路径，默认 scripts/palette.json]
 改颜色：只改下面的亮度 / 饱和度 / 色相，重新运行，把报告里的对比度和规范核对一遍。
 （M1 会把它接进 CI：生成的 json 变成 PourDesign 的令牌，对比度不达标就报错。）
 """
@@ -58,7 +58,7 @@ for key, name, h, c in DOM:
         'bgLight': to_hex(0.955, c*0.22, h), 'bgDark': to_hex(0.290, c*0.35, h),
         'textLight': to_hex(0.430, c*0.85, h), 'textDark': to_hex(0.860, c*0.55, h),
     }
-json.dump(out, open(sys.argv[1] if len(sys.argv) > 1 else 'ios/scripts/palette.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+json.dump(out, open(sys.argv[1] if len(sys.argv) > 1 else 'scripts/palette.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 
 N, Q = out['neutral'], out['qing']
 print('中性色', N)

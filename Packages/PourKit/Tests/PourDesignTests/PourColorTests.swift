@@ -4,7 +4,7 @@ import Testing
 @Suite("颜色令牌：色值和对比度与设计规范一致")
 struct PourColorTests {
     @Test func valuesMatchSpec() {
-        // docs/ios/设计规范/01-颜色.md 第 2 节的原值
+        // docs/设计规范/01-颜色.md 第 2 节的原值
         #expect(PourColor.canvas.light.description == "#F6F4F0")
         #expect(PourColor.canvas.dark.description == "#0C0B0A")
         #expect(PourColor.ink.light.description == "#161513")

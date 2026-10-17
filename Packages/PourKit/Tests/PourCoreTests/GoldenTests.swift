@@ -3,7 +3,7 @@ import PourCore
 import Testing
 
 /// 对拍：读网页版导出的标准答案（fixtures/golden/，scripts/export-golden.ts 生成），逐份比较。
-/// 网页版的规则改了 → 重新导出 → 这里变红 → Swift 跟着改（docs/ios/05-测试方案.md 第 4 节）。
+/// 网页版的规则改了 → 重新导出 → 这里变红 → Swift 跟着改（docs/05-测试方案.md 第 4 节）。
 @Suite("对拍：和网页版的标准答案一致")
 struct GoldenTests {
     @Test func mathRoundMatchesWebVersion() throws {
@@ -33,7 +33,6 @@ enum Golden {
             .deletingLastPathComponent()  // Tests
             .deletingLastPathComponent()  // PourKit
             .deletingLastPathComponent()  // Packages
-            .deletingLastPathComponent()  // ios
             .deletingLastPathComponent()  // 仓库根目录
         let url = root.appendingPathComponent("fixtures/golden/\(name).json")
         return try JSONDecoder().decode(File.self, from: Data(contentsOf: url))

@@ -27,7 +27,7 @@ struct LaunchView: View {
     }
 }
 
-/// 这一版的版本号和构建号（构建号由 ios/scripts/install-device.sh 按提交数写入）
+/// 这一版的版本号和构建号（构建号由 scripts/install-device.sh 按提交数写入）
 struct AppVersion: Equatable {
     let marketing: String
     let build: String

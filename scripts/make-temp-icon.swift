@@ -1,6 +1,6 @@
 // M0 的临时 App 图标：纸底墨字「倾」+ 一条青线（亮色）；透明底浅字（深色，系统会垫上深色底）。
-// 正式图标在 M1 用 Icon Composer 出三个方案（docs/ios/设计规范/04-图标与图形.md 第 4 节）。
-// 用法：swift ios/scripts/make-temp-icon.swift <输出目录>
+// 正式图标在 M1 用 Icon Composer 出三个方案（docs/设计规范/04-图标与图形.md 第 4 节）。
+// 用法：swift scripts/make-temp-icon.swift <输出目录>
 import AppKit
 
 let outDir = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "."

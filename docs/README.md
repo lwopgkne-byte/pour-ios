@@ -25,15 +25,15 @@
 
 **第一次**：打开 Claude，把 [开工提示词](开工提示词.md) 里「复制这一段」整段发给它——它会带你装环境、拉仓库、读完方案、从 M0 开始。
 
-**以后每次**：「读 CLAUDE.md 和 docs/ios/README.md，看 docs/ios/验收/ 和 git log 知道做到哪了，接着做。」
+**以后每次**：「读 CLAUDE.md 和 docs/README.md，看 docs/验收/ 和 git log 知道做到哪了，接着做。」
 
 手动的话：
 
 1. 装 Xcode 26（现阶段用 26.6，见 [ADR A03](ADR/A03-最低系统.md)），打开一次，在 Xcode → 设置 → Accounts 登录 Apple ID
 2. 装 [Homebrew](https://brew.sh)，然后 `git clone https://github.com/lwopgkne-byte/pour.git && cd pour`
-3. `ios/scripts/bootstrap.sh`：装 XcodeGen、SwiftLint、Node（按 `.nvmrc`），装网页版的依赖、启用推送前检查、生成 Xcode 工程（可以重复运行）
-4. `ios/scripts/check.sh`：iOS 全部检查；`open ios/Pour.xcodeproj` 打开工程
-5. 打开 Claude Code：「读 CLAUDE.md 和 docs/ios/README.md，接着做」
+3. `scripts/bootstrap.sh`：装 XcodeGen、SwiftLint、Node（按 `.nvmrc`），装网页版的依赖、启用推送前检查、生成 Xcode 工程（可以重复运行）
+4. `scripts/check.sh`：iOS 全部检查；`open Pour.xcodeproj` 打开工程
+5. 打开 Claude Code：「读 CLAUDE.md 和 docs/README.md，接着做」
 
 ## 以后会长出来的
 
