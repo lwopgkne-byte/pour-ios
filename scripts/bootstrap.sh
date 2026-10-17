@@ -7,7 +7,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/../.."
 ROOT="$(pwd)"
-REQUIRED_XCODE_MAJOR=26 # 2026-10-17 产品主人决定先用 Xcode 26（ADR A3）；换 Xcode 27 时改这里
+REQUIRED_XCODE_MAJOR=27 # 2026-10-17 回到方案一：Xcode 27（ADR A03）
 START=${SECONDS}
 step() { printf '\n▸ %s\n' "$1"; }
 fail() { printf '\n✗ %s\n' "$1"; exit 1; }

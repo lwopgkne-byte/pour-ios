@@ -4,6 +4,8 @@ included:
   - App
   - AppTests
   - AppUITests
+  - Gallery/Sources
+  - GalleryUITests
   - Packages/PourKit/Sources
   - Packages/PourKit/Tests
 excluded:
@@ -29,7 +31,11 @@ line_length:
   ignores_urls: true
 
 identifier_name:
-  excluded: [id, x, y, r, g, b]
+  # xs / sm / md / lg 是设计规范 06 的圆角令牌名
+  excluded: [id, x, y, r, g, b, xs, sm, md, lg]
+
+nesting:
+  type_level: 2
 
 custom_rules:
   no_hardcoded_color:
@@ -44,9 +50,28 @@ custom_rules:
     excluded: 'Packages/PourKit/Sources/PourDesign/'
     message: '字只能用 PourDesign 的令牌（PourFont.xxx），见设计规范 02'
     severity: error
+  no_hardcoded_spacing:
+    name: 不许硬编码间距
+    regex: '\.padding\(\s*(\.[a-z]+\s*,\s*)?[1-9][0-9]*\s*\)|spacing:\s*[1-9][0-9]*[,)]'
+    excluded: 'Packages/PourKit/Sources/PourDesign/'
+    message: '间距只能用 PourSpace 的令牌，见设计规范 05'
+    severity: error
+  no_hardcoded_radius:
+    name: 不许硬编码圆角
+    regex: 'cornerRadius:\s*[0-9]+|\.pour\(\s*[0-9]+'
+    excluded: 'Packages/PourKit/Sources/PourDesign/'
+    message: '圆角只能用 PourRadius 的令牌，见设计规范 06'
+    severity: error
+  no_hardcoded_duration:
+    name: 不许硬编码动画时长
+    regex: '(duration|delay):\s*[0-9.]+'
+    excluded: 'Packages/PourKit/Sources/PourDesign/'
+    message: '动画时长只能用 PourMotion 的令牌，见设计规范 07'
+    severity: error
   no_print:
     name: 不许用 print
     regex: '^\s*print\('
-    excluded: 'ios/scripts/'
+    # 界面测试把审计问题写进测试日志，那里没有原话
+    excluded: 'UITests/'
     message: '日志用系统日志（Logger），原话标为私密（03 第 6.2 节）'
     severity: error

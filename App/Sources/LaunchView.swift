@@ -16,7 +16,7 @@ struct LaunchView: View {
         }
         .safeAreaInset(edge: .bottom) {
             Text(version.displayText)
-                .font(PourFont.caption)
+                .pourText(.caption)
                 .monospacedDigit()
                 .foregroundStyle(PourColor.inkSecondary.color)
                 .multilineTextAlignment(.center)

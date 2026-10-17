@@ -15,7 +15,7 @@ let package = Package(
     name: "PourKit",
     defaultLocalization: "zh-Hans",
     // macOS 只为了在 Mac 命令行上直接跑规则的测试和对拍（A7），App 只上 iPhone
-    platforms: [.iOS(.v18), .macOS(.v15)],  // iOS 18 是暂时的（ADR A03）
+    platforms: [.iOS(.v26), .macOS(.v26)],
     products: [
         .library(name: "PourCore", targets: ["PourCore"]),
         .library(name: "PourData", targets: ["PourData"]),
