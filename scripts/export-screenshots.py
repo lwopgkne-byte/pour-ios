@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """把测试结果（.xcresult）里每一屏的截图导出成好认的文件名：<输出目录>/样张-today-暗色-第2屏.png
-用法：python3 ios/scripts/export-screenshots.py <结果.xcresult> <输出目录>
+用法：python3 scripts/export-screenshots.py <结果.xcresult> <输出目录>
 """
 import json, os, re, shutil, subprocess, sys, tempfile
 

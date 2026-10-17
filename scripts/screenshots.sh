@@ -3,15 +3,15 @@
 # 在 iPhone SE（375 点宽）和 iPhone 17 Pro Max（440 点宽）上跑画廊的一屏一屏审计（GalleryUITests，每一屏都截图），
 # 跑完把截图导出到 <输出目录>/375、<输出目录>/440，文件名如「样张-today-暗色-第2屏.png」。顺带在这两种宽度上也审计一遍。
 # 都用 iOS 26：这台 Mac 上 iOS 27.1 的模拟器只支持 iPhone Duo。
-# 用法：ios/scripts/screenshots.sh <输出目录> [测试名…]（默认三个样张测试；画廊页面加 testGalleryPagesLight 等）
+# 用法：scripts/screenshots.sh <输出目录> [测试名…]（默认三个样张测试；画廊页面加 testGalleryPagesLight 等）
 set -euo pipefail
 
-OUT="${1:?用法：ios/scripts/screenshots.sh <输出目录> [测试名…]}"
+OUT="${1:?用法：scripts/screenshots.sh <输出目录> [测试名…]}"
 shift
 TESTS=("$@")
 [[ ${#TESTS[@]} -gt 0 ]] || TESTS=(testSamplesLight testSamplesDark testSamplesLargestText)
 mkdir -p "${OUT}"
-OUT="$(cd "${OUT}" && pwd)" # 换成完整路径：下面要切到 ios/ 目录
+OUT="$(cd "${OUT}" && pwd)" # 换成完整路径：下面要切到仓库根目录
 cd "$(dirname "$0")/.."
 mkdir -p build
 ONLY=()
@@ -35,7 +35,7 @@ for SPEC in "375|iPhone SE (3rd generation)" "440|iPhone 17 Pro Max"; do
     -destination "platform=iOS Simulator,id=${SIM_ID}" \
     -derivedDataPath build/DerivedData -resultBundlePath "${RESULT}" "${ONLY[@]}" >"${LOG}" 2>&1; then
     STATUS=1
-    echo "  有审计问题或测试没过（完整输出：ios/${LOG}）："
+    echo "  有审计问题或测试没过（完整输出：${LOG}）："
     grep -E "^审计问题|error:" "${LOG}" | head -20 | sed 's/^/    /' || true
   fi
   echo "  $(grep -E "Executed [0-9]+ tests" "${LOG}" | tail -1 | sed -E 's/^[[:space:]]+//')"

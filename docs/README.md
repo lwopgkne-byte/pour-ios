@@ -6,7 +6,7 @@
 
 **产品主人（20 分钟）**：[01 总体方案](01-总体方案.md)（第 3 节哪些已定、哪些以后、哪些待你看；第 10 节你要做的事）→ [设计规范 README](设计规范/README.md)（一页看懂整套视觉规范）→ [02 设计方案](02-设计方案.md) 第 0 节（为什么「素」、怎么改）→ [08 检查与定稿](08-检查与定稿.md)
 
-**Claude（在 Mac 上开工时）**：先读 [00 提示词](00-提示词.md)，再按顺序读 01–08 和设计规范；然后读仓库根目录的 `CLAUDE.md` 和 `SPEC.md`
+**Claude（在 Mac 上开工时）**：先读 [00 提示词](00-提示词.md)，再按顺序读 01–08 和设计规范；然后读仓库根目录的 `CLAUDE.md`；网页版的 [SPEC](https://github.com/lwopgkne-byte/pour/blob/765e7889610ee6812f0fd072c07ba6e5ecbaa757/SPEC.md) 第零章（产品理念）和第一章（设计原则）是产品的源头（网页版仓库，已冻结）
 
 | 文件 | 回答什么 |
 |---|---|
@@ -25,19 +25,19 @@
 
 **第一次**：打开 Claude，把 [开工提示词](开工提示词.md) 里「复制这一段」整段发给它——它会带你装环境、拉仓库、读完方案、从 M0 开始。
 
-**以后每次**：「读 CLAUDE.md 和 docs/ios/README.md，看 docs/ios/验收/ 和 git log 知道做到哪了，接着做。」
+**以后每次**：「读 CLAUDE.md 和 docs/README.md，看 docs/验收/ 和 git log 知道做到哪了，接着做。」
 
 手动的话：
 
-1. 装 Xcode 26（现阶段用 26.6，见 [ADR A03](ADR/A03-最低系统.md)），打开一次，在 Xcode → 设置 → Accounts 登录 Apple ID
-2. 装 [Homebrew](https://brew.sh)，然后 `git clone https://github.com/lwopgkne-byte/pour.git && cd pour`
-3. `ios/scripts/bootstrap.sh`：装 XcodeGen、SwiftLint、Node（按 `.nvmrc`），装网页版的依赖、启用推送前检查、生成 Xcode 工程（可以重复运行）
-4. `ios/scripts/check.sh`：iOS 全部检查；`open ios/Pour.xcodeproj` 打开工程
-5. 打开 Claude Code：「读 CLAUDE.md 和 docs/ios/README.md，接着做」
+1. 装 Xcode 27.1（见 [ADR A03](ADR/A03-最低系统.md)），打开一次，在 Xcode → 设置 → Accounts 登录 Apple ID
+2. 装 [Homebrew](https://brew.sh)，然后 `git clone https://github.com/lwopgkne-byte/pour-ios.git && cd pour-ios`
+3. `scripts/bootstrap.sh`：装 XcodeGen、SwiftLint，启用推送前检查，生成 Xcode 工程（可以重复运行）
+4. `scripts/check.sh`：iOS 全部检查；`open Pour.xcodeproj` 打开工程
+5. 打开 Claude Code：「读 CLAUDE.md 和 docs/README.md，接着做」
 
 ## 以后会长出来的
 
 - [能力对照表](能力对照表.md)：网页版每一条能力在 iOS 上的对应（M0 生成，每个模块验收时逐条勾）
 - `模块/Mx-名字.md`：每个模块的小方案（开工前确认）
 - `验收/Mx-自验收.md`：每个模块的自验收报告
-- [ADR/](ADR/README.md)：技术决定记录（A1–A20，M0 写成）
+- [ADR/](ADR/README.md)：技术决定记录（A1–A20 M0 写成，A21 起陆续加）

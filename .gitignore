@@ -1,0 +1,26 @@
+# 生成出来的工程和 Info.plist：由 project.yml 生成，不提交（docs/07-代码管理与发布.md 第 1 节）
+/*.xcodeproj/
+/App/Info.plist
+/Gallery/Info.plist
+
+# 构建产物
+/build/
+DerivedData/
+xcuserdata/
+.build/
+.swiftpm/
+
+# 这台电脑自己的签名团队（bootstrap.sh 生成）
+/Config/Local.xcconfig
+
+# 密钥和证书：永远不进仓库（scripts/check-secrets.py 也会拦）
+*.p8
+*.p12
+*.mobileprovision
+Secrets.xcconfig
+.env
+.env.*
+!.env.example
+
+# 系统
+.DS_Store

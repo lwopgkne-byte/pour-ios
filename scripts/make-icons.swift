@@ -1,6 +1,6 @@
-// App 图标的三个方案（M1，docs/ios/设计规范/04-图标与图形.md 第 4 节：「倾倒 → 一条平稳的线」）。
+// App 图标的三个方案（M1，docs/设计规范/04-图标与图形.md 第 4 节：「倾倒 → 一条平稳的线」）。
 // 每个方案一套亮色（纸底，不透明）和暗色（透明底，系统垫深色）。全部用系统字体（产品主人决定）。
-// 用法：swift ios/scripts/make-icons.swift   （在仓库根目录运行；会写画廊和 App 的资源目录）
+// 用法：swift scripts/make-icons.swift   （在仓库根目录运行；会写画廊和 App 的资源目录）
 import AppKit
 
 let size = 1024.0
@@ -127,7 +127,7 @@ func previewSet(dir: String, source: String) throws {
 }
 
 let designs: [(String, (NSColor, NSColor) -> Void)] = [("IconChar", drawChar), ("IconPour", drawPour), ("IconLine", drawLine)]
-let gallery = "ios/Gallery/Resources/Assets.xcassets"
+let gallery = "Gallery/Resources/Assets.xcassets"
 for (name, draw) in designs {
     // 画廊：方案一是默认图标 AppIcon，另外两个是可以切换的图标
     let set = "\(gallery)/\(name == "IconChar" ? "AppIcon" : name).appiconset"
@@ -137,7 +137,7 @@ for (name, draw) in designs {
     try previewSet(dir: "\(gallery)/\(name)-preview.imageset", source: set + "/light.png")
 }
 // 正式 App 先用方案一（产品主人选定后换成选中的那个）
-let app = "ios/App/Resources/Assets.xcassets/AppIcon.appiconset"
+let app = "App/Resources/Assets.xcassets/AppIcon.appiconset"
 for file in ["icon-light.png", "icon-dark.png"] { try? FileManager.default.removeItem(atPath: "\(app)/\(file)") }
 try iconSet(dir: app)
 try render(drawChar, dark: false, to: app + "/light.png")

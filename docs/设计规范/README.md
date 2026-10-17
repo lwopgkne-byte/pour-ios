@@ -41,7 +41,7 @@
 - **令牌名就是代码名**：规范里的 `ink`、`space.card`、`motion.snappy` 在 `PourDesign` 包里同名，代码只能用令牌，不能写数值（SwiftLint 检查）
 - **新组件先进设计画廊**（Gallery App），全部状态截图过审查，再进页面
 - **改规范**：产品主人确认 → 改这里 → 改 `PourDesign` → 截图测试更新基准 → 写进变更记录
-- 原始色板由 `ios/scripts/palette.py` 按 OKLCH 生成，对比度测试进 CI；不手调十六进制
+- 原始色板由 `scripts/palette.py` 按 OKLCH 生成，对比度测试进 CI；不手调十六进制
 
 ## 变更记录
 

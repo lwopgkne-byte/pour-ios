@@ -1,17 +1,16 @@
 #!/bin/bash
-# iOS 一键检查（M0）：推送前自动跑（.githooks/pre-push，改了 ios/ 才跑），合并前 GitHub Actions 再跑一遍。
+# iOS 一键检查（M0）：推送前自动跑（.githooks/pre-push），合并前 GitHub Actions 再跑一遍。
 #   ① 生成工程 ② 密钥检查 ③ 代码格式 ④ SwiftLint（含令牌检查）⑤ 依赖方向、原始色板是最新的 ⑥ 隐私清单
 #   ⑦ 规则和设计系统的单元测试（Mac 上直接跑）
 #   ⑧ App 和设计画廊的测试：iOS 26（最低系统，iPhone 17 Pro）和 iOS 27（最新系统）各一台模拟器
-# 用法：ios/scripts/check.sh            日常（推送前、GitHub）：画廊只跑审计实验和样张亮色那一遍，几分钟
-#       ios/scripts/check.sh --full     全部（每个模块自验收前）：样张和画廊每一页 × 亮暗、最大字号 × 一屏一屏审计
-#       ios/scripts/check.sh --no-ui    跳过界面测试（最快）
-# 用专用的检查模拟器「Pour 检查」（没有就建，ios/scripts/simulator.py），每次先关掉再开好再跑。
+# 用法：scripts/check.sh            日常（推送前、GitHub）：画廊只跑审计实验和样张亮色那一遍，几分钟
+#       scripts/check.sh --full     全部（每个模块自验收前）：样张和画廊每一页 × 亮暗、最大字号 × 一屏一屏审计
+#       scripts/check.sh --no-ui    跳过界面测试（最快）
+# 用专用的检查模拟器「Pour 检查」（没有就建，scripts/simulator.py），每次先关掉再开好再跑。
 # 机型默认 iPhone 17 Pro，可以用 POUR_SIMULATOR="iPhone 13" 换；某个系统不支持这个机型就用它支持的第一个 iPhone
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-IOS_DIR="$(pwd)"
 SIMULATOR="${POUR_SIMULATOR:-iPhone 17 Pro}"
 SKIP_UI=0
 FULL=0
@@ -36,7 +35,7 @@ step "③ 代码格式（swift-format）"
 xcrun swift-format lint --strict --recursive --configuration .swift-format \
   App AppTests AppUITests Gallery/Sources GalleryUITests \
   Packages/PourKit/Sources Packages/PourKit/Tests Packages/PourKit/Package.swift \
-  || fail "格式不对：运行 xcrun swift-format format -i -r --configuration ios/.swift-format <文件> 自动改好"
+  || fail "格式不对：运行 xcrun swift-format format -i -r --configuration .swift-format <文件> 自动改好"
 
 step "④ SwiftLint（含不许硬编码颜色和字号）"
 swiftlint lint --strict --quiet || fail "SwiftLint 没通过"
@@ -77,7 +76,7 @@ for MAJOR in 26 27; do
       # 画廊只有界面测试：跳过界面测试时只确认它编译得过
       xcodebuild build -project Pour.xcodeproj -scheme PourGallery -destination "platform=iOS Simulator,id=${SIM_ID}" \
         -derivedDataPath build/DerivedData >"${LOG}" 2>&1 \
-        || { grep -E "error:" "${LOG}" | head -20; fail "PourGallery 在 iOS ${MAJOR} 上编译没通过（完整输出：ios/${LOG}）"; }
+        || { grep -E "error:" "${LOG}" | head -20; fail "PourGallery 在 iOS ${MAJOR} 上编译没通过（完整输出：${LOG}）"; }
       echo "  PourGallery：编译通过（跳过了界面测试）"
       continue
     fi
@@ -86,11 +85,11 @@ for MAJOR in 26 27; do
       -derivedDataPath build/DerivedData -resultBundlePath "${RESULT}" \
       ${EXTRA[@]+"${EXTRA[@]}"} ${ONLY[@]+"${ONLY[@]}"} >"${LOG}" 2>&1; then
       grep -E "error:|✘|failed|^审计问题" "${LOG}" | grep -v "known issue" | head -20
-      fail "${SCHEME} 在 iOS ${MAJOR} 上的测试没通过（完整输出：ios/${LOG}，结果：ios/${RESULT}）"
+      fail "${SCHEME} 在 iOS ${MAJOR} 上的测试没通过（完整输出：${LOG}，结果：${RESULT}）"
     fi
     echo "  ${SCHEME}：$(grep -E "Executed [0-9]+ tests|Test run with" "${LOG}" | tail -1 | sed -E 's/^[[:space:]]+//')"
   done
   xcrun simctl shutdown "${SIM_ID}" >/dev/null 2>&1 || true
 done
 
-printf '\n✓ iOS 检查全部通过（%d 秒）。测试结果在 ios/build/\n' $((SECONDS - START))
+printf '\n✓ iOS 检查全部通过（%d 秒）。测试结果在 build/\n' $((SECONDS - START))

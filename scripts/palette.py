@@ -1,10 +1,10 @@
 """
 Pour 的原始色板：按 OKLCH 色彩空间的亮度阶梯生成，并按 WCAG 2.2 公式实测对比度。
-设计规范 docs/ios/设计规范/01-颜色.md 里的每个色值都来自这里，不手调十六进制。
+设计规范 docs/设计规范/01-颜色.md 里的每个色值都来自这里，不手调十六进制。
 
-用法：python3 ios/scripts/palette.py [输出的 json 路径，默认 ios/scripts/palette.json]
-      python3 ios/scripts/palette.py --swift          重新生成 PourDesign 的原始色板（PourPalette.swift）
-      python3 ios/scripts/palette.py --swift --check  只核对生成的 Swift 是不是最新的（ios/scripts/check.sh 会跑）
+用法：python3 scripts/palette.py [输出的 json 路径，默认 scripts/palette.json]
+      python3 scripts/palette.py --swift          重新生成 PourDesign 的原始色板（PourPalette.swift）
+      python3 scripts/palette.py --swift --check  只核对生成的 Swift 是不是最新的（scripts/check.sh 会跑）
 改颜色：只改下面的亮度 / 饱和度 / 色相，重新生成；对比度由 PourDesign 的测试把关，不达标就红。
 """
 import math, json, sys
@@ -64,7 +64,7 @@ if '--swift' in sys.argv:
     here = os.path.dirname(os.path.abspath(__file__))
     target = os.path.join(here, '..', 'Packages', 'PourKit', 'Sources', 'PourDesign', 'Generated', 'PourPalette.swift')
     def h(x): return '0x' + x.lstrip('#')
-    lines = ['// 生成的文件：ios/scripts/palette.py --swift。不要手改——改颜色改脚本里的亮度、饱和度、色相。',
+    lines = ['// 生成的文件：scripts/palette.py --swift。不要手改——改颜色改脚本里的亮度、饱和度、色相。',
              '// 原始色板只在令牌定义里用（PourColor），界面代码不直接引用（设计规范 01 第 1 节）。', '',
              '/// 原始色板（OKLCH 生成）', 'public enum PourPalette {']
     for k, v in out['neutral'].items(): lines.append(f'    public static let paper{k} = RGB({h(v)})')
@@ -90,12 +90,12 @@ if '--swift' in sys.argv:
     if '--check' in sys.argv:
         current = open(target, encoding='utf-8').read() if os.path.exists(target) else ''
         if current != text:
-            print('PourPalette.swift 不是最新的：运行 python3 ios/scripts/palette.py --swift'); sys.exit(1)
+            print('PourPalette.swift 不是最新的：运行 python3 scripts/palette.py --swift'); sys.exit(1)
         print('原始色板是最新的'); sys.exit(0)
     open(target, 'w', encoding='utf-8').write(text)
     print('已生成', os.path.normpath(target)); sys.exit(0)
 
-json.dump(out, open(sys.argv[1] if len(sys.argv) > 1 else 'ios/scripts/palette.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+json.dump(out, open(sys.argv[1] if len(sys.argv) > 1 else 'scripts/palette.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 
 N, Q = out['neutral'], out['qing']
 print('中性色', N)

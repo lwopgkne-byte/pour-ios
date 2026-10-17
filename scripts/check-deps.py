@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""依赖方向检查（docs/ios/03-架构与开发方案.md 第 6.1 节、ADR A18）。
+"""依赖方向检查（docs/03-架构与开发方案.md 第 6.1 节、ADR A18）。
 
 编译器已经保证「没声明的依赖用不了」；这里再保证「声明的依赖本身是对的」：
   - 每一层只依赖 6.1 节表里允许的层
   - 功能包（Feature 开头）之间不互相依赖
   - 没有写进 ADR 的第三方库
 
-用法：python3 ios/scripts/check-deps.py   （ios/scripts/check.sh 会自动跑）
+用法：python3 scripts/check-deps.py   （scripts/check.sh 会自动跑）
 """
 import json
 import pathlib

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """找（没有就建）一台专用模拟器，打印它的编号。
-用法：python3 ios/scripts/simulator.py <名字前缀> <机型，如 "iPhone 17 Pro"> [系统大版本，如 26]
+用法：python3 scripts/simulator.py <名字前缀> <机型，如 "iPhone 17 Pro"> [系统大版本，如 26]
 系统：这个机型支持的最新的 iOS（给了大版本就只在这个版本里找）。机型这台电脑没有，就用第一个能用的 iPhone。
 """
 import json, subprocess, sys

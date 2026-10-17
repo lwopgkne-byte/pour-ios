@@ -1,7 +1,7 @@
 import Foundation
 import PourDesign
 
-/// 样张用的示例数据（ios/Gallery/Resources/Sample.json，由 ios/scripts/export-sample.py 从网页版演示数据导出）
+/// 样张用的示例数据（Gallery/Resources/Sample.json：网页版演示数据里真实的一天，冻结的数据，出处写在文件开头）
 struct Sample: Decodable {
     struct Goal: Decodable, Identifiable {
         var id: String { name }
@@ -122,7 +122,7 @@ struct Sample: Decodable {
         guard let url = Bundle.main.url(forResource: "Sample", withExtension: "json"),
             let data = try? Data(contentsOf: url),
             let sample = try? JSONDecoder().decode(Sample.self, from: data)
-        else { fatalError("Sample.json 读不出来：运行 python3 ios/scripts/export-sample.py") }
+        else { fatalError("Sample.json 读不出来：文件坏了或者没打进画廊 App") }
         return sample
     }()
 }

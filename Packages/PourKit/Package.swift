@@ -1,7 +1,7 @@
 // swift-tools-version: 6.2
-// Pour 的分层代码包（docs/ios/03-架构与开发方案.md 第 6.1 节）。
+// Pour 的分层代码包（docs/03-架构与开发方案.md 第 6.1 节）。
 // 每一层只能依赖下面「dependencies」里写明的层：没写的，import 了也编译不过——依赖方向靠编译器守住。
-// ios/scripts/check-deps.py 再核对一遍这张表和 6.1 节一致（功能包之间不许互相依赖、不许有没写进 ADR 的第三方库）。
+// scripts/check-deps.py 再核对一遍这张表和 6.1 节一致（功能包之间不许互相依赖、不许有没写进 ADR 的第三方库）。
 
 import PackageDescription
 

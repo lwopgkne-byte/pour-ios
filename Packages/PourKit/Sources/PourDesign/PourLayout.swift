@@ -1,7 +1,7 @@
 public import CoreGraphics
 public import SwiftUI
 
-/// 间距令牌（docs/ios/设计规范/05-布局与间距.md 第 1 节）。基数 4 点；代码里只用这些名字。
+/// 间距令牌（docs/设计规范/05-布局与间距.md 第 1 节）。基数 4 点；代码里只用这些名字。
 public enum PourSpace {
     /// 图标和文字之间（SF Symbols 和文字的标准间距）
     public static let inline: CGFloat = 6
