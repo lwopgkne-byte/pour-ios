@@ -1,0 +1,52 @@
+# SwiftLint（ADR A16）：自动守住设计规范——功能代码里不许出现硬编码的颜色和字号，只能用 PourDesign 的令牌。
+# 色值和字号只允许出现在 PourDesign 里（令牌定义的地方）。
+included:
+  - App
+  - AppTests
+  - AppUITests
+  - Packages/PourKit/Sources
+  - Packages/PourKit/Tests
+excluded:
+  - build
+  - Packages/PourKit/.build
+
+disabled_rules:
+  - todo # 「以后」写在方案里，不写 TODO
+  - trailing_comma # 交给 swift-format
+  - opening_brace # 交给 swift-format：多行条件后的 { 按 swift-format 的风格换行
+
+opt_in_rules:
+  - empty_count
+  - first_where
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - sorted_imports
+
+line_length:
+  warning: 120
+  error: 160
+  ignores_comments: true
+  ignores_urls: true
+
+identifier_name:
+  excluded: [id, x, y, r, g, b]
+
+custom_rules:
+  no_hardcoded_color:
+    name: 不许硬编码颜色
+    regex: '(Color|UIColor|NSColor)\(\s*(red|white|hue|srgbRed|#)|#colorLiteral|Color\.(red|blue|green|yellow|orange|purple|pink|gray|black|white)\b'
+    excluded: 'Packages/PourKit/Sources/PourDesign/'
+    message: '颜色只能用 PourDesign 的令牌（PourColor.xxx），见设计规范 01'
+    severity: error
+  no_hardcoded_font:
+    name: 不许硬编码字号
+    regex: '\.system\(\s*size:|Font\.custom\(|UIFont\.(systemFont|boldSystemFont)\(ofSize:'
+    excluded: 'Packages/PourKit/Sources/PourDesign/'
+    message: '字只能用 PourDesign 的令牌（PourFont.xxx），见设计规范 02'
+    severity: error
+  no_print:
+    name: 不许用 print
+    regex: '^\s*print\('
+    excluded: 'ios/scripts/'
+    message: '日志用系统日志（Logger），原话标为私密（03 第 6.2 节）'
+    severity: error
