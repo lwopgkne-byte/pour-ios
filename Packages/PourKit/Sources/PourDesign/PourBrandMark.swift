@@ -15,8 +15,8 @@ public struct PourBrandMark: View {
     public var body: some View {
         VStack(spacing: PourSpace.tight) {
             Text(verbatim: "倾")
-                // 原话之声（宋体）；iPhone 没有预装宋体时系统换成苹方——M1 定（规范 02）
-                .font(.custom("Songti SC", fixedSize: markSize))
+                // 系统字体（苹方）：产品主人 2026-10-17 决定全部用苹果的默认字体（规范 02）
+                .font(.system(size: markSize, weight: .medium))
                 .foregroundStyle(PourColor.ink.color)
             // 品牌标志里唯一的青：倾倒之后落成的那条平稳的线（App 图标的意象，规范 04 第 4 节）
             Capsule()
