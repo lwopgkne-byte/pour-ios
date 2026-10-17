@@ -11,25 +11,8 @@ struct LaunchView: View {
         ZStack {
             PourColor.canvas.color.ignoresSafeArea()
 
-            VStack(spacing: PourSpace.tight) {
-                Text(verbatim: "倾")
-                    .font(PourFont.brandMark)
-                    .foregroundStyle(PourColor.ink.color)
-                // 品牌标志里唯一的青：倾倒之后落成的那条平稳的线（App 图标的意象，规范 04 第 4 节）
-                Capsule()
-                    .fill(PourColor.qing.color)
-                    .frame(width: 24, height: 2)
-                    .accessibilityHidden(true)
-                Text(verbatim: "Pour")
-                    .font(PourFont.meta)
-                    .foregroundStyle(PourColor.inkSecondary.color)
-            }
-            // 字标是品牌标志：跟着动态字体放大，但到辅助功能第一档封顶，「倾」和「Pour」的比例不走样（规范 02 展示字可以封顶）
-            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(verbatim: "Pour 倾"))
-            .accessibilityAddTraits(.isHeader)
-            .accessibilityIdentifier("launch.brand")
+            PourBrandMark()
+                .accessibilityIdentifier("launch.brand")
         }
         .safeAreaInset(edge: .bottom) {
             Text(version.displayText)
