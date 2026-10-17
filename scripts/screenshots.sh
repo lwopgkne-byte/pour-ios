@@ -1,40 +1,46 @@
 #!/bin/bash
 # 自验收的截图矩阵（设计审查清单：亮色、暗色、最大字号 × 小屏 375 点、大屏 440 点）。
-# 用 ios/scripts/check.sh 刚构建好的 App；截图存到指定目录。
-# 用法：ios/scripts/screenshots.sh <输出目录>
+# 在 iPhone SE（375 点宽）和 iPhone 17 Pro Max（440 点宽）上跑画廊的一屏一屏审计（GalleryUITests，每一屏都截图），
+# 跑完把截图导出到 <输出目录>/375、<输出目录>/440，文件名如「样张-today-暗色-第2屏.png」。顺带在这两种宽度上也审计一遍。
+# 都用 iOS 26：这台 Mac 上 iOS 27.1 的模拟器只支持 iPhone Duo。
+# 用法：ios/scripts/screenshots.sh <输出目录> [测试名…]（默认三个样张测试；画廊页面加 testGalleryPagesLight 等）
 set -euo pipefail
 
-OUT="${1:?用法：ios/scripts/screenshots.sh <输出目录>}"
+OUT="${1:?用法：ios/scripts/screenshots.sh <输出目录> [测试名…]}"
+shift
+TESTS=("$@")
+[[ ${#TESTS[@]} -gt 0 ]] || TESTS=(testSamplesLight testSamplesDark testSamplesLargestText)
 mkdir -p "${OUT}"
 OUT="$(cd "${OUT}" && pwd)" # 换成完整路径：下面要切到 ios/ 目录
 cd "$(dirname "$0")/.."
-APP="build/DerivedData/Build/Products/Debug-iphonesimulator/Pour.app"
-[[ -d "${APP}" ]] || { echo "先运行 ios/scripts/check.sh 构建 App"; exit 1; }
-BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "${APP}/Info.plist")"
-RUNTIME="$(xcrun simctl list runtimes available | awk '/^iOS /{id=$NF} END{print id}')"
+mkdir -p build
+ONLY=()
+for TEST in "${TESTS[@]}"; do ONLY+=("-only-testing:GalleryUITests/GalleryUITests/${TEST}"); done
 
-# 小屏：iPhone SE（375 点宽）；大屏：iPhone 17 Pro Max（440 点宽）
-for TYPE in iPhone-SE-3rd-generation iPhone-17-Pro-Max; do
-  NAME="Pour 截图（${TYPE}）"
-  ID="$(xcrun simctl list devices available | grep -F "${NAME} (" | grep -oE '[0-9A-F-]{36}' | awk 'NR==1' || true)"
-  [[ -n "${ID}" ]] || ID="$(xcrun simctl create "${NAME}" "com.apple.CoreSimulator.SimDeviceType.${TYPE}" "${RUNTIME}")"
-  xcrun simctl boot "${ID}" 2>/dev/null || true
-  xcrun simctl bootstatus "${ID}" -b >/dev/null
+STATUS=0
+for SPEC in "375|iPhone SE (3rd generation)" "440|iPhone 17 Pro Max"; do
+  WIDTH="${SPEC%%|*}"
+  TYPE="${SPEC#*|}"
+  IFS=$'\t' read -r SIM_ID SIM_NAME < <(python3 scripts/simulator.py "Pour 截图" "${TYPE}" 26)
+  xcrun simctl shutdown "${SIM_ID}" >/dev/null 2>&1 || true
+  xcrun simctl boot "${SIM_ID}"
+  xcrun simctl bootstatus "${SIM_ID}" -b >/dev/null
   # 状态栏固定成 9:41、满格，截图之间好比较
-  xcrun simctl status_bar "${ID}" override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3
-  xcrun simctl install "${ID}" "${APP}"
-  for MODE in light dark ax5; do
-    case "${MODE}" in
-      light) xcrun simctl ui "${ID}" appearance light; xcrun simctl ui "${ID}" content_size large ;;
-      dark) xcrun simctl ui "${ID}" appearance dark; xcrun simctl ui "${ID}" content_size large ;;
-      ax5) xcrun simctl ui "${ID}" appearance light; xcrun simctl ui "${ID}" content_size accessibility-extra-extra-extra-large ;;
-    esac
-    xcrun simctl terminate "${ID}" "${BUNDLE_ID}" 2>/dev/null || true
-    xcrun simctl launch "${ID}" "${BUNDLE_ID}" >/dev/null
-    sleep 2
-    xcrun simctl io "${ID}" screenshot --type=png "${OUT}/${TYPE}-${MODE}.png" >/dev/null 2>&1
-    echo "${OUT}/${TYPE}-${MODE}.png"
-  done
-  xcrun simctl ui "${ID}" content_size large
-  xcrun simctl shutdown "${ID}"
+  xcrun simctl status_bar "${SIM_ID}" override --time "9:41" --batteryState charged --batteryLevel 100 \
+    --cellularBars 4 --wifiBars 3
+  echo "模拟器：${SIM_NAME}（${WIDTH} 点宽）"
+  RESULT="build/screenshots-${WIDTH}-$(date +%Y%m%d-%H%M%S).xcresult"
+  LOG="build/screenshots-${WIDTH}.log"
+  if ! xcodebuild test -project Pour.xcodeproj -scheme PourGallery \
+    -destination "platform=iOS Simulator,id=${SIM_ID}" \
+    -derivedDataPath build/DerivedData -resultBundlePath "${RESULT}" "${ONLY[@]}" >"${LOG}" 2>&1; then
+    STATUS=1
+    echo "  有审计问题或测试没过（完整输出：ios/${LOG}）："
+    grep -E "^审计问题|error:" "${LOG}" | head -20 | sed 's/^/    /' || true
+  fi
+  echo "  $(grep -E "Executed [0-9]+ tests" "${LOG}" | tail -1 | sed -E 's/^[[:space:]]+//')"
+  python3 scripts/export-screenshots.py "${RESULT}" "${OUT}/${WIDTH}"
+  xcrun simctl status_bar "${SIM_ID}" clear
+  xcrun simctl shutdown "${SIM_ID}"
 done
+exit "${STATUS}"

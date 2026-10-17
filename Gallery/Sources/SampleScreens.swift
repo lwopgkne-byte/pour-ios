@@ -48,7 +48,8 @@ struct SampleShell: View {
 private struct PourBarAccessory: View {
     var body: some View {
         HStack {
-            Text("今天做了什么？比如：8 点跑了 5 公里").pourText(.body).foregroundStyle(PourColor.inkSecondary.color).lineLimit(1)
+            // 和倾倒栏同一个占位：放不下就只说「说点什么」，永远不截断
+            PourBarPlaceholder()
             Spacer()
             Image(systemName: "mic").foregroundStyle(PourColor.inkSecondary.color).accessibilityLabel(Text("按住说话"))
         }
@@ -107,7 +108,7 @@ struct TodaySample: View {
                     .padding(.top, PourSpace.section)
                 }
                 .padding(.horizontal, PourSpace.page(forWidth: proxy.size.width))
-                .padding(.bottom, PourSpace.section)
+                .padding(.bottom, PourSpace.pageEnd)
             }
         }
         .background(PourColor.canvas.color)
@@ -131,11 +132,10 @@ struct TodaySample: View {
                 }
             }
         } else {
-            HStack(alignment: .firstTextBaseline, spacing: PourSpace.related) {
-                (Text(item.title ?? "")
-                    + (item.person.map { Text(" · 和") + Text($0).foregroundStyle(PourColor.qing.color) } ?? Text("")))
+            PourTitleValueRow {
+                Text(item.title ?? "", person: item.person)
                     .pourText(.body).foregroundStyle(PourColor.ink.color)
-                Spacer(minLength: PourSpace.related)
+            } value: {
                 if let value = item.value {
                     Text(value).pourText(.body).monospacedDigit().foregroundStyle(PourColor.inkSecondary.color)
                 }
@@ -168,7 +168,8 @@ struct ReviewSample: View {
                     }
                 }
                 .padding(.horizontal, PourSpace.page(forWidth: proxy.size.width))
-                .padding(.vertical, PourSpace.related)
+                .padding(.top, PourSpace.related)
+                .padding(.bottom, PourSpace.pageEnd)
             }
         }
         .background(PourColor.canvas.color)
@@ -180,6 +181,7 @@ struct ReviewSample: View {
 
 struct AboutSample: View {
     private let about = Sample.shared.about
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         GeometryReader { proxy in
@@ -201,8 +203,15 @@ struct AboutSample: View {
 
                     if let money = about.moneyAngle {
                         PourSectionHeader("换个角度看你")
-                        HStack(alignment: .top, spacing: PourSpace.element) {
-                            StatCard(title: "钱", value: money.big, conclusion: money.sub) { PourWeekBars(money.week) }
+                        // 两列小卡；大字号时变一列（规范 11）
+                        let layout =
+                            dynamicTypeSize.isAccessibilitySize
+                            ? AnyLayout(VStackLayout(spacing: PourSpace.element))
+                            : AnyLayout(HStackLayout(alignment: .top, spacing: PourSpace.element))
+                        layout {
+                            StatCard(title: "钱", value: money.big, conclusion: money.sub) {
+                                PourWeekBars(money.week, barHeight: PourSize.miniChartHeight, showsDays: false)
+                            }
                             StatCard(title: "人", value: "儿子", conclusion: "最常在一起 · 34 天") {
                                 PourSparkline([3, 4, 3, 5, 6, 5, 7])
                             }
@@ -210,7 +219,7 @@ struct AboutSample: View {
                     }
                 }
                 .padding(.horizontal, PourSpace.page(forWidth: proxy.size.width))
-                .padding(.bottom, PourSpace.section)
+                .padding(.bottom, PourSpace.pageEnd)
             }
         }
         .background(PourColor.canvas.color)
@@ -265,7 +274,7 @@ struct MoneySample: View {
                     }
                 }
                 .padding(.horizontal, PourSpace.page(forWidth: proxy.size.width))
-                .padding(.bottom, PourSpace.section)
+                .padding(.bottom, PourSpace.pageEnd)
             }
         }
         .background(PourColor.canvas.color)

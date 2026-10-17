@@ -36,5 +36,5 @@ jobs:
           name: iOS 测试结果
           path: |
             ios/build/*.xcresult
-            ios/build/check-xcodebuild.log
+            ios/build/check-*.log
           retention-days: 7

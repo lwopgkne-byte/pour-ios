@@ -3,54 +3,12 @@ public import SwiftUI
 // 图表（docs/ios/设计规范/09-数据可视化.md）。一句结论在上（页面写），图是证据；
 // 最多两种颜色加灰；直接标在图上不用图例；减少动态效果时直接出现。
 
-// MARK: - 对比横条（2.5，发现卡）
-
-public struct PourCompareBars: View {
-    let theseLabel: String
-    let these: Double
-    let othersLabel: String
-    let others: Double
-
-    public init(theseLabel: String, these: Double, othersLabel: String, others: Double) {
-        self.theseLabel = theseLabel
-        self.these = these
-        self.othersLabel = othersLabel
-        self.others = others
-    }
-
-    public var body: some View {
-        VStack(spacing: PourSpace.related) {
-            bar(theseLabel, these, PourColor.chartPrimary)
-            bar(othersLabel, others, PourColor.chartSecondary)
-        }
-        .frame(minHeight: PourSize.minTap)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("\(theseLabel) \(percent(these))，\(othersLabel) \(percent(others))"))
-    }
-
-    private func percent(_ value: Double) -> String { "\(Int((value * 100).rounded()))%" }
-
-    private func bar(_ label: String, _ value: Double, _ color: ColorToken) -> some View {
-        HStack(spacing: PourSpace.related) {
-            Text(label).pourText(.caption).foregroundStyle(PourColor.inkSecondary.color).frame(
-                width: 64, alignment: .leading)
-            GeometryReader { proxy in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(PourColor.fillSelected.color)
-                    Capsule().fill(color.color).frame(width: max(8, proxy.size.width * min(max(value, 0), 1)))
-                }
-            }
-            .frame(height: 8)
-            Text(verbatim: "\(Int((value * 100).rounded()))%").pourText(.caption).monospacedDigit()
-                .foregroundStyle(PourColor.ink.color).frame(width: 40, alignment: .trailing)
-        }
-    }
-}
-
 // MARK: - 方块图（2.1，你的生活由什么组成）
 
 public struct TreemapItem: Identifiable, Sendable {
-    public var id: String { domain.rawValue }
+    /// 用名字认，不用颜色：几个类别可以共用一种领域色（购物和家务都是陶），用颜色当编号会让 SwiftUI 把它们当成同一块，
+    /// 列表里「睡眠」出现三次、「娱乐」「冥想」不见了（M1 自验收在最大字号的截图里发现的，和钱的月历丢日子是同一类）
+    public var id: String { label }
     public let domain: PourDomain
     public let label: String
     public let count: Int
@@ -69,7 +27,11 @@ public struct PourTreemap: View {
     static let minTileWidth: CGFloat = 88
     static let gap: CGFloat = 4
 
-    public init(_ items: [TreemapItem]) { self.items = items.sorted { $0.count > $1.count } }
+    public init(_ items: [TreemapItem]) {
+        // 编号重复时 SwiftUI 显示的结果不确定（会少块、多块）：开发和测试时直接拦下
+        assert(Set(items.map(\.id)).count == items.count, "方块图里有重复的名字：\(items.map(\.label))")
+        self.items = items.sorted { $0.count > $1.count }
+    }
 
     /// 第二行放得下几块：按面积比例分宽度，最窄的一块也要 ≥ 最小宽度
     static func secondRowCount(_ rest: [TreemapItem], width: CGFloat) -> Int {
@@ -171,6 +133,9 @@ public struct TimeShareItem: Sendable {
 
 public struct PourTimeShare: View {
     let items: [TimeShareItem]
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// 百分比那一列的宽度（几行对齐用）：跟着字号一起变，不是死的点数
+    @ScaledMetric(relativeTo: .subheadline) private var shareWidth: CGFloat = 44
 
     public init(_ items: [TimeShareItem]) { self.items = items }
 
@@ -189,21 +154,42 @@ public struct PourTimeShare: View {
             .frame(height: 12)
             .accessibilityHidden(true)
             ForEach(items.indices, id: \.self) { index in
-                let item = items[index]
-                HStack(spacing: PourSpace.related) {
-                    PourDomainDot(item.domain)
-                    Text(item.label).pourText(.body).foregroundStyle(PourColor.ink.color)
-                    Spacer()
-                    Text(Self.duration(item.minutes)).pourText(.body).monospacedDigit().foregroundStyle(
-                        PourColor.ink.color)
-                    Text(verbatim: "\(Int((Double(item.minutes) / Double(total) * 100).rounded()))%")
-                        .pourText(.meta).monospacedDigit().foregroundStyle(PourColor.inkSecondary.color)
-                        .frame(width: 44, alignment: .trailing)
-                }
-                .accessibilityElement(children: .combine)
+                timeRow(items[index], total: total)
             }
             Text("只算说了时长的事").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
         }
+    }
+
+    /// 一个领域一行：「名字 … 时长 百分比」。大字号时时长和百分比换到名字下面（不挤成一个字一行——M1 自验收）
+    @ViewBuilder private func timeRow(_ item: TimeShareItem, total: Int) -> some View {
+        let share = Text(verbatim: "\(Int((Double(item.minutes) / Double(total) * 100).rounded()))%")
+            .pourText(.meta).monospacedDigit().foregroundStyle(PourColor.inkSecondary.color)
+        let duration = Text(Self.duration(item.minutes)).pourText(.body).monospacedDigit()
+            .foregroundStyle(PourColor.ink.color)
+        let name = HStack(spacing: PourSpace.related) {
+            PourDomainDot(item.domain)
+            Text(item.label).pourText(.body).foregroundStyle(PourColor.ink.color)
+        }
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: PourSpace.tight) {
+                    name
+                    // 时长按自己的宽度占一行，百分比放不下就换到下一行（不把「48 小时 20 分」折开）
+                    PourFlowLayout {
+                        duration
+                        share
+                    }
+                }
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: PourSpace.related) {
+                    name
+                    Spacer(minLength: PourSpace.related)
+                    duration
+                    share.frame(minWidth: shareWidth, alignment: .trailing)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 
     /// 「45 分钟」「1 小时 20 分」（规范 02 第 4 节；M2 起由 PourCore 的格式化函数统一产出）
@@ -248,48 +234,6 @@ public struct PourSparkline: View {
         .accessibilityLabel(Text("趋势"))
         .accessibilityValue(
             Text("从 \(values.first.map { "\(Int($0))" } ?? "") 到 \(values.last.map { "\(Int($0))" } ?? "")"))
-    }
-}
-
-// MARK: - 一周七天（2.4）
-
-public struct PourWeekBars: View {
-    let values: [Double]
-    /// 要说「哪天最高 / 最低」时，那一根用墨色并在上方写字
-    let highlightIndex: Int?
-    let highlightLabel: String?
-
-    public init(_ values: [Double], highlightIndex: Int? = nil, highlightLabel: String? = nil) {
-        self.values = Array(values.prefix(7))
-        self.highlightIndex = highlightIndex
-        self.highlightLabel = highlightLabel
-    }
-
-    public var body: some View {
-        let top = max(values.max() ?? 1, 0.0001)
-        HStack(alignment: .bottom, spacing: PourSpace.related) {
-            ForEach(values.indices, id: \.self) { index in
-                VStack(spacing: PourSpace.tight) {
-                    if index == highlightIndex, let highlightLabel {
-                        Text(highlightLabel).pourText(.micro).foregroundStyle(PourColor.ink.color).fixedSize()
-                    }
-                    GeometryReader { proxy in
-                        VStack {
-                            Spacer(minLength: 0)
-                            UnevenRoundedRectangle(topLeadingRadius: 4, topTrailingRadius: 4, style: .continuous)
-                                .fill(
-                                    (index == highlightIndex ? PourColor.chartSelected : PourColor.chartPrimary).color
-                                )
-                                .frame(height: max(2, proxy.size.height * CGFloat(values[index] / top)))
-                        }
-                    }
-                    Text(["一", "二", "三", "四", "五", "六", "日"][index]).pourText(.micro)
-                        .foregroundStyle(PourColor.chartLabel.color)
-                }
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("一周七天"))
     }
 }
 

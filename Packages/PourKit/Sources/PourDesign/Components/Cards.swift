@@ -30,17 +30,19 @@ public struct RecordCard: View {
 
     public var body: some View {
         PourCard(background: highlight ?? PourColor.surface) {
-            VStack(alignment: .leading, spacing: PourSpace.tight) { rows }
+            VStack(alignment: .leading, spacing: PourSpace.tight) {
+                // 「待确认」在右上角（规范 03），排在版面里、不盖在内容上：字调大时也不会压住标题和数
+                if state == .needsConfirmation {
+                    Text("待确认").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+                rows
+            }
         }
         .overlay {
             if state == .needsConfirmation {
                 RoundedRectangle.pour(PourRadius.lg)
                     .strokeBorder(PourColor.lineStrong.color, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
-            }
-        }
-        .overlay(alignment: .topTrailing) {
-            if state == .needsConfirmation {
-                Text("待确认").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color).padding(PourSpace.element)
             }
         }
         .accessibilityElement(children: .combine)
@@ -57,22 +59,32 @@ public struct RecordCard: View {
     @ViewBuilder private var rows: some View {
         switch content {
         case let .event(domain, title, value, detail, person):
-            HStack(spacing: PourSpace.related) {
-                PourDomainDot(domain)
-                Text(title).pourText(.headline).foregroundStyle(PourColor.ink.color)
-                Spacer(minLength: PourSpace.related)
+            PourTitleValueRow {
+                HStack(spacing: PourSpace.related) {
+                    PourDomainDot(domain)
+                    Text(title).pourText(.headline).foregroundStyle(PourColor.ink.color)
+                }
+            } value: {
                 if let value {
                     Text(value).pourText(.body).monospacedDigit().foregroundStyle(PourColor.inkSecondary.color)
                 }
             }
-            (Text(detail).foregroundStyle(PourColor.inkSecondary.color)
-                + (person.map { Text(" · 和") + Text($0).foregroundStyle(PourColor.qing.color) } ?? Text("")))
+            Text(detail, person: person).foregroundStyle(PourColor.inkSecondary.color)
                 .pourText(.meta)
         case let .money(title, amount, detail, tag, worthQuote):
-            HStack(spacing: PourSpace.related) {
-                Text(title).pourText(.headline).foregroundStyle(PourColor.ink.color)
-                if let tag { PourInfoChip(tag) }
-                Spacer(minLength: PourSpace.related)
+            PourTitleValueRow {
+                // 名字和标签放得下就一行，放不下（大字号）就上下两行：标签不被挤成一个字一行
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: PourSpace.related) {
+                        Text(title).pourText(.headline).foregroundStyle(PourColor.ink.color)
+                        if let tag { PourInfoChip(tag) }
+                    }
+                    VStack(alignment: .leading, spacing: PourSpace.tight) {
+                        Text(title).pourText(.headline).foregroundStyle(PourColor.ink.color)
+                        if let tag { PourInfoChip(tag) }
+                    }
+                }
+            } value: {
                 Text(amount).pourText(.headline).monospacedDigit().foregroundStyle(PourColor.ink.color)
             }
             Text(detail).pourText(.meta).foregroundStyle(PourColor.inkSecondary.color)
@@ -124,6 +136,8 @@ public struct QuoteBlock: View {
         VStack(alignment: .leading, spacing: PourSpace.related) {
             Text(source).pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
             Text(attributedQuote).pourText(.quote).foregroundStyle(PourColor.ink.color)
+                // 荧光只是颜色，看不见的人也要知道标的是哪一段
+                .accessibilityValue(highlight.map { Text("标出的是：\($0)") } ?? Text(verbatim: ""))
         }
         .padding(.leading, PourSpace.element)
         .overlay(alignment: .leading) { Rectangle().fill(PourColor.line.color).frame(width: 2) }
@@ -161,7 +175,8 @@ public struct DiscoveryCard: View {
                 Text(sentence).pourText(.quoteLead).foregroundStyle(PourColor.ink.color)
                 PourCompareBars(theseLabel: "这些日子", these: these, othersLabel: "别的日子", others: others)
                 Text(basis).pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
-                HStack(spacing: PourSpace.tight) {
+                // 一行放不下就换行：大字号时每个按钮按自己的宽度，不挤成一个字一行
+                PourFlowLayout(spacing: PourSpace.tight, lineSpacing: PourSpace.tight) {
                     ForEach(["说中了", "早知道", "没意思", "不对"], id: \.self) { option in
                         Button(option) {
                             PourHaptic.selection.play()
@@ -198,7 +213,7 @@ public struct StatCard<Chart: View>: View {
                 Text(value).pourText(.display).monospacedDigit().foregroundStyle(PourColor.ink.color)
                     .minimumScaleFactor(0.6).lineLimit(1)
                 Text(conclusion).pourText(.callout).foregroundStyle(PourColor.ink.color)
-                chart.frame(height: PourSize.miniChartHeight).padding(.top, PourSpace.tight)
+                chart.frame(minHeight: PourSize.miniChartHeight).padding(.top, PourSpace.tight)
             }
         }
         .accessibilityElement(children: .combine)

@@ -201,7 +201,7 @@ public struct PourAIText: View {
     }
 
     public var body: some View {
-        (Text(text) + Text(verbatim: " ") + badge)
+        Text("\(text) \(badge)")
             .pourText(style)
             .foregroundStyle(color.color)
             .accessibilityElement(children: .ignore)
@@ -354,5 +354,18 @@ public struct PourCard<Content: View>: View {
                     RoundedRectangle.pour(PourRadius.lg).strokeBorder(PourColor.line.color, lineWidth: 1)
                 }
             }
+    }
+}
+
+extension Text {
+    /// 「事情 · 和儿子」拼成一段字（换行时一起走）：认出的人用青色（规范 01：青只表示「它懂你」）
+    public init(_ base: String, person: String?, joiner: String = " · 和") {
+        var text = AttributedString(base)
+        if let person {
+            var name = AttributedString(person)
+            name.foregroundColor = PourColor.qing.color
+            text += AttributedString(joiner) + name
+        }
+        self.init(text)
     }
 }

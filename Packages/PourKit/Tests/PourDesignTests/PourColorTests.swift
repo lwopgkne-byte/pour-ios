@@ -94,6 +94,20 @@ struct PourColorTests {
         #expect(RGB(0x000000).composited(opacity: 0.5, over: RGB(0xFFFFFF)).description == "#808080")
     }
 
+    /// 必要图形（图表的系列、选中、领域色点）在卡和纸上 ≥ 3:1（宪法第十一条；M1 之前只测了文字，漏了图形）
+    @Test(arguments: [
+        ("主系列（青）", PourColor.chartPrimary), ("对比系列（灰）", PourColor.chartSecondary),
+        ("选中（墨）", PourColor.chartSelected),
+    ])
+    func chartGraphicsOnSurfaces(name: String, token: ColorToken) {
+        for background in [PourColor.canvas, PourColor.surface] {
+            for isDark in [false, true] {
+                let ratio = token.resolved(dark: isDark).rgb.contrast(with: background.resolved(dark: isDark).rgb)
+                #expect(ratio >= 3, "\(name) 只有 \(ratio)（\(isDark ? "暗" : "亮")）")
+            }
+        }
+    }
+
     /// 钱的月历：最深的那档底色上，淡墨的日期和墨色的金额都 ≥ 4.5（亮暗）
     @Test func moneyCalendarTintKeepsTextReadable() {
         for isDark in [false, true] {

@@ -80,7 +80,8 @@ public enum PourColor {
     // MARK: 图表（3.3）——一张图最多两种颜色加灰
 
     public static let chartPrimary = qing
-    public static let chartSecondary = ColorToken(light: Palette.paper400, dark: Palette.paper600)
+    /// 对比系列（「别的日子」）：M1 改 paper.400 → paper.500——400 在白卡上只有 2.67:1，不到必要图形的 3:1
+    public static let chartSecondary = ColorToken(light: Palette.paper500, dark: Palette.paper600)
     public static let chartGrid = ColorToken(
         light: Alpha(Palette.paper950, opacity: 0.06), dark: Alpha(.white, opacity: 0.08))
     public static let chartLabel = inkSecondary

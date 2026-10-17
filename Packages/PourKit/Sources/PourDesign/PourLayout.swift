@@ -17,6 +17,9 @@ public enum PourSpace {
     public static let group: CGFloat = 24
     /// 节和节之间
     public static let section: CGFloat = 32
+    /// 标签页最后一段内容到底部浮动栏之间：浮动的玻璃栏往上有一段投影（亮色约 24 点、暗色约 36 点），
+    /// 最后一条要完整地停在投影以外，看着也不贴着栏（M1 自验收，规范 05）
+    public static let pageEnd: CGFloat = 64
 
     /// 屏幕左右边距：屏宽 ≤ 375 点用 16，其余 20
     public static func page(forWidth width: CGFloat) -> CGFloat { width <= 375 ? 16 : 20 }

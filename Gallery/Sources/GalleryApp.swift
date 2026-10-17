@@ -9,6 +9,10 @@ struct GalleryApp: App {
         WindowGroup {
             if ProcessInfo.processInfo.arguments.contains("-auditProbe") {
                 AuditProbe()
+            } else if ProcessInfo.processInfo.arguments.contains("-auditProbe2") {
+                AuditProbe2()
+            } else if ProcessInfo.processInfo.arguments.contains("-auditScrollProbe") {
+                AuditScrollProbe()
             } else {
                 GalleryHome()
             }
@@ -68,8 +72,62 @@ struct GalleryHome: View {
     }
 }
 
+/// 审计实验（只给界面测试用）：「截断」检查会不会自己滑动页面，去查屏幕外（上面、下面）的字
+struct AuditScrollProbe: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: PourSpace.card) {
+                clipped("probe.clippedTop")
+                Text("今天过得怎么样").font(.caption2).accessibilityIdentifier("probe.caption2Top")
+                Color.clear.frame(height: 3000)
+                clipped("probe.clippedBottom")
+                Text("今天过得怎么样").font(.caption2).accessibilityIdentifier("probe.caption2Bottom")
+            }
+            .padding(PourSpace.page(forWidth: 402))
+        }
+    }
+
+    /// 一行放不下、被截成省略号的字
+    private func clipped(_ id: String) -> some View {
+        Text("这一句话很长很长，一行放不下，会被截成省略号").pourText(.body).lineLimit(1)
+            .frame(width: 120, alignment: .leading)
+            .accessibilityIdentifier(id)
+    }
+}
+
+/// 审计实验 2（只给界面测试用）：审计量对比度时的两个毛病
+/// - 一个字一个字的小标签（图表的星期）：同色同号，「三」报不够、「一」和两个字的「三月」不报
+/// - 带荧光的原话块报不够；一模一样的原话块去掉荧光就不报
+struct AuditProbe2: View {
+    static let quote = "在公司待了11个小时 有点累 太晚了打车回的 56 能报销"
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: PourSpace.card) {
+            PourCard {
+                HStack(spacing: PourSpace.group) {
+                    glyph("三", id: "probe.glyph.san")
+                    glyph("一", id: "probe.glyph.yi")
+                    glyph("三月", id: "probe.glyph.sanyue")
+                }
+            }
+            PourCard { QuoteBlock(source: "10月16日 周五 21:10 · 语音", quote: Self.quote, highlight: "打车回的 56 能报销") }
+            // 去掉荧光的对照：多一个句号，好和上面那个分开
+            PourCard { QuoteBlock(source: "10月16日 周五 21:10 · 语音", quote: Self.quote + "。") }
+        }
+        .padding(PourSpace.page(forWidth: 402))
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(PourColor.canvas.color)
+    }
+
+    private func glyph(_ text: String, id: String) -> some View {
+        Text(text).pourText(.caption).foregroundStyle(PourColor.chartLabel.color).accessibilityIdentifier(id)
+    }
+}
+
 /// 审计实验（只给界面测试用）：同一句话，只用系统自带的 Text，看系统审计会不会也报「截断」
 struct AuditProbe: View {
+    static let long = "比上个月这时候少 ¥10,381：上个月这时候有装修尾款 ¥8,000、买沙发 ¥4,200。"
+
     var body: some View {
         VStack(alignment: .leading, spacing: PourSpace.card) {
             Text("比上个月这时候少 ¥10,381：上个月这时候有装修尾款 ¥8,000、买沙发 ¥4,200。").font(.callout)
@@ -79,6 +137,16 @@ struct AuditProbe: View {
             Text("This is a long English sentence that wraps onto a second line on an iPhone screen.").font(.callout)
                 .accessibilityIdentifier("probe.english")
             Text("家人朋友").font(.callout).fontWeight(.semibold).accessibilityIdentifier("probe.cjkSingle")
+            // 对照：系统最小的文字样式（caption2）本身，审计报不报「动态字体只支持一部分」
+            Text("今天过得怎么样").font(.caption2).accessibilityIdentifier("probe.caption2")
+            // 同一句会换行的话，换几种写法：看哪种写法审计不误报（找得到就全 App 都用它，删掉豁免）
+            Text(Self.long).font(.callout).lineLimit(nil).accessibilityIdentifier("probe.v.lineLimitNil")
+            Text(Self.long).font(.callout).lineLimit(6).accessibilityIdentifier("probe.v.lineLimit6")
+            Text(Self.long).font(.callout).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("probe.v.fixedSize")
+            Text(Self.long).font(.callout).frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityIdentifier("probe.v.fullWidth")
+            Text(Self.long).font(.callout).lineLimit(2...6).accessibilityIdentifier("probe.v.lineRange")
             // 和方块图里一模一样的块（宽 104、高 72、内边距 8、上面一行名字下面一行百分比）
             VStack(alignment: .leading, spacing: PourSpace.tight) {
                 Text("家人朋友").pourText(.callout).fontWeight(.semibold).accessibilityIdentifier("probe.tileLabel")
@@ -98,6 +166,11 @@ struct AuditProbe: View {
                 tile("noPadding", width: 104, maxHeight: 72, padded: false, background: true)
             }
             Text("家人朋友").pourText(.callout).fontWeight(.semibold).accessibilityIdentifier("probe.pourSingle")
+            // 一行放得下的字，有没有空格：看审计是不是把带空格的一行字也报成截断
+            Text("最常在一起 · 34 天").font(.callout).accessibilityIdentifier("probe.single.spaceMixed")
+            Text("最常在一起·34天").font(.callout).accessibilityIdentifier("probe.single.noSpace")
+            Text("家人 朋友").font(.callout).accessibilityIdentifier("probe.single.cjkSpace")
+            Text("Hello world").font(.callout).accessibilityIdentifier("probe.single.latin")
         }
         .padding(PourSpace.page(forWidth: 402))
     }

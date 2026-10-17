@@ -10,9 +10,10 @@ private struct CalendarDay: Identifiable {
 }
 
 public struct PourMoneyCalendar: View {
-    /// 格子底色用墨的深浅表示花了多少：6%–14%。规范原来写 20%，实测亮色 20% 的底上淡墨字只有 4.40:1，
-    /// 不到 4.5（M1 自验收），所以封顶 14%（5.07:1）。PourColorTests 逐档实算
-    public static let tintRange: ClosedRange<Double> = 0.06...0.14
+    /// 格子底色用墨的深浅表示花了多少：6%–12%。规范原来写 20%，实测亮色 20% 的底上淡墨字只有 4.40:1，
+    /// 不到 4.5；14% 算出来 5.07:1，但 11 点的小字在系统审计里实测还差一点，所以封顶 12%（M1 自验收）。
+    /// PourColorTests 逐档实算
+    public static let tintRange: ClosedRange<Double> = 0.06...0.12
 
     /// 这一天的底色深浅（花得越多越深）
     public static func tint(for amount: Double, top: Double) -> Double {

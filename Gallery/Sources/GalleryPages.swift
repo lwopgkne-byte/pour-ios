@@ -53,9 +53,12 @@ struct ColorsPage: View {
                 }
             }
             GallerySection("心情五档（越好越深）") {
-                HStack(spacing: PourSpace.related) {
-                    ForEach(1...5, id: \.self) { PourMoodCell(level: $0, size: PourSize.moodCellCalendar) }
-                    PourMoodCell(level: nil, size: PourSize.moodCellCalendar)
+                // 放得下就和格子一行，放不下（大字号）就换到格子下面，不挤成一个字一行
+                PourFlowLayout {
+                    HStack(spacing: PourSpace.related) {
+                        ForEach(1...5, id: \.self) { PourMoodCell(level: $0, size: PourSize.moodCellCalendar) }
+                        PourMoodCell(level: nil, size: PourSize.moodCellCalendar)
+                    }
                     Text("最后一格：没记").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
                 }
             }
@@ -103,7 +106,7 @@ struct ComponentsPage: View {
                 Button("保存") {}.buttonStyle(PourButtonStyle(.primary, isLoading: true))
                 Button("保存") {}.buttonStyle(PourButtonStyle(.primary)).disabled(true)
                 Text("不能点时说明为什么：还没写内容").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
-                HStack {
+                PourFlowLayout {
                     Button("是这周六") {}.buttonStyle(PourButtonStyle(.secondary))
                     Button("看全部") {}.buttonStyle(PourButtonStyle(.text))
                     PourIconButton("ellipsis", label: "更多") {}
@@ -114,7 +117,7 @@ struct ComponentsPage: View {
                 }.buttonStyle(PourButtonStyle(.destructive))
             }
             GallerySection("胶囊标签、头像、进度") {
-                HStack {
+                PourFlowLayout {
                     PourInfoChip("能报销", domain: .lake)
                     PourFilterChip("这周", isSelected: chip) { chip.toggle() }
                     PourFilterChip("这个月", isSelected: !chip) { chip.toggle() }
@@ -199,15 +202,15 @@ struct ChartsPage: View {
             GallerySection("对比横条、迷你曲线、一周七天") {
                 PourCompareBars(theseLabel: "这些日子", these: 0.92, othersLabel: "别的日子", others: 0.14)
                 PourSparkline([5, 6, 6, 7, 6, 8, 9, 9]).frame(height: PourSize.miniChartHeight)
-                PourWeekBars([57, 38, 95, 44, 237, 279, 308], highlightIndex: 6, highlightLabel: "最多").frame(
-                    height: 120)
+                PourWeekBars([57, 38, 95, 44, 237, 279, 308], highlightIndex: 6, highlightLabel: "最多")
             }
             GallerySection("心情像素墙（9 周）") {
                 PourMoodWall((0..<63).map { $0 % 9 == 4 ? nil : ($0 * 7 + 3) % 5 + 1 })
             }
             GallerySection("钱的月历") {
                 PourMoneyCalendar(
-                    firstWeekday: sample.money.firstWeekday, amounts: sample.money.calendar, today: sample.money.today)
+                    firstWeekday: sample.money.firstWeekday, amounts: sample.money.calendar,
+                    today: sample.money.today)
             }
         }
         .navigationTitle("图表")
@@ -257,6 +260,7 @@ struct MotionPage: View {
 // MARK: - App 图标
 
 struct IconsPage: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private struct IconOption {
         /// 可切换图标的名字；nil 是默认图标
         let icon: String?
@@ -280,7 +284,12 @@ struct IconsPage: View {
                         UIApplication.shared.setAlternateIconName(name)
                         current = name
                     } label: {
-                        HStack(spacing: PourSpace.card) {
+                        // 大字号：图在上、字占满一行（不挤成一条窄列，规范 11）
+                        let layout =
+                            dynamicTypeSize.isAccessibilitySize
+                            ? AnyLayout(VStackLayout(alignment: .leading, spacing: PourSpace.related))
+                            : AnyLayout(HStackLayout(spacing: PourSpace.card))
+                        layout {
                             Image(name.map { "\($0)-preview" } ?? "IconChar-preview")
                                 .resizable().frame(width: 60, height: 60)
                                 .clipShape(RoundedRectangle.pour(PourRadius.md))
@@ -288,6 +297,7 @@ struct IconsPage: View {
                                 Text(option.title).pourText(.headline).foregroundStyle(PourColor.ink.color)
                                 Text(option.note).pourText(.meta).foregroundStyle(PourColor.inkSecondary.color)
                             }
+                            .multilineTextAlignment(.leading)  // 按钮里的字默认居中：多行时和标题对不齐
                             Spacer()
                             if current == name { Image(systemName: "checkmark").foregroundStyle(PourColor.ink.color) }
                         }

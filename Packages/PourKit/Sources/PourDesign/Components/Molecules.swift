@@ -17,6 +17,7 @@ public struct PourBar: View {
     let recordingSeconds: Int
     var onSend: () -> Void = {}
     @Namespace private var glass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     public init(
         state: PourBarState, text: String = "", placeholder: String = "今天做了什么？比如：8 点跑了 5 公里",
@@ -35,11 +36,16 @@ public struct PourBar: View {
                 if state == .recording {
                     recordingContent
                 } else {
-                    Text(text.isEmpty ? placeholder : text)
-                        .pourText(.body)
-                        .foregroundStyle((text.isEmpty ? PourColor.inkSecondary : PourColor.ink).color)
-                        .lineLimit(state == .typing ? 6 : 1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Group {
+                        if text.isEmpty {
+                            PourBarPlaceholder(placeholder)
+                        } else {
+                            Text(text).foregroundStyle(PourColor.ink.color)
+                                .lineLimit(state == .typing ? 6 : 1)
+                        }
+                    }
+                    .pourText(.body)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     trailingButton
                 }
             }
@@ -81,18 +87,43 @@ public struct PourBar: View {
         }
     }
 
+    /// 录音中：波形和计时永远一行（计时不许折成「0:0 / 3」）；大字号时提示换到下一行，不挤成一个字一行
     private var recordingContent: some View {
-        HStack(spacing: PourSpace.related) {
-            Image(systemName: "waveform").symbolEffect(.variableColor.iterative)
-                .foregroundStyle(PourColor.ink.color)
-            Text(verbatim: String(format: "0:%02d", recordingSeconds)).pourText(.body).monospacedDigit()
-                .foregroundStyle(PourColor.ink.color)
-            Spacer(minLength: PourSpace.related)
+        let stacked = dynamicTypeSize.isAccessibilitySize
+        let layout =
+            stacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: PourSpace.tight))
+            : AnyLayout(HStackLayout(spacing: PourSpace.related))
+        return layout {
+            HStack(spacing: PourSpace.related) {
+                Image(systemName: "waveform").symbolEffect(.variableColor.iterative)
+                    .foregroundStyle(PourColor.ink.color)
+                Text(verbatim: String(format: "0:%02d", recordingSeconds)).pourText(.body).monospacedDigit()
+                    .foregroundStyle(PourColor.ink.color)
+                    .fixedSize()
+            }
+            if !stacked { Spacer(minLength: PourSpace.related) }
             Text("松开发送 · 上滑取消").pourText(.callout).foregroundStyle(PourColor.inkSecondary.color)
         }
-        .frame(minHeight: PourSize.minTap)
+        .frame(maxWidth: .infinity, minHeight: PourSize.minTap, alignment: .leading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("正在录音，\(recordingSeconds) 秒"))
+    }
+}
+
+/// 倾倒栏的占位：放得下就给完整的例子，放不下（窄屏、大字号、收起的小栏）就只说「说点什么」——永远不截断
+public struct PourBarPlaceholder: View {
+    let example: String
+
+    public init(_ example: String = "今天做了什么？比如：8 点跑了 5 公里") { self.example = example }
+
+    public var body: some View {
+        ViewThatFits(in: .horizontal) {
+            Text(example).lineLimit(1)
+            Text("说点什么").lineLimit(1)
+        }
+        .pourText(.body)
+        .foregroundStyle(PourColor.inkSecondary.color)
     }
 }
 
@@ -159,7 +190,7 @@ public struct ReceiptView: View {
                 Label("等网络，联网后自动整理", systemImage: "wifi.slash")
                     .pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
             case .failed:
-                HStack(spacing: PourSpace.related) {
+                PourFlowLayout {
                     Text("没整理成").pourText(.callout).foregroundStyle(PourColor.inkSecondary.color)
                     Button("再试一次") {}.buttonStyle(PourButtonStyle(.text))
                 }
@@ -174,14 +205,21 @@ public struct ReceiptView: View {
     }
 
     private func receiptLine(_ line: ReceiptLine) -> some View {
-        HStack(spacing: PourSpace.related) {
-            PourDomainDot(line.domain)
-            (Text(line.title).foregroundStyle(PourColor.ink.color)
-                + (line.person.map { Text(" · ") + Text($0).foregroundStyle(PourColor.qing.color) } ?? Text("")))
-                .pourText(.body)
-            Spacer(minLength: PourSpace.related)
-            if let value = line.value {
-                Text(value).pourText(.body).monospacedDigit().foregroundStyle(PourColor.inkSecondary.color)
+        PourTitleValueRow {
+            HStack(spacing: PourSpace.related) {
+                PourDomainDot(line.domain)
+                Text(line.title, person: line.person, joiner: " · ").foregroundStyle(PourColor.ink.color)
+                    .pourText(.body)
+            }
+        } value: {
+            // 「待确认」跟在数后面，排在版面里（原来用固定偏移盖在右上角，字调大时压住内容——M1 自验收）
+            HStack(alignment: .firstTextBaseline, spacing: PourSpace.related) {
+                if let value = line.value {
+                    Text(value).pourText(.body).monospacedDigit().foregroundStyle(PourColor.inkSecondary.color)
+                }
+                if line.needsConfirmation {
+                    Text("待确认").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
+                }
             }
         }
         .padding(.vertical, 6)
@@ -196,11 +234,6 @@ public struct ReceiptView: View {
                     .strokeBorder(PourColor.lineStrong.color, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
             }
         }
-        .overlay(alignment: .topTrailing) {
-            if line.needsConfirmation {
-                Text("待确认").pourText(.micro).foregroundStyle(PourColor.inkSecondary.color).offset(y: -14)
-            }
-        }
         .accessibilityElement(children: .combine)
     }
 }
@@ -212,7 +245,9 @@ public struct QuestionPrompt: Sendable {
 
     public init(_ question: String, options: [String]) {
         self.question = question
-        self.options = Array(options.prefix(3))
+        // 选项是按字认的（ForEach 用字当编号）：去掉重复的，不然 SwiftUI 会少显示、多显示
+        var seen = Set<String>()
+        self.options = Array(options.filter { seen.insert($0).inserted }.prefix(3))
     }
 }
 
@@ -225,7 +260,7 @@ public struct QuestionBar: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: PourSpace.related) {
             Text(prompt.question).pourText(.callout).foregroundStyle(PourColor.ink.color)
-            HStack(spacing: PourSpace.related) {
+            PourFlowLayout {
                 ForEach(prompt.options, id: \.self) { option in
                     Button(option) { PourHaptic.selection.play() }.buttonStyle(PourButtonStyle(.secondary))
                 }

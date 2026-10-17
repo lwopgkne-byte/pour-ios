@@ -46,10 +46,12 @@ public enum PourTextStyle: String, CaseIterable, Sendable {
         }
     }
 
-    /// 字重只用四种：常规、中（只给胶囊标签）、半粗、粗（只给页标题）
+    /// 字重只用四种：常规、中（只给胶囊标签）、半粗（标题、按钮、图表刻度）、粗（只给页标题）
     public var weight: Font.Weight {
         switch self {
-        case .displayXL, .display, .titleSection, .headline: .semibold
+        // 图表刻度（11 点）用半粗：「一」「三」「1」「7」这种只有一两笔的字，常规、中等字重在 11 点只有两三个像素粗，
+        // 人看着费劲，系统审计实测也量不出足够的对比度（颜色本身 7:1 以上）——M1 自验收
+        case .displayXL, .display, .titleSection, .headline, .micro: .semibold
         case .titlePage, .title1: .bold
         default: .regular
         }
