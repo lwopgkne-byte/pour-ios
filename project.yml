@@ -4,7 +4,7 @@ name: Pour
 options:
   bundleIdPrefix: com.lwopgkne
   deploymentTarget:
-    iOS: "26.0"
+    iOS: "18.0" # 暂时（2026-10-17 产品主人决定，手机是 iOS 18）；回到方案的 iOS 26 见 ADR A03
   developmentLanguage: zh-Hans
   createIntermediateGroups: true
   xcodeVersion: "26.6"
