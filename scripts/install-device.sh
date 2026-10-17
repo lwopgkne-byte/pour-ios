@@ -17,18 +17,21 @@ xcrun devicectl list devices --json-output "${JSON}" >/dev/null
 DEVICE="$(python3 - "${JSON}" <<'PY'
 import json, sys
 devices = json.load(open(sys.argv[1]))["result"]["devices"]
-phones = [d for d in devices
-          if d.get("hardwareProperties", {}).get("deviceType") == "iPhone"
-          and d.get("connectionProperties", {}).get("pairingState") == "paired"]
-if phones:
-    d = phones[0]
-    print(d["identifier"], d["hardwareProperties"].get("udid", ""), d["deviceProperties"].get("osVersionNumber", "?"), d["deviceProperties"].get("name", "iPhone"), sep="|")
+phones = [d for d in devices if d.get("hardwareProperties", {}).get("deviceType") == "iPhone"]
+# 以前配对过的手机拔了线也会列出来（tunnelState 是 unavailable）：只要现在连着的
+connected = [d for d in phones if d.get("connectionProperties", {}).get("tunnelState") != "unavailable"]
+if connected:
+    d = connected[0]
+    c = d.get("connectionProperties", {})
+    print(d["identifier"], d["hardwareProperties"].get("udid", ""), d["deviceProperties"].get("osVersionNumber", "?"),
+          d["deviceProperties"].get("name", "iPhone"), c.get("pairingState", ""), sep="|")
 PY
 )"
 rm -f "${JSON}"
-[[ -n "${DEVICE}" ]] || fail "没找到配对好的 iPhone：用数据线连上 Mac，手机上点「信任」并输入锁屏密码"
-IFS='|' read -r DEVICE_ID UDID IOS_VERSION DEVICE_NAME <<<"${DEVICE}"
+[[ -n "${DEVICE}" ]] || fail "Mac 现在没认到 iPhone：解锁手机、重新插线；在「访达」左侧看到 iPhone 才算连上。还不行就换一根能传数据的线"
+IFS='|' read -r DEVICE_ID UDID IOS_VERSION DEVICE_NAME PAIRING <<<"${DEVICE}"
 echo "${DEVICE_NAME} · iOS ${IOS_VERSION}"
+[[ "${PAIRING}" == "paired" ]] || fail "手机还没信任这台 Mac：看手机屏幕上的「要信任此电脑吗」，点「信任」并输入锁屏密码，再运行一次"
 
 BUILD="$(git rev-list --count HEAD)"
 step "构建（版本 $(awk -F' = ' '/^MARKETING_VERSION/{print $2}' Config/Base.xcconfig) · 构建 ${BUILD}）"
