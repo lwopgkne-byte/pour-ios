@@ -12,15 +12,19 @@ public struct ReceiptLine: Identifiable, Sendable {
     /// 右侧的数（等宽）
     public let value: String?
     public let needsConfirmation: Bool
+    /// 是哪条记录（点这一行打开它的详情）
+    public let key: String?
 
     public init(
-        domain: PourDomain, title: String, person: String? = nil, value: String? = nil, needsConfirmation: Bool = false
+        domain: PourDomain, title: String, person: String? = nil, value: String? = nil, needsConfirmation: Bool = false,
+        key: String? = nil
     ) {
         self.domain = domain
         self.title = title
         self.person = person
         self.value = value
         self.needsConfirmation = needsConfirmation
+        self.key = key
     }
 }
 
@@ -47,6 +51,12 @@ public struct ReceiptView: View {
     var onRetry: (() -> Void)?
     /// 刚刚整理好（看着它整理完的）：逐张凝结；打开页面时已经整理好的直接显示
     var condenses: Bool
+    /// 撤销了：整理出的改动都退回去了，原话还在
+    var undone: Bool
+    /// 点追问的选项：当作你说了这一句
+    var onAnswer: ((String) -> Void)?
+    /// 点一行：打开那条记录的详情
+    var onOpen: ((ReceiptLine) -> Void)?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shown: Int?
@@ -55,7 +65,8 @@ public struct ReceiptView: View {
     public init(
         time: String, quote: String, state: ReceiptState, lines: [ReceiptLine] = [],
         question: QuestionPrompt? = nil, highlightNew: Bool = false, waitingSince: Date? = nil,
-        problem: String? = nil, reply: String? = nil, condenses: Bool = false, onRetry: (() -> Void)? = nil
+        problem: String? = nil, reply: String? = nil, condenses: Bool = false, undone: Bool = false,
+        onAnswer: ((String) -> Void)? = nil, onOpen: ((ReceiptLine) -> Void)? = nil, onRetry: (() -> Void)? = nil
     ) {
         self.time = time
         self.quote = quote
@@ -67,6 +78,9 @@ public struct ReceiptView: View {
         self.problem = problem
         self.reply = reply
         self.condenses = condenses
+        self.undone = undone
+        self.onAnswer = onAnswer
+        self.onOpen = onOpen
         self.onRetry = onRetry
     }
 
@@ -89,11 +103,13 @@ public struct ReceiptView: View {
                     Button("再试一次") { onRetry?() }.buttonStyle(PourButtonStyle(.text))
                         .accessibilityIdentifier("receipt.retry")
                 }
+            case .done where undone:
+                Text("已撤销 · 原话还在").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
             case .done:
                 VStack(alignment: .leading, spacing: PourSpace.tight) {
                     ForEach(Array(lines.enumerated()), id: \.element.id) { index, line in
                         let visible = index < (shown ?? lines.count)
-                        receiptLine(line)
+                        openable(line)
                             .opacity(visible ? 1 : 0)
                             .scaleEffect(visible || reduceMotion ? 1 : 0.96, anchor: .topLeading)
                             .offset(y: visible || reduceMotion ? 0 : 6)
@@ -104,7 +120,7 @@ public struct ReceiptView: View {
                 } else if lines.isEmpty {
                     Text("这段话没有要记的事").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
                 }
-                if let question { QuestionBar(prompt: question) }
+                if let question { QuestionBar(prompt: question, onAnswer: onAnswer) }
             }
         }
         .accessibilityElement(children: .contain)
@@ -145,6 +161,21 @@ public struct ReceiptView: View {
             try? await Task.sleep(for: .milliseconds(300))
             withAnimation(.easeOut(duration: 1.2)) { glowing = false }
             shown = nil
+        }
+    }
+
+    /// 能点开详情的一行（有记录编号、给了 onOpen 时）：整行一点就开，旁白当按钮读。
+    /// 不包进 Button：包进去以后系统审计说里面的字在大字号下会被截断、又指不出是哪段（M2b 实测）
+    @ViewBuilder private func openable(_ line: ReceiptLine) -> some View {
+        if let onOpen, line.key != nil {
+            receiptLine(line)
+                .contentShape(Rectangle())
+                .onTapGesture { onOpen(line) }
+                .accessibilityAddTraits(.isButton)
+                .accessibilityHint(Text("看原话和改动"))
+                .accessibilityAction { onOpen(line) }
+        } else {
+            receiptLine(line)
         }
     }
 
@@ -195,18 +226,26 @@ public struct QuestionPrompt: Sendable {
     }
 }
 
-/// 追问条：凹底、左侧琥珀细条；一次只问一个
+/// 追问条：凹底、左侧琥珀细条；一次只问一个。点选项就当作你说了这一句（也可以直接再说一句）
 public struct QuestionBar: View {
     let prompt: QuestionPrompt
+    let onAnswer: ((String) -> Void)?
 
-    public init(prompt: QuestionPrompt) { self.prompt = prompt }
+    public init(prompt: QuestionPrompt, onAnswer: ((String) -> Void)? = nil) {
+        self.prompt = prompt
+        self.onAnswer = onAnswer
+    }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: PourSpace.related) {
             Text(prompt.question).pourText(.callout).foregroundStyle(PourColor.ink.color)
             PourFlowLayout {
                 ForEach(prompt.options, id: \.self) { option in
-                    Button(option) { PourHaptic.selection.play() }.buttonStyle(PourButtonStyle(.secondary))
+                    Button(option) {
+                        PourHaptic.selection.play()
+                        onAnswer?(option)
+                    }
+                    .buttonStyle(PourButtonStyle(.secondary))
                 }
             }
         }

@@ -27,7 +27,10 @@ struct ContractTests {
 
     @Test func decodesTheGatewaysChangePackage() throws {
         let change = try JSONDecoder().decode(ChangePackage.self, from: Self.example("example-change-package.json"))
-        #expect(change.version == 1)
+        #expect(change.version == 3)
+        // 「房租交了」：昨天那条待办做完了
+        #expect(change.updates.map(\.action) == [.completed])
+        #expect(change.updates.first?.id == "7C2D9E4B-1A3F-4E6D-8B5C-0F9A2D7E3C02")
         #expect(change.intents == ["record"])
         #expect(change.creates.count == 4)
         guard case .event(let lunch) = change.creates[1].data else {
@@ -56,7 +59,8 @@ struct ContractTests {
         let lhs = Self.withoutNulls(try JSONSerialization.jsonObject(with: reencoded)) as? NSDictionary
         let rhs = Self.withoutNulls(try JSONSerialization.jsonObject(with: example)) as? NSDictionary
         #expect(lhs == rhs, "手机写出来的背景包和网关的样例不一样")
-        #expect(decoded.note.text == "早上跑了五公里 中午和小王吃面三十二")
+        #expect(decoded.note.text == "早上跑了五公里 中午和小王吃面三十二 房租交了")
+        #expect(decoded.dialogue.first?.questions == ["是这个月的房租吗？"])
         #expect(decoded.existing.count == 2)
     }
 }

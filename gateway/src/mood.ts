@@ -62,3 +62,64 @@ export function cleanMoment(moment: string | undefined, noteText: string): strin
   if (!plain || !normalizeForMatch(noteText).includes(plain)) return undefined
   return m.replace(/\s/g, '').length > MOMENT_MAX_CHARS ? undefined : m
 }
+
+/**
+ * 直接评价心情、状态时照原词（网页版 directMoodLevel，docs/prd-mood.md 5.1）：「心情很好」就是很好，不能显示成「挺好」。
+ * 一句里有好几种时按先认出的那种；不是在评价心情（「很开心」「挺好的一天」）的不管
+ */
+const DIRECT_MOOD: [RegExp, number][] = [
+  [/(心情|状态)(很|特别|非常|超级?)差|(心情|状态)(糟透|糟糕透|差透|烂透|差到极点)/, 1],
+  [/(心情|状态)(不太好|不怎么样|不大好)/, 2],
+  [/(心情|状态)(一般|还行|马马虎虎|凑合)/, 3],
+  [/(心情|状态)(不错|挺好|还不错|还挺好|蛮好)/, 4],
+  [/(心情|状态)(很好|特别好|超级?好|非常好|好极了)/, 5],
+]
+
+export function directMoodLevel(text: string): number | undefined {
+  const t = text.replace(/\s/g, '')
+  let best: { at: number; level: number } | undefined
+  for (const [re, level] of DIRECT_MOOD) {
+    const m = re.exec(t)
+    if (m && (!best || m.index < best.at)) best = { at: m.index, level }
+  }
+  return best?.level
+}
+
+/** 级别 → 好不好、强不强（程序定了级别时，两个判断跟着写对） */
+export function toneOfLevel(level: number): { tone: MoodTone; strength: MoodStrength } {
+  if (level >= 5) return { tone: 'good', strength: 'strong' }
+  if (level === 4) return { tone: 'good', strength: 'medium' }
+  if (level === 3) return { tone: 'neutral', strength: 'medium' }
+  if (level === 2) return { tone: 'bad', strength: 'medium' }
+  return { tone: 'bad', strength: 'strong' }
+}
+
+/**
+ * 很难受的说法（网页版 DISTRESS_PATTERNS，docs/prd-mood.md 5.6）：去掉空白后对得上任一个就算。由程序认全，不靠 AI 自己标。
+ * 口头禅不算：「不想活动」「想死你了」「热得想死」「累死了」「这个项目撑不下去了」
+ */
+export const DISTRESS_PATTERNS = [
+  /不想.{0,2}活(了|下去|着)/,
+  /活不下去/,
+  /活着.{0,2}没意思/,
+  /自杀|轻生|了结自己|结束自己|结束生命|伤害自己|不想醒来/,
+  /活着.{0,3}(累|难|苦|没劲|没有?意义)/,
+  /活着.{0,6}什么意义|人生.{0,3}没有?意义/,
+  /(?<!得)想死(?![你我他她它])/,
+  /死了算了|不如死了|还不如死|一死了之/,
+  /想消失|消失算了|不想存在/,
+  /我.{0,4}(撑|熬)不下去/,
+  /没有?活下去的(意义|理由|勇气|动力|希望)/,
+]
+
+export const isDistress = (text: string): boolean => {
+  const t = text.replace(/\s/g, '')
+  return DISTRESS_PATTERNS.some((p) => p.test(t))
+}
+
+/**
+ * 很难受时的固定回复（网页版原样，docs/prd-mood.md 5.6）：程序写的，不让 AI 自由发挥。
+ * 12356 是国家卫生健康委设置的全国统一心理援助热线（国卫医政函〔2024〕259 号；网页版 2026-10-03 查证）
+ */
+export const DISTRESS_REPLY =
+  '听起来你现在真的很难受。你说的都记下了。如果有伤害自己的念头，请马上告诉身边信任的人，或者拨打全国心理援助热线 12356、拨打急救电话。'

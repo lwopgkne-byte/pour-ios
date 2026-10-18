@@ -1,5 +1,5 @@
 public import Foundation
-import PourCore
+public import PourCore
 public import PourData
 
 /// 理解服务：一段一段地整理原话（docs/03 第 5.1 节）。
@@ -56,11 +56,13 @@ public actor Organizer {
     private func organize(_ note: Note) async {
         do {
             try store.markOrganizing(note.id)
+            let categories = try store.categories()
             let background = BackgroundPackage(
-                note: note, categories: try store.categories(), existing: try store.existingEntries(around: note.day))
+                note: note, categories: categories, existing: try store.existingEntries(around: note.day),
+                dialogue: try dialogue(before: note, categories: categories))
             let change = try await gateway.understand(background)
             let package = try JSONEncoder().encode(change)
-            try store.finish(noteId: note.id, creates: change.creates, reply: change.reply, package: package, at: now())
+            try store.apply(change.changes, toNote: note.id, package: package, at: now())
         } catch let error as GatewayError {
             handle(error, note: note)
         } catch {
@@ -81,6 +83,26 @@ public actor Organizer {
             try? store.markFailed(note.id, problem: "没整理成：\(message)")
         case .invalidResponse(let detail):
             try? store.markFailed(note.id, problem: "没整理成：\(detail)")
+        }
+    }
+
+    /// 这段话之前的几段对话：说了什么、记下改了删了哪几条（那条记录现在的一句话）、回了什么、还在问什么
+    private func dialogue(before note: Note, categories: [LifeCategory]) throws -> [BackgroundPackage.Turn] {
+        let (notes, mentioned) = try store.recentTurns(before: note)
+        return notes.map { said in
+            let actions = said.actions.compactMap { action -> BackgroundPackage.Turn.Action? in
+                guard let entry = mentioned[action.entryId] else { return nil }
+                let line = RecordLine(entry.data, categories: categories, said: said.localTime, today: said.day)
+                let text = [line.title, line.person.map { "和\($0)" }, line.value].compactMap { $0 }.joined(
+                    separator: " · ")
+                return .init(action: action.kind, recordId: entry.id, text: text)
+            }
+            // 还在问的：这段话问你的，加上它记下、改过、还没确认的那几条的追问
+            let asking = said.actions.compactMap { mentioned[$0.entryId] }.filter { !$0.deleted }.compactMap(\.question)
+            let status = said.status == .done ? "done" : said.status == .failed ? "failed" : "pending"
+            return .init(
+                text: said.text, localTime: said.localTime, status: status, actions: actions, reply: said.reply,
+                questions: said.questions + asking, undone: said.undoneAt != nil)
         }
     }
 

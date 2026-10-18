@@ -18,6 +18,9 @@ struct NoteRow: Codable, FetchableRecord, PersistableRecord {
     var attempts: Int
     var nextAttemptAt: Date?
     var finishedAt: Date?
+    var actions: [NoteAction]
+    var questions: [String]
+    var undoneAt: Date?
 
     init(_ note: Note) {
         id = note.id
@@ -32,12 +35,16 @@ struct NoteRow: Codable, FetchableRecord, PersistableRecord {
         attempts = 0
         nextAttemptAt = nil
         finishedAt = note.finishedAt
+        actions = note.actions
+        questions = note.questions
+        undoneAt = note.undoneAt
     }
 
     var note: Note {
         Note(
             id: id, text: text, createdAt: createdAt, localTime: localTime, timeZone: timeZone, day: day,
-            status: Note.Status(rawValue: status) ?? .queued, problem: problem, reply: reply, finishedAt: finishedAt)
+            status: Note.Status(rawValue: status) ?? .queued, problem: problem, reply: reply, finishedAt: finishedAt,
+            actions: actions, questions: questions, undoneAt: undoneAt)
     }
 }
 
@@ -54,6 +61,7 @@ struct EntryRow: Codable, FetchableRecord, PersistableRecord {
     var question: String?
     var createdAt: Date
     var sortKey: String
+    var deletedAt: Date?
 
     init(_ entry: Entry, said: LocalDateTime) throws {
         id = entry.id
@@ -66,13 +74,31 @@ struct EntryRow: Codable, FetchableRecord, PersistableRecord {
         confidence = entry.confidence
         question = entry.question
         createdAt = entry.createdAt
-        if case .event(let event) = entry.data { sortKey = event.start ?? event.end ?? said } else { sortKey = said }
+        sortKey = Self.sortKey(entry.data, said: said)
+        deletedAt = nil
+    }
+
+    /// 时间轴里排在哪：开始、结束，都没有就是说这句话的时刻
+    static func sortKey(_ data: RecordData, said: LocalDateTime) -> String {
+        if case .event(let event) = data { return event.start ?? event.end ?? said }
+        return said
+    }
+
+    /// 换成另一个样子（改、撤销时）：哪天、内容、把握、要不要问，排序跟着变
+    mutating func set(_ state: EntryState, said: LocalDateTime) throws {
+        day = state.day
+        kind = state.data.kind
+        if case .event(let event) = state.data { category = event.category } else { category = nil }
+        data = String(bytes: try JSONEncoder.pour.encode(state.data), encoding: .utf8) ?? "{}"
+        confidence = state.confidence
+        question = state.question
+        sortKey = Self.sortKey(state.data, said: said)
     }
 
     func entry() throws -> Entry {
         Entry(
             id: id, noteId: noteId, day: day, data: try JSONDecoder().decode(RecordData.self, from: Data(data.utf8)),
-            span: span, confidence: confidence, question: question, createdAt: createdAt)
+            span: span, confidence: confidence, question: question, createdAt: createdAt, deleted: deletedAt != nil)
     }
 }
 
@@ -105,6 +131,47 @@ struct CategoryRow: Codable, FetchableRecord, PersistableRecord {
     }
 }
 
+/// 一条记录的一次改动（改动历史、撤销照它来）
+struct EntryVersionRow: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "entryVersion"
+    var seq: Int64?
+    var entryId: String
+    var noteId: String?
+    var action: String
+    var span: String
+    var before: String?
+    var after: String?
+    var changedAt: Date
+
+    /// 表里的列名是 at（第 2 版迁移就是这么建的）
+    enum CodingKeys: String, CodingKey {
+        case seq, entryId, noteId, action, span, before, after
+        case changedAt = "at"
+    }
+
+    init(
+        _ entryId: String, _ action: NoteAction.Kind, noteId: String?, span: String, before: EntryState? = nil,
+        after: EntryState? = nil, at changedAt: Date
+    ) throws {
+        self.entryId = entryId
+        self.noteId = noteId
+        self.action = action.rawValue
+        self.span = span
+        self.before = try before.map { String(bytes: try JSONEncoder.pour.encode($0), encoding: .utf8) ?? "{}" }
+        self.after = try after.map { String(bytes: try JSONEncoder.pour.encode($0), encoding: .utf8) ?? "{}" }
+        self.changedAt = changedAt
+    }
+
+    var beforeState: EntryState? { before.flatMap { try? JSONDecoder().decode(EntryState.self, from: Data($0.utf8)) } }
+    var afterState: EntryState? { after.flatMap { try? JSONDecoder().decode(EntryState.self, from: Data($0.utf8)) } }
+
+    var change: EntryChange {
+        EntryChange(
+            kind: NoteAction.Kind(rawValue: action) ?? .updated, noteId: noteId, changedAt: changedAt, span: span,
+            before: beforeState, after: afterState)
+    }
+}
+
 struct ChangePackageRow: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "changePackage"
     var noteId: String
@@ -131,4 +198,13 @@ extension JSONEncoder {
         encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
         return encoder
     }
+}
+
+/// 一天的一句话总结
+struct SummaryRow: Codable, FetchableRecord, PersistableRecord {
+    static let databaseTableName = "summary"
+    var day: String
+    var text: String
+    var inputHash: String
+    var createdAt: Date
 }

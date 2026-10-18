@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 3,
   "noteId": "0B6F3C2E-6B1D-4C8A-9E55-3A7D2F1C9B10",
   "intents": [
     "record"
@@ -81,6 +81,29 @@
       "question": "要记一条还小王饭钱的待办吗？"
     }
   ],
+  "updates": [
+    {
+      "id": "7C2D9E4B-1A3F-4E6D-8B5C-0F9A2D7E3C02",
+      "action": "completed",
+      "day": "2026-10-17",
+      "data": {
+        "kind": "todo",
+        "content": "交房租",
+        "due": "2026-10-19",
+        "done": true,
+        "people": [],
+        "things": [],
+        "places": []
+      },
+      "span": "房租交了",
+      "confidence": 1
+    }
+  ],
+  "deletes": [],
+  "duplicates": [],
+  "questions": [],
+  "newCategories": [],
+  "skipped": [],
   "reply": "",
   "steps": [
     {

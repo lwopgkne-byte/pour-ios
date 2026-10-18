@@ -15,5 +15,7 @@ describe('接口契约的文件', () => {
     const change = JSON.parse((await contractFiles())['example-change-package.json']!)
     expect(change.creates.map((c: { question?: string }) => c.question ?? null)).toEqual([null, null, null, '要记一条还小王饭钱的待办吗？'])
     expect(change.creates[1].data).toMatchObject({ people: ['小王'], metrics: [{ value: 32 }], start: '2026-10-18T12:00' })
+    // 「房租交了」：昨天那条待办做完了（v2）
+    expect(change.updates).toEqual([expect.objectContaining({ id: '7C2D9E4B-1A3F-4E6D-8B5C-0F9A2D7E3C02', action: 'completed', data: expect.objectContaining({ done: true }) })])
   })
 })

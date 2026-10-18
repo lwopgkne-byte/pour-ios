@@ -1,7 +1,7 @@
 /** 测试用的背景包：预置类别就是手机建库用的那一份（PourData 的 categories.json） */
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { type BackgroundPackage, Category, type ExistingRecord } from '../src/contract.ts'
+import { type BackgroundPackage, CONTRACT_VERSION, Category, type DialogueTurn, type ExistingRecord } from '../src/contract.ts'
 import { ROOT } from '../src/env.ts'
 
 export const SEED_CATEGORIES: Category[] = (
@@ -10,15 +10,16 @@ export const SEED_CATEGORIES: Category[] = (
 
 export function backgroundPackage(
   text: string,
-  over: { localTime?: string; day?: string; existing?: ExistingRecord[]; id?: string } = {},
+  over: { localTime?: string; day?: string; existing?: ExistingRecord[]; id?: string; dialogue?: DialogueTurn[] } = {},
 ): BackgroundPackage {
   const localTime = over.localTime ?? '2026-09-24T09:30'
   return {
-    version: 1,
+    version: CONTRACT_VERSION,
     note: { id: over.id ?? 'note-1', text, localTime, timeZone: 'Asia/Shanghai', day: over.day ?? localTime.slice(0, 10) },
     dayBoundary: 240,
     categories: SEED_CATEGORIES,
     existing: over.existing ?? [],
+    dialogue: over.dialogue ?? [],
   }
 }
 

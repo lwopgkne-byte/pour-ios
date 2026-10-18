@@ -1,10 +1,12 @@
 /**
- * 接口契约 v1（docs/03-架构与开发方案.md 第 8 节）：手机发「背景包」，网关回「改动包」。
- * 改格式先升版本号；`npm run contract` 把它们写成 JSON Schema（gateway/contract/），手机那边的测试用同一份核对。
+ * 接口契约（docs/03-架构与开发方案.md 第 8 节）：手机发「背景包」，网关回「改动包」。
+ * 改格式先升版本号；`npm run contract` 把它们写成 JSON Schema 和样例（gateway/contract/），手机那边的测试用同一份核对。
+ * v2（M2b）：背景包带上最近的对话；改动包除了新建，还有改、删、之前已记过、要问你的话
+ * v3（M2c）：类别带上颜色和顺序；改动包带上这段话新建的类别（生活领域、AI 提的新活动），手机照着建上
  */
 import { z } from 'zod'
 
-export const CONTRACT_VERSION = 1
+export const CONTRACT_VERSION = 3
 
 const DateStr = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 /** 本地时刻：说这句话的地方墙上的钟点，YYYY-MM-DDTHH:mm（网关不认时区） */
@@ -19,6 +21,10 @@ export const Category = z.object({
   /** duration 时长 / count 次数 / 其他是数量的单位（公里、页） */
   measure: z.string().default('duration'),
   synonyms: z.array(z.string()).default([]),
+  /** 九个领域色之一（stone、moss……） */
+  color: z.string().default('stone'),
+  /** 排第几（预置的 10–900，新建的 500） */
+  order: z.number().int().default(500),
 })
 export type Category = z.infer<typeof Category>
 
@@ -80,6 +86,25 @@ export const ExistingRecord = z.object({
 })
 export type ExistingRecord = z.infer<typeof ExistingRecord>
 
+/** 收据里的一个动作（对话里说给 AI 听：刚才记下、改了、删了哪条） */
+export const ReceiptAction = z.enum(['created', 'updated', 'duplicate', 'completed', 'confirmed', 'deleted'])
+
+/** 最近的一段对话（这段话之前一小时内、最多 4 段，从早到晚）：AI 看得到刚才说了什么、记下了哪几条、问了什么 */
+export const DialogueTurn = z.object({
+  text: z.string(),
+  localTime: LocalDateTime,
+  /** done 整理好了、pending 还没整理、failed 没整理成 */
+  status: z.enum(['done', 'pending', 'failed']),
+  /** 这段话做了什么：动作、哪条记录（手机的编号）、那条记录现在的样子（一句话） */
+  actions: z.array(z.object({ action: ReceiptAction, recordId: z.string(), text: z.string() })).default([]),
+  reply: z.string().optional(),
+  /** 问了你、还在等回答的话 */
+  questions: z.array(z.string()).default([]),
+  /** 这段话整理出的记录已经被撤销了 */
+  undone: z.boolean().default(false),
+})
+export type DialogueTurn = z.infer<typeof DialogueTurn>
+
 /** 背景包：整理一段话要用的全部背景，手机从本机数据库拼出来 */
 export const BackgroundPackage = z.object({
   version: z.literal(CONTRACT_VERSION),
@@ -97,6 +122,8 @@ export const BackgroundPackage = z.object({
   categories: z.array(Category).min(1),
   /** 今天的记录、前后几天还没做完的待办 */
   existing: z.array(ExistingRecord).default([]),
+  /** 最近的对话：回答「是的」「刚才那个」时，AI 才知道指的是什么 */
+  dialogue: z.array(DialogueTurn).default([]),
 })
 export type BackgroundPackage = z.infer<typeof BackgroundPackage>
 
@@ -125,6 +152,20 @@ export const StepLog = z.object({
 })
 export type StepLog = z.infer<typeof StepLog>
 
+/** 改动包里改了的一条记录：改完以后的样子（手机留着改之前的样子，撤销和改动历史照它来） */
+export const UpdatedRecord = z.object({
+  id: z.string().min(1),
+  /** updated 改了内容、confirmed 你确认了、completed 待办做完了 */
+  action: z.enum(['updated', 'confirmed', 'completed']),
+  day: DateStr,
+  data: RecordData,
+  span: z.string().default(''),
+  confidence: z.number().min(0).max(1),
+  /** 改完还拿不准、要问你的话 */
+  question: z.string().optional(),
+})
+export type UpdatedRecord = z.infer<typeof UpdatedRecord>
+
 /** 改动包：理解一段话的全部结果，手机在一个事务里整体写入、整体撤销 */
 export const ChangePackage = z.object({
   version: z.literal(CONTRACT_VERSION),
@@ -133,6 +174,17 @@ export const ChangePackage = z.object({
   intents: z.array(z.enum(['record', 'question', 'goal', 'correction', 'chat'])),
   /** 新建的记录（收据由手机照这些记录排出来） */
   creates: z.array(NewRecord),
+  updates: z.array(UpdatedRecord).default([]),
+  /** 删掉的记录（手机留着删之前的样子，可以撤销） */
+  deletes: z.array(z.object({ id: z.string().min(1), span: z.string().default('') })).default([]),
+  /** 之前已经记过的（又说了一遍，没有新东西） */
+  duplicates: z.array(z.object({ id: z.string().min(1), span: z.string().default('') })).default([]),
+  /** 要问你的话（拿不准删哪条时先问，不删） */
+  questions: z.array(z.string()).default([]),
+  /** 这段话新建的类别（生活领域、AI 提的新活动）：手机先建类别、再写记录 */
+  newCategories: z.array(Category).default([]),
+  /** 程序把关没记的（问的话、没做的、别人的事……），给开发看，手机不用 */
+  skipped: z.array(z.string()).default([]),
   /** 给你的一句话（聊天的回应、整理顺口说的话） */
   reply: z.string(),
   steps: z.array(StepLog),

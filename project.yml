@@ -41,6 +41,8 @@ targets:
       - package: PourKit
         product: PourAI
       - package: PourKit
+        product: PourPlatform
+      - package: PourKit
         product: PourDesign
     info:
       path: App/Info.plist # 生成的文件，不提交
@@ -64,6 +66,8 @@ targets:
         PourGatewayURL: $(POUR_GATEWAY_URL)
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+        # 真机连这台 Mac 上的网关要用局域网：系统第一次会问，这句话写清楚为什么
+        NSLocalNetworkUsageDescription: 整理你说的话时，要连上这台 Mac 上的 AI 网关（开发阶段，上架后不需要）。
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(POUR_BUNDLE_ID)

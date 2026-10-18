@@ -64,3 +64,27 @@ export function recentDaysTable(today: DateStr, days = 14): string {
   }
   return lines.join('\n')
 }
+
+const WEEKDAY_CHARS = '一二三四五六日天'
+/** 「周五」「上周三」「这星期一」：前缀、星期几 */
+const WEEKDAY_REF = /(上上|上|这|本|下)?(?:周|星期|礼拜)([一二三四五六日天])/g
+
+/**
+ * 原话里说的星期几是哪天（网页版 weekdayDateIn，和最近两周日期表同一套规则）：
+ * 「上周三」是上一周的周三；「这周一」是这一周的周一；只说「周五」是已经过去的最近那个周五（今天是周五就是今天）。
+ * 「下周……」是将来的事，不管；一段话里说了好几个不一样的星期几，也不管
+ */
+export function weekdayDateIn(text: string, today: DateStr): DateStr | null {
+  const refs = [...text.matchAll(WEEKDAY_REF)].map((m) => ({ prefix: m[1] ?? '', day: Math.min(WEEKDAY_CHARS.indexOf(m[2]!), 6) }))
+  if (refs.length === 0) return null
+  const keys = new Set(refs.map((r) => `${r.prefix}${r.day}`))
+  if (keys.size > 1) return null
+  const { prefix, day } = refs[0]!
+  if (prefix === '下') return null
+  const thisMonday = addDays(today, -weekdayMon0(today))
+  if (prefix === '上上') return addDays(thisMonday, day - 14)
+  if (prefix === '上') return addDays(thisMonday, day - 7)
+  const thisWeek = addDays(thisMonday, day)
+  if (prefix === '这' || prefix === '本') return thisWeek <= today ? thisWeek : null
+  return thisWeek <= today ? thisWeek : addDays(thisWeek, -7)
+}

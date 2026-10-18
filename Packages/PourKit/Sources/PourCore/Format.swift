@@ -42,11 +42,12 @@ public enum PourFormat {
         return text
     }
 
-    /// 日子的大标题：「今天」「昨天」；今年的「10月14日」；往年的「2025年10月14日」
+    /// 日子的大标题：「今天」「昨天」「明天」（待办的期限）；今年的「10月14日」；往年的「2025年10月14日」
     public static func dayTitle(_ day: DayString, today: DayString) -> String {
         switch PourDate.diffDays(day, today) {
         case 0: return "今天"
         case -1: return "昨天"
+        case 1: return "明天"
         default: return monthDay(day, today: today)
         }
     }

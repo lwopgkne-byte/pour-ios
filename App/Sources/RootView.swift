@@ -48,6 +48,7 @@ struct RootView: View {
         .overlay {
             if model.composing { ComposeLayer() }
         }
+        .sheet(item: $model.detail) { ref in EntryDetailView(entryId: ref.id) }
         .animation(PourMotion.smooth, value: model.composing)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.becameActive() }

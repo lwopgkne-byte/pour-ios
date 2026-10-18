@@ -4,7 +4,8 @@
     import PourCore
 
     /// 界面测试用的假网关（只在 Debug 版里，启动参数 -uiTest）：不连网、不花钱，按原话里的字回一个改动包。
-    /// 「跑」→ 跑步 5 公里；「面」→ 吃面 ¥32 · 和小王；「断网」→ 连不上；「余额」→ 余额不足；别的 → 只回一句话。
+    /// 「跑」→ 跑步 5 公里；「面」→ 吃面 ¥32 · 和小王（待确认）；「对」→ 确认等着的那条；
+    /// 「断网」→ 连不上；「余额」→ 余额不足；别的 → 只回一句话。
     /// 回之前等 0.8 秒，看得见「整理中」
     final class StubGateway: URLProtocol, @unchecked Sendable {
         static func client() -> GatewayClient {
@@ -45,6 +46,7 @@
             }
             let day = background?.note.day ?? ""
             var creates: [String] = []
+            var updates: [String] = []
             if text.contains("跑") {
                 creates.append(
                     #"{"day":"\#(day)","data":{"kind":"event","category":"run","label":"跑步","#
@@ -58,12 +60,21 @@
                         + #""metrics":[{"name":"花费","value":32,"unit":"元"}],"people":["小王"],"things":[],"places":[]},"#
                         + #""span":"和小王吃面三十二","confidence":0.6,"question":"三十二是花了 32 块吗？"}"#)
             }
-            let reply = creates.isEmpty ? "好的，听到了。" : ""
+            // 「对」：回答追问，确认还在等确认的那一条（真的网关靠最近的对话认出来）
+            if text == "对", let waiting = background?.existing.first(where: { $0.question != nil }),
+                let data = try? JSONEncoder().encode(waiting.data), let json = String(bytes: data, encoding: .utf8)
+            {
+                updates.append(
+                    #"{"id":"\#(waiting.id)","action":"confirmed","day":"\#(waiting.day)","data":\#(json),"#
+                        + #""span":"对","confidence":1}"#)
+            }
+            let reply = creates.isEmpty && updates.isEmpty ? "好的，听到了。" : ""
             let noteId = background?.note.id ?? ""
             return (
                 200,
-                #"{"version":1,"noteId":"\#(noteId)","intents":["record"],"#
-                    + #""creates":[\#(creates.joined(separator: ","))],"reply":"\#(reply)","steps":[]}"#
+                #"{"version":3,"noteId":"\#(noteId)","intents":["record"],"#
+                    + #""creates":[\#(creates.joined(separator: ","))],"updates":[\#(updates.joined(separator: ","))],"#
+                    + #""deletes":[],"duplicates":[],"questions":[],"newCategories":[],"reply":"\#(reply)","steps":[]}"#
             )
         }
 

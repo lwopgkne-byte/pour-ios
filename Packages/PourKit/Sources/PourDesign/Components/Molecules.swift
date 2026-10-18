@@ -204,5 +204,7 @@ public struct UndoToast: View {
         .glassEffect(.regular, in: .capsule)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.updatesFrequently)
+        // 界面测试按它找浮在底部的玻璃（和倾倒栏一样算底部的栏）
+        .accessibilityIdentifier("undoToast")
     }
 }

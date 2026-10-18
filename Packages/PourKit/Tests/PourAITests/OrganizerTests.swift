@@ -52,8 +52,9 @@ final class FakeGateway: URLProtocol, @unchecked Sendable {
     }
 
     static func change(noteId: String, _ creates: String, reply: String = "") -> String {
-        #"{"version":1,"noteId":"\#(noteId)","intents":["record"],"#
-            + #""creates":\#(creates),"reply":"\#(reply)","steps":[]}"#
+        #"{"version":3,"noteId":"\#(noteId)","intents":["record"],"creates":\#(creates),"#
+            + #""updates":[],"deletes":[],"duplicates":[],"questions":[],"newCategories":[],"#
+            + #""reply":"\#(reply)","steps":[]}"#
     }
 }
 
@@ -135,5 +136,32 @@ struct OrganizerTests {
         let note = try #require(try store.snapshot(of: "2026-10-18").notes.first)
         #expect(note.status == .failed)
         #expect(note.problem == "没整理成：大模型账户余额不足。充值后会自动继续整理。")
+    }
+
+    @Test func summarizesOnlyWhenWhatCanBeSaidChanges() async throws {
+        let store = try PourStore.inMemory()
+        let date = Date(timeIntervalSince1970: 1_792_281_600)
+        let note = try store.addNote("早上跑了五公里", at: date, timeZone: shanghai)
+        let run = RecordData.event(.init(category: "run", label: "跑步"))
+        try store.apply(
+            NoteChanges(creates: [NewEntry(day: "2026-10-18", data: run)]), toNote: note.id, package: Data("{}".utf8))
+        FakeGateway.replies = [(200, #"{"version":3,"day":"2026-10-18","summary":"早上跑了步","steps":[]}"#)]
+        let summarizer = Summarizer(store: store, gateway: FakeGateway.client())
+        #expect(try await summarizer.generate("2026-10-18"))
+        #expect(try store.snapshot(of: "2026-10-18").summary == "早上跑了步")
+        // 记录没变：不再问 AI
+        #expect(try await summarizer.generate("2026-10-18") == false)
+        // 加一条待确认的、一条待办：都不算能说的，指纹不变
+        let more = try store.addNote("吃面二十八 明天交房租", at: date.addingTimeInterval(60), timeZone: shanghai)
+        try store.apply(
+            NoteChanges(creates: [
+                NewEntry(day: "2026-10-18", data: .event(.init(category: "diet", label: "吃面")), question: "是 28 吗？"),
+                NewEntry(day: "2026-10-18", data: .todo(.init(content: "交房租"))),
+            ]), toNote: more.id, package: Data("{}".utf8))
+        #expect(try await summarizer.generate("2026-10-18") == false)
+        // 能说的都没了（撤销了）：总结也去掉
+        try store.undo(note.id)
+        _ = try await summarizer.generate("2026-10-18")
+        #expect(try store.snapshot(of: "2026-10-18").summary == nil)
     }
 }

@@ -20,6 +20,7 @@ struct FormatTests {
     @Test func dayTitles() {
         #expect(PourFormat.dayTitle("2026-10-18", today: "2026-10-18") == "今天")
         #expect(PourFormat.dayTitle("2026-10-17", today: "2026-10-18") == "昨天")
+        #expect(PourFormat.dayTitle("2026-10-19", today: "2026-10-18") == "明天")
         #expect(PourFormat.dayTitle("2026-10-14", today: "2026-10-18") == "10月14日")
         #expect(PourFormat.dayTitle("2025-10-14", today: "2026-10-18") == "2025年10月14日")
         #expect(PourFormat.weekday("2026-10-18") == "周日")

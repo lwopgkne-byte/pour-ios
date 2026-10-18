@@ -71,8 +71,8 @@ struct PourStoreTests {
                 .init(category: "diet", label: "吃面", metrics: [.init(name: "花费", value: 32, unit: "元")], people: ["小王"])
             ),
             span: "中午和小王吃面三十二", confidence: 0.6, question: "三十二是花了 32 块吗？")
-        try store.finish(
-            noteId: note.id, creates: [lunch, run], reply: "", package: Data("{}".utf8), at: at("2026-10-18T12:41"))
+        try store.apply(
+            NoteChanges(creates: [lunch, run]), toNote: note.id, package: Data("{}".utf8), at: at("2026-10-18T12:41"))
 
         let day = try store.snapshot(of: "2026-10-18")
         #expect(day.notes.map(\.status) == [.done])
@@ -107,17 +107,16 @@ struct PourStoreTests {
     @Test func theAIseesTheDaysRecordsAndNearbyOpenTodos() throws {
         let store = try PourStore.inMemory()
         let yesterday = try store.addNote("明天交房租 买猫粮", at: at("2026-10-17T21:00"), timeZone: shanghai)
-        try store.finish(
-            noteId: yesterday.id,
-            creates: [
+        try store.apply(
+            NoteChanges(creates: [
                 NewEntry(day: "2026-10-17", data: .todo(.init(content: "交房租", due: "2026-10-18"))),
                 NewEntry(day: "2026-10-17", data: .todo(.init(content: "买猫粮", done: true))),
                 NewEntry(day: "2026-10-17", data: .event(.init(category: "work", label: "开会"))),
-            ], reply: "", package: Data("{}".utf8))
+            ]), toNote: yesterday.id, package: Data("{}".utf8))
         let today = try store.addNote("跑步", at: at("2026-10-18T07:00"), timeZone: shanghai)
-        try store.finish(
-            noteId: today.id, creates: [NewEntry(day: "2026-10-18", data: .event(.init(category: "run", label: "跑步")))],
-            reply: "", package: Data("{}".utf8))
+        try store.apply(
+            NoteChanges(creates: [NewEntry(day: "2026-10-18", data: .event(.init(category: "run", label: "跑步")))]),
+            toNote: today.id, package: Data("{}".utf8))
         let existing = try store.existingEntries(around: "2026-10-18")
         // 今天的全部；前几天的只要没做完的待办
         #expect(existing.map(\.day) == ["2026-10-18", "2026-10-17"])

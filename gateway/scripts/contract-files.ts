@@ -7,7 +7,7 @@ import { backgroundPackage } from '../test/sample.ts'
 
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`
 
-export const EXAMPLE_TEXT = '早上跑了五公里 中午和小王吃面三十二'
+export const EXAMPLE_TEXT = '早上跑了五公里 中午和小王吃面三十二 房租交了'
 
 export async function contractFiles(): Promise<Record<string, string>> {
   const bg = BackgroundPackage.parse({
@@ -25,6 +25,16 @@ export async function contractFiles(): Promise<Record<string, string>> {
         question: '是这个月的房租吗？',
       },
     ],
+    dialogue: [
+      {
+        text: '明天交房租',
+        localTime: '2026-10-17T21:05',
+        status: 'done',
+        actions: [{ action: 'created', recordId: '7C2D9E4B-1A3F-4E6D-8B5C-0F9A2D7E3C02', text: '待办：交房租' }],
+        questions: ['是这个月的房租吗？'],
+        undone: false,
+      },
+    ],
   })
   const llm = new FakeLlm().on('router', recordIntent(EXAMPLE_TEXT)).on('parse-note', {
     items: [
@@ -32,6 +42,7 @@ export async function contractFiles(): Promise<Record<string, string>> {
       { op: 'create', kind: 'event', category: 'diet', label: '吃面', date: 'today', start: '12:00', metrics: [{ name: '花费', value: 32, unit: '元', item: '面' }], people: ['小王'], span: '中午和小王吃面三十二', confidence: 0.9 },
       { op: 'create', kind: 'mood', tone: 'good', strength: 'weak', emotions: ['满足'], span: '', confidence: 0.5 },
       { op: 'create', kind: 'todo', content: '还小王饭钱', due: 'tomorrow', people: ['小王'], span: '', confidence: 0.6, question: '要记一条还小王饭钱的待办吗？' },
+      { op: 'complete_todo', entry_id: 2, span: '房租交了' },
     ],
     reply: '',
   })

@@ -46,7 +46,7 @@ describe('网关服务', () => {
     const lines = serve(new FakeLlm().on('router', recordIntent()).on('parse-note', { items: [run], reply: '记下了。' }))
     const res = await app.inject({ method: 'POST', url: '/v1/understand', payload: backgroundPackage('8点开始跑步跑了一个小时') })
     expect(res.statusCode).toBe(200)
-    expect(res.json()).toMatchObject({ version: 1, noteId: 'note-1', intents: ['record'], creates: [{ data: { label: '跑步' } }], reply: '记下了。' })
+    expect(res.json()).toMatchObject({ version: CONTRACT_VERSION, noteId: 'note-1', intents: ['record'], creates: [{ data: { label: '跑步' } }], reply: '记下了。' })
     expect(lines).toHaveLength(1)
     expect(lines[0]).toMatch(/理解 200 .*record 新建 1/)
     expect(lines[0]).not.toContain('跑步')
@@ -92,5 +92,30 @@ describe('配置', () => {
     const c = loadConfig({}, '/不存在的文件')
     expect(c).toMatchObject({ apiKey: null, model: 'deepseek-flash', host: '127.0.0.1', port: 5480, thinking: 'disabled', devToken: null })
     expect(loadConfig({ LLM_BASE_URL: 'https://example.com/v1/' }, '/不存在的文件')).toMatchObject({ baseUrl: 'https://example.com/v1', thinking: null })
+  })
+})
+
+describe('真机配对', () => {
+  it('配对码换令牌；令牌能用；配好一台就换配对码；输错 5 次也换', async () => {
+    const { Pairing } = await import('../src/pairing.ts')
+    const pairing = new Pairing(null)
+    app = buildServer({ config, llm: new FakeLlm().on('router', recordIntent()).on('parse-note', { items: [], reply: '' }), pairing, log: () => {} })
+    const payload = backgroundPackage('8点开始跑步')
+    // 从这台 Mac 自己来的（模拟器）不用令牌；局域网里别的设备要
+    expect((await app.inject({ method: 'POST', url: '/v1/understand', payload })).statusCode).toBe(200)
+    const phone = { remoteAddress: '192.168.1.23' }
+    expect((await app.inject({ method: 'POST', url: '/v1/understand', payload, ...phone })).statusCode).toBe(401)
+    const wrong = await app.inject({ method: 'POST', url: '/v1/pair', payload: { code: '000000x', device: 'iPhone 15' } })
+    expect(wrong.statusCode).toBe(403)
+    const code = pairing.code
+    const paired = await app.inject({ method: 'POST', url: '/v1/pair', payload: { code, device: 'iPhone 15' } })
+    const token = paired.json().token as string
+    expect(token.length).toBeGreaterThan(30)
+    expect(pairing.code).not.toBe(code)
+    const ok = await app.inject({ method: 'POST', url: '/v1/understand', payload, ...phone, headers: { authorization: `Bearer ${token}` } })
+    expect(ok.statusCode).toBe(200)
+    const before = pairing.code
+    for (let i = 0; i < 5; i++) pairing.pair('xxxxxx', 'x')
+    expect(pairing.code).not.toBe(before)
   })
 })

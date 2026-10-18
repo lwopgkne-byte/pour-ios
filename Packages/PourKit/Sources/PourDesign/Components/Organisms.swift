@@ -17,6 +17,8 @@ public struct PourTimelineRow<Content: View>: View {
     }
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// 时间列跟着字号变宽：字调大（还没到无障碍字号、时间还在左边）时「07:10」不被挤（M2b 审计发现）
+    @ScaledMetric(relativeTo: .footnote) private var timeColumn = PourSize.timelineTimeColumn - PourSpace.element
 
     public var body: some View {
         if dynamicTypeSize.isAccessibilitySize {
@@ -37,7 +39,7 @@ public struct PourTimelineRow<Content: View>: View {
                 Text(time ?? "")
                     .pourText(.caption).monospacedDigit()
                     .foregroundStyle(PourColor.inkSecondary.color)
-                    .frame(width: PourSize.timelineTimeColumn - PourSpace.element, alignment: .trailing)
+                    .frame(width: timeColumn, alignment: .trailing)
                     .padding(.top, 3)
                 ZStack(alignment: .top) {
                     if !isLast { Rectangle().fill(PourColor.line.color).frame(width: 1).padding(.top, 14) }
