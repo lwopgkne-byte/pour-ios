@@ -4,7 +4,7 @@ name: Pour
 options:
   bundleIdPrefix: com.lwopgkne
   deploymentTarget:
-    iOS: "26.0"
+    iOS: "27.0"
   developmentLanguage: zh-Hans
   createIntermediateGroups: true
   xcodeVersion: "27.1"

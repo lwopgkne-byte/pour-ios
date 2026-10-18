@@ -6,7 +6,7 @@
 |---|---|---|
 | [A01](A01-语言.md) | Swift 6（严格并发） | 已定 |
 | [A02](A02-界面.md) | SwiftUI 为主，倾倒栏输入区用 UIKit 包一层 | 已定 |
-| [A03](A03-最低系统.md) | 最低系统 iOS 26；用 Xcode 27.1 构建 | 已定（2026-10-17 产品主人改过） |
+| [A03](A03-最低系统.md) | 最低系统暂时 iOS 27，只管产品主人的 iPhone 15；用 Xcode 27.1 构建 | 已定（2026-10-18 产品主人改过） |
 | [A04](A04-架构.md) | 分层 + 单向数据流；@Observable + swift-dependencies | 已定 |
 | [A05](A05-数据库.md) | SQLite + GRDB；界面观察和同步用 SQLiteData | 已定 |
 | [A06](A06-同步.md) | CloudKit 私有库（SQLiteData 同步引擎），同步层可替换 | 已定 |

@@ -2,16 +2,19 @@
 # iOS 一键检查（M0）：推送前自动跑（.githooks/pre-push），合并前 GitHub Actions 再跑一遍。
 #   ① 生成工程 ② 密钥和文案检查 ③ 代码格式 ④ SwiftLint（含令牌检查）⑤ 依赖方向、原始色板是最新的 ⑥ 隐私清单
 #   ⑦ 规则和设计系统的单元测试（Mac 上直接跑）
-#   ⑧ App 和设计画廊的测试：iOS 26（最低系统，iPhone 17 Pro）和 iOS 27（最新系统）各一台模拟器
+#   ⑧ App 和设计画廊的测试：一台模拟器「iPhone 15 · iOS 27」——和产品主人的手机一样
+#      （2026-10-18 产品主人：先只管自己的 iPhone 15 + iOS 27，别的机型和兼容性等功能做完再说，ADR A03）
 # 用法：scripts/check.sh            日常（推送前、GitHub）：画廊只跑审计实验和样张亮色那一遍，几分钟
 #       scripts/check.sh --full     全部（每个模块自验收前）：样张和画廊每一页 × 亮暗、最大字号 × 一屏一屏审计
 #       scripts/check.sh --no-ui    跳过界面测试（最快）
 # 用专用的检查模拟器「Pour 检查」（没有就建，scripts/simulator.py），每次先关掉再开好再跑。
-# 机型默认 iPhone 17 Pro，可以用 POUR_SIMULATOR="iPhone 13" 换；某个系统不支持这个机型就用它支持的第一个 iPhone
+# 机型默认 iPhone 15、系统 iOS 27，可以用 POUR_SIMULATOR="iPhone 17 Pro" POUR_IOS="26 27" 换；
+# 某个系统不支持这个机型就用它支持的第一个 iPhone
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-SIMULATOR="${POUR_SIMULATOR:-iPhone 17 Pro}"
+SIMULATOR="${POUR_SIMULATOR:-iPhone 15}"
+IOS_MAJORS="${POUR_IOS:-27}"
 SKIP_UI=0
 FULL=0
 [[ "${1:-}" == "--no-ui" ]] && SKIP_UI=1
@@ -55,7 +58,7 @@ step "⑧ App 和设计画廊的测试"
 EXTRA=()
 [[ ${SKIP_UI} == 1 ]] && EXTRA=(-skip-testing:PourUITests -skip-testing:GalleryUITests) && echo "（跳过界面测试）"
 mkdir -p build
-for MAJOR in 26 27; do
+for MAJOR in ${IOS_MAJORS}; do
   IFS=$'\t' read -r SIM_ID SIM_NAME < <(python3 scripts/simulator.py "Pour 检查" "${SIMULATOR}" "${MAJOR}") \
     || fail "没有 iOS ${MAJOR} 的模拟器：在 Xcode → 设置 → Components 里装上"
   # 关掉重开，并等它完全开好再测：刚开机时系统桌面还在准备，这时启动 App 会被拒（「Busy」）
