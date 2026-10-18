@@ -15,9 +15,9 @@ struct AppTests {
         let token = style == .dark ? PourColor.canvas.dark : PourColor.canvas.light
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
         #expect(resolved.getRed(&red, green: &green, blue: &blue, alpha: &alpha))
-        #expect(Int((red * 255).rounded()) == Int(token.red))
-        #expect(Int((green * 255).rounded()) == Int(token.green))
-        #expect(Int((blue * 255).rounded()) == Int(token.blue))
+        #expect(Int((red * 255).rounded()) == Int(token.rgb.red))
+        #expect(Int((green * 255).rounded()) == Int(token.rgb.green))
+        #expect(Int((blue * 255).rounded()) == Int(token.rgb.blue))
     }
 
     /// 隐私清单要真的打进安装包（ADR A20）

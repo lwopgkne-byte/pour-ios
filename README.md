@@ -1,6 +1,6 @@
 # Pour（倾）· iOS
 
-你只管倾倒，AI 负责把混沌变成结构。这里是 Pour 的 iOS App：SwiftUI + Liquid Glass，最低 iOS 26。
+你只管倾倒，AI 负责把混沌变成结构。这里是 Pour 的 iOS App：SwiftUI + Liquid Glass。现在只做产品主人的 iPhone 15 + iOS 27（最低系统暂时 iOS 27，ADR A03）。
 
 ## 开始
 

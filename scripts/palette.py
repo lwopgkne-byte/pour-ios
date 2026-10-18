@@ -2,9 +2,10 @@
 Pour 的原始色板：按 OKLCH 色彩空间的亮度阶梯生成，并按 WCAG 2.2 公式实测对比度。
 设计规范 docs/设计规范/01-颜色.md 里的每个色值都来自这里，不手调十六进制。
 
-用法：python scripts/palette.py [输出的 json 路径，默认 scripts/palette.json]
-改颜色：只改下面的亮度 / 饱和度 / 色相，重新运行，把报告里的对比度和规范核对一遍。
-（M1 会把它接进 CI：生成的 json 变成 PourDesign 的令牌，对比度不达标就报错。）
+用法：python3 scripts/palette.py [输出的 json 路径，默认 scripts/palette.json]
+      python3 scripts/palette.py --swift          重新生成 PourDesign 的原始色板（PourPalette.swift）
+      python3 scripts/palette.py --swift --check  只核对生成的 Swift 是不是最新的（scripts/check.sh 会跑）
+改颜色：只改下面的亮度 / 饱和度 / 色相，重新生成；对比度由 PourDesign 的测试把关，不达标就红。
 """
 import math, json, sys
 sys.stdout.reconfigure(encoding='utf-8')
@@ -58,6 +59,42 @@ for key, name, h, c in DOM:
         'bgLight': to_hex(0.955, c*0.22, h), 'bgDark': to_hex(0.290, c*0.35, h),
         'textLight': to_hex(0.430, c*0.85, h), 'textDark': to_hex(0.860, c*0.55, h),
     }
+if '--swift' in sys.argv:
+    import os
+    here = os.path.dirname(os.path.abspath(__file__))
+    target = os.path.join(here, '..', 'Packages', 'PourKit', 'Sources', 'PourDesign', 'Generated', 'PourPalette.swift')
+    def h(x): return '0x' + x.lstrip('#')
+    lines = ['// 生成的文件：scripts/palette.py --swift。不要手改——改颜色改脚本里的亮度、饱和度、色相。',
+             '// 原始色板只在令牌定义里用（PourColor），界面代码不直接引用（设计规范 01 第 1 节）。', '',
+             '/// 原始色板（OKLCH 生成）', 'public enum PourPalette {']
+    for k, v in out['neutral'].items(): lines.append(f'    public static let paper{k} = RGB({h(v)})')
+    for k, v in out['qing'].items(): lines.append(f'    public static let qing{k} = RGB({h(v)})')
+    for k, v in out['amber'].items(): lines.append(f'    public static let amber{k} = RGB({h(v)})')
+    lines.append(f"    public static let markerLight = RGB({h(out['marker']['light'])})")
+    lines.append(f"    public static let markerDark = RGB({h(out['marker']['dark'])})")
+    lines.append('}')
+    lines += ['', '/// 九个生活领域的颜色（规范 01 第 3.1 节）：实色、浅底、文字，亮暗各一',
+              'public enum PourDomain: String, CaseIterable, Sendable {']
+    for k, d in out['domain'].items(): lines.append(f"    /// {d['name']}\n    case {k}")
+    lines += ['', '    public var palette: DomainPalette {', '        switch self {']
+    for k, d in out['domain'].items():
+        lines.append(f"        case .{k}:")
+        lines.append("            DomainPalette(")
+        lines.append(f"                name: \"{d['name']}\",")
+        lines.append(f"                solidLight: RGB({h(d['solidLight'])}), solidDark: RGB({h(d['solidDark'])}),")
+        lines.append(f"                bgLight: RGB({h(d['bgLight'])}), bgDark: RGB({h(d['bgDark'])}),")
+        lines.append(f"                textLight: RGB({h(d['textLight'])}), textDark: RGB({h(d['textDark'])}))")
+    lines += ['        }', '    }', '}', '']
+    text = '\n'.join(lines).replace('\\n', '\n')
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    if '--check' in sys.argv:
+        current = open(target, encoding='utf-8').read() if os.path.exists(target) else ''
+        if current != text:
+            print('PourPalette.swift 不是最新的：运行 python3 scripts/palette.py --swift'); sys.exit(1)
+        print('原始色板是最新的'); sys.exit(0)
+    open(target, 'w', encoding='utf-8').write(text)
+    print('已生成', os.path.normpath(target)); sys.exit(0)
+
 json.dump(out, open(sys.argv[1] if len(sys.argv) > 1 else 'scripts/palette.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
 
 N, Q = out['neutral'], out['qing']

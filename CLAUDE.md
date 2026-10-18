@@ -28,19 +28,20 @@
 
 ## 一个模块一个模块来
 
-M0–M13 见 [docs/03-架构与开发方案.md](docs/03-架构与开发方案.md) 第 10 节。每个模块：写小方案 `docs/模块/Mx-名字.md` → 开 `feature/ios-mX-名字` 分支做 → **自验收**（`scripts/check.sh --full`、两种屏宽的截图 `scripts/screenshots.sh`、设计审查清单，写 `docs/验收/Mx-自验收.md`）→ 我看最终结果 → 合并请求通过 GitHub Actions、我验收后才合并，打标签 `ios-mX-accepted`。设计规范在设计画廊 App（`PourGallery`）里看，新组件先进画廊。
+M0–M13 见 [docs/03-架构与开发方案.md](docs/03-架构与开发方案.md) 第 10 节。每个模块：写小方案 `docs/模块/Mx-名字.md` → 开 `feature/ios-mX-名字` 分支做 → **自验收**（`scripts/check.sh --full`、设计审查清单，写 `docs/验收/Mx-自验收.md`）→ 我看最终结果 → 合并请求通过 GitHub Actions、我验收后才合并，打标签 `ios-mX-accepted`。设计规范在设计画廊 App（`PourGallery`）里看，新组件先进画廊。
 
 ## 命令
 
 - `scripts/bootstrap.sh`：准备环境（可以重复运行）
-- `scripts/check.sh`：日常检查——密钥、格式、SwiftLint 令牌检查、依赖方向、原始色板、隐私清单、单元和对拍、iOS 26 和 27 模拟器上的测试、样张一屏一屏的无障碍审计；`--no-ui` 跳过界面测试；**`--full` 是全部审计（样张和画廊每一页 × 亮暗、最大字号），每个模块自验收前必须跑**
-- `scripts/screenshots.sh <目录>`：375 点和 440 点宽两种屏幕的截图（顺带审计）
+- `scripts/check.sh`：日常检查——密钥、格式、SwiftLint 令牌检查、依赖方向、原始色板、隐私清单、单元和对拍、「iPhone 15 · iOS 27」模拟器上的测试、样张一屏一屏的无障碍审计；`--no-ui` 跳过界面测试；**`--full` 是全部审计（样张和画廊每一页 × 亮暗、最大字号），每个模块自验收前必须跑**
 - `scripts/install-device.sh`：用数据线装到 iPhone（免费签名，7 天要重装）
 - 推送前 Git 会自动跑日常检查，没过就推不上去，**不要用 `--no-verify` 跳过**
 
-## 现阶段（产品主人 2026-10-17 决定）
+## 现阶段（产品主人 2026-10-17、10-18 决定）
 
-- Xcode 27.1，App 最低系统 iOS 26（ADR A03）
+- **最要紧的是把功能做出来、在产品主人的手机上看效果**（2026-10-18）
+- **只管产品主人的手机：iPhone 15 + iOS 27**。最低系统暂时 iOS 27；检查只用模拟器「iPhone 15 · iOS 27」；iOS 26、别的机型、不同屏宽的兼容性等功能做完再考虑（ADR A03）
+- Xcode 27.1
 - 暂不加入苹果开发者计划：没有 TestFlight，验收用模拟器（产品主人的手机不在身边时）或数据线装到 iPhone
 - 不开 GitHub Pro，主分支没有保护：靠流程——只通过合并请求、我验收后才合并
 - 全部用苹果的默认字体
