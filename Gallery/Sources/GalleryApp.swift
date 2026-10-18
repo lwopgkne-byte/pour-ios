@@ -11,6 +11,9 @@ struct GalleryApp: App {
                 AuditProbe()
             } else if ProcessInfo.processInfo.arguments.contains("-auditProbe2") {
                 AuditProbe2()
+            } else if ProcessInfo.processInfo.arguments.contains("-auditProbe3") {
+                AuditProbe3()
+
             } else if ProcessInfo.processInfo.arguments.contains("-auditScrollProbe") {
                 AuditScrollProbe()
             } else {
@@ -95,6 +98,27 @@ struct AuditScrollProbe: View {
     }
 }
 
+/// 审计实验 3（只给界面测试用）：一行放得下、带全角括号的字（画廊的分节标题）——iPhone 15 · iOS 27.0 上报「截断」。
+/// 实验页一页只放几个探针：放多了超出屏幕，上下被切掉，审计的结果就不准了（M1 自验收两次踩到）
+struct AuditProbe3: View {
+    static let paren = "心情五档（越好越深）"
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: PourSpace.card) {
+            Text(Self.paren).pourText(.caption).accessibilityIdentifier("probe.paren.pour")
+            Text("心情五档，越好越深").pourText(.caption).accessibilityIdentifier("probe.paren.free")
+            Text(Self.paren).font(.footnote).accessibilityIdentifier("probe.paren.footnote")
+            Text(Self.paren).font(.footnote).lineSpacing(0).accessibilityIdentifier("probe.paren.footnoteSpacing")
+            Text(Self.paren).font(.caption).accessibilityIdentifier("probe.paren.caption")
+            Text(Self.paren).font(.body).accessibilityIdentifier("probe.paren.body")
+            Text("Mood (5 levels)").font(.footnote).accessibilityIdentifier("probe.paren.latin")
+        }
+        .padding(PourSpace.page(forWidth: 393))
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(PourColor.canvas.color)
+    }
+}
+
 /// 审计实验 2（只给界面测试用）：审计量对比度时的两个毛病
 /// - 一个字一个字的小标签（图表的星期）：同色同号，「三」报不够、「一」和两个字的「三月」不报
 /// - 带荧光的原话块报不够；一模一样的原话块去掉荧光就不报
@@ -108,6 +132,7 @@ struct AuditProbe2: View {
                     glyph("三", id: "probe.glyph.san")
                     glyph("一", id: "probe.glyph.yi")
                     glyph("三月", id: "probe.glyph.sanyue")
+                    glyph("7", id: "probe.glyph.seven")
                 }
             }
             PourCard { QuoteBlock(source: "10月16日 周五 21:10 · 语音", quote: Self.quote, highlight: "打车回的 56 能报销") }

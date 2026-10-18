@@ -54,6 +54,10 @@ private struct PourBarAccessory: View {
             Image(systemName: "mic").foregroundStyle(PourColor.inkSecondary.color).accessibilityLabel(Text("按住说话"))
         }
         .padding(.horizontal, PourSpace.card)
+        // 标签栏附件的高度由系统定、不随字号长高（最大字号时字被切掉一截——iPhone 15 自验收）：
+        // 和系统标签栏一样，字号封顶，更大的字号长按看大字（大字查看器）
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .accessibilityShowsLargeContentViewer { Label("说点什么", systemImage: "mic") }
         // 整条栏是一个容器、带这个编号（界面测试按它找底部玻璃的位置）；不加这一句，编号会落到里面的字上
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("pourbar")
@@ -93,8 +97,6 @@ struct TodaySample: View {
                                 highlightNew: true)
                         }
                         .padding(.top, PourSpace.section)
-                        UndoToast("已记下 \(receipt.lines.count) 件事").frame(maxWidth: .infinity).padding(
-                            .top, PourSpace.element)
                     }
 
                     VStack(alignment: .leading, spacing: 0) {
@@ -114,6 +116,13 @@ struct TodaySample: View {
             }
         }
         .background(PourColor.canvas.color)
+        // 撤销条浮在底部、倾倒栏上面（规范 12「撤销条在底部 5 秒」），不跟着内容滚；
+        // 放进底部的安全区：内容能滚到它上面，最后几行不会被它挡住（M1 自验收）
+        .safeAreaInset(edge: .bottom) {
+            if showReceipt, let receipt {
+                UndoToast("已记下 \(receipt.lines.count) 件事").padding(.bottom, PourSpace.element)
+            }
+        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) { PourAvatar("我", size: PourSize.avatarInline + 6) }
         }
