@@ -172,13 +172,13 @@ final class GalleryUITests: XCTestCase {
         let missing = walker.walk([
             { screen, scrolled in
                 self.attach(app.screenshot(), name: "\(name)-第\(screen)屏")
-                self.audit(app, name: name, scrolled: scrolled, hasBottomGlass: hasBottomGlass, types: Self.staysPut)
+                self.audit(app, walker, name: name, scrolled: scrolled, types: Self.staysPut)
             },
             { _, scrolled in
-                self.audit(app, name: name, scrolled: scrolled, hasBottomGlass: hasBottomGlass, types: .textClipped)
+                self.audit(app, walker, name: name, scrolled: scrolled, types: .textClipped)
             },
             { _, scrolled in
-                self.audit(app, name: name, scrolled: scrolled, hasBottomGlass: hasBottomGlass, types: .dynamicType)
+                self.audit(app, walker, name: name, scrolled: scrolled, types: .dynamicType)
             },
         ])
         XCTAssertTrue(missing.isEmpty, "「\(name)」有 \(missing.count) 段字没有完整露出来审过：\(missing.prefix(5))")
@@ -188,37 +188,38 @@ final class GalleryUITests: XCTestCase {
     private static let staysPut = XCUIAccessibilityAuditType.all.subtracting([.textClipped, .dynamicType])
 
     @MainActor
-    private func auditContext(_ app: XCUIApplication, hasBottomGlass: Bool, scrolled: Bool) -> AuditContext {
-        // 有底部玻璃（标签栏、倾倒栏）的页面：玻璃和它上方一小段系统滚动渐变里，审计会把渐变算进对比度——
-        // 那是滚动边缘，不是要读的内容，只对这一段放过对比度；文字颜色本身的对比度由 PourColorTests 逐对实算
-        var glassTop = app.frame.maxY
+    private func auditContext(_ walker: ScreenWalker, scrolled: Bool) -> AuditContext {
+        // 底部玻璃（标签栏、倾倒栏）和它往上的一段投影、导航栏和它下面的一段渐变：审计量出来的对比度不准——
+        // 那是滚动边缘，不是要读的内容，只对这几段放过对比度；文字颜色本身的对比度由 PourColorTests 逐对实算
+        let view = walker.viewport()
+        let screenBottom = walker.screenBottom
+        let hasBottomGlass = walker.hasBottomGlass
+        var glassTop = screenBottom
         if hasBottomGlass {
-            let bars = [app.tabBars.firstMatch, app.descendants(matching: .any)["pourbar"].firstMatch].filter(\.exists)
-            let top = bars.map(\.frame.minY).min() ?? app.frame.maxY
             // 防止放过太多：玻璃的上沿必须在屏幕下方三分之一以内，找错了就当没有玻璃
-            XCTAssertGreaterThan(top, app.frame.height * 0.66, "底部玻璃的位置不对（\(top)），不放过任何问题")
-            if top > app.frame.height * 0.66 { glassTop = top - ScreenWalker.bottomFade }
+            XCTAssertGreaterThan(view.upperBound, screenBottom * 0.66, "底部玻璃的位置不对（\(view.upperBound)），不放过任何问题")
+            if view.upperBound > screenBottom * 0.66 { glassTop = view.upperBound - ScreenWalker.bottomFade }
         }
-        // 顶上的导航栏也是系统的玻璃：内容滚到它下面（和它下方一小段渐变），一样会被隔着渐变量对比度
         return AuditContext(
             hasBottomGlass: hasBottomGlass, glassTop: glassTop,
-            topEdge: ScreenWalker.navigationBar(app).map { $0.frame.maxY + ScreenWalker.topFade } ?? 0,
-            screenBottom: app.frame.maxY, scrolled: scrolled)
+            topEdge: view.lowerBound > 0 ? view.lowerBound + ScreenWalker.topFade : 0,
+            screenBottom: screenBottom, scrolled: scrolled)
     }
 
-    /// 跑一次审计。审计自己偶尔超时（「Audit failed to complete in time」）：等两秒重审一次，再超时就算没通过
+    /// 跑一次审计。审计自己偶尔超时（「Audit failed to complete in time」，电脑同时在忙别的时更常见）：
+    /// 等五秒再审，最多三次；三次都超时就算没通过
     @MainActor
     private func audit(
-        _ app: XCUIApplication, name: String, scrolled: Bool, hasBottomGlass: Bool, types: XCUIAccessibilityAuditType
+        _ app: XCUIApplication, _ walker: ScreenWalker, name: String, scrolled: Bool, types: XCUIAccessibilityAuditType
     ) {
-        let context = auditContext(app, hasBottomGlass: hasBottomGlass, scrolled: scrolled)
-        for attempt in 1...2 {
+        let context = auditContext(walker, scrolled: scrolled)
+        for attempt in 1...3 {
             do {
                 try app.performAccessibilityAudit(for: types) { issue in Self.judge(issue, name: name, context) }
                 return
-            } catch let error as NSError where error.code == -56 && attempt == 1 {
-                print("审计超时，等两秒重审 [\(name)]")
-                RunLoop.current.run(until: Date().addingTimeInterval(2))
+            } catch let error as NSError where error.code == -56 && attempt < 3 {
+                print("审计超时，等五秒重审 [\(name)]")
+                RunLoop.current.run(until: Date().addingTimeInterval(5))
             } catch {
                 XCTFail("「\(name)」审计没跑完：\(error.localizedDescription)")
                 return

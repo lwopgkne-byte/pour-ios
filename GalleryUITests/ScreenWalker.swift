@@ -12,6 +12,21 @@ import XCTest
 struct ScreenWalker {
     let app: XCUIApplication
     let hasBottomGlass: Bool
+    /// 这一页看得见的导航栏、底部玻璃栏和屏幕：开始走的时候找一次（每次都在整棵树里找很慢——M1 一屏要走近一分钟）
+    private let navigationBar: XCUIElement?
+    private let bottomBars: [XCUIElement]
+    private let screen: CGRect
+    var screenBottom: CGFloat { screen.maxY }
+
+    init(app: XCUIApplication, hasBottomGlass: Bool) {
+        self.app = app
+        self.hasBottomGlass = hasBottomGlass
+        navigationBar = Self.navigationBar(app)
+        bottomBars =
+            hasBottomGlass
+            ? [app.tabBars.firstMatch, app.descendants(matching: .any)["pourbar"].firstMatch].filter(\.exists) : []
+        screen = app.frame
+    }
 
     /// 滚动区域里的一段字：「字 + 第几次出现」认出是同一段（同样的字可能出现好几次）
     struct TextKey: Hashable {
@@ -75,12 +90,8 @@ struct ScreenWalker {
 
     /// 内容能完整露出来的那一段（屏幕坐标）：导航栏下沿到底部玻璃上沿；没有底部玻璃就到屏幕下沿
     func viewport() -> ClosedRange<CGFloat> {
-        let top = Self.navigationBar(app)?.frame.maxY ?? app.frame.minY
-        var bottom = app.frame.maxY
-        if hasBottomGlass {
-            let bars = [app.tabBars.firstMatch, app.descendants(matching: .any)["pourbar"].firstMatch].filter(\.exists)
-            bottom = bars.map(\.frame.minY).min() ?? bottom
-        }
+        let top = navigationBar?.frame.maxY ?? screen.minY
+        let bottom = bottomBars.map(\.frame.minY).min() ?? screen.maxY
         return top...max(bottom, top + 1)
     }
 
@@ -132,12 +143,12 @@ struct ScreenWalker {
         let view = viewport()
         // 离开导航栏、底部玻璃和主屏指示条（从屏幕最下面往上拖会回到主屏）
         let top = view.lowerBound + 24
-        let bottom = min(view.upperBound, app.frame.maxY - 60) - 24
+        let bottom = min(view.upperBound, screen.maxY - 60) - 24
         // 系统认出「在拖」之前手指要先动一小段（约 10 点），这一段页面不动：多拖这么多
         let length = min(abs(distance) + 10, bottom - top)
         let (fromY, toY) = distance > 0 ? (bottom, bottom - length) : (top, top + length)
         let origin = app.coordinate(withNormalizedOffset: .zero)
-        let x = app.frame.midX
+        let x = screen.midX
         origin.withOffset(CGVector(dx: x, dy: fromY)).press(
             forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: x, dy: toY)),
             withVelocity: .slow, thenHoldForDuration: 0.3)
