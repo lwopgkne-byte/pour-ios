@@ -84,6 +84,7 @@ describe('同一句话几分钟内又发了一遍（网页版 sameAsRecent）', 
     expect(ai).toBe(false)
     expect(out.intents).toEqual([])
     expect(out.reply).toBe(RESENT_REPLY)
+    expect(out.replyByProgram).toBe(true)
   })
 
   it('过了 5 分钟、上一次撤销了、上一次没记下东西（删、改、问可以反复说）：照常整理', async () => {

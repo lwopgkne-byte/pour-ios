@@ -48,6 +48,8 @@ public struct ReceiptView: View {
     var problem: String?
     /// 整理时顺口回你的一句话（只是聊天、没有要记的时候）
     var reply: String?
+    /// 这句话是程序写的（不是 AI）：不标「AI」
+    var replyByProgram: Bool
     var onRetry: (() -> Void)?
     /// 刚刚整理好（看着它整理完的）：逐张凝结；打开页面时已经整理好的直接显示
     var condenses: Bool
@@ -65,7 +67,8 @@ public struct ReceiptView: View {
     public init(
         time: String, quote: String, state: ReceiptState, lines: [ReceiptLine] = [],
         question: QuestionPrompt? = nil, highlightNew: Bool = false, waitingSince: Date? = nil,
-        problem: String? = nil, reply: String? = nil, condenses: Bool = false, undone: Bool = false,
+        problem: String? = nil, reply: String? = nil, replyByProgram: Bool = false, condenses: Bool = false,
+        undone: Bool = false,
         onAnswer: ((String) -> Void)? = nil, onOpen: ((ReceiptLine) -> Void)? = nil, onRetry: (() -> Void)? = nil
     ) {
         self.time = time
@@ -77,6 +80,7 @@ public struct ReceiptView: View {
         self.waitingSince = waitingSince
         self.problem = problem
         self.reply = reply
+        self.replyByProgram = replyByProgram
         self.condenses = condenses
         self.undone = undone
         self.onAnswer = onAnswer
@@ -115,7 +119,9 @@ public struct ReceiptView: View {
                             .offset(y: visible || reduceMotion ? 0 : 6)
                     }
                 }
-                if lines.isEmpty, let reply, !reply.isEmpty {
+                if lines.isEmpty, let reply, !reply.isEmpty, replyByProgram {
+                    Text(reply).pourText(.callout).foregroundStyle(PourColor.ink.color)
+                } else if lines.isEmpty, let reply, !reply.isEmpty {
                     PourAIText(reply, style: .callout, color: PourColor.ink)
                 } else if lines.isEmpty {
                     Text("这段话没有要记的事").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)

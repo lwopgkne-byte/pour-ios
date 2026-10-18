@@ -100,17 +100,25 @@ extension PourStore {
             }
             let text = String(bytes: package, encoding: .utf8) ?? "{}"
             try ChangePackageRow(noteId: noteId, appliedAt: date, package: text).upsert(db)
-            note.status = Note.Status.done.rawValue
-            note.reply = changes.reply.isEmpty ? nil : changes.reply
-            note.problem = nil
-            note.nextAttemptAt = nil
-            note.finishedAt = date
-            note.actions = actions
-            note.questions = changes.questions
-            note.awaitingDelete = changes.awaitingDelete
-            note.undoneAt = nil
-            try note.update(db)
+            try Self.finish(&note, with: changes, actions: actions, at: date, db)
         }
+    }
+
+    /// 这段话整理好了：收据（做了什么）、回你的话、问你的话、在等回答要不要删的那几条
+    static func finish(
+        _ note: inout NoteRow, with changes: NoteChanges, actions: [NoteAction], at date: Date, _ db: Database
+    ) throws {
+        note.status = Note.Status.done.rawValue
+        note.reply = changes.reply.isEmpty ? nil : changes.reply
+        note.replyByProgram = changes.replyByProgram
+        note.problem = nil
+        note.nextAttemptAt = nil
+        note.finishedAt = date
+        note.actions = actions
+        note.questions = changes.questions
+        note.awaitingDelete = changes.awaitingDelete
+        note.undoneAt = nil
+        try note.update(db)
     }
 
     /// 先建这段话新建的类别（记录要用到它们）；已经有了的不重复建

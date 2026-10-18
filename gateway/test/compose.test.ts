@@ -12,7 +12,9 @@ async function say(text: string, intents: { type: string; text: string }[], item
 
 describe('给你的那句话（照网页版 composeStep）', () => {
   it('回复里不出现内部编号；替系统做承诺的回复不显示', async () => {
-    expect((await say('跑步', recordIntent('跑步').intents, [run], '跑步记在 #3 下面了。')).reply).toBe('跑步记在下面了。')
+    const ai = await say('跑步', recordIntent('跑步').intents, [run], '跑步记在 #3 下面了。')
+    expect(ai.reply).toBe('跑步记在下面了。')
+    expect(ai.replyByProgram).toBe(false)
     expect((await say('跑步', recordIntent('跑步').intents, [run], '到时候会提醒你')).reply).toBe('')
   })
 
@@ -24,7 +26,10 @@ describe('给你的那句话（照网页版 composeStep）', () => {
 
   it('什么都没发生要说明白：要改却没找到是哪条就问；要记的都记过了就说一声；只是提问照实说问答还没做', async () => {
     expect((await say('删掉那条', [{ type: 'correction', text: '删掉那条' }], [])).questions).toEqual([WHICH_ONE])
-    expect((await say('跑步', recordIntent('跑步').intents, [])).reply).toBe(NOTHING_TO_RECORD)
+    const nothing = await say('跑步', recordIntent('跑步').intents, [])
+    expect(nothing.reply).toBe(NOTHING_TO_RECORD)
+    // 程序写的话手机不标「AI」
+    expect(nothing.replyByProgram).toBe(true)
     expect((await say('这周跑了几次', [{ type: 'question', text: '这周跑了几次' }], [])).reply).toBe(NO_ANSWER_YET)
   })
 
@@ -32,6 +37,7 @@ describe('给你的那句话（照网页版 composeStep）', () => {
     const mood = { op: 'create', kind: 'mood', tone: 'bad', strength: 'strong', distress: true, emotions: [], span: '', confidence: 0.9 }
     const out = await say('不想活了', recordIntent('不想活了').intents, [mood], '要不要说说？')
     expect(out.reply).toBe(DISTRESS_REPLY)
+    expect(out.replyByProgram).toBe(true)
     expect(out.questions).toEqual([])
   })
 })

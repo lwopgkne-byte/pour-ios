@@ -30,6 +30,8 @@ public struct Note: Hashable, Sendable, Identifiable {
     public var problem: String?
     /// 整理时顺口回你的一句话（聊天的回应）
     public var reply: String?
+    /// 那句话是程序写的（「这句话刚才已经说过了」）：不标「AI」
+    public var replyByProgram: Bool
     /// 整理好的时刻：收据「刚凝结」的高亮、撤销条从这里算
     public var finishedAt: Date?
     /// 这段话做了什么（收据一行一件）：记下、改了、删了、之前已记过……
@@ -44,7 +46,8 @@ public struct Note: Hashable, Sendable, Identifiable {
     public init(
         id: String = UUID().uuidString, text: String, createdAt: Date, localTime: LocalDateTime, timeZone: String,
         day: DayString, status: Status = .queued, problem: String? = nil, reply: String? = nil,
-        finishedAt: Date? = nil, actions: [NoteAction] = [], questions: [String] = [], awaitingDelete: [String] = [],
+        replyByProgram: Bool = false, finishedAt: Date? = nil, actions: [NoteAction] = [], questions: [String] = [],
+        awaitingDelete: [String] = [],
         undoneAt: Date? = nil
     ) {
         self.id = id
@@ -56,6 +59,7 @@ public struct Note: Hashable, Sendable, Identifiable {
         self.status = status
         self.problem = problem
         self.reply = reply
+        self.replyByProgram = replyByProgram
         self.finishedAt = finishedAt
         self.actions = actions
         self.questions = questions
@@ -173,12 +177,15 @@ public struct NoteChanges: Hashable, Sendable {
     /// 问了要不要删的那几条（下一句回答「对」时照着删）
     public var awaitingDelete: [String]
     public var reply: String
+    /// 那句话是程序写的：不标「AI」
+    public var replyByProgram: Bool
     /// 这段话新建的类别（生活领域、新活动）：先建类别、再写记录
     public var newCategories: [LifeCategory]
 
     public init(
         creates: [NewEntry] = [], updates: [Updated] = [], deletes: [Mention] = [], duplicates: [Mention] = [],
-        questions: [String] = [], awaitingDelete: [String] = [], reply: String = "", newCategories: [LifeCategory] = []
+        questions: [String] = [], awaitingDelete: [String] = [], reply: String = "", replyByProgram: Bool = false,
+        newCategories: [LifeCategory] = []
     ) {
         self.creates = creates
         self.updates = updates
@@ -187,6 +194,7 @@ public struct NoteChanges: Hashable, Sendable {
         self.questions = questions
         self.awaitingDelete = awaitingDelete
         self.reply = reply
+        self.replyByProgram = replyByProgram
         self.newCategories = newCategories
     }
 }

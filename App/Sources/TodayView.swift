@@ -181,6 +181,7 @@ private struct NoteReceipt: View {
         ReceiptView(
             time: PourFormat.clock(note.localTime), quote: note.text, state: state, lines: lines,
             question: question, waitingSince: note.createdAt, problem: note.problem, reply: note.reply,
+            replyByProgram: note.replyByProgram,
             condenses: model.watching.contains(note.id), undone: note.undoneAt != nil,
             onAnswer: { model.answer($0) },
             onOpen: { line in if let key = line.key { model.detail = .init(id: key) } },

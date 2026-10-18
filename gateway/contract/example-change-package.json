@@ -106,6 +106,7 @@
   "newCategories": [],
   "skipped": [],
   "reply": "",
+  "replyByProgram": false,
   "steps": [
     {
       "step": "parse",

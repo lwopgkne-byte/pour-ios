@@ -39,6 +39,7 @@ function only(bg: BackgroundPackage, part: Partial<ChangePackage>): ChangePackag
     newCategories: [],
     skipped: [],
     reply: '',
+    replyByProgram: true,
     steps: [],
     ...part,
   }

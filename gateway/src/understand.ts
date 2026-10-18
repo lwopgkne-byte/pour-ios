@@ -104,8 +104,8 @@ function compose(o: {
   raw: string
   distress: boolean
   repeatedAgain: boolean
-}): { reply: string; questions: string[] } {
-  if (o.distress) return { reply: DISTRESS_REPLY, questions: [] }
+}): { reply: string; replyByProgram: boolean; questions: string[] } {
+  if (o.distress) return { reply: DISTRESS_REPLY, replyByProgram: true, questions: [] }
   const asking = o.intents.includes('question')
   let reply = asking || PROMISE.test(o.raw) ? '' : noIds(o.raw.trim())
   // 原话说了「又」、程序照新的一次记了：AI 顺口问的「这次和之前那次是同一次吗？」不再问
@@ -117,12 +117,14 @@ function compose(o: {
   }
   const { creates, updates, deletes, duplicates } = o.changes
   const happened = creates.length + updates.length + deletes.length + duplicates.length > 0
+  let replyByProgram = false
   if (!happened && !reply && questions.length === 0) {
     if (o.intents.includes('correction')) questions = [WHICH_ONE]
     else if (o.intents.includes('record')) reply = NOTHING_TO_RECORD
     else if (asking) reply = NO_ANSWER_YET
+    replyByProgram = reply !== ''
   }
-  return { reply, questions }
+  return { reply, replyByProgram, questions }
 }
 
 /** 对话里改心情的字段：那一刻要一字不差在原话里、不是只说了心情；原话没说到精力就不改精力 */

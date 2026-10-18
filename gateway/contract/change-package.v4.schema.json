@@ -695,6 +695,10 @@
     "reply": {
       "type": "string"
     },
+    "replyByProgram": {
+      "default": false,
+      "type": "boolean"
+    },
     "steps": {
       "type": "array",
       "items": {
@@ -746,6 +750,7 @@
     "newCategories",
     "skipped",
     "reply",
+    "replyByProgram",
     "steps"
   ],
   "additionalProperties": false

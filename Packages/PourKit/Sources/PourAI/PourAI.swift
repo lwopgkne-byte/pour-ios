@@ -115,13 +115,16 @@ public struct ChangePackage: Codable, Hashable, Sendable {
     public var newCategories: [LifeCategory]
     /// 给你的一句话（聊天的回应）
     public var reply: String
+    /// 那句话是程序写的（可选：没有就是 AI 写的）
+    public var replyByProgram: Bool?
     public var steps: [Step]
 
     /// 写进数据库的样子
     public var changes: NoteChanges {
         NoteChanges(
             creates: creates, updates: updates, deletes: deletes, duplicates: duplicates, questions: questions,
-            awaitingDelete: awaitingDelete, reply: reply, newCategories: newCategories)
+            awaitingDelete: awaitingDelete, reply: reply, replyByProgram: replyByProgram ?? false,
+            newCategories: newCategories)
     }
 }
 

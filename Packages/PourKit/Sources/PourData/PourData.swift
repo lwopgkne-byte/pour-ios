@@ -119,6 +119,12 @@ public final class PourStore: Sendable {
                 table.add(column: "awaitingDelete", .jsonText).notNull().defaults(to: "[]")
             }
         }
+        migrator.registerMigration("v5 程序写的回复") { db in
+            // 回你的那句话是程序写的（不是 AI）：不标「AI」
+            try db.alter(table: "note") { table in
+                table.add(column: "replyByProgram", .boolean).notNull().defaults(to: false)
+            }
+        }
         return migrator
     }
 }

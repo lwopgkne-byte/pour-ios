@@ -5,6 +5,7 @@
  * v3（M2c）：类别带上颜色和顺序；改动包带上这段话新建的类别（生活领域、AI 提的新活动），手机照着建上
  * v4（M2c）：问了要不要删、在等回答的那几条（awaitingDelete）：改动包里带出来，手机记在这段话上，下一句的对话里带回来——
  *   回答「对」「删吧」时程序直接删这几条，不再问 AI（网页版 awaiting）
+ *   后来加的可选字段（不升版本，旧的手机不认也不出错）：replyByProgram
  */
 import { z } from 'zod'
 
@@ -193,6 +194,8 @@ export const ChangePackage = z.object({
   skipped: z.array(z.string()).default([]),
   /** 给你的一句话（聊天的回应、整理顺口说的话） */
   reply: z.string(),
+  /** 这句话是程序写的（「这句话刚才已经说过了」、很难受时的那句）：手机不标「AI」。可选，没有就是 AI 写的 */
+  replyByProgram: z.boolean().default(false),
   steps: z.array(StepLog),
 })
 export type ChangePackage = z.infer<typeof ChangePackage>

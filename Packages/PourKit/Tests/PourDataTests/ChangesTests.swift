@@ -99,6 +99,15 @@ struct ChangesTests {
         #expect(turns.first?.awaitingDelete == [])
     }
 
+    @Test func aProgramWrittenReplyIsRemembered() throws {
+        let store = try PourStore.inMemory()
+        let note = try store.addNote("跑步", at: noon, timeZone: shanghai)
+        try store.apply(
+            NoteChanges(reply: "这句话刚才已经说过了，记录都在，没有重复记。", replyByProgram: true), toNote: note.id,
+            package: Data("{}".utf8))
+        #expect(try store.note(note.id)?.replyByProgram == true)
+    }
+
     @Test func newCategoriesComeWithTheirRecords() throws {
         let store = try PourStore.inMemory()
         let note = try store.addNote("带娃去公园", at: noon, timeZone: shanghai)

@@ -15,6 +15,7 @@ struct NoteRow: Codable, FetchableRecord, PersistableRecord {
     var status: String
     var problem: String?
     var reply: String?
+    var replyByProgram: Bool
     var attempts: Int
     var nextAttemptAt: Date?
     var finishedAt: Date?
@@ -33,6 +34,7 @@ struct NoteRow: Codable, FetchableRecord, PersistableRecord {
         status = note.status.rawValue
         problem = note.problem
         reply = note.reply
+        replyByProgram = note.replyByProgram
         attempts = 0
         nextAttemptAt = nil
         finishedAt = note.finishedAt
@@ -45,7 +47,8 @@ struct NoteRow: Codable, FetchableRecord, PersistableRecord {
     var note: Note {
         Note(
             id: id, text: text, createdAt: createdAt, localTime: localTime, timeZone: timeZone, day: day,
-            status: Note.Status(rawValue: status) ?? .queued, problem: problem, reply: reply, finishedAt: finishedAt,
+            status: Note.Status(rawValue: status) ?? .queued, problem: problem, reply: reply,
+            replyByProgram: replyByProgram, finishedAt: finishedAt,
             actions: actions, questions: questions, awaitingDelete: awaitingDelete, undoneAt: undoneAt)
     }
 }
