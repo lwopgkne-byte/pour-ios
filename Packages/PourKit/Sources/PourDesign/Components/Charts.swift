@@ -79,8 +79,8 @@ public struct PourTreemap: View {
         // 宽度量出来再排（不用固定高度的 GeometryReader：「还在攒的」那行要能换行、整块跟着长高）
         VStack(alignment: .leading, spacing: Self.gap) {
             // 最小高度，不是固定高度：字调大时块跟着长高，名字不会被截
-            row(first, total: total, width: width).frame(minHeight: 110)
-            if fit > 0 { row(Array(rest.prefix(fit)), total: total, width: width).frame(minHeight: 72) }
+            row(first, total: total, width: width, minHeight: 110)
+            if fit > 0 { row(Array(rest.prefix(fit)), total: total, width: width, minHeight: 72) }
             if !tail.isEmpty {
                 Text("还在攒的：\(tail.map(\.label).joined(separator: " · "))")
                     .pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
@@ -95,7 +95,9 @@ public struct PourTreemap: View {
         }
     }
 
-    private func row(_ items: [TreemapItem], total: Int, width: CGFloat) -> some View {
+    /// 一行的高度是最高的那一块（至少 minHeight），每一块都撑满这一行——面积就是意思，块不能比行矮
+    /// （M1 自验收：块只按字高排，第一行下面空出一条）
+    private func row(_ items: [TreemapItem], total: Int, width: CGFloat, minHeight: CGFloat) -> some View {
         let sum = CGFloat(max(items.map(\.count).reduce(0, +), 1))
         let usable = width - CGFloat(items.count - 1) * Self.gap
         return HStack(spacing: Self.gap) {
@@ -108,12 +110,12 @@ public struct PourTreemap: View {
                 .foregroundStyle(item.domain.text.color)
                 .padding(PourSpace.related)
                 .frame(width: usable * CGFloat(item.count) / sum, alignment: .topLeading)
-                .frame(maxHeight: .infinity, alignment: .topLeading)
-                .fixedSize(horizontal: false, vertical: true)
+                .frame(minHeight: minHeight, maxHeight: .infinity, alignment: .topLeading)
                 .background(RoundedRectangle.pour(PourRadius.md).fill(item.domain.soft.color))
                 .accessibilityElement(children: .combine)
             }
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 

@@ -24,3 +24,6 @@ Secrets.xcconfig
 
 # 系统
 .DS_Store
+
+# Python 的缓存
+__pycache__/

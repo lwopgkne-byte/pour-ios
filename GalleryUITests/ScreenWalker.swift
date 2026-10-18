@@ -76,9 +76,10 @@ struct ScreenWalker {
     /// 系统的滚动边缘效果（导航栏下面的一段渐变）和底部浮动玻璃栏往上的一段投影：内容在那里时，审计量出来的对比度
     /// 不准（GalleryUITests 按同样的数放过），所以一段字要完整地出现在这两段以外才算审过。
     /// 数是从截图的像素量的（M1 自验收）：导航栏下沿往下约 26 点；玻璃栏往上的投影亮色约 24 点、暗色约 36 点，
-    /// 审计在离玻璃 40 点以内都量不准——各留一点余量。页面最后一条离玻璃栏 64 点（PourSpace.pageEnd），在投影以外
+    /// 审计在离看得见的玻璃 40 点以内都量不准。底部按界面树里倾倒栏内容的上沿算——看得见的玻璃比它高约 13 点，
+    /// 所以是 40 + 13，再留一点余量。页面最后一条离玻璃栏 64 点（PourSpace.pageEnd），在这一段以外
     static let topFade: CGFloat = 40
-    static let bottomFade: CGFloat = 44
+    static let bottomFade: CGFloat = 56
 
     /// 审得清楚的那一段：可见区去掉渐变（页面在最顶上时，顶上还没有渐变）
     func clearViewport(scrolled: Bool) -> ClosedRange<CGFloat> {
@@ -125,10 +126,11 @@ struct ScreenWalker {
         return last
     }
 
-    /// 拖到整页上的 target 位置（从最顶上往下滚了多少点），差 20 点以内就行；滚不动了就停
+    /// 拖到整页上的 target 位置（从最顶上往下滚了多少点），差 20 点以内就行；滚不动了就停。
+    /// 最多拖 5 次：标签栏滑动时会收起、展开，页面跟着挪一点，追不上就停在这里——没审到的字下一轮还会再来
     private func go(to target: CGFloat, from start: [TextKey: CGRect]) -> [TextKey: CGRect] {
         var now = settled()
-        for _ in 0..<12 {
+        for _ in 0..<5 {
             guard let offset = Self.scrolled(from: start, to: now), abs(target - offset) >= 20 else { break }
             drag(by: target - offset)
             let after = settled()

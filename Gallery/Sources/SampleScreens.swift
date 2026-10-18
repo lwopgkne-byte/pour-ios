@@ -54,6 +54,8 @@ private struct PourBarAccessory: View {
             Image(systemName: "mic").foregroundStyle(PourColor.inkSecondary.color).accessibilityLabel(Text("按住说话"))
         }
         .padding(.horizontal, PourSpace.card)
+        // 整条栏是一个容器、带这个编号（界面测试按它找底部玻璃的位置）；不加这一句，编号会落到里面的字上
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("pourbar")
     }
 }

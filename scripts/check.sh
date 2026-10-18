@@ -1,6 +1,6 @@
 #!/bin/bash
 # iOS 一键检查（M0）：推送前自动跑（.githooks/pre-push），合并前 GitHub Actions 再跑一遍。
-#   ① 生成工程 ② 密钥检查 ③ 代码格式 ④ SwiftLint（含令牌检查）⑤ 依赖方向、原始色板是最新的 ⑥ 隐私清单
+#   ① 生成工程 ② 密钥和文案检查 ③ 代码格式 ④ SwiftLint（含令牌检查）⑤ 依赖方向、原始色板是最新的 ⑥ 隐私清单
 #   ⑦ 规则和设计系统的单元测试（Mac 上直接跑）
 #   ⑧ App 和设计画廊的测试：iOS 26（最低系统，iPhone 17 Pro）和 iOS 27（最新系统）各一台模拟器
 # 用法：scripts/check.sh            日常（推送前、GitHub）：画廊只跑审计实验和样张亮色那一遍，几分钟
@@ -28,8 +28,9 @@ echo "XcodeGen $(xcodegen --version | awk '{print $2}') · SwiftLint $(swiftlint
 step "① 生成工程"
 xcodegen generate --spec project.yml --quiet || fail "工程生成失败"
 
-step "② 密钥检查"
+step "② 密钥和文案检查"
 python3 scripts/check-secrets.py . || fail "有不能进 Git 的东西"
+python3 scripts/check-wording.py . || fail "文案里有不许用的说法（规范 10 第 4 节）"
 
 step "③ 代码格式（swift-format）"
 xcrun swift-format lint --strict --recursive --configuration .swift-format \
