@@ -54,6 +54,11 @@ plutil -lint App/Resources/PrivacyInfo.xcprivacy || fail "隐私清单格式不�
 step "⑦ 规则和设计系统的单元测试（Mac）"
 (cd Packages/PourKit && swift test --quiet 2>&1 | tail -3) || fail "单元测试没通过"
 
+step "⑦½ AI 网关的测试（Node，假大模型，不连网、不花钱）"
+command -v npm >/dev/null || fail "没找到 Node：brew install node（网关要 Node 24 以上，ADR A08）"
+[[ -d gateway/node_modules ]] || (cd gateway && npm ci --silent) || fail "网关的依赖没装上"
+(cd gateway && npm run --silent typecheck && npx vitest run 2>&1 | tail -4) || fail "网关的测试没通过"
+
 step "⑧ App 和设计画廊的测试"
 EXTRA=()
 [[ ${SKIP_UI} == 1 ]] && EXTRA=(-skip-testing:PourUITests -skip-testing:GalleryUITests) && echo "（跳过界面测试）"

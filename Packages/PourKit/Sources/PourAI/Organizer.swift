@@ -1,0 +1,98 @@
+public import Foundation
+import PourCore
+public import PourData
+
+/// 理解服务：一段一段地整理原话（docs/03 第 5.1 节）。
+/// 原话先存进本机数据库、马上出现在「今天」；这里按先后排队，拼背景包 → 问网关 → 改动包在一个事务里写回去。
+/// 连不上就等网络，AI 一时没回应就过一会儿再试；说不清的错误留给你点「再试一次」
+public actor Organizer {
+    /// 连不上时多久再试：越试越久，最长一分钟（一联网会马上再试，不等这个）
+    static func backoff(attempt: Int) -> TimeInterval { min(60, 5 * pow(2, Double(max(0, attempt - 1)))) }
+    /// AI 一时没回应：最多自动再试几次，之后等你点「再试一次」
+    static let automaticRetries = 2
+
+    private let store: PourStore
+    private let gateway: GatewayClient
+    private let now: @Sendable () -> Date
+    private var running = false
+    private var kickedWhileRunning = false
+    private var wakeUp: Task<Void, Never>?
+
+    public init(store: PourStore, gateway: GatewayClient, now: @escaping @Sendable () -> Date = { Date() }) {
+        self.store = store
+        self.gateway = gateway
+        self.now = now
+    }
+
+    /// 有新原话、联网了、App 回到前台：叫一声，排着队的都整理掉
+    public func kick() {
+        if running {
+            kickedWhileRunning = true
+            return
+        }
+        running = true
+        Task { await drain() }
+    }
+
+    /// 一联网：等网络的原话马上再试
+    public func networkCameBack() {
+        try? store.retryWaitingNow()
+        kick()
+    }
+
+    /// 整理完排着的全部原话；测试里等它做完
+    public func drain() async {
+        running = true
+        repeat {
+            kickedWhileRunning = false
+            while let note = try? store.nextNoteToOrganize(now: now()) {
+                await organize(note)
+            }
+        } while kickedWhileRunning
+        running = false
+        scheduleWakeUp()
+    }
+
+    private func organize(_ note: Note) async {
+        do {
+            try store.markOrganizing(note.id)
+            let background = BackgroundPackage(
+                note: note, categories: try store.categories(), existing: try store.existingEntries(around: note.day))
+            let change = try await gateway.understand(background)
+            let package = try JSONEncoder().encode(change)
+            try store.finish(noteId: note.id, creates: change.creates, reply: change.reply, package: package, at: now())
+        } catch let error as GatewayError {
+            handle(error, note: note)
+        } catch {
+            try? store.markFailed(note.id, problem: "没整理成：\(error.localizedDescription)")
+        }
+    }
+
+    private func handle(_ error: GatewayError, note: Note) {
+        let attempt = (try? store.attempts(of: note.id)) ?? 1
+        switch error {
+        case .unreachable, .timedOut:
+            try? store.markWaitingForNetwork(note.id, retryAt: now().addingTimeInterval(Self.backoff(attempt: attempt)))
+        case .server(_, _, retryable: true) where attempt <= Self.automaticRetries:
+            try? store.requeue(note.id, retryAt: now().addingTimeInterval(Self.backoff(attempt: attempt)))
+        case .server(_, let message, retryable: true):
+            try? store.markFailed(note.id, problem: "没整理成：AI 这次没有回应。\(message)")
+        case .server(_, let message, retryable: false):
+            try? store.markFailed(note.id, problem: "没整理成：\(message)")
+        case .invalidResponse(let detail):
+            try? store.markFailed(note.id, problem: "没整理成：\(detail)")
+        }
+    }
+
+    /// 有原话在等重试：到点叫醒自己
+    private func scheduleWakeUp() {
+        wakeUp?.cancel()
+        guard let date = try? store.nextRetryDate() else { return }
+        let delay = max(0.5, date.timeIntervalSince(now()))
+        wakeUp = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(delay))
+            guard !Task.isCancelled else { return }
+            await self?.kick()
+        }
+    }
+}

@@ -35,6 +35,12 @@ targets:
       - App/Resources
     dependencies:
       - package: PourKit
+        product: PourCore
+      - package: PourKit
+        product: PourData
+      - package: PourKit
+        product: PourAI
+      - package: PourKit
         product: PourDesign
     info:
       path: App/Info.plist # 生成的文件，不提交
@@ -53,6 +59,11 @@ targets:
         UIRequiredDeviceCapabilities: [arm64]
         # 只用系统的 HTTPS，不用自己的加密（出口合规，07 第 7 节）
         ITSAppUsesNonExemptEncryption: false
+        # AI 网关的地址（Config/Base.xcconfig 的 POUR_GATEWAY_URL）。开发阶段网关跑在这台 Mac 上、走局域网的 http；
+        # 上架前搬到国内云、换成 https，这一条随之删掉（M2 模块方案第 3 节）
+        PourGatewayURL: $(POUR_GATEWAY_URL)
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(POUR_BUNDLE_ID)

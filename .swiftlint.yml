@@ -31,8 +31,8 @@ line_length:
   ignores_urls: true
 
 identifier_name:
-  # xs / sm / md / lg 是设计规范 06 的圆角令牌名
-  excluded: [id, x, y, r, g, b, xs, sm, md, lg]
+  # xs / sm / md / lg 是设计规范 06 的圆角令牌名；db 是 GRDB 惯用的数据库参数名（ADR A05）
+  excluded: [id, x, y, r, g, b, xs, sm, md, lg, db]
 
 nesting:
   type_level: 2

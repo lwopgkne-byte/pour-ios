@@ -19,14 +19,14 @@ PACKAGE = pathlib.Path(__file__).resolve().parent.parent / "Packages" / "PourKit
 ALLOWED = {
     "PourCore": set(),
     "PourDesign": set(),
-    "PourData": {"PourCore"},
+    "PourData": {"PourCore", "GRDB"},
     "PourAI": {"PourCore", "PourData"},
     "PourPlatform": {"PourCore", "PourData"},
 }
 LAYERS = set(ALLOWED)
 
 # 写进了 ADR 的第三方库（包的身份 → ADR 编号）。加一个库：先写 ADR，再加到这里
-APPROVED_THIRD_PARTY: dict[str, str] = {}
+APPROVED_THIRD_PARTY: dict[str, str] = {"grdb.swift": "A05"}
 
 
 def target_deps(target: dict) -> set[str]:
@@ -78,7 +78,8 @@ def main() -> int:
             print("  ✗", p)
         return 1
     names = [t["name"] for t in manifest["targets"] if t["type"] != "test"]
-    print(f"依赖方向检查通过：{len(names)} 个包（{', '.join(names)}），没有第三方库。")
+    libraries = "、".join(f"{name}（{adr}）" for name, adr in sorted(APPROVED_THIRD_PARTY.items())) or "没有"
+    print(f"依赖方向检查通过：{len(names)} 个包（{', '.join(names)}）；第三方库：{libraries}。")
     return 0
 
 

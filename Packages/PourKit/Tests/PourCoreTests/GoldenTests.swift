@@ -22,6 +22,81 @@ struct GoldenTests {
     }
 }
 
+extension GoldenTests {
+    /// 日期的 4 个函数（网页版 shared/src/date.ts）
+    @Test func datesMatchWebVersion() throws {
+        let cases = try Golden.load("date").cases
+        let mismatches =
+            Self.addDaysMismatches(cases["addDays"] ?? []) + Self.diffDaysMismatches(cases["diffDays"] ?? [])
+            + Self.weekdayMismatches(cases["weekdayMon0"] ?? []) + Self.validMismatches(cases["isValidDateStr"] ?? [])
+        let total = ["addDays", "diffDays", "weekdayMon0", "isValidDateStr"].reduce(0) { $0 + (cases[$1]?.count ?? 0) }
+        #expect(total >= 130, "标准答案太少，导出脚本是不是坏了")
+        #expect(mismatches.isEmpty, "\(mismatches.count) 处不同：\(mismatches.prefix(5))")
+    }
+
+    static func addDaysMismatches(_ samples: [GoldenSample]) -> [String] {
+        samples.compactMap { sample in
+            guard case .string(let day) = sample.input[0], let days = sample.input[1].number,
+                case .string(let expected) = sample.output
+            else { return "读不懂的样例：\(sample)" }
+            let actual = PourDate.addDays(day, Int(days))
+            return actual == expected ? nil : "addDays(\(day), \(days)) = \(actual)，网页版 \(expected)"
+        }
+    }
+
+    static func diffDaysMismatches(_ samples: [GoldenSample]) -> [String] {
+        samples.compactMap { sample in
+            guard case .string(let lhs) = sample.input[0], case .string(let rhs) = sample.input[1],
+                let expected = sample.output.number
+            else { return "读不懂的样例：\(sample)" }
+            let actual = PourDate.diffDays(lhs, rhs)
+            return Double(actual) == expected ? nil : "diffDays(\(lhs), \(rhs)) = \(actual)，网页版 \(expected)"
+        }
+    }
+
+    static func weekdayMismatches(_ samples: [GoldenSample]) -> [String] {
+        samples.compactMap { sample in
+            guard case .string(let day) = sample.input[0], let expected = sample.output.number else {
+                return "读不懂的样例：\(sample)"
+            }
+            let actual = PourDate.weekdayMon0(day)
+            return Double(actual) == expected ? nil : "weekdayMon0(\(day)) = \(actual)，网页版 \(expected)"
+        }
+    }
+
+    static func validMismatches(_ samples: [GoldenSample]) -> [String] {
+        samples.compactMap { sample in
+            guard case .bool(let expected) = sample.output else { return "读不懂的样例：\(sample)" }
+            // 网页版也接受不是字符串的（null、数字）：都不是合法的日期，Swift 这边类型上就传不进来
+            guard case .string(let day) = sample.input[0] else {
+                return expected ? "isValidDateStr(\(sample.input[0])) 网页版说合法" : nil
+            }
+            return PourDate.isValid(day) == expected ? nil : "isValidDateStr(\(day)) 和网页版不一样"
+        }
+    }
+
+    /// 钟点：parseTime、formatTime（网页版 shared/src/time.ts）
+    @Test func clockMatchesWebVersion() throws {
+        let cases = try Golden.load("time").cases
+        var mismatches: [String] = []
+        for sample in cases["parseTime"] ?? [] {
+            let input: String? = if case .string(let text) = sample.input[0] { text } else { nil }
+            let actual = input.flatMap(PourDate.parseTime).map(Double.init)
+            let expected = sample.output.number
+            if actual != expected {
+                mismatches.append("parseTime(\(sample.input[0])) = \(String(describing: actual))，网页版 \(sample.output)")
+            }
+        }
+        for sample in cases["formatTime"] ?? [] {
+            guard let minutes = sample.input[0].number, case .string(let expected) = sample.output else { continue }
+            let actual = PourDate.formatTime(minutes)
+            if actual != expected { mismatches.append("formatTime(\(minutes)) = \(actual)，网页版 \(expected)") }
+        }
+        #expect((cases["parseTime"]?.count ?? 0) + (cases["formatTime"]?.count ?? 0) >= 80)
+        #expect(mismatches.isEmpty, "\(mismatches.count) 处不同：\(mismatches.prefix(5))")
+    }
+}
+
 /// 标准答案文件的格式：{ cases: { 函数名: [{ in: [参数…], out: 结果 }] } }
 enum Golden {
     struct File: Decodable { let cases: [String: [GoldenSample]] }

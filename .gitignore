@@ -27,3 +27,6 @@ Secrets.xcconfig
 
 # Python 的缓存
 __pycache__/
+
+# AI 网关（gateway/）的依赖：npm install 装的，不提交
+node_modules/

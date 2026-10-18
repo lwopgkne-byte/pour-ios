@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "noteId": "0B6F3C2E-6B1D-4C8A-9E55-3A7D2F1C9B10",
+  "intents": [
+    "record"
+  ],
+  "creates": [
+    {
+      "day": "2026-10-18",
+      "data": {
+        "kind": "event",
+        "category": "run",
+        "label": "跑步",
+        "metrics": [
+          {
+            "name": "距离",
+            "value": 5,
+            "unit": "公里"
+          }
+        ],
+        "people": [],
+        "things": [],
+        "places": []
+      },
+      "span": "早上跑了五公里",
+      "confidence": 0.95
+    },
+    {
+      "day": "2026-10-18",
+      "data": {
+        "kind": "event",
+        "category": "diet",
+        "label": "吃面",
+        "start": "2026-10-18T12:00",
+        "metrics": [
+          {
+            "name": "花费",
+            "value": 32,
+            "unit": "元",
+            "item": "面"
+          }
+        ],
+        "people": [
+          "小王"
+        ],
+        "things": [],
+        "places": []
+      },
+      "span": "中午和小王吃面三十二",
+      "confidence": 0.9
+    },
+    {
+      "day": "2026-10-18",
+      "data": {
+        "kind": "mood",
+        "level": 4,
+        "tone": "good",
+        "strength": "weak",
+        "emotions": [
+          "满足"
+        ]
+      },
+      "span": "",
+      "confidence": 0.5
+    },
+    {
+      "day": "2026-10-18",
+      "data": {
+        "kind": "todo",
+        "content": "还小王饭钱",
+        "due": "2026-10-19",
+        "done": false,
+        "people": [
+          "小王"
+        ],
+        "things": [],
+        "places": []
+      },
+      "span": "",
+      "confidence": 0.6,
+      "question": "要记一条还小王饭钱的待办吗？"
+    }
+  ],
+  "reply": "",
+  "steps": [
+    {
+      "step": "parse",
+      "skill": "parse-note",
+      "skillVersion": "parse-note@46+_voice@2",
+      "durationMs": 0,
+      "promptTokens": 100,
+      "cacheHitTokens": 80,
+      "completionTokens": 50
+    },
+    {
+      "step": "route",
+      "skill": "router",
+      "skillVersion": "router@12+_voice@2",
+      "durationMs": 0,
+      "promptTokens": 100,
+      "cacheHitTokens": 80,
+      "completionTokens": 50
+    }
+  ]
+}
