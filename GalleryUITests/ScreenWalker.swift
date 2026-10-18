@@ -15,16 +15,21 @@ struct ScreenWalker {
     /// 这一页看得见的导航栏、底部玻璃栏和屏幕：开始走的时候找一次（每次都在整棵树里找很慢——M1 一屏要走近一分钟）
     private let navigationBar: XCUIElement?
     private let bottomBars: [XCUIElement]
+    /// 倾倒栏（标签栏的底部附件）：收起、展开时位置不一样，用的时候现取
+    private let pourBar: XCUIElement?
     private let screen: CGRect
     var screenBottom: CGFloat { screen.maxY }
+    var pourBarFrame: CGRect? { pourBar.flatMap { $0.exists ? $0.frame : nil } }
 
     init(app: XCUIApplication, hasBottomGlass: Bool) {
         self.app = app
         self.hasBottomGlass = hasBottomGlass
         navigationBar = Self.navigationBar(app)
-        bottomBars =
-            hasBottomGlass
-            ? [app.tabBars.firstMatch, app.descendants(matching: .any)["pourbar"].firstMatch].filter(\.exists) : []
+        let bar = app.descendants(matching: .any)["pourbar"].firstMatch
+        pourBar = hasBottomGlass && bar.exists ? bar : nil
+        // 浮在底部的撤销条也是玻璃栏：内容滑到它下面量不准，从它下面开始拖也拖不动（最大字号时它很高——M1 自验收）
+        let toast = app.descendants(matching: .any)["undoToast"].firstMatch
+        bottomBars = hasBottomGlass ? [app.tabBars.firstMatch, bar, toast].filter(\.exists) : []
         screen = app.frame
     }
 
@@ -35,38 +40,106 @@ struct ScreenWalker {
     }
 
     /// steps：每一屏按顺序做的事（截图和审计），参数是第几屏、页面滑过没有。每一步之前都把页面拖回这一屏——
-    /// 有的审计审完会把页面挪走。只有露出了还没审过的字，这一屏才审
+    /// 有的审计审完会把页面挪走。只有露出了还没审过的字，这一屏才审。
+    ///
+    /// 页面滚了多少，只拿**屏幕上看得见的字**算（前后两次都在屏幕上的那些字，位置差的中位数），一屏一屏累加：
+    /// 屏幕外的字报的位置不可靠——最大字号时页面很长，拿开头时屏幕外的位置推算，会以为滚到了底（iPhone 15 自验收踩到）
     func walk(_ steps: [(_ screen: Int, _ scrolled: Bool) -> Void]) -> [String] {
-        let start = settled()
-        var frames: [TextKey: CGRect] = [:]  // 每段字在整页上的位置（页面在最顶上时的屏幕坐标）
-        var covered: Set<TextKey> = []
-        var givenUp: Set<TextKey> = []  // 专门拖过去也没能完整露出来的：不再追，最后报出来
-        var now = start
-        var screen = 0
+        var walk = Progress(now: settled())
         for _ in 1...150 {
-            let offset = Self.scrolled(from: start, to: now) ?? 0
-            let scrolled = offset > 1
-            let view = clearViewport(scrolled: scrolled)
-            for (key, frame) in now { frames[key] = frame.offsetBy(dx: 0, dy: offset) }
-            let visible = Set(now.filter { Self.isFullyVisible($0.value, in: view) }.keys)
-            if !visible.isSubset(of: covered) {
-                screen += 1
-                covered.formUnion(visible)
-                for (index, step) in steps.enumerated() {
-                    if index > 0 { _ = go(to: offset, from: start) }
-                    step(screen, scrolled)
-                }
+            walk.all.formUnion(walk.now.keys)
+            auditIfNew(&walk, steps)
+            let pending = walk.pending
+            if pending.isEmpty { break }
+            // 审完拖回来时页面会挪一点：有的字这时才完整露出来——先把它们审掉，再往下走
+            let view = clearViewport(scrolled: walk.offset > 1)
+            if walk.now.contains(where: { pending.contains($0.key) && Self.isFullyVisible($0.value, in: view) }) {
+                continue
             }
-            // 下一屏：还没审过的、最靠上的那段字，拖到「滑过以后」清楚区的顶上（上面留一点边）
-            let pending = frames.filter { !covered.contains($0.key) && !givenUp.contains($0.key) }
-            guard let next = pending.min(by: { $0.value.minY < $1.value.minY }) else { break }
-            now = go(to: next.value.minY - clearViewport(scrolled: true).lowerBound - 12, from: start)
-            let reached = Self.scrolled(from: start, to: now) ?? offset
-            let shown = now[next.key].map { Self.isFullyVisible($0, in: clearViewport(scrolled: reached > 1)) } ?? false
-            if !shown { givenUp.insert(next.key) }
+            if !advance(&walk, pending: pending) { break }
         }
-        return frames.keys.filter { !covered.contains($0) }.map(\.label).sorted()
+        return walk.all.filter { !walk.covered.contains($0) }.map(\.label).sorted()
     }
+
+    /// 走到哪了
+    private struct Progress {
+        var now: [TextKey: CGRect]
+        var all: Set<TextKey> = []  // 滚动区域里的全部字（只用来数有哪些，位置不用）
+        var covered: Set<TextKey> = []
+        var givenUp: Set<TextKey> = []  // 对准了也没能完整露出来的：不再追，最后报出来
+        var offset: CGFloat = 0  // 从最顶上往下滚了多少
+        var screen = 0
+        var pending: Set<TextKey> { all.subtracting(covered).subtracting(givenUp) }
+    }
+
+    /// 这一屏露出了还没审过的字：截图、审计（每一步之前拖回这一屏）
+    private func auditIfNew(_ walk: inout Progress, _ steps: [(_ screen: Int, _ scrolled: Bool) -> Void]) {
+        let visible = Set(
+            walk.now.filter { Self.isFullyVisible($0.value, in: clearViewport(scrolled: walk.offset > 1)) }.keys)
+        guard !visible.isSubset(of: walk.covered) else { return }
+        walk.screen += 1
+        walk.covered.formUnion(visible)
+        let anchor = walk.now
+        for (index, step) in steps.enumerated() {
+            if index > 0 { walk.now = restore(anchor) }
+            step(walk.screen, walk.offset > 1)
+        }
+        walk.now = restore(anchor)
+    }
+
+    /// 往下走一屏（或者放弃对准了还露不全的那一段）；走不动、也没有要审的了就返回 false
+    private func advance(_ walk: inout Progress, pending: Set<TextKey>) -> Bool {
+        let distance: CGFloat
+        switch next(walk.now, pending: pending) {
+        case .move(let length):
+            distance = length
+        case .giveUp(let key, let frame):
+            giveUp(key, frame: frame, view: clearViewport(scrolled: true), into: &walk.givenUp)
+            return true
+        }
+        let before = walk.now
+        walk.now = move(by: distance)
+        // 算不出滚了多少（前后没有共同在屏幕上的字）：不当成到底了，按想滚的距离估
+        guard let moved = Self.scrolled(from: before, to: walk.now, onScreen: isOnScreen) else {
+            walk.offset += distance
+            return true
+        }
+        walk.offset += moved
+        guard abs(moved) < 1 else { return true }
+        // 滚不动了（到底了）：屏幕上露不全的放弃，完整露出来的下一轮审掉；屏幕上一段没审过的都没有，就走完了
+        let stuck = walk.now.filter { pending.contains($0.key) && isOnScreen($0.value) }
+        if stuck.isEmpty { return false }
+        let view = clearViewport(scrolled: walk.offset > 1)
+        for (key, frame) in stuck where !Self.isFullyVisible(frame, in: view) {
+            giveUp(key, frame: frame, view: view, into: &walk.givenUp)
+        }
+        return true
+    }
+
+    private enum Next {
+        case move(CGFloat)
+        case giveUp(TextKey, CGRect)
+    }
+
+    /// 下一步往下滚多远：屏幕上还没审过的字里最靠上的那段，对准清楚区的顶（比清楚区还高的字对准再往上一点，好占满）；
+    /// 屏幕上没有就往下翻一屏；已经对准了还露不全（最大字号下比整屏还高、或者被屏幕边切着）就放弃这一段
+    private func next(_ now: [TextKey: CGRect], pending: Set<TextKey>) -> Next {
+        let clear = clearViewport(scrolled: true)
+        let height = clear.upperBound - clear.lowerBound
+        let onScreen = now.filter { pending.contains($0.key) && isOnScreen($0.value) }
+        guard let next = onScreen.min(by: { $0.value.minY < $1.value.minY }) else { return .move(height - 24) }
+        let tall = next.value.height >= height - 1
+        let distance = next.value.minY - clear.lowerBound + (tall ? 2 : -12)
+        return abs(distance) < 20 ? .giveUp(next.key, next.value) : .move(distance)
+    }
+
+    private func giveUp(_ key: TextKey, frame: CGRect, view: ClosedRange<CGFloat>, into givenUp: inout Set<TextKey>) {
+        givenUp.insert(key)
+        print("巡检：「\(key.label.prefix(20))」露不全，放弃（现在在 \(frame)，清楚区 \(view)）")
+    }
+
+    /// 在屏幕上（哪怕只露出一点）：这样的字报的位置才可靠
+    private func isOnScreen(_ frame: CGRect) -> Bool { frame.maxY > screen.minY && frame.minY < screen.maxY }
 
     /// 现在看得见的导航栏。样张盖在画廊首页上，首页的导航栏还在界面里、只是点不到——只看第一个会找错（踩过）
     static func navigationBar(_ app: XCUIApplication) -> XCUIElement? {
@@ -126,15 +199,31 @@ struct ScreenWalker {
         return last
     }
 
-    /// 拖到整页上的 target 位置（从最顶上往下滚了多少点），差 20 点以内就行；滚不动了就停。
-    /// 最多拖 5 次：标签栏滑动时会收起、展开，页面跟着挪一点，追不上就停在这里——没审到的字下一轮还会再来
-    private func go(to target: CGFloat, from start: [TextKey: CGRect]) -> [TextKey: CGRect] {
+    /// 把页面拖回 anchor 那一屏：按两次都在屏幕上的字算差多少，差 20 点以内就行；最多拖 5 次
+    /// （标签栏滑动时会收起、展开，页面跟着挪一点，追不上就停在这里——没审到的字下一轮还会再来）
+    private func restore(_ anchor: [TextKey: CGRect]) -> [TextKey: CGRect] {
         var now = settled()
         for _ in 0..<5 {
-            guard let offset = Self.scrolled(from: start, to: now), abs(target - offset) >= 20 else { break }
-            drag(by: target - offset)
+            guard let away = Self.scrolled(from: anchor, to: now, onScreen: isOnScreen), abs(away) >= 20 else { break }
+            drag(by: -away)
             let after = settled()
-            if abs(Self.scrolled(from: now, to: after) ?? 0) < 1 { return after }  // 滚不动了
+            if abs(Self.scrolled(from: now, to: after, onScreen: isOnScreen) ?? 0) < 1 { return after }  // 拖不动了
+            now = after
+        }
+        return now
+    }
+
+    /// 往下滚 distance 点（负数往上）：一次拖不完就多拖几次，最多 5 次；滚不动了就停
+    private func move(by distance: CGFloat) -> [TextKey: CGRect] {
+        var now = settled()
+        var remaining = distance
+        for _ in 0..<5 where abs(remaining) >= 20 {
+            drag(by: remaining)
+            let after = settled()
+            guard let moved = Self.scrolled(from: now, to: after, onScreen: isOnScreen), abs(moved) >= 1 else {
+                return after
+            }
+            remaining -= moved
             now = after
         }
         return now
@@ -146,8 +235,9 @@ struct ScreenWalker {
         // 离开导航栏、底部玻璃和主屏指示条（从屏幕最下面往上拖会回到主屏）
         let top = view.lowerBound + 24
         let bottom = min(view.upperBound, screen.maxY - 60) - 24
-        // 系统认出「在拖」之前手指要先动一小段（约 10 点），这一段页面不动：多拖这么多
-        let length = min(abs(distance) + 10, bottom - top)
+        // 系统认出「在拖」之前手指要先动一小段（约 10 点），这一段页面不动：多拖这么多。
+        // 一次最多拖半屏：前后两次总有共同在屏幕上的字，才算得出滚了多少（最大字号时字很大，拖一整屏就没有了——iPhone 15 自验收）
+        let length = min(abs(distance) + 10, (bottom - top) / 2)
         let (fromY, toY) = distance > 0 ? (bottom, bottom - length) : (top, top + length)
         let origin = app.coordinate(withNormalizedOffset: .zero)
         let x = screen.midX
@@ -156,9 +246,14 @@ struct ScreenWalker {
             withVelocity: .slow, thenHoldForDuration: 0.3)
     }
 
-    /// 页面从 before 到 after 往下滚了多少点（同一段字位置差的中位数）；没有共同的字就说不出来
-    static func scrolled(from before: [TextKey: CGRect], to after: [TextKey: CGRect]) -> CGFloat? {
-        let deltas = before.compactMap { key, frame in after[key].map { frame.minY - $0.minY } }.sorted()
+    /// 页面从 before 到 after 往下滚了多少点：两次都在屏幕上的同一段字，位置差的中位数；没有共同的字就说不出来
+    static func scrolled(
+        from before: [TextKey: CGRect], to after: [TextKey: CGRect], onScreen: (CGRect) -> Bool
+    ) -> CGFloat? {
+        let deltas = before.compactMap { key, frame -> CGFloat? in
+            guard onScreen(frame), let later = after[key], onScreen(later) else { return nil }
+            return frame.minY - later.minY
+        }.sorted()
         return deltas.isEmpty ? nil : deltas[deltas.count / 2]
     }
 
