@@ -72,9 +72,10 @@
             let noteId = background?.note.id ?? ""
             return (
                 200,
-                #"{"version":3,"noteId":"\#(noteId)","intents":["record"],"#
+                #"{"version":\#(BackgroundPackage.contractVersion),"noteId":"\#(noteId)","intents":["record"],"#
                     + #""creates":[\#(creates.joined(separator: ","))],"updates":[\#(updates.joined(separator: ","))],"#
-                    + #""deletes":[],"duplicates":[],"questions":[],"newCategories":[],"reply":"\#(reply)","steps":[]}"#
+                    + #""deletes":[],"duplicates":[],"questions":[],"awaitingDelete":[],"newCategories":[],"#
+                    + #""reply":"\#(reply)","steps":[]}"#
             )
         }
 

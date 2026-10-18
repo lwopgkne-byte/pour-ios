@@ -104,8 +104,15 @@ struct PourStoreTests {
         #expect(try store.nextNoteToOrganize()?.id == note.id)
     }
 
-    @Test func theAIseesTheDaysRecordsAndNearbyOpenTodos() throws {
+    @Test func theAIseesNearbyDaysAndOpenTodos() throws {
         let store = try PourStore.inMemory()
+        let earlier = try store.addNote("修晾衣架 洗车", at: at("2026-10-15T20:00"), timeZone: shanghai)
+        try store.apply(
+            NoteChanges(creates: [
+                NewEntry(day: "2026-10-15", data: .todo(.init(content: "修晾衣架"))),
+                NewEntry(day: "2026-10-15", data: .todo(.init(content: "洗车", done: true))),
+                NewEntry(day: "2026-10-15", data: .event(.init(category: "work", label: "加班"))),
+            ]), toNote: earlier.id, package: Data("{}".utf8))
         let yesterday = try store.addNote("明天交房租 买猫粮", at: at("2026-10-17T21:00"), timeZone: shanghai)
         try store.apply(
             NoteChanges(creates: [
@@ -118,9 +125,9 @@ struct PourStoreTests {
             NoteChanges(creates: [NewEntry(day: "2026-10-18", data: .event(.init(category: "run", label: "跑步")))]),
             toNote: today.id, package: Data("{}".utf8))
         let existing = try store.existingEntries(around: "2026-10-18")
-        // 今天的全部；前几天的只要没做完的待办
-        #expect(existing.map(\.day) == ["2026-10-18", "2026-10-17"])
-        if case .todo(let todo) = existing.last?.data { #expect(todo.content == "交房租") } else { Issue.record("应该是待办") }
+        // 前后一天的全部（做完的待办也在）；更早的只要没做完的待办
+        #expect(existing.map(\.day) == ["2026-10-17", "2026-10-17", "2026-10-17", "2026-10-18", "2026-10-15"])
+        if case .todo(let todo) = existing.last?.data { #expect(todo.content == "修晾衣架") } else { Issue.record("应该是待办") }
     }
 
     @Test func observingADayDeliversEveryChange() async throws {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { ExistingRecord } from '../src/contract.ts'
+import { CONTRACT_VERSION, type ExistingRecord } from '../src/contract.ts'
 import { describeDialogue, describePendingQuestions, aliases } from '../src/describe.ts'
 import { understand } from '../src/understand.ts'
 import { FakeLlm, recordIntent } from './fake-llm.ts'
@@ -103,7 +103,7 @@ describe('最近的对话和在等回答的追问（写给 AI 看）', () => {
   it('带着短编号说刚才记下了什么、问了什么；最后一段问了问题，提醒 AI 这一句多半是回答', () => {
     const text = describeDialogue(
       [
-        { text: '中午和小王吃面二十八', localTime: '2026-09-24T12:40', status: 'done', actions: [{ action: 'created', recordId: 'lunch-uuid', text: '吃面 ¥28 · 和小王' }], questions: ['二十八是花了 28 块吗？'], undone: false },
+        { text: '中午和小王吃面二十八', localTime: '2026-09-24T12:40', status: 'done', actions: [{ action: 'created', recordId: 'lunch-uuid', text: '吃面 ¥28 · 和小王' }], questions: ['二十八是花了 28 块吗？'], undone: false, awaitingDelete: [] },
       ],
       aliasOf,
     )
@@ -123,7 +123,7 @@ describe('最近的对话和在等回答的追问（写给 AI 看）', () => {
     await understand(
       backgroundPackage('对', {
         existing: [lunch],
-        dialogue: [{ text: '中午吃面二十八', localTime: '2026-09-24T12:40', status: 'done', actions: [], questions: ['二十八是花了 28 块吗？'], undone: false }],
+        dialogue: [{ text: '中午吃面二十八', localTime: '2026-09-24T12:40', status: 'done', actions: [], questions: ['二十八是花了 28 块吗？'], undone: false, awaitingDelete: [] }],
       }),
       { llm },
     )
@@ -138,7 +138,7 @@ describe('一句话总结', () => {
   it('只说做了什么：待办、待确认的不进总结；去掉句末的句号', async () => {
     const { summarize } = await import('../src/summary.ts')
     const llm = new FakeLlm().on('day-summary', { summary: '早上跑了步，中午和小王吃面。' })
-    const out = await summarize({ version: 3, day: '2026-09-24', records: [run, lunch, rent, mood] }, { llm })
+    const out = await summarize({ version: CONTRACT_VERSION, day: '2026-09-24', records: [run, lunch, rent, mood] }, { llm })
     expect(out.summary).toBe('早上跑了步，中午和小王吃面')
     const sent = llm.calls[0]!.messages[1]!.content
     expect(sent).toContain('事件 [run] 跑步')
@@ -150,7 +150,7 @@ describe('一句话总结', () => {
   it('没有可说的：不问 AI，回空的', async () => {
     const { summarize } = await import('../src/summary.ts')
     const llm = new FakeLlm()
-    const out = await summarize({ version: 3, day: '2026-09-24', records: [rent, lunch] }, { llm })
+    const out = await summarize({ version: CONTRACT_VERSION, day: '2026-09-24', records: [rent, lunch] }, { llm })
     expect(out.summary).toBe('')
     expect(llm.calls).toHaveLength(0)
   })

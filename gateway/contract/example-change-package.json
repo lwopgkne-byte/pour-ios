@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "noteId": "0B6F3C2E-6B1D-4C8A-9E55-3A7D2F1C9B10",
   "intents": [
     "record"
@@ -102,6 +102,7 @@
   "deletes": [],
   "duplicates": [],
   "questions": [],
+  "awaitingDelete": [],
   "newCategories": [],
   "skipped": [],
   "reply": "",

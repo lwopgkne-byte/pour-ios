@@ -19,14 +19,19 @@ import {
   type UpdatedRecord,
 } from './contract.ts'
 import { addDays, type DateStr, weekdayDateIn } from './dates.ts'
+import { againOf, againWith, changedAmounts, extraFields, findDuplicate, isRepeatMention, isStrongRepeat, sameActivity } from './dedupe.ts'
+import { normalizeEmotions, saidEmotions } from './emotions.ts'
 import { notToRecord } from './guards.ts'
 import { wakeTimeIn } from './numbers.ts'
 import { aliases, backgroundVars } from './describe.ts'
 import type { LlmClient } from './llm.ts'
 import { DISTRESS_REPLY, cleanMoment, directMoodLevel, isDistress, keepEnergy, levelOf, moodWord, toneOfLevel } from './mood.ts'
-import { CONFIDENCE_THRESHOLD, rootCategory } from './rules.ts'
-import { type CreateItem, ParseOutput, RouterOutput } from './schemas.ts'
-import { resolveDateRef, resolveEventTime } from './time.ts'
+import { quickAnswer } from './quick.ts'
+import { isCorrectionCue, mentionsDay } from './refer.ts'
+import { CONFIDENCE_THRESHOLD, rootCategory, rootName } from './rules.ts'
+import { type CreateItem, ParseOutput, RouterOutput, type UpdateItem } from './schemas.ts'
+import { minutesBetween, resolveDateRef, resolveEventTime } from './time.ts'
+import { tidyEvent } from './tidy.ts'
 import { applyUpdate } from './update.ts'
 
 export interface UnderstandDeps {
@@ -35,6 +40,9 @@ export interface UnderstandDeps {
 }
 
 export async function understand(bg: BackgroundPackage, deps: UnderstandDeps): Promise<ChangePackage> {
+  // 「对」「删吧」回答上一句问的要不要删、同一句话又发了一遍：程序直接回，不问 AI（quick.ts）
+  const quick = quickAnswer(bg)
+  if (quick) return quick
   const steps: StepLog[] = []
   const vars = backgroundVars(bg)
   const common = { llm: deps.llm, log: steps, user: bg.note.text, vars, ...(deps.skillsDir ? { skillsDir: deps.skillsDir } : {}) }
@@ -57,16 +65,26 @@ export async function understand(bg: BackgroundPackage, deps: UnderstandDeps): P
   else parseAbort.abort()
 
   const questions = routed.intents.filter((i) => i.type === 'question').map((i) => i.text)
-  const { distress, ...changes } = applyItems(parsed.items, bg, questions)
+  const { distress, repeatedAgain, ...changes } = applyItems(parsed.items, bg, questions, intents.includes('correction'))
+  const reply = intents.includes('chat') && !wantsRecords ? routed.reply : parsed.reply
   return {
     version: CONTRACT_VERSION,
     noteId: bg.note.id,
     intents,
     ...changes,
-    // 很难受：固定的回复（带心理援助热线），不让 AI 自由发挥
-    reply: distress ? DISTRESS_REPLY : intents.includes('chat') && !wantsRecords ? routed.reply : parsed.reply,
+    // 很难受：固定的回复（带心理援助热线），不让 AI 自由发挥。
+    // 原话说了「又」、程序照新的一次记了：AI 顺口问的「这次和之前那次是同一次吗？」不再问
+    reply: distress ? DISTRESS_REPLY : repeatedAgain && /[？?]/.test(reply) ? '' : reply,
     steps,
   }
+}
+
+/** 对话里改心情的字段：那一刻要一字不差在原话里、不是只说了心情；原话没说到精力就不改精力 */
+function guardedMoodFields(fields: UpdateItem['fields'], noteText: string): UpdateItem['fields'] {
+  const { moment, energy, ...rest } = fields
+  const keptMoment = moment === undefined || moment.trim() === '' ? moment : cleanMoment(moment, noteText)
+  const keptEnergy = typeof energy === 'number' && !keepEnergy(noteText) ? undefined : energy
+  return { ...rest, ...(keptMoment !== undefined ? { moment: keptMoment } : {}), ...(keptEnergy !== undefined ? { energy: keptEnergy } : {}) }
 }
 
 /** 说的是这次醒来（今天早上起床）：「昨晚」「昨天晚上」说的是那一晚；「今天」「今早」「刚睡醒」（网页版 WOKE_TODAY） */
@@ -74,6 +92,9 @@ const WOKE_TODAY = /昨晚|昨天晚上|昨儿(个)?晚上|昨个晚上|昨夜|�
 
 /** 拿不准删哪条（带着追问、或者把握不到 0.6）：先问，不删（网页版的规矩） */
 const DELETE_CONFIDENCE = 0.6
+
+/** 多久以内说过的算「刚才对话里正在说的」（分钟） */
+const RECENT_TALK_MIN = 30
 
 /** 一条记录的一句话（删之前问你时用） */
 export function describeRecord(d: RecordData): string {
@@ -89,14 +110,17 @@ export function describeRecord(d: RecordData): string {
   }
 }
 
-/** 整理出的每一项变成改动：新建的把关；改、删、确认、做完、重复的换回手机的编号、算出改完的样子 */
+/** 整理出的每一项变成改动：新建的把关、去重；改、删、确认、做完、重复的换回手机的编号、算出改完的样子 */
 export function applyItems(
   items: ParseOutput['items'],
   bg: BackgroundPackage,
   /** 意图识别认出的问话：从问话里摘出来的不记 */
   asked: string[] = [],
-): Pick<ChangePackage, 'creates' | 'updates' | 'deletes' | 'duplicates' | 'questions' | 'newCategories' | 'skipped'> & {
+  /** 意图识别认出这段话是在纠正 */
+  isCorrection = false,
+): Pick<ChangePackage, 'creates' | 'updates' | 'deletes' | 'duplicates' | 'questions' | 'awaitingDelete' | 'newCategories' | 'skipped'> & {
   distress: boolean
+  repeatedAgain: boolean
 } {
   const { recordOf } = aliases(bg.existing)
   // 这段话里新建的类别加进来：后面的记录接着用得上；最后放进改动包，手机照着建上
@@ -106,20 +130,80 @@ export function applyItems(
   const deletes: ChangePackage['deletes'] = []
   const duplicates: ChangePackage['duplicates'] = []
   const questions: string[] = []
+  /** 问了要不要删的那几条：下一句回答「对」时照着删 */
+  const awaitingDelete: string[] = []
   const skipped: string[] = []
   const text = bg.note.text
+  const noteDay = bg.note.day
   // 很难受的认法看这条心情摘的那段；整段话只有一条心情时也看整段原话（网页版 guarded）
   const moodsInNote = items.filter((i) => i.op === 'create' && i.kind === 'mood').length
   let distress = false
+  /** 原话说了「又」、AI 却判成重复的，照新的一次记了 */
+  let repeatedAgain = false
+  const deleted = (id: string) => deletes.some((d) => d.id === id)
   // 同一段话里改了同一条好几次：在改过的样子上接着改
   const current = (record: ExistingRecord): ExistingRecord => {
     const u = updates.get(record.id)
     return u ? { id: u.id, day: u.day, data: u.data, ...(u.question ? { question: u.question } : {}) } : record
   }
+  // 同一条在一段话里被提到好几次：留最有信息量的动作（改了的不再算「之前已记过」）
   const put = (u: UpdatedRecord) => {
     const before = updates.get(u.id)
     updates.set(u.id, before && before.action === 'updated' && u.action !== 'updated' ? { ...u, action: 'updated' } : u)
+    const i = duplicates.findIndex((d) => d.id === u.id)
+    if (i >= 0) duplicates.splice(i, 1)
   }
+  const markDuplicate = (id: string, span: string) => {
+    if (!updates.has(id) && !duplicates.some((d) => d.id === id)) duplicates.push({ id, span })
+  }
+  /** 刚才对话里正在说的那条（半小时内的哪段话动过它） */
+  const talkedJustNow = (id: string) =>
+    bg.dialogue.some((t) => minutesBetween(t.localTime, bg.note.localTime) <= RECENT_TALK_MIN && t.actions.some((a) => a.recordId === id))
+
+  // 一段话在把那天的事再说一遍（别的事已经记过：AI 判成了重复、改了那条，或者那天已经有同名的记录）：这一天里光说一个「又」的
+  // （「回来吃了晚饭，又去图书馆看了会儿书」「下午网购又花了147」）是「接着」「另外」，不算又做了一次；
+  // 明说了「又…一次」「第二次」的照旧是新的一次（「又喂了一次奶」）。网页版训练场找到的
+  const recapDays = new Set<DateStr>()
+  for (const item of items) {
+    if (isRepeatMention(item.span)) continue
+    if (item.op === 'duplicate' || item.op === 'update') {
+      const r = recordOf(item.entry_id)
+      if (r) recapDays.add(r.day)
+    } else if (item.op === 'create' && item.kind === 'event') {
+      const day = resolveDateRef(item.date, noteDay)
+      if (bg.existing.some((e) => e.day === day && e.data.kind === 'event' && sameActivity(e.data.label, item.label))) recapDays.add(day)
+    }
+  }
+  /** 原话说了「又」，确实是又做了一次：明说了几次的，或者这一天不是在回顾 */
+  const againForSure = (span: string | undefined, day: DateStr) => isRepeatMention(span) && (isStrongRepeat(span) || !recapDays.has(day))
+
+  /**
+   * 兜底去重：AI 漏判时也不会重复计算（原话说的是约数「两百多」时按范围比）。
+   * 已有的记录里有同一件：多说了时间、数量就补上那一条，没多说就是「之前已记过」；这段话前面刚新建过同一件：补进那条
+   */
+  const merged = (rec: NewRecord, span: string): boolean => {
+    const known = bg.existing.filter((r) => r.day === rec.day && !deleted(r.id)).map(current)
+    const dup = findDuplicate(known, rec, span)
+    if (dup) {
+      const extra = extraFields(dup.data, rec.data, bg.dayBoundary)
+      if (!extra) markDuplicate(dup.id, span)
+      else {
+        const confidence = Math.max(rec.confidence, dup.question ? 0 : 1)
+        put({ id: dup.id, action: 'updated', span, ...applyUpdate(dup, { op: 'update', entry_id: 1, fields: extra, span, confidence, question: undefined }, bg.dayBoundary, book.all) })
+      }
+      return true
+    }
+    const earlier = findDuplicate(creates, rec, span)
+    if (!earlier) return false
+    const extra = extraFields(earlier.data, rec.data, bg.dayBoundary)
+    if (extra) {
+      const confidence = Math.max(rec.confidence, earlier.confidence)
+      const u = applyUpdate({ id: 'new', day: earlier.day, data: earlier.data }, { op: 'update', entry_id: 1, fields: extra, span, confidence, question: undefined }, bg.dayBoundary, book.all)
+      creates[creates.indexOf(earlier)] = { day: u.day, data: u.data, span: earlier.span, confidence: u.confidence, ...(u.question ? { question: u.question } : {}) }
+    }
+    return true
+  }
+
   for (const item of items) {
     if (item.op === 'create') {
       // 不该记的不记：问的话、说没做的、别人的事（guards.ts）
@@ -135,26 +219,51 @@ export function applyItems(
       let guarded: CreateItem = item
       if (item.kind === 'event') {
         // 做过的事说的是星期几（「周五加班」）：日期由程序照日期表定，不用 AI 推算的
-        const weekday = weekdayDateIn(item.span, bg.note.day)
+        const weekday = weekdayDateIn(item.span, noteDay)
         if (weekday && item.date !== weekday) guarded = { ...item, date: weekday }
       } else if (item.kind === 'mood') {
         const sad = item.distress === true || isDistress(item.span) || (moodsInNote === 1 && isDistress(text))
         if (sad) distress = true
         // 直接评价心情（「心情很好」）：照原词定级别
         const direct = directMoodLevel(item.span) ?? (moodsInNote === 1 ? directMoodLevel(text) : undefined)
-        if (sad) guarded = { ...item, tone: 'bad', strength: 'strong' }
-        else if (direct) guarded = { ...item, ...toneOfLevel(direct) }
+        let mood = item
+        if (sad) mood = { ...mood, tone: 'bad', strength: 'strong' }
+        else if (direct) mood = { ...mood, ...toneOfLevel(direct) }
+        // AI 一个情绪词都没写、原话里却直接说了（「挺开心的」）：程序补上（看这条摘的那段；整段只有一条心情时看整段）
+        if (item.emotions.length === 0) mood = { ...mood, emotions: saidEmotions(item.span || (moodsInNote === 1 ? text : '')) }
+        guarded = mood
       }
-      creates.push(newRecord(guarded, bg, book))
+      const rec = newRecord(guarded, bg, book)
+      // 原话明说了「又」「第二次」的是新的一次，不合并——除非这段话是在把那天的事再说一遍、这一件又只是光一个「又」
+      if (!(rec.data.kind === 'event' && againForSure(item.span, rec.day)) && merged(rec, item.span)) continue
+      creates.push(rec)
       continue
     }
     const original = recordOf(item.entry_id)
     // AI 写了不存在的编号：不动任何记录
-    if (!original || deletes.some((d) => d.id === original.id)) continue
+    if (!original || deleted(original.id)) continue
     const record = current(original)
     switch (item.op) {
       case 'update': {
-        const u = applyUpdate(record, item, bg.dayBoundary, book.all)
+        // 对话里改心情：那一刻同样要一字不差在这段原话里，没说精力的字就不改精力（清空照样可以）
+        const u = applyUpdate(record, record.data.kind === 'mood' ? { ...item, fields: guardedMoodFields(item.fields, text) } : item, bg.dayBoundary, book.all)
+        // 要动别的日子记下的事的时间、数量，得有根据：意图是纠正、原话明说了是改（「改成」「不是…是」）、说到了那天、
+        // 或者就是刚才对话里正在说的那条。都没有，多半是今天又做了同样的事（「进货一共1950」被当成改昨天的进货）：
+        // 照今天新的一次记，以前那条不动
+        if (
+          record.data.kind === 'event' &&
+          record.day !== noteDay &&
+          changedAmounts(record, u) &&
+          !isCorrection &&
+          !isCorrectionCue(text) &&
+          !mentionsDay(text, noteDay, record.day) &&
+          !talkedJustNow(record.id)
+        ) {
+          const fresh = againWith({ ...record, data: record.data }, item.fields, noteDay, bg.dayBoundary, book.all, record.question ? item.confidence : 1)
+          creates.push({ day: fresh.day, data: fresh.data, span: item.span, confidence: fresh.confidence, ...(fresh.question ? { question: fresh.question } : {}) })
+          skipped.push(`没说是改 ${record.day} 那条（不是纠正、没提那天），照今天新的一次记：${describeRecord(record.data)}`)
+          break
+        }
         put({ id: record.id, action: 'updated', span: item.span, ...u })
         break
       }
@@ -168,13 +277,20 @@ export function applyItems(
       case 'delete':
         if (item.question || (item.confidence !== undefined && item.confidence < DELETE_CONFIDENCE)) {
           questions.push(item.question ?? `要删的是「${describeRecord(record.data)}」吗？`)
+          if (!awaitingDelete.includes(record.id)) awaitingDelete.push(record.id)
           break
         }
         updates.delete(record.id)
         deletes.push({ id: record.id, span: item.span })
         break
       case 'duplicate':
-        duplicates.push({ id: record.id, span: item.span })
+        // 原话明说了「又」「第二次」：是新的一次，AI 判成重复也照新的一次记，不再问「是同一次吗」
+        if (record.data.kind === 'event' && againForSure(item.span, record.day)) {
+          creates.push({ day: noteDay, data: againOf(record.data), span: item.span, confidence: 1 })
+          repeatedAgain = true
+          break
+        }
+        markDuplicate(record.id, item.span)
         break
     }
   }
@@ -182,12 +298,14 @@ export function applyItems(
   for (const category of book.created) {
     for (const r of bg.existing) {
       const d = r.data
-      if (d.kind !== 'event' || d.category !== 'other' || updates.has(r.id) || deletes.some((x) => x.id === r.id)) continue
+      if (d.kind !== 'event' || d.category !== 'other' || updates.has(r.id) || deleted(r.id)) continue
       if (!adoptsFromOther(category, [d.label, ...d.people, ...d.things, ...d.places])) continue
       put({ id: r.id, action: 'updated', day: r.day, data: { ...d, category: category.key }, span: '', confidence: 1, ...(r.question ? { question: r.question } : {}) })
     }
   }
-  return { creates, updates: [...updates.values()], deletes, duplicates, questions, newCategories: book.created, skipped, distress }
+  // 同一段话里又说清楚删了的，不再等
+  const waiting = awaitingDelete.filter((id) => !deleted(id))
+  return { creates, updates: [...updates.values()], deletes, duplicates, questions, awaitingDelete: waiting, newCategories: book.created, skipped, distress, repeatedAgain }
 }
 
 /**
@@ -235,24 +353,28 @@ function recordOf(item: CreateItem, bg: BackgroundPackage, book: CategoryBook): 
         bg.dayBoundary,
         { isSleep, now: bg.note.localTime },
       )
-      const data: RecordData = {
-        kind: 'event',
-        category,
-        label: item.label,
-        ...(t.start ? { start: t.start } : {}),
-        ...(t.end ? { end: t.end } : {}),
-        ...(t.durationMin ? { durationMin: t.durationMin } : {}),
-        metrics: (item.metrics ?? []).map((m) => ({
-          name: m.name,
-          value: m.value,
-          unit: m.unit,
-          ...(m.item ? { item: m.item } : {}),
-          ...(m.for ? { for: m.for } : {}),
-          ...(m.from ? { from: m.from } : {}),
-        })),
-        ...(item.note ? { note: item.note } : {}),
-        ...mentions(item),
-      }
+      // 钱的名字、合计和拆分、血压、名称里的称呼：程序整理一遍（tidy.ts）
+      const data = tidyEvent(
+        {
+          kind: 'event',
+          category,
+          label: item.label,
+          ...(t.start ? { start: t.start } : {}),
+          ...(t.end ? { end: t.end } : {}),
+          ...(t.durationMin ? { durationMin: t.durationMin } : {}),
+          metrics: (item.metrics ?? []).map((m) => ({
+            name: m.name,
+            value: m.value,
+            unit: m.unit,
+            ...(m.item ? { item: m.item } : {}),
+            ...(m.for ? { for: m.for } : {}),
+            ...(m.from ? { from: m.from } : {}),
+          })),
+          ...(item.note ? { note: item.note } : {}),
+          ...mentions(item),
+        },
+        { rootName: rootName(category, book.all), span: item.span, noteText: bg.note.text },
+      )
       return { day: t.day, data }
     }
     case 'insight':
@@ -274,7 +396,7 @@ function recordOf(item: CreateItem, bg: BackgroundPackage, book: CategoryBook): 
           ...(item.tone ? { tone: item.tone } : {}),
           ...(item.strength ? { strength: item.strength } : {}),
           ...(item.energy !== undefined && keepEnergy(bg.note.text) ? { energy: item.energy } : {}),
-          emotions: item.emotions,
+          emotions: normalizeEmotions(item.emotions),
           ...(moment ? { moment } : {}),
         },
       }

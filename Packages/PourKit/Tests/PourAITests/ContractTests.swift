@@ -27,7 +27,8 @@ struct ContractTests {
 
     @Test func decodesTheGatewaysChangePackage() throws {
         let change = try JSONDecoder().decode(ChangePackage.self, from: Self.example("example-change-package.json"))
-        #expect(change.version == 3)
+        #expect(change.version == BackgroundPackage.contractVersion)
+        #expect(change.awaitingDelete.isEmpty)
         // 「房租交了」：昨天那条待办做完了
         #expect(change.updates.map(\.action) == [.completed])
         #expect(change.updates.first?.id == "7C2D9E4B-1A3F-4E6D-8B5C-0F9A2D7E3C02")

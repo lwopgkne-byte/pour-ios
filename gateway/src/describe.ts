@@ -125,6 +125,7 @@ export function describeDialogue(turns: DialogueTurn[], aliasOf: (id: string) =>
     }
     if (t.reply) lines.push(`  Pour：${t.reply}`)
     for (const q of t.questions) lines.push(`  Pour 问：${q}`)
+    if (t.awaitingDelete.length) lines.push(`  （在等用户确认要不要删：${t.awaitingDelete.map((id) => `#${aliasOf(id) ?? '?'}`).join(' ')}）`)
     // 最近一段里 Pour 问了问题：你这一句多半是在回答它
     if (i === turns.length - 1 && t.questions.length > 0) lines.push('  （Pour 在等用户回答上面这个问题：用户这一句多半就是回答）')
   })

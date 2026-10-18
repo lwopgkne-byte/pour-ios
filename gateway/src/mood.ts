@@ -1,8 +1,9 @@
 /**
- * 心情的说法和程序把关（照网页版 shared/src/mood.ts）。
- * M2a 搬了最要紧的几条；其余（直接评价心情照原词定级、很难受的说法、那一刻的省略补全、情绪词归并……）
- * M2c 起陆续搬来，每条和网页版对拍
+ * 心情的说法和程序把关（照网页版 shared/src/mood.ts）：级别查表、直接评价心情照原词、很难受的说法、
+ * 那一刻要一字不差（省略补全、只说了心情的不算）、精力只在说到时才记
  */
+import { EMOTIONS, ENERGY_ONLY } from './emotions.ts'
+
 export const MOOD_WORDS = ['很差', '不太好', '一般', '挺好', '很好'] as const
 export const ENERGY_WORDS = ['很累', '有点累', '一般', '有精神', '精力充沛'] as const
 /** 那一刻最多几个字（去掉空白） */
@@ -48,19 +49,85 @@ export const keepEnergy = (noteText: string): boolean => {
   return ENERGY_CUES.some((w) => t.includes(w))
 }
 
+/** 好时刻：心情 4 级以上 */
+export const GOOD_MOOD = 4
+/** 不好的时刻：心情 2 级以下 */
+export const BAD_MOOD = 2
+/** 那一刻和另一刻连续几个字一样才算对得上 */
+export const LINK_MIN_OVERLAP = 4
+
 /** 比较两段话用：去掉空白、标点、符号，转小写 */
 export const normalizeForMatch = (s: string): string => s.replace(/[\s\p{P}\p{S}]/gu, '').toLowerCase()
 
+/** 两段话最长的连续相同的一段有几个字（比之前先各自 normalizeForMatch） */
+export function longestOverlap(a: string, b: string): number {
+  const x = normalizeForMatch(a)
+  const y = normalizeForMatch(b)
+  let best = 0
+  // 动态规划：prev[j] 是以 x[i-1]、y[j-1] 结尾的相同段长度
+  let prev = new Array<number>(y.length + 1).fill(0)
+  for (let i = 1; i <= x.length; i++) {
+    const cur = new Array<number>(y.length + 1).fill(0)
+    for (let j = 1; j <= y.length; j++) {
+      if (x[i - 1] === y[j - 1]) {
+        cur[j] = prev[j - 1]! + 1
+        if (cur[j]! > best) best = cur[j]!
+      }
+    }
+    prev = cur
+  }
+  return best
+}
+
+/**
+ * 不是情境的那些字：时间、程度、「心情」「整个人」这类、心情和精力的说法、语气词。
+ * 一段话去掉这些什么都不剩，就是只说了心情（「下午有点烦」「心里特别舒服」），没说是什么情境
+ */
+const NOT_SITUATION = [
+  ...['今天', '昨天', '前天', '今早', '今晚', '昨晚', '刚才', '刚刚', '早上', '早晨', '上午', '中午', '下午', '傍晚', '晚上', '夜里', '半夜', '凌晨', '白天', '一早', '这会儿', '现在', '一整天', '一天'],
+  ...['有点儿', '有点', '有些', '一点', '很', '挺', '特别', '非常', '太', '超级', '超', '好', '真的', '真', '蛮', '比较', '更', '最', '还', '又', '都', '也', '就', '一下子', '一下', '起来', '多了', '死了', '坏了', '极了'],
+  ...['我', '心里', '心情', '状态', '情绪', '整个人', '感觉', '觉得', '人', '不'],
+  ...EMOTIONS.flatMap((e) => [e.word, ...e.also]),
+  ...ENERGY_ONLY,
+  ...['烦', '累', '困', '舒服', '舒坦', '爽', '难受', '不开心', '开心', '高兴', '郁闷', '心累', '闷', '慌', '急', '气', '堵', '暖', '乐', '美滋滋'],
+  ...['了', '的', '啊', '呀', '呢', '吧', '哦', '嘛', '得', '着'],
+].sort((a, b) => b.length - a.length)
+const NOT_SITUATION_RE = new RegExp(NOT_SITUATION.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g')
+
+/** 那一刻只说了时间和心情、没说是什么情境（去掉时间、程度、心情说法和语气词，什么都不剩） */
+export const onlyFeeling = (moment: string): boolean => normalizeForMatch(moment).replace(NOT_SITUATION_RE, '') === ''
+
 /**
  * 那一刻要一字不差在这段原话里（比的时候不算空白和标点）、去掉空白不超过 60 个字，否则不记那一刻（心情照记）。
- * AI 改写过的、总结过的都不要：那一刻是你自己的话
+ * AI 改写过的、总结过的都不要：那一刻是你自己的话。
+ * 只说了时间和心情的（「下午」「下午有点烦」「心里特别舒服」）也不要：那是什么时候、什么感觉，不是什么情境
  */
 export function cleanMoment(moment: string | undefined, noteText: string): string | undefined {
   const m = moment?.trim()
   if (!m) return undefined
   const plain = normalizeForMatch(m)
-  if (!plain || !normalizeForMatch(noteText).includes(plain)) return undefined
-  return m.replace(/\s/g, '').length > MOMENT_MAX_CHARS ? undefined : m
+  if (!plain || onlyFeeling(m)) return undefined
+  const fit = (s: string) => (s.replace(/\s/g, '').length > MOMENT_MAX_CHARS ? undefined : s)
+  if (normalizeForMatch(noteText).includes(plain)) return fit(m)
+  return fit(coveringSpan(m, noteText) ?? '') || undefined
+}
+
+/**
+ * AI 把中间一段省掉了（原话「A B C」，它摘成「A，C」）：几段都按顺序一字不差在原话里时，取原话里从第一段到最后一段的那一整段。
+ * 摘出来的还是原话（一字不差），只是不让 AI 的省略把那一刻整个丢掉；对不上就是没有
+ */
+function coveringSpan(moment: string, noteText: string): string | undefined {
+  const parts = moment.split(/[\s，,。、；;：:！!？?]+/).filter(Boolean)
+  if (parts.length < 2) return undefined
+  let from = -1
+  let at = 0
+  for (const p of parts) {
+    const i = noteText.indexOf(p, at)
+    if (i < 0) return undefined
+    if (from < 0) from = i
+    at = i + p.length
+  }
+  return noteText.slice(from, at).trim()
 }
 
 /**

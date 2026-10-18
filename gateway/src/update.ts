@@ -9,7 +9,8 @@ import type { DateStr } from './dates.ts'
 import { levelOf } from './mood.ts'
 import type { UpdateItem } from './schemas.ts'
 import { type TimeExpr, logicalDayOf, resolveDateRef, resolveEventTime } from './time.ts'
-import { CONFIDENCE_THRESHOLD, rootCategory } from './rules.ts'
+import { CONFIDENCE_THRESHOLD, rootCategory, rootName } from './rules.ts'
+import { normalizeMoney } from './tidy.ts'
 
 /** 改完的样子：哪天、内容、把握、还要不要问 */
 export interface Updated {
@@ -54,9 +55,11 @@ export function applyUpdate(record: ExistingRecord, item: UpdateItem, boundary: 
         boundary,
         { isSleep: rootCategory(category, cats) === 'sleep' },
       )
-      const metrics = [...d.metrics]
-      for (const m of f.metrics ?? []) {
-        const next: Metric = { name: m.name, value: m.value, unit: m.unit, ...(m.item ? { item: m.item } : {}), ...(m.for ? { for: m.for } : {}), ...(m.from ? { from: m.from } : {}) }
+      // 钱的名字先统一（「人均」「流水」→ 花费、收入），才认得出改的是哪一笔
+      const money = { label: f.label ?? d.label, ...(rootName(category, cats) ? { rootName: rootName(category, cats)! } : {}) }
+      const metrics = normalizeMoney(d.metrics, money)
+      const said = (f.metrics ?? []).map((m): Metric => ({ name: m.name, value: m.value, unit: m.unit, ...(m.item ? { item: m.item } : {}), ...(m.for ? { for: m.for } : {}), ...(m.from ? { from: m.from } : {}) }))
+      for (const next of normalizeMoney(said, money)) {
         let i = metrics.findIndex((x) => sameMetric(x, next))
         // 没说改的是哪一笔、原来又只有这一笔同名的：就是改它（名目留着）
         const same = metrics.filter((x) => x.name === next.name)

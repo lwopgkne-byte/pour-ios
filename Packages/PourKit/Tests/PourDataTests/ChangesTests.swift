@@ -86,6 +86,19 @@ struct ChangesTests {
         #expect(try store.recentTurns(before: tomorrow).notes.isEmpty)
     }
 
+    @Test func aDeleteQuestionRemembersWhichRecords() throws {
+        let (store, entry) = try lunch()
+        let remove = try store.addNote("删除吃面", at: noon.addingTimeInterval(60), timeZone: shanghai)
+        try store.apply(
+            NoteChanges(questions: ["要删的是「吃面」吗？"], awaitingDelete: [entry.id]), toNote: remove.id,
+            package: Data("{}".utf8))
+        // 下一句说「对」时，对话里带着在等的是哪几条
+        let answer = try store.addNote("对", at: noon.addingTimeInterval(90), timeZone: shanghai)
+        let turns = try store.recentTurns(before: answer).notes
+        #expect(turns.last?.awaitingDelete == [entry.id])
+        #expect(turns.first?.awaitingDelete == [])
+    }
+
     @Test func newCategoriesComeWithTheirRecords() throws {
         let store = try PourStore.inMemory()
         let note = try store.addNote("带娃去公园", at: noon, timeZone: shanghai)

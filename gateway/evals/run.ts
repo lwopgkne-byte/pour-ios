@@ -133,13 +133,16 @@ class Phone {
     this.existingIds.add(id)
   }
 
-  /** 背景包：那一天的记录 + 前后三天没做完的待办（PourStore.existingEntries）、一小时内最多 4 段对话 */
+  /** 背景包：那一天和前后一天的记录 + 最近 30 条没做完的待办（PourStore.existingEntries）、一小时内最多 4 段对话 */
   background(text: string, localTime: string): BackgroundPackage {
     const day = logicalDayOf(localTime, 240)
     const alive = [...this.records.values()].filter((r) => !r.deleted).sort((a, b) => a.seq - b.seq)
-    const sameDay = alive.filter((r) => r.day === day)
-    const todos = alive.filter((r) => r.data.kind === 'todo' && r.day !== day && Math.abs(diffDays(r.day, day)) <= 3 && !r.data.done)
-    const existing: ExistingRecord[] = [...sameDay, ...todos].map((r) => ({ id: r.id, day: r.day, data: r.data, ...(r.question ? { question: r.question } : {}) }))
+    const near = alive.filter((r) => Math.abs(diffDays(r.day, day)) <= 1).sort((a, b) => a.day.localeCompare(b.day) || a.seq - b.seq)
+    const todos = alive
+      .filter((r) => r.data.kind === 'todo' && !r.data.done && !near.includes(r))
+      .slice(-30)
+      .sort((a, b) => a.day.localeCompare(b.day) || a.seq - b.seq)
+    const existing: ExistingRecord[] = [...near, ...todos].map((r) => ({ id: r.id, day: r.day, data: r.data, ...(r.question ? { question: r.question } : {}) }))
     const minutes = (t: string) => Date.parse(`${t}:00Z`) / 60_000
     const dialogue = this.turns.filter((t) => minutes(localTime) - minutes(t.at) <= 60 && minutes(t.at) < minutes(localTime)).slice(-4)
     return {
@@ -188,6 +191,7 @@ class Phone {
       ...(change.reply ? { reply: change.reply } : {}),
       questions: [...change.questions, ...asking],
       undone: false,
+      awaitingDelete: change.awaitingDelete,
     })
   }
 
@@ -295,6 +299,9 @@ function match(expected: ExpectEntry[], actual: Stored[]): [ExpectEntry, Stored 
   })
 }
 
+/** 网页版评测的「当前阶段」：since 比它大的用例网页版也只查意图 */
+const WEB_STAGE = 6
+
 /** 还没搬的能力：这些期望不算对也不算错，数出来 */
 const NOT_PORTED_FIELDS = ['remindAt', 'verdict', 'renqing'] as const
 
@@ -304,8 +311,13 @@ function score(c: Case, intents: string[], phone: Phone): { checks: Check[]; ski
   const actual = phone.alive()
   const want = [...new Set(c.expect.intents)].sort().join(',')
   const got = [...new Set(intents)].sort().join(',')
+  // 用例带着已有的目标、个人词典（背景里要有它们才答得对）：这两样还没搬，网关看不到——整条不算，检查也不算
+  if (c.goals?.length) return { checks: [], skipped: ['目标'] }
+  if (c.dictionary?.length) return { checks: [], skipped: ['个人词典'] }
   checks.push({ dim: 'intent', ok: want === got, what: `意图 期望 ${want}，实际 ${got || '（无）'}` })
-  if (c.expect.goals?.length) skipped.push('目标')
+  // 网页版也还没做好的（since 大于网页版当时的阶段 6）：只查意图，和网页版一样
+  if ((c.expect.since ?? 0) > WEB_STAGE) return { checks, skipped }
+  if (c.expect.goals !== undefined) skipped.push('目标')
   if (c.expect.answer) skipped.push('问答')
   if (c.expect.learns?.length || c.expect.learnsNot?.length) skipped.push('学说法')
 
@@ -358,7 +370,9 @@ function score(c: Case, intents: string[], phone: Phone): { checks: Check[]; ski
     }
     if (exp.money?.for !== undefined || exp.money?.flag !== undefined || exp.money?.flagNot !== undefined || exp.money?.pack !== undefined || exp.money?.kind !== undefined) skipped.push('钱的去向和分类')
     for (const f of NOT_PORTED_FIELDS) if (exp[f] !== undefined) skipped.push(f)
-    if (exp.status) {
+    // 要提醒、没说什么时候（问一句「想什么时候提醒你？」）是 M4 提醒的能力（能力对照表 6.6）：这一项不算
+    if (exp.status === 'confirm' && exp.kind === 'todo' && c.tags?.includes('提醒')) skipped.push('没说时间的提醒')
+    else if (exp.status) {
       const status = r?.question ? 'confirm' : 'ok'
       eq('value', '状态', exp.status, r ? status : undefined)
     }
@@ -377,7 +391,6 @@ function score(c: Case, intents: string[], phone: Phone): { checks: Check[]; ski
       const energy = d?.energy as number | undefined
       checks.push({ dim: 'value', ok: energy !== undefined && exp.energy.includes(energy), what: `${name} 精力 期望 ${exp.energy.join('/')}，实际 ${energy ?? '（无）'}` })
     }
-    // 情绪词归并（网页版 normalizeEmotions）还没搬：照原样比
     const emotions = (d?.emotions as string[] | undefined) ?? []
     if (exp.emotionsAny) checks.push({ dim: 'value', ok: exp.emotionsAny.some((w) => emotions.includes(w)), what: `${name} 情绪词 要有「${exp.emotionsAny.join('」或「')}」，实际 ${emotions.join('、') || '（无）'}` })
     for (const w of exp.emotionsNot ?? []) checks.push({ dim: 'value', ok: r !== null && !emotions.includes(w), what: `${name} 情绪词 不能有「${w}」，实际 ${emotions.join('、') || '（无）'}` })
@@ -446,7 +459,15 @@ async function runCase(c: Case) {
   // 评分按这部手机现在的类别表认领域（这段话里新建的也在）
   cats = phone.categories
   const { checks, skipped } = score(c, change.intents, phone)
-  return { id: c.id, text: c.text, tags: c.tags ?? [], ms: Date.now() - started, checks, skipped, tokens, reply: change.reply }
+  // 没全对的留下这一句的改动包和手机里最后的记录，看错在哪
+  const failed = checks.some((x) => !x.ok)
+  const detail = failed
+    ? {
+        change: { creates: change.creates, updates: change.updates, deletes: change.deletes, duplicates: change.duplicates, questions: change.questions, skipped: change.skipped },
+        records: phone.alive().map((r) => ({ day: r.day, ...(r.question ? { question: r.question } : {}), data: r.data })),
+      }
+    : {}
+  return { id: c.id, text: c.text, tags: c.tags ?? [], ms: Date.now() - started, checks, skipped, tokens, reply: change.reply, ...detail }
 }
 
 type Result = Awaited<ReturnType<typeof runCase>> | { id: string; text: string; tags: string[]; error: string }
@@ -492,6 +513,9 @@ for (const dim of dims) {
   const s = summary[dim]!
   console.log(`  ${{ intent: '意图', category: '类别', time: '时间', value: '数值' }[dim]}：${s.pass}/${s.total}（${((s.pass / Math.max(s.total, 1)) * 100).toFixed(1)}%）`)
 }
+const allChecks = ok.flatMap((r) => r.checks)
+// 总体：全部检查项里对了多少（网页版评测报的「全量 99.93%」就是这个数）
+console.log(`  总体：${allChecks.filter((x) => x.ok).length}/${allChecks.length}（${((allChecks.filter((x) => x.ok).length / Math.max(allChecks.length, 1)) * 100).toFixed(2)}%）`)
 console.log(`  还没搬的能力（这些用例里的对应检查不算）：${Object.entries(skippedCount).map(([k, v]) => `${k} ${v} 条`).join('、') || '没有'}`)
 console.log(`  花费约 ¥${(usd * 7.2).toFixed(2)}（输入 ${tokens.prompt}，命中缓存 ${tokens.hit}，输出 ${tokens.out}）`)
 const failures = ok.filter((r) => r.checks.some((x) => !x.ok))

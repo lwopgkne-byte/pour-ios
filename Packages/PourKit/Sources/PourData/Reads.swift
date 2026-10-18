@@ -55,21 +55,24 @@ extension PourStore {
         }
     }
 
-    /// 整理一段话要给 AI 看的已有记录：那一天的全部记录，加上前后三天还没做完的待办（删掉的不算）
-    public func existingEntries(around day: DayString) throws -> [Entry] {
+    /// 整理一段话要给 AI 看的已有记录（照网页版 contextEntries）：这一天和前后一天的全部记录，
+    /// 加上最近 30 条还没做完的待办（不管哪天的；删掉的不算）。
+    /// 前后一天的也要：「昨天下馆子花了 216」再说一遍时认得出是同一件事，「昨天跑的是 8 公里」改得到昨天那条
+    public func existingEntries(around day: DayString, openTodos limit: Int = 30) throws -> [Entry] {
         try writer.read { db in
             let alive = EntryRow.filter(Column("deletedAt") == nil)
-            let sameDay = try alive.filter(Column("day") == day).order(Column("sortKey"), Column("createdAt"))
+            let near = try alive.filter(Column("day") >= PourDate.addDays(day, -1))
+                .filter(Column("day") <= PourDate.addDays(day, 1))
+                .order(Column("day"), Column("sortKey"), Column("createdAt"))
                 .fetchAll(db)
+            let nearIds = Set(near.map(\.id))
             let todos = try alive.filter(Column("kind") == "todo")
-                .filter(Column("day") >= PourDate.addDays(day, -3) && Column("day") <= PourDate.addDays(day, 3))
-                .filter(Column("day") != day)
-                .order(Column("day"), Column("createdAt"))
+                .filter(sql: "json_extract(data, '$.done') = 0")
+                .order(Column("createdAt").desc).limit(limit)
                 .fetchAll(db)
-            return try (sameDay + todos).map { try $0.entry() }.filter {
-                if case .todo(let todo) = $0.data, $0.day != day { return !todo.done }
-                return true
-            }
+                .filter { !nearIds.contains($0.id) }
+                .sorted { ($0.day, $0.createdAt) < ($1.day, $1.createdAt) }
+            return try (near + todos).map { try $0.entry() }
         }
     }
 

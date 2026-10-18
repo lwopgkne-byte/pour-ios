@@ -107,6 +107,7 @@ extension PourStore {
             note.finishedAt = date
             note.actions = actions
             note.questions = changes.questions
+            note.awaitingDelete = changes.awaitingDelete
             note.undoneAt = nil
             try note.update(db)
         }

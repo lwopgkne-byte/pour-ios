@@ -102,7 +102,7 @@ public actor Organizer {
             let status = said.status == .done ? "done" : said.status == .failed ? "failed" : "pending"
             return .init(
                 text: said.text, localTime: said.localTime, status: status, actions: actions, reply: said.reply,
-                questions: said.questions + asking, undone: said.undoneAt != nil)
+                questions: said.questions + asking, undone: said.undoneAt != nil, awaitingDelete: said.awaitingDelete)
         }
     }
 

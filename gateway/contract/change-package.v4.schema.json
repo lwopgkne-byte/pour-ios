@@ -4,7 +4,7 @@
   "properties": {
     "version": {
       "type": "number",
-      "const": 2
+      "const": 4
     },
     "noteId": {
       "type": "string"
@@ -620,6 +620,78 @@
         "type": "string"
       }
     },
+    "awaitingDelete": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "newCategories": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "emoji": {
+            "default": "",
+            "type": "string"
+          },
+          "parent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "measure": {
+            "default": "duration",
+            "type": "string"
+          },
+          "synonyms": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "color": {
+            "default": "stone",
+            "type": "string"
+          },
+          "order": {
+            "default": 500,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "emoji",
+          "measure",
+          "synonyms",
+          "color",
+          "order"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "skipped": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "reply": {
       "type": "string"
     },
@@ -670,6 +742,9 @@
     "deletes",
     "duplicates",
     "questions",
+    "awaitingDelete",
+    "newCategories",
+    "skipped",
     "reply",
     "steps"
   ],

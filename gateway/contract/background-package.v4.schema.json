@@ -4,7 +4,7 @@
   "properties": {
     "version": {
       "type": "number",
-      "const": 2
+      "const": 4
     },
     "note": {
       "type": "object",
@@ -79,6 +79,16 @@
             "items": {
               "type": "string"
             }
+          },
+          "color": {
+            "default": "stone",
+            "type": "string"
+          },
+          "order": {
+            "default": 500,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           }
         },
         "required": [
@@ -396,6 +406,13 @@
           "undone": {
             "default": false,
             "type": "boolean"
+          },
+          "awaitingDelete": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [

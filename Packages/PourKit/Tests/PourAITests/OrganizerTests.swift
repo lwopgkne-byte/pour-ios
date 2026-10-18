@@ -52,9 +52,9 @@ final class FakeGateway: URLProtocol, @unchecked Sendable {
     }
 
     static func change(noteId: String, _ creates: String, reply: String = "") -> String {
-        #"{"version":3,"noteId":"\#(noteId)","intents":["record"],"creates":\#(creates),"#
-            + #""updates":[],"deletes":[],"duplicates":[],"questions":[],"newCategories":[],"#
-            + #""reply":"\#(reply)","steps":[]}"#
+        #"{"version":\#(BackgroundPackage.contractVersion),"noteId":"\#(noteId)","intents":["record"],"#
+            + #""creates":\#(creates),"updates":[],"deletes":[],"duplicates":[],"questions":[],"awaitingDelete":[],"#
+            + #""newCategories":[],"reply":"\#(reply)","steps":[]}"#
     }
 }
 
@@ -145,7 +145,8 @@ struct OrganizerTests {
         let run = RecordData.event(.init(category: "run", label: "跑步"))
         try store.apply(
             NoteChanges(creates: [NewEntry(day: "2026-10-18", data: run)]), toNote: note.id, package: Data("{}".utf8))
-        FakeGateway.replies = [(200, #"{"version":3,"day":"2026-10-18","summary":"早上跑了步","steps":[]}"#)]
+        let version = BackgroundPackage.contractVersion
+        FakeGateway.replies = [(200, #"{"version":\#(version),"day":"2026-10-18","summary":"早上跑了步","steps":[]}"#)]
         let summarizer = Summarizer(store: store, gateway: FakeGateway.client())
         #expect(try await summarizer.generate("2026-10-18"))
         #expect(try store.snapshot(of: "2026-10-18").summary == "早上跑了步")

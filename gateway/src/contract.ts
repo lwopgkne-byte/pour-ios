@@ -3,10 +3,12 @@
  * 改格式先升版本号；`npm run contract` 把它们写成 JSON Schema 和样例（gateway/contract/），手机那边的测试用同一份核对。
  * v2（M2b）：背景包带上最近的对话；改动包除了新建，还有改、删、之前已记过、要问你的话
  * v3（M2c）：类别带上颜色和顺序；改动包带上这段话新建的类别（生活领域、AI 提的新活动），手机照着建上
+ * v4（M2c）：问了要不要删、在等回答的那几条（awaitingDelete）：改动包里带出来，手机记在这段话上，下一句的对话里带回来——
+ *   回答「对」「删吧」时程序直接删这几条，不再问 AI（网页版 awaiting）
  */
 import { z } from 'zod'
 
-export const CONTRACT_VERSION = 3
+export const CONTRACT_VERSION = 4
 
 const DateStr = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 /** 本地时刻：说这句话的地方墙上的钟点，YYYY-MM-DDTHH:mm（网关不认时区） */
@@ -102,6 +104,8 @@ export const DialogueTurn = z.object({
   questions: z.array(z.string()).default([]),
   /** 这段话整理出的记录已经被撤销了 */
   undone: z.boolean().default(false),
+  /** 这段话问了要不要删、还在等回答的那几条（手机的编号） */
+  awaitingDelete: z.array(z.string()).default([]),
 })
 export type DialogueTurn = z.infer<typeof DialogueTurn>
 
@@ -181,6 +185,8 @@ export const ChangePackage = z.object({
   duplicates: z.array(z.object({ id: z.string().min(1), span: z.string().default('') })).default([]),
   /** 要问你的话（拿不准删哪条时先问，不删） */
   questions: z.array(z.string()).default([]),
+  /** 问了要不要删的那几条：手机记在这段话上，下一句回答「对」时照着删（v4） */
+  awaitingDelete: z.array(z.string()).default([]),
   /** 这段话新建的类别（生活领域、AI 提的新活动）：手机先建类别、再写记录 */
   newCategories: z.array(Category).default([]),
   /** 程序把关没记的（问的话、没做的、别人的事……），给开发看，手机不用 */

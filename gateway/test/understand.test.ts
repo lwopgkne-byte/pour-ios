@@ -120,11 +120,14 @@ describe('新建记录的程序把关', () => {
     expect((await parseOne({ ...run, confidence: 0.9, question: '是跑步吗？' })).question).toBeUndefined()
   })
 
-  it('心情：级别由程序查表；心情不追问；精力只在原话说到时才有；那一刻要一字不差', async () => {
-    const mood = { op: 'create', kind: 'mood', tone: 'good', strength: 'strong', energy: '有精神', emotions: ['开心'], moment: '开心死了', span: '开心死了', confidence: 0.4 }
+  it('心情：级别由程序查表；心情不追问；精力只在原话说到时才有；那一刻要一字不差、不能只说了心情', async () => {
+    const mood = { op: 'create', kind: 'mood', tone: 'good', strength: 'strong', energy: '有精神', emotions: ['开心'], moment: '今天升职了', span: '今天升职了 开心死了', confidence: 0.4 }
     const r = await parseOne(mood, '今天升职了 开心死了')
-    expect(r.data).toEqual({ kind: 'mood', level: 5, tone: 'good', strength: 'strong', emotions: ['开心'], moment: '开心死了' })
+    expect(r.data).toEqual({ kind: 'mood', level: 5, tone: 'good', strength: 'strong', emotions: ['开心'], moment: '今天升职了' })
     expect(r.question).toBeUndefined()
+    // 「开心死了」「下午有点烦」只说了心情，没说是什么情境：不是那一刻
+    expect((await parseOne({ ...mood, moment: '开心死了' }, '今天升职了 开心死了')).data).not.toHaveProperty('moment')
+    expect((await parseOne({ ...mood, tone: 'bad', moment: '下午有点烦', span: '下午有点烦' }, '下午有点烦 也说不上为啥')).data).not.toHaveProperty('moment')
     const tired = await parseOne({ ...mood, tone: 'bad', strength: 'medium', energy: '有点累', moment: '改写过的话' }, '加班到十点，有点累')
     expect(tired.data).toMatchObject({ level: 2, energy: 2 })
     expect(tired.data).not.toHaveProperty('moment')

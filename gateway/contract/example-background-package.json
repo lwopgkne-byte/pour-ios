@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "note": {
     "id": "0B6F3C2E-6B1D-4C8A-9E55-3A7D2F1C9B10",
     "text": "早上跑了五公里 中午和小王吃面三十二 房租交了",
@@ -276,7 +276,8 @@
       "questions": [
         "是这个月的房租吗？"
       ],
-      "undone": false
+      "undone": false,
+      "awaitingDelete": []
     }
   ]
 }

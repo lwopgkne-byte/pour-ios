@@ -113,6 +113,12 @@ public final class PourStore: Sendable {
                 table.column("createdAt", .datetime).notNull()
             }
         }
+        migrator.registerMigration("v4 在等回答要不要删") { db in
+            // 问了要不要删的那几条：下一句说「对」时网关照着删（接口契约 v4）
+            try db.alter(table: "note") { table in
+                table.add(column: "awaitingDelete", .jsonText).notNull().defaults(to: "[]")
+            }
+        }
         return migrator
     }
 }

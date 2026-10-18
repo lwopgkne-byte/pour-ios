@@ -36,13 +36,16 @@ public struct Note: Hashable, Sendable, Identifiable {
     public var actions: [NoteAction]
     /// 问你的话（拿不准删哪条时先问）
     public var questions: [String]
+    /// 问了要不要删、在等你回答的那几条：下一句说「对」就删它们
+    public var awaitingDelete: [String]
     /// 撤销了：这段话整理出的改动都退回去了，原话还在
     public var undoneAt: Date?
 
     public init(
         id: String = UUID().uuidString, text: String, createdAt: Date, localTime: LocalDateTime, timeZone: String,
         day: DayString, status: Status = .queued, problem: String? = nil, reply: String? = nil,
-        finishedAt: Date? = nil, actions: [NoteAction] = [], questions: [String] = [], undoneAt: Date? = nil
+        finishedAt: Date? = nil, actions: [NoteAction] = [], questions: [String] = [], awaitingDelete: [String] = [],
+        undoneAt: Date? = nil
     ) {
         self.id = id
         self.text = text
@@ -56,6 +59,7 @@ public struct Note: Hashable, Sendable, Identifiable {
         self.finishedAt = finishedAt
         self.actions = actions
         self.questions = questions
+        self.awaitingDelete = awaitingDelete
         self.undoneAt = undoneAt
     }
 }
@@ -166,19 +170,22 @@ public struct NoteChanges: Hashable, Sendable {
     public var deletes: [Mention]
     public var duplicates: [Mention]
     public var questions: [String]
+    /// 问了要不要删的那几条（下一句回答「对」时照着删）
+    public var awaitingDelete: [String]
     public var reply: String
     /// 这段话新建的类别（生活领域、新活动）：先建类别、再写记录
     public var newCategories: [LifeCategory]
 
     public init(
         creates: [NewEntry] = [], updates: [Updated] = [], deletes: [Mention] = [], duplicates: [Mention] = [],
-        questions: [String] = [], reply: String = "", newCategories: [LifeCategory] = []
+        questions: [String] = [], awaitingDelete: [String] = [], reply: String = "", newCategories: [LifeCategory] = []
     ) {
         self.creates = creates
         self.updates = updates
         self.deletes = deletes
         self.duplicates = duplicates
         self.questions = questions
+        self.awaitingDelete = awaitingDelete
         self.reply = reply
         self.newCategories = newCategories
     }

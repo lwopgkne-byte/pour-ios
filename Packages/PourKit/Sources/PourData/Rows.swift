@@ -20,6 +20,7 @@ struct NoteRow: Codable, FetchableRecord, PersistableRecord {
     var finishedAt: Date?
     var actions: [NoteAction]
     var questions: [String]
+    var awaitingDelete: [String]
     var undoneAt: Date?
 
     init(_ note: Note) {
@@ -37,6 +38,7 @@ struct NoteRow: Codable, FetchableRecord, PersistableRecord {
         finishedAt = note.finishedAt
         actions = note.actions
         questions = note.questions
+        awaitingDelete = note.awaitingDelete
         undoneAt = note.undoneAt
     }
 
@@ -44,7 +46,7 @@ struct NoteRow: Codable, FetchableRecord, PersistableRecord {
         Note(
             id: id, text: text, createdAt: createdAt, localTime: localTime, timeZone: timeZone, day: day,
             status: Note.Status(rawValue: status) ?? .queued, problem: problem, reply: reply, finishedAt: finishedAt,
-            actions: actions, questions: questions, undoneAt: undoneAt)
+            actions: actions, questions: questions, awaitingDelete: awaitingDelete, undoneAt: undoneAt)
     }
 }
 

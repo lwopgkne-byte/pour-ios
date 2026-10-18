@@ -4,11 +4,12 @@ public import PourCore
 // AI 层：网关客户端、理解服务（M2 起）；问答、端侧语音和向量以后再加（docs/04-AI能力与程序适配方案.md）。
 // 接口契约 v2（docs/03 第 8 节）：手机发「背景包」，网关回「改动包」。格式和 gateway/src/contract.ts 一字不差，
 // PourAITests 拿网关导出的样例（gateway/contract/example-*.json）核对。v2：带上最近的对话；改、删、之前已记过。
-// v3：类别带颜色和顺序；改动包带上这段话新建的类别
+// v3：类别带颜色和顺序；改动包带上这段话新建的类别。
+// v4：问了要不要删的那几条（awaitingDelete）记在这段话上、下一句带回去：回答「对」时网关照着删
 
 /// 背景包：整理一段话要用的全部背景，从本机数据库拼出来
 public struct BackgroundPackage: Codable, Hashable, Sendable {
-    public static let contractVersion = 3
+    public static let contractVersion = 4
 
     public struct NotePart: Codable, Hashable, Sendable {
         public var id: String
@@ -56,6 +57,8 @@ public struct BackgroundPackage: Codable, Hashable, Sendable {
         public var reply: String?
         public var questions: [String]
         public var undone: Bool
+        /// 这段话问了要不要删、还在等回答的那几条
+        public var awaitingDelete: [String]
     }
 
     public var version: Int
@@ -106,6 +109,8 @@ public struct ChangePackage: Codable, Hashable, Sendable {
     public var duplicates: [NoteChanges.Mention]
     /// 要问你的话（拿不准删哪条时先问）
     public var questions: [String]
+    /// 问了要不要删的那几条
+    public var awaitingDelete: [String]
     /// 这段话新建的类别（生活领域、新活动）
     public var newCategories: [LifeCategory]
     /// 给你的一句话（聊天的回应）
@@ -116,7 +121,7 @@ public struct ChangePackage: Codable, Hashable, Sendable {
     public var changes: NoteChanges {
         NoteChanges(
             creates: creates, updates: updates, deletes: deletes, duplicates: duplicates, questions: questions,
-            reply: reply, newCategories: newCategories)
+            awaitingDelete: awaitingDelete, reply: reply, newCategories: newCategories)
     }
 }
 

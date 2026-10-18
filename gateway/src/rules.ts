@@ -14,3 +14,9 @@ export function rootCategory(key: string, cats: Category[]): string {
   }
   return current
 }
+
+/** 顶级类别的名称（钱分不清进出时看领域：饮食、购物里的钱是花出去的） */
+export function rootName(key: string, cats: Category[]): string | undefined {
+  const root = rootCategory(key, cats)
+  return cats.find((c) => c.key === root)?.name
+}
