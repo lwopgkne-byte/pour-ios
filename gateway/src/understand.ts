@@ -27,7 +27,7 @@ import { aliases, backgroundVars } from './describe.ts'
 import type { LlmClient } from './llm.ts'
 import { DISTRESS_REPLY, cleanMoment, directMoodLevel, isDistress, keepEnergy, levelOf, moodWord, toneOfLevel } from './mood.ts'
 import { quickAnswer } from './quick.ts'
-import { isCorrectionCue, mentionsDay } from './refer.ts'
+import { isCorrectionCue, mentionsDay, upcomingRelativeDayIn, upcomingWeekdayIn } from './refer.ts'
 import { CONFIDENCE_THRESHOLD, rootCategory, rootName } from './rules.ts'
 import { type CreateItem, ParseOutput, RouterOutput, type UpdateItem } from './schemas.ts'
 import { minutesBetween, resolveDateRef, resolveEventTime } from './time.ts'
@@ -66,17 +66,63 @@ export async function understand(bg: BackgroundPackage, deps: UnderstandDeps): P
 
   const questions = routed.intents.filter((i) => i.type === 'question').map((i) => i.text)
   const { distress, repeatedAgain, ...changes } = applyItems(parsed.items, bg, questions, intents.includes('correction'))
-  const reply = intents.includes('chat') && !wantsRecords ? routed.reply : parsed.reply
+  const raw = intents.includes('chat') && !wantsRecords ? routed.reply : parsed.reply
   return {
     version: CONTRACT_VERSION,
     noteId: bg.note.id,
     intents,
     ...changes,
-    // 很难受：固定的回复（带心理援助热线），不让 AI 自由发挥。
-    // 原话说了「又」、程序照新的一次记了：AI 顺口问的「这次和之前那次是同一次吗？」不再问
-    reply: distress ? DISTRESS_REPLY : repeatedAgain && /[？?]/.test(reply) ? '' : reply,
+    ...compose({ intents, changes, raw, distress, repeatedAgain }),
     steps,
   }
+}
+
+/** 整理时的回复不能替系统做承诺（「5 分钟后提醒你」）：能不能提醒由系统决定，说了这类话的回复不显示（网页版 honest） */
+const PROMISE = /提醒你|叫你|喊你|通知你|会提醒|帮你盯|到时候告诉你/
+/** 内部编号（#12）只是给 AI 对照记录用的，给你看的话里不能出现 */
+const noIds = (t: string) =>
+  t
+    .replace(/(\p{Script=Han})?\s*#\d+\s*(\p{Script=Han})?/gu, (_m, a = '', b = '') => (a && b ? `${a}${b}` : `${a} ${b}`))
+    .replace(/\s{2,}/g, ' ')
+    .replace(/ ([，。？、])/g, '$1')
+    .trim()
+
+export const NOTHING_TO_RECORD = '这段话里没有新的内容要记（说过的已经记下了）。'
+export const WHICH_ONE = '没找到要改的是哪条，能说具体一点吗？比如「跑步那条删掉」。'
+export const NO_ANSWER_YET = '问答还没做好，这句话的原话先留着。'
+
+/**
+ * 给你的那句话和要问你的话（照网页版 composeStep）：
+ * - 有提问时不显示整理顺口的回复（它可能说出没核对过的数字）；问答还没做（以后的模块），只是提问就照实说
+ * - 回复里问的话也是追问：和别的追问一样记下，下一句就知道是在回答它
+ * - 说了话却什么都没发生，要说明白，不能一声不响（不然以为没发出去，再发一遍）
+ * - 很难受的时候：换成程序写的那句，不追问
+ */
+function compose(o: {
+  intents: ChangePackage['intents']
+  changes: Pick<ChangePackage, 'creates' | 'updates' | 'deletes' | 'duplicates' | 'questions'>
+  raw: string
+  distress: boolean
+  repeatedAgain: boolean
+}): { reply: string; questions: string[] } {
+  if (o.distress) return { reply: DISTRESS_REPLY, questions: [] }
+  const asking = o.intents.includes('question')
+  let reply = asking || PROMISE.test(o.raw) ? '' : noIds(o.raw.trim())
+  // 原话说了「又」、程序照新的一次记了：AI 顺口问的「这次和之前那次是同一次吗？」不再问
+  if (o.repeatedAgain && /[？?]/.test(reply)) reply = ''
+  let questions = [...new Set(o.changes.questions.map(noIds))]
+  if (reply && /[？?]/.test(reply) && questions.length === 0) {
+    questions = [reply]
+    reply = ''
+  }
+  const { creates, updates, deletes, duplicates } = o.changes
+  const happened = creates.length + updates.length + deletes.length + duplicates.length > 0
+  if (!happened && !reply && questions.length === 0) {
+    if (o.intents.includes('correction')) questions = [WHICH_ONE]
+    else if (o.intents.includes('record')) reply = NOTHING_TO_RECORD
+    else if (asking) reply = NO_ANSWER_YET
+  }
+  return { reply, questions }
 }
 
 /** 对话里改心情的字段：那一刻要一字不差在原话里、不是只说了心情；原话没说到精力就不改精力 */
@@ -379,11 +425,12 @@ function recordOf(item: CreateItem, bg: BackgroundPackage, book: CategoryBook): 
     }
     case 'insight':
       return { day: noteDay, data: { kind: 'insight', title: item.title, quote: item.quote, tags: item.tags } }
-    case 'todo':
-      return {
-        day: noteDay,
-        data: { kind: 'todo', content: item.content, ...(item.due ? { due: resolveDateRef(item.due, noteDay) } : {}), done: false, ...mentions(item) },
-      }
+    case 'todo': {
+      // 要做的事的日子由程序往后数（照网页版 buildEntry）：「明天」「大后天」程序数；AI 把星期几写成了已经过去的那天，改回还没到的那天
+      const said = item.due ? resolveDateRef(item.due, noteDay) : undefined
+      const due = upcomingRelativeDayIn(item.span ?? '', noteDay) ?? (said && said < noteDay ? (upcomingWeekdayIn(item.span ?? '', noteDay) ?? said) : said)
+      return { day: noteDay, data: { kind: 'todo', content: item.content, ...(due ? { due } : {}), done: false, ...mentions(item) } }
+    }
     case 'mood': {
       // 级别由程序查表；说到很难受的定为很差（M2c 搬网页版的整套说法）；精力只在原话说到时才有；那一刻要一字不差
       const level = item.distress ? 1 : item.tone ? levelOf(item.tone, item.strength) : (item.mood ?? 3)

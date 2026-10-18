@@ -189,3 +189,22 @@ describe('兜底去重：AI 漏判时也不会记两次（M2c）', () => {
     expect((await say('记得交房租', [paid], [todo])).creates).toHaveLength(1)
   })
 })
+
+describe('要做的事的日子由程序往后数（照网页版 refer.test.ts）', () => {
+  it('星期几是还没到的那天；今天就是那天就是今天；「下周三」是下一周；「上周」不管', async () => {
+    const { upcomingWeekdayIn, upcomingRelativeDayIn } = await import('../src/refer.ts')
+    expect(upcomingWeekdayIn('周五下午三点提醒我交论文', '2026-10-12')).toBe('2026-10-16')
+    expect(upcomingWeekdayIn('周三开会', '2026-10-14')).toBe('2026-10-14')
+    expect(upcomingWeekdayIn('周一要交报告', '2026-10-14')).toBe('2026-10-19')
+    expect(upcomingWeekdayIn('下周三要打疫苗', '2026-10-12')).toBe('2026-10-21')
+    expect(upcomingWeekdayIn('上周五开的会', '2026-10-12')).toBeNull()
+    expect(upcomingRelativeDayIn('大后天要去交房租', '2026-10-12')).toBe('2026-10-15')
+    expect(upcomingRelativeDayIn('明天提醒我后天交房租', '2026-10-12')).toBeNull()
+  })
+
+  it('AI 把「周五」写成了已经过去的那个周五：改回这个周五', async () => {
+    const todo = { op: 'create', kind: 'todo', content: '交论文', due: '2026-10-09', span: '周五交论文', confidence: 0.9 }
+    const out = await say('周五交论文', [], [todo], '2026-10-12T09:00')
+    expect(out.creates[0]!.data).toMatchObject({ due: '2026-10-16' })
+  })
+})

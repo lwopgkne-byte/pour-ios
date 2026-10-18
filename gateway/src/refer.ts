@@ -54,6 +54,36 @@ export function mentionedDays(text: string, today: DateStr): DateStr[] {
   return [...out].sort()
 }
 
+/**
+ * 要做的事说的「今天 / 明天 / 后天 / 大后天」：程序往后数，不用 AI 算的日子（「大后天要去交房租」AI 偶尔多算一天）。
+ * 只说了一个这样的日子才算；说了好几个不一样的，分不清哪件事对哪天，不管
+ */
+export function upcomingRelativeDayIn(text: string, today: DateStr): DateStr | null {
+  let rest = text.replace(/\s+/g, '')
+  const days = new Set<DateStr>()
+  for (const [re, offset] of RELATIVE) {
+    if (rest.search(re) >= 0 && offset >= 0) days.add(addDays(today, offset))
+    rest = rest.replace(re, '　')
+  }
+  return days.size === 1 ? [...days][0]! : null
+}
+
+/**
+ * 要做的事说的星期几是还没到的那天（「周五下午三点提醒我」是这个周五，今天就是周五就是今天）；
+ * 「下周三」是下一周的；「上周…」不算要做的事，不管；说了好几个不一样的星期几，也不管
+ */
+export function upcomingWeekdayIn(text: string, today: DateStr): DateStr | null {
+  const refs = [...text.replace(/\s+/g, '').matchAll(WEEKDAY_REF)].map((m) => ({ prefix: m[1] ?? '', day: Math.min(WEEKDAY_CHARS.indexOf(m[2]!), 6) }))
+  if (refs.length === 0 || new Set(refs.map((r) => `${r.prefix}${r.day}`)).size > 1) return null
+  const { prefix, day } = refs[0]!
+  if (prefix.startsWith('上')) return null
+  const thisMonday = addDays(today, -weekdayMon0(today))
+  if (prefix === '下下') return addDays(thisMonday, day + 14)
+  if (prefix === '下') return addDays(thisMonday, day + 7)
+  const thisWeek = addDays(thisMonday, day)
+  return thisWeek >= today ? thisWeek : addDays(thisWeek, 7)
+}
+
 /** 原话说到了这一天 */
 export const mentionsDay = (text: string, today: DateStr, day: DateStr) => mentionedDays(text, today).includes(day)
 
