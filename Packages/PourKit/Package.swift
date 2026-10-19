@@ -53,7 +53,8 @@ let package = Package(
             name: "PourAITests", dependencies: ["PourAI", "PourData", "PourCore"], swiftSettings: swiftSettings),
         .testTarget(name: "PourDesignTests", dependencies: ["PourDesign"], swiftSettings: swiftSettings),
         .testTarget(
-            name: "PourAPITests", dependencies: ["PourAPI"], resources: [.copy("Fixtures")], swiftSettings: swiftSettings),
+            name: "PourAPITests", dependencies: ["PourAPI"], resources: [.copy("Fixtures")],
+            swiftSettings: swiftSettings),
         .testTarget(
             name: "PourPlatformTests", dependencies: ["PourPlatform", "PourData"], swiftSettings: swiftSettings),
     ],
