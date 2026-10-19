@@ -212,3 +212,99 @@ public struct WebErrorState: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
+
+/// 网页版的小标签按钮（.chip：类别、筛选）：白底细边的胶囊，选中的边深一点、字深一点；手机上至少 32 点高、能点的 44 点
+public struct WebChip<Label: View>: View {
+    /// 系统的无障碍审计认它：类别小标签前面是彩色的表情（图，不是字），量对比度不准
+    public static var identifier: String { "webChip" }
+    let selected: Bool
+    let action: () -> Void
+    @ViewBuilder let label: () -> Label
+
+    public init(selected: Bool, action: @escaping () -> Void, @ViewBuilder label: @escaping () -> Label) {
+        self.selected = selected
+        self.action = action
+        self.label = label
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            // 读屏、审计都只当成一个按钮（里面的表情和字不再各算一个）
+            HStack(spacing: Web.space1) { label() }
+                .accessibilityElement(children: .combine)
+                .font(Web.caption)
+                .foregroundStyle(selected ? Web.fg : Web.fgSecondary)
+                .padding(.horizontal, Web.space3)
+                .frame(minHeight: Web.control)
+                .background(Capsule().fill(Web.bg))
+                .overlay(Capsule().strokeBorder(selected ? Web.fgTertiary : Web.line, lineWidth: 1))
+                .padding(.vertical, (Web.touch - Web.control) / 2)
+                .contentShape(Rectangle())
+                .padding(.vertical, -(Web.touch - Web.control) / 2)
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? [.isSelected] : [])
+        .accessibilityIdentifier(Self.identifier)
+    }
+}
+
+/// 网页版的输入框（components/ui/TextField.tsx）：上面一行小标题，白底细边的框，下面一句说明或者出错的话
+public struct WebTextField: View {
+    let label: String?
+    let placeholder: String
+    @Binding var text: String
+    let keyboard: WebKeyboard
+    let hint: String?
+    let error: String?
+    @FocusState private var focused: Bool
+
+    public init(
+        _ label: String? = nil, placeholder: String = "", text: Binding<String>, keyboard: WebKeyboard = .text,
+        hint: String? = nil, error: String? = nil
+    ) {
+        self.label = label
+        self.placeholder = placeholder
+        _text = text
+        self.keyboard = keyboard
+        self.hint = hint
+        self.error = error
+    }
+
+    public var body: some View {
+        VStack(alignment: .leading, spacing: Web.space1) {
+            if let label {
+                Text(label).font(Web.captionMedium).foregroundStyle(Web.fgSecondary)
+            }
+            TextField(placeholder, text: $text)
+                .font(Web.body).foregroundStyle(Web.fg)
+                .webKeyboard(keyboard)
+                .focused($focused)
+                .padding(.horizontal, Web.space2)
+                .frame(minHeight: Web.touch)
+                .background(RoundedRectangle(cornerRadius: Web.radiusControl).fill(Web.bg))
+                .overlay(
+                    RoundedRectangle(cornerRadius: Web.radiusControl).strokeBorder(
+                        error != nil ? Web.danger : focused ? Web.accent : Web.line, lineWidth: 1)
+                )
+                .accessibilityLabel(Text(label ?? placeholder))
+            if let message = error ?? hint {
+                Text(message).font(Web.caption).foregroundStyle(error != nil ? Web.danger : Web.fgTertiary)
+            }
+        }
+    }
+}
+
+/// 输入框用哪种键盘（网页版 inputMode）
+public enum WebKeyboard: Sendable {
+    case text, number, decimal
+}
+
+extension View {
+    fileprivate func webKeyboard(_ keyboard: WebKeyboard) -> some View {
+        #if os(iOS)
+            keyboardType(keyboard == .number ? .numberPad : keyboard == .decimal ? .decimalPad : .default)
+        #else
+            self
+        #endif
+    }
+}

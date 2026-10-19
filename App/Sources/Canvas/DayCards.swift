@@ -67,14 +67,21 @@ private struct GroupCard: View {
             case "mood": MoodRows(items: items, quotes: quotes)
             default: EventRows(items: items, categories: categories)
             }
+            // 卡片底部一行：相关目标的进度，点了打开目标详情（网页版 .day-card-goal）
             ForEach(goals) { goal in
-                HStack(spacing: Web.space2) {
-                    ToneDot(tone: goal.tone)
-                    Text(Show.spaced("\(goal.title) · \(goal.headline)")).lineLimit(1)
+                Button {
+                    model.openGoal(goal.id)
+                } label: {
+                    HStack(spacing: Web.space2) {
+                        ToneDot(tone: goal.tone)
+                        Text(Show.spaced("\(goal.title) · \(goal.headline)")).lineLimit(1)
+                    }
+                    .font(Web.caption).foregroundStyle(Web.fgTertiary)
+                    .padding(.horizontal, Web.space2)
+                    .frame(maxWidth: .infinity, minHeight: Web.touch, alignment: .leading)
+                    .contentShape(Rectangle())
                 }
-                .font(Web.caption).foregroundStyle(Web.fgTertiary)
-                .padding(.horizontal, Web.space2)
-                .frame(maxWidth: .infinity, minHeight: Web.touch, alignment: .leading)
+                .buttonStyle(WebPressStyle(radius: Web.radiusControl))
                 .padding(.top, Web.space1)
                 .accessibilityElement(children: .combine)
             }

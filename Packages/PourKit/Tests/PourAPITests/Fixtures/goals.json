@@ -1,0 +1,1611 @@
+{
+    "goals": [
+        {
+            "title": "今年跑 500 公里",
+            "kind": "quantity",
+            "period": "year",
+            "start": "2026-09-15",
+            "end": "2026-12-31",
+            "calc": "sum",
+            "direction": "gte",
+            "target": 500,
+            "unit": "公里",
+            "binding": {
+                "category": "run",
+                "metric": "value",
+                "metricUnit": "公里"
+            },
+            "id": 1,
+            "parentId": null,
+            "status": "active",
+            "createdAt": "2026-09-15T02:05:00.000Z",
+            "range": {
+                "from": "2026-09-15",
+                "to": "2026-12-31"
+            },
+            "rangeLabel": "9月15日–12月31日",
+            "progress": {
+                "target": 500,
+                "unit": "公里",
+                "ended": false,
+                "daysLeft": 74,
+                "tone": "bad",
+                "pct": 0.2038,
+                "actual": 101.9,
+                "expected": 157.4074074074074,
+                "diff": -55.507407407407385,
+                "diffRatio": -0.35263529411764694,
+                "reached": false,
+                "prediction": {
+                    "kind": "too_slow",
+                    "percentAtEnd": 0.6240714285714286
+                },
+                "headline": "已完成 101.9 公里 · 落后 35%"
+            },
+            "overLocked": false,
+            "monthRows": [
+                {
+                    "key": "2026-09",
+                    "label": "9 月",
+                    "range": {
+                        "from": "2026-09-15",
+                        "to": "2026-09-30"
+                    },
+                    "target": 74.07407407407408,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 74.07407407407408,
+                        "unit": "公里",
+                        "ended": true,
+                        "daysLeft": 0,
+                        "tone": "none",
+                        "pct": 0.6641999999999999,
+                        "actual": 49.199999999999996,
+                        "expected": 74.07407407407408,
+                        "diff": -24.87407407407408,
+                        "diffRatio": -0.3358000000000001,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "已完成 49.2 公里 · 落后 34%"
+                    },
+                    "weeks": [
+                        {
+                            "key": "2026-09-15",
+                            "label": "9月15日–9月20日",
+                            "range": {
+                                "from": "2026-09-15",
+                                "to": "2026-09-20"
+                            },
+                            "target": 27.77777777777778,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 27.77777777777778,
+                                "unit": "公里",
+                                "ended": true,
+                                "daysLeft": 0,
+                                "tone": "none",
+                                "pct": 0.5364,
+                                "actual": 14.899999999999999,
+                                "expected": 27.777777777777782,
+                                "diff": -12.877777777777784,
+                                "diffRatio": -0.4636000000000001,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "已完成 14.9 公里 · 落后 46%"
+                            }
+                        },
+                        {
+                            "key": "2026-09-21",
+                            "label": "9月21日–9月27日",
+                            "range": {
+                                "from": "2026-09-21",
+                                "to": "2026-09-27"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": true,
+                                "daysLeft": 0,
+                                "tone": "none",
+                                "pct": 0.7282285714285716,
+                                "actual": 23.6,
+                                "expected": 32.407407407407405,
+                                "diff": -8.807407407407403,
+                                "diffRatio": -0.27177142857142844,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "已完成 23.6 公里 · 落后 27%"
+                            }
+                        },
+                        {
+                            "key": "2026-09-28",
+                            "label": "9月28日–9月30日",
+                            "range": {
+                                "from": "2026-09-28",
+                                "to": "2026-09-30"
+                            },
+                            "target": 13.88888888888889,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 13.88888888888889,
+                                "unit": "公里",
+                                "ended": true,
+                                "daysLeft": 0,
+                                "tone": "none",
+                                "pct": 0.7704,
+                                "actual": 10.7,
+                                "expected": 13.888888888888891,
+                                "diff": -3.1888888888888918,
+                                "diffRatio": -0.22960000000000017,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "已完成 10.7 公里 · 落后 23%"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "key": "2026-10",
+                    "label": "10 月",
+                    "range": {
+                        "from": "2026-10-01",
+                        "to": "2026-10-31"
+                    },
+                    "target": 143.5185185185185,
+                    "locked": false,
+                    "current": true,
+                    "progress": {
+                        "target": 143.5185185185185,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 13,
+                        "tone": "bad",
+                        "pct": 0.3672,
+                        "actual": 52.699999999999996,
+                        "expected": 83.33333333333333,
+                        "diff": -30.633333333333333,
+                        "diffRatio": -0.36760000000000004,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "too_slow",
+                            "percentAtEnd": 0.5822709677419355
+                        },
+                        "headline": "已完成 52.7 公里 · 落后 37%"
+                    },
+                    "weeks": [
+                        {
+                            "key": "2026-10-01",
+                            "label": "10月1日–10月4日",
+                            "range": {
+                                "from": "2026-10-01",
+                                "to": "2026-10-04"
+                            },
+                            "target": 18.518518518518515,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 18.518518518518515,
+                                "unit": "公里",
+                                "ended": true,
+                                "daysLeft": 0,
+                                "tone": "none",
+                                "pct": 0.4482000000000001,
+                                "actual": 8.3,
+                                "expected": 18.518518518518515,
+                                "diff": -10.218518518518515,
+                                "diffRatio": -0.5517999999999998,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "已完成 8.3 公里 · 落后 55%"
+                            }
+                        },
+                        {
+                            "key": "2026-10-05",
+                            "label": "10月5日–10月11日",
+                            "range": {
+                                "from": "2026-10-05",
+                                "to": "2026-10-11"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": true,
+                                "daysLeft": 0,
+                                "tone": "none",
+                                "pct": 0.45051428571428576,
+                                "actual": 14.6,
+                                "expected": 32.407407407407405,
+                                "diff": -17.807407407407403,
+                                "diffRatio": -0.5494857142857142,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "已完成 14.6 公里 · 落后 55%"
+                            }
+                        },
+                        {
+                            "key": "2026-10-12",
+                            "label": "10月12日–10月18日",
+                            "range": {
+                                "from": "2026-10-12",
+                                "to": "2026-10-18"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": true,
+                                "daysLeft": 0,
+                                "tone": "none",
+                                "pct": 0.7220571428571428,
+                                "actual": 23.4,
+                                "expected": 32.407407407407405,
+                                "diff": -9.007407407407406,
+                                "diffRatio": -0.2779428571428571,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "已完成 23.4 公里 · 落后 28%"
+                            }
+                        },
+                        {
+                            "key": "2026-10-19",
+                            "label": "10月19日–10月25日",
+                            "range": {
+                                "from": "2026-10-19",
+                                "to": "2026-10-25"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": true,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "good",
+                                "pct": 0.19748571428571432,
+                                "actual": 6.4,
+                                "expected": 0,
+                                "diff": 6.4,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 6.4 公里 · 还差 26 公里"
+                            }
+                        },
+                        {
+                            "key": "2026-10-26",
+                            "label": "10月26日–10月31日",
+                            "range": {
+                                "from": "2026-10-26",
+                                "to": "2026-10-31"
+                            },
+                            "target": 27.77777777777778,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 27.77777777777778,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 6,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 27.8 公里"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "key": "2026-11",
+                    "label": "11 月",
+                    "range": {
+                        "from": "2026-11-01",
+                        "to": "2026-11-30"
+                    },
+                    "target": 138.88888888888889,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 138.88888888888889,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 30,
+                        "tone": "idle",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 刚开始"
+                    },
+                    "weeks": [
+                        {
+                            "key": "2026-11-01",
+                            "label": "11月1日",
+                            "range": {
+                                "from": "2026-11-01",
+                                "to": "2026-11-01"
+                            },
+                            "target": 4.62962962962963,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 4.62962962962963,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 1,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 4.6 公里"
+                            }
+                        },
+                        {
+                            "key": "2026-11-02",
+                            "label": "11月2日–11月8日",
+                            "range": {
+                                "from": "2026-11-02",
+                                "to": "2026-11-08"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 32.4 公里"
+                            }
+                        },
+                        {
+                            "key": "2026-11-09",
+                            "label": "11月9日–11月15日",
+                            "range": {
+                                "from": "2026-11-09",
+                                "to": "2026-11-15"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 32.4 公里"
+                            }
+                        },
+                        {
+                            "key": "2026-11-16",
+                            "label": "11月16日–11月22日",
+                            "range": {
+                                "from": "2026-11-16",
+                                "to": "2026-11-22"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 32.4 公里"
+                            }
+                        },
+                        {
+                            "key": "2026-11-23",
+                            "label": "11月23日–11月29日",
+                            "range": {
+                                "from": "2026-11-23",
+                                "to": "2026-11-29"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 32.4 公里"
+                            }
+                        },
+                        {
+                            "key": "2026-11-30",
+                            "label": "11月30日",
+                            "range": {
+                                "from": "2026-11-30",
+                                "to": "2026-11-30"
+                            },
+                            "target": 4.62962962962963,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 4.62962962962963,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 1,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 4.6 公里"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "key": "2026-12",
+                    "label": "12 月",
+                    "range": {
+                        "from": "2026-12-01",
+                        "to": "2026-12-31"
+                    },
+                    "target": 143.5185185185185,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 143.5185185185185,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 31,
+                        "tone": "idle",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 刚开始"
+                    },
+                    "weeks": [
+                        {
+                            "key": "2026-12-01",
+                            "label": "12月1日–12月6日",
+                            "range": {
+                                "from": "2026-12-01",
+                                "to": "2026-12-06"
+                            },
+                            "target": 27.77777777777778,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 27.77777777777778,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 6,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 27.8 公里"
+                            }
+                        },
+                        {
+                            "key": "2026-12-07",
+                            "label": "12月7日–12月13日",
+                            "range": {
+                                "from": "2026-12-07",
+                                "to": "2026-12-13"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 32.4 公里"
+                            }
+                        },
+                        {
+                            "key": "2026-12-14",
+                            "label": "12月14日–12月20日",
+                            "range": {
+                                "from": "2026-12-14",
+                                "to": "2026-12-20"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 32.4 公里"
+                            }
+                        },
+                        {
+                            "key": "2026-12-21",
+                            "label": "12月21日–12月27日",
+                            "range": {
+                                "from": "2026-12-21",
+                                "to": "2026-12-27"
+                            },
+                            "target": 32.407407407407405,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 32.407407407407405,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 32.4 公里"
+                            }
+                        },
+                        {
+                            "key": "2026-12-28",
+                            "label": "12月28日–12月31日",
+                            "range": {
+                                "from": "2026-12-28",
+                                "to": "2026-12-31"
+                            },
+                            "target": 18.518518518518515,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 18.518518518518515,
+                                "unit": "公里",
+                                "ended": false,
+                                "daysLeft": 4,
+                                "tone": "good",
+                                "pct": 0,
+                                "actual": 0,
+                                "expected": 0,
+                                "diff": 0,
+                                "diffRatio": 0,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "not_enough"
+                                },
+                                "headline": "已完成 0 公里 · 还差 18.5 公里"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "连续 30 天 16:8 轻断食",
+            "kind": "quantity",
+            "period": "month",
+            "start": "2026-09-15",
+            "end": null,
+            "calc": "streak",
+            "direction": "gte",
+            "target": 30,
+            "unit": "天",
+            "binding": {
+                "category": "diet",
+                "metric": "count",
+                "keywords": [
+                    "16:8",
+                    "轻断食"
+                ]
+            },
+            "id": 2,
+            "parentId": null,
+            "status": "active",
+            "createdAt": "2026-09-15T02:05:00.000Z",
+            "range": {
+                "from": "2026-09-15",
+                "to": "2999-12-31"
+            },
+            "rangeLabel": "9月15日 起",
+            "progress": {
+                "target": 30,
+                "unit": "天",
+                "ended": false,
+                "daysLeft": 355455,
+                "tone": "good",
+                "pct": 0.26666666666666666,
+                "actual": 8,
+                "best": 13,
+                "reached": false,
+                "prediction": {
+                    "kind": "date",
+                    "date": "2026-11-10"
+                },
+                "headline": "连续 8 天 · 最长 13 天"
+            }
+        },
+        {
+            "title": "每周运动 3 次",
+            "kind": "quantity",
+            "period": "week",
+            "repeat": true,
+            "start": "2026-09-15",
+            "end": null,
+            "calc": "count",
+            "direction": "gte",
+            "target": 3,
+            "unit": "次",
+            "binding": {
+                "category": "exercise",
+                "metric": "count"
+            },
+            "id": 3,
+            "parentId": null,
+            "status": "active",
+            "createdAt": "2026-09-15T02:35:00.000Z",
+            "range": {
+                "from": "2026-10-19",
+                "to": "2026-10-25"
+            },
+            "rangeLabel": "10月19日–10月25日",
+            "progress": {
+                "target": 3,
+                "unit": "次",
+                "ended": false,
+                "daysLeft": 7,
+                "tone": "good",
+                "pct": 0.3333333333333333,
+                "actual": 1,
+                "expected": 0,
+                "diff": 1,
+                "diffRatio": 0,
+                "reached": false,
+                "prediction": {
+                    "kind": "not_enough"
+                },
+                "headline": "已完成 1 次 · 还差 2 次"
+            }
+        },
+        {
+            "title": "读完《三体》",
+            "kind": "completion",
+            "period": "year",
+            "start": "2026-09-16",
+            "end": null,
+            "id": 4,
+            "parentId": null,
+            "status": "done",
+            "createdAt": "2026-09-16T16:10:00.000Z",
+            "range": {
+                "from": "2026-09-16",
+                "to": "2026-12-31"
+            },
+            "rangeLabel": "9月16日–12月31日",
+            "progress": {
+                "tone": "good",
+                "pct": 1,
+                "actual": 1,
+                "target": 1,
+                "unit": "",
+                "reached": true,
+                "ended": true,
+                "daysLeft": 0,
+                "prediction": {
+                    "kind": "none"
+                },
+                "headline": "已完成"
+            }
+        },
+        {
+            "title": "平均睡眠 7.5 小时",
+            "kind": "quantity",
+            "period": "week",
+            "repeat": true,
+            "start": "2026-09-21",
+            "end": null,
+            "calc": "avg",
+            "direction": "gte",
+            "target": 7.5,
+            "unit": "小时",
+            "binding": {
+                "category": "sleep",
+                "metric": "duration"
+            },
+            "id": 5,
+            "parentId": null,
+            "status": "active",
+            "createdAt": "2026-09-21T16:10:00.000Z",
+            "range": {
+                "from": "2026-10-19",
+                "to": "2026-10-25"
+            },
+            "rangeLabel": "10月19日–10月25日",
+            "progress": {
+                "target": 7.5,
+                "unit": "小时",
+                "ended": false,
+                "daysLeft": 7,
+                "tone": "warn",
+                "pct": 0.9111111111111111,
+                "actual": 6.833333333333333,
+                "days": 1,
+                "neededPerDay": 7.595238095238095,
+                "reached": false,
+                "prediction": {
+                    "kind": "none"
+                },
+                "headline": "实际 6.8 小时 · 差 0.7 小时"
+            }
+        },
+        {
+            "title": "三个月瘦 5 斤",
+            "kind": "parent",
+            "period": "year",
+            "start": "2026-09-23",
+            "end": "2026-12-22",
+            "id": 6,
+            "parentId": null,
+            "status": "active",
+            "createdAt": "2026-09-23T13:00:00.000Z",
+            "range": {
+                "from": "2026-09-23",
+                "to": "2026-12-22"
+            },
+            "rangeLabel": "",
+            "progress": {
+                "tone": "warn",
+                "pct": 0.4870357393132446,
+                "actual": 1,
+                "target": 2,
+                "unit": "",
+                "reached": false,
+                "ended": false,
+                "daysLeft": 0,
+                "prediction": {
+                    "kind": "none"
+                },
+                "headline": "2 个子目标，1 个在正轨上"
+            },
+            "children": [
+                {
+                    "title": "体重降到 69.5 公斤",
+                    "kind": "quantity",
+                    "period": "month",
+                    "start": "2026-09-23",
+                    "end": "2026-12-22",
+                    "calc": "avg",
+                    "direction": "lte",
+                    "target": 69.5,
+                    "unit": "公斤",
+                    "binding": {
+                        "category": "c-09897138",
+                        "metric": "value",
+                        "metricUnit": "公斤",
+                        "keywords": [
+                            "体重"
+                        ]
+                    },
+                    "id": 7,
+                    "parentId": 6,
+                    "status": "active",
+                    "createdAt": "2026-09-23T13:00:00.000Z",
+                    "range": {
+                        "from": "2026-09-23",
+                        "to": "2026-12-22"
+                    },
+                    "rangeLabel": "9月23日–12月22日",
+                    "progress": {
+                        "target": 69.5,
+                        "unit": "公斤",
+                        "ended": false,
+                        "daysLeft": 65,
+                        "tone": "warn",
+                        "pct": 0.9740714786264892,
+                        "actual": 71.35,
+                        "days": 4,
+                        "neededPerDay": 69.38615384615385,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "实际 71.4 公斤 · 多 1.8 公斤"
+                    },
+                    "weekRows": [
+                        {
+                            "key": "2026-09-23",
+                            "label": "9月23日–9月27日",
+                            "range": {
+                                "from": "2026-09-23",
+                                "to": "2026-09-27"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": true,
+                                "daysLeft": 0,
+                                "tone": "none",
+                                "pct": 0.967966573816156,
+                                "actual": 71.8,
+                                "days": 1,
+                                "neededPerDay": null,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "实际 71.8 公斤 · 多 2.3 公斤"
+                            }
+                        },
+                        {
+                            "key": "2026-09-28",
+                            "label": "9月28日–10月4日",
+                            "range": {
+                                "from": "2026-09-28",
+                                "to": "2026-10-04"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": true,
+                                "daysLeft": 0,
+                                "tone": "none",
+                                "pct": 0.9706703910614526,
+                                "actual": 71.6,
+                                "days": 1,
+                                "neededPerDay": null,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "实际 71.6 公斤 · 多 2.1 公斤"
+                            }
+                        },
+                        {
+                            "key": "2026-10-05",
+                            "label": "10月5日–10月11日",
+                            "range": {
+                                "from": "2026-10-05",
+                                "to": "2026-10-11"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": true,
+                                "daysLeft": 0,
+                                "tone": "none",
+                                "pct": 0.9761235955056179,
+                                "actual": 71.2,
+                                "days": 1,
+                                "neededPerDay": null,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "实际 71.2 公斤 · 多 1.7 公斤"
+                            }
+                        },
+                        {
+                            "key": "2026-10-12",
+                            "label": "10月12日–10月18日",
+                            "range": {
+                                "from": "2026-10-12",
+                                "to": "2026-10-18"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": true,
+                                "daysLeft": 0,
+                                "tone": "none",
+                                "pct": 0.9816384180790961,
+                                "actual": 70.8,
+                                "days": 1,
+                                "neededPerDay": null,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "实际 70.8 公斤 · 多 1.3 公斤"
+                            }
+                        },
+                        {
+                            "key": "2026-10-19",
+                            "label": "10月19日–10月25日",
+                            "range": {
+                                "from": "2026-10-19",
+                                "to": "2026-10-25"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": true,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "idle",
+                                "pct": 0,
+                                "actual": 0,
+                                "days": 0,
+                                "neededPerDay": 69.5,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "还没有记录"
+                            }
+                        },
+                        {
+                            "key": "2026-10-26",
+                            "label": "10月26日–11月1日",
+                            "range": {
+                                "from": "2026-10-26",
+                                "to": "2026-11-01"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "idle",
+                                "pct": 0,
+                                "actual": 0,
+                                "days": 0,
+                                "neededPerDay": 69.5,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "还没有记录"
+                            }
+                        },
+                        {
+                            "key": "2026-11-02",
+                            "label": "11月2日–11月8日",
+                            "range": {
+                                "from": "2026-11-02",
+                                "to": "2026-11-08"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "idle",
+                                "pct": 0,
+                                "actual": 0,
+                                "days": 0,
+                                "neededPerDay": 69.5,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "还没有记录"
+                            }
+                        },
+                        {
+                            "key": "2026-11-09",
+                            "label": "11月9日–11月15日",
+                            "range": {
+                                "from": "2026-11-09",
+                                "to": "2026-11-15"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "idle",
+                                "pct": 0,
+                                "actual": 0,
+                                "days": 0,
+                                "neededPerDay": 69.5,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "还没有记录"
+                            }
+                        },
+                        {
+                            "key": "2026-11-16",
+                            "label": "11月16日–11月22日",
+                            "range": {
+                                "from": "2026-11-16",
+                                "to": "2026-11-22"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "idle",
+                                "pct": 0,
+                                "actual": 0,
+                                "days": 0,
+                                "neededPerDay": 69.5,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "还没有记录"
+                            }
+                        },
+                        {
+                            "key": "2026-11-23",
+                            "label": "11月23日–11月29日",
+                            "range": {
+                                "from": "2026-11-23",
+                                "to": "2026-11-29"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "idle",
+                                "pct": 0,
+                                "actual": 0,
+                                "days": 0,
+                                "neededPerDay": 69.5,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "还没有记录"
+                            }
+                        },
+                        {
+                            "key": "2026-11-30",
+                            "label": "11月30日–12月6日",
+                            "range": {
+                                "from": "2026-11-30",
+                                "to": "2026-12-06"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "idle",
+                                "pct": 0,
+                                "actual": 0,
+                                "days": 0,
+                                "neededPerDay": 69.5,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "还没有记录"
+                            }
+                        },
+                        {
+                            "key": "2026-12-07",
+                            "label": "12月7日–12月13日",
+                            "range": {
+                                "from": "2026-12-07",
+                                "to": "2026-12-13"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "idle",
+                                "pct": 0,
+                                "actual": 0,
+                                "days": 0,
+                                "neededPerDay": 69.5,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "还没有记录"
+                            }
+                        },
+                        {
+                            "key": "2026-12-14",
+                            "label": "12月14日–12月20日",
+                            "range": {
+                                "from": "2026-12-14",
+                                "to": "2026-12-20"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": false,
+                                "daysLeft": 7,
+                                "tone": "idle",
+                                "pct": 0,
+                                "actual": 0,
+                                "days": 0,
+                                "neededPerDay": 69.5,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "还没有记录"
+                            }
+                        },
+                        {
+                            "key": "2026-12-21",
+                            "label": "12月21日–12月22日",
+                            "range": {
+                                "from": "2026-12-21",
+                                "to": "2026-12-22"
+                            },
+                            "target": 69.5,
+                            "locked": false,
+                            "current": false,
+                            "progress": {
+                                "target": 69.5,
+                                "unit": "公斤",
+                                "ended": false,
+                                "daysLeft": 2,
+                                "tone": "idle",
+                                "pct": 0,
+                                "actual": 0,
+                                "days": 0,
+                                "neededPerDay": 69.5,
+                                "reached": false,
+                                "prediction": {
+                                    "kind": "none"
+                                },
+                                "headline": "还没有记录"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "title": "每周外卖不超过 2 次",
+                    "kind": "quantity",
+                    "period": "week",
+                    "repeat": true,
+                    "start": "2026-09-23",
+                    "end": null,
+                    "calc": "count",
+                    "direction": "lte",
+                    "target": 2,
+                    "unit": "次",
+                    "binding": {
+                        "category": "diet",
+                        "metric": "count",
+                        "keywords": [
+                            "外卖"
+                        ]
+                    },
+                    "id": 8,
+                    "parentId": 6,
+                    "status": "active",
+                    "createdAt": "2026-09-23T13:00:00.000Z",
+                    "range": {
+                        "from": "2026-10-19",
+                        "to": "2026-10-25"
+                    },
+                    "rangeLabel": "10月19日–10月25日",
+                    "progress": {
+                        "target": 2,
+                        "unit": "次",
+                        "ended": false,
+                        "daysLeft": 7,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 1,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已用 0 / 2 次"
+                    }
+                }
+            ]
+        },
+        {
+            "title": "每周背单词 4 次",
+            "kind": "quantity",
+            "period": "week",
+            "repeat": true,
+            "start": "2026-09-27",
+            "end": null,
+            "calc": "count",
+            "direction": "gte",
+            "target": 4,
+            "unit": "次",
+            "binding": {
+                "category": "study",
+                "metric": "count",
+                "keywords": [
+                    "背单词"
+                ]
+            },
+            "id": 9,
+            "parentId": null,
+            "status": "active",
+            "createdAt": "2026-09-27T16:20:00.000Z",
+            "range": {
+                "from": "2026-10-19",
+                "to": "2026-10-25"
+            },
+            "rangeLabel": "10月19日–10月25日",
+            "progress": {
+                "target": 4,
+                "unit": "次",
+                "ended": false,
+                "daysLeft": 7,
+                "tone": "good",
+                "pct": 0,
+                "actual": 0,
+                "expected": 0,
+                "diff": 0,
+                "diffRatio": 0,
+                "reached": false,
+                "prediction": {
+                    "kind": "not_enough"
+                },
+                "headline": "已完成 0 次 · 还差 4 次"
+            }
+        },
+        {
+            "title": "每月外卖不超过 300 元",
+            "kind": "quantity",
+            "period": "month",
+            "repeat": true,
+            "start": "2026-09-30",
+            "end": null,
+            "calc": "sum",
+            "direction": "lte",
+            "target": 300,
+            "unit": "元",
+            "binding": {
+                "category": "diet",
+                "metric": "value",
+                "metricUnit": "元",
+                "keywords": [
+                    "外卖"
+                ]
+            },
+            "id": 10,
+            "parentId": null,
+            "status": "active",
+            "createdAt": "2026-09-30T16:10:00.000Z",
+            "range": {
+                "from": "2026-10-01",
+                "to": "2026-10-31"
+            },
+            "rangeLabel": "10 月",
+            "progress": {
+                "target": 300,
+                "unit": "元",
+                "ended": false,
+                "daysLeft": 13,
+                "tone": "good",
+                "pct": 0.5933333333333334,
+                "actual": 178,
+                "expected": 183.8709677419355,
+                "reached": false,
+                "prediction": {
+                    "kind": "projected",
+                    "value": 296.6666666666667
+                },
+                "headline": "已用 178 / 300 元"
+            },
+            "weekRows": [
+                {
+                    "key": "2026-10-01",
+                    "label": "10月1日–10月4日",
+                    "range": {
+                        "from": "2026-10-01",
+                        "to": "2026-10-04"
+                    },
+                    "target": 38.70967741935484,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 38.70967741935484,
+                        "unit": "元",
+                        "ended": true,
+                        "daysLeft": 0,
+                        "tone": "good",
+                        "pct": 0.9816666666666667,
+                        "actual": 38,
+                        "expected": 38.70967741935484,
+                        "reached": true,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "已用 38 / 38.7 元"
+                    }
+                },
+                {
+                    "key": "2026-10-05",
+                    "label": "10月5日–10月11日",
+                    "range": {
+                        "from": "2026-10-05",
+                        "to": "2026-10-11"
+                    },
+                    "target": 67.74193548387096,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 67.74193548387096,
+                        "unit": "元",
+                        "ended": true,
+                        "daysLeft": 0,
+                        "tone": "good",
+                        "pct": 0.560952380952381,
+                        "actual": 38,
+                        "expected": 67.74193548387096,
+                        "reached": true,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "已用 38 / 67.7 元"
+                    }
+                },
+                {
+                    "key": "2026-10-12",
+                    "label": "10月12日–10月18日",
+                    "range": {
+                        "from": "2026-10-12",
+                        "to": "2026-10-18"
+                    },
+                    "target": 67.74193548387096,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 67.74193548387096,
+                        "unit": "元",
+                        "ended": true,
+                        "daysLeft": 0,
+                        "tone": "none",
+                        "pct": 1,
+                        "actual": 102,
+                        "expected": 67.74193548387096,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "已超过上限 34.3 元"
+                    }
+                },
+                {
+                    "key": "2026-10-19",
+                    "label": "10月19日–10月25日",
+                    "range": {
+                        "from": "2026-10-19",
+                        "to": "2026-10-25"
+                    },
+                    "target": 67.74193548387096,
+                    "locked": false,
+                    "current": true,
+                    "progress": {
+                        "target": 67.74193548387096,
+                        "unit": "元",
+                        "ended": false,
+                        "daysLeft": 7,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 9.677419354838708,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已用 0 / 67.7 元"
+                    }
+                },
+                {
+                    "key": "2026-10-26",
+                    "label": "10月26日–10月31日",
+                    "range": {
+                        "from": "2026-10-26",
+                        "to": "2026-10-31"
+                    },
+                    "target": 58.064516129032256,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 58.064516129032256,
+                        "unit": "元",
+                        "ended": false,
+                        "daysLeft": 6,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 9.67741935483871,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已用 0 / 58.1 元"
+                    }
+                }
+            ]
+        },
+        {
+            "title": "读完《人类简史》",
+            "kind": "completion",
+            "period": "year",
+            "start": "2026-10-15",
+            "end": null,
+            "id": 11,
+            "parentId": null,
+            "status": "active",
+            "createdAt": "2026-10-14T16:10:00.000Z",
+            "range": {
+                "from": "2026-10-15",
+                "to": "2026-12-31"
+            },
+            "rangeLabel": "10月15日–12月31日",
+            "progress": {
+                "tone": "idle",
+                "pct": 0,
+                "actual": 0,
+                "target": 1,
+                "unit": "",
+                "reached": false,
+                "ended": false,
+                "daysLeft": 0,
+                "prediction": {
+                    "kind": "none"
+                },
+                "headline": "进行中"
+            }
+        }
+    ]
+}

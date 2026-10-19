@@ -82,11 +82,17 @@ enum AppAudit {
             if element.identifier.hasPrefix("pourbar") { place.barTop = nil }
             // 顶栏自己的菜单、搜索也照样审
             if element.identifier == "today.menu" || element.label == "搜索" { place.headerBottom = nil }
+            // 类别小标签（WebChip）：字是令牌色、对比度够；前面的彩色表情让审计量不准（和「表情不是字」一样）
+            if issue.auditType == .contrast, element.identifier == "webChip" {
+                print("放过（表情不是字）[\(name)] \(issue.compactDescription) ← \(element.label)")
+                return true
+            }
             if let reason = exemption(type: issue.auditType, frame: element.frame, label: element.label, place: place) {
                 print("放过（\(reason)）[\(name)] \(issue.compactDescription) ← \(element.label)")
                 return true
             }
             print("审计问题 [\(name)] \(issue.compactDescription) ← \(element.label) \(element.frame)")
+            print("  详细：\(issue.detailedDescription)（编号：\(element.identifier)）")
             return false
         }
     }

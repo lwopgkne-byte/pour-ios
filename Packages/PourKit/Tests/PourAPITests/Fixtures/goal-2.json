@@ -1,0 +1,388 @@
+{
+    "title": "连续 30 天 16:8 轻断食",
+    "kind": "quantity",
+    "period": "month",
+    "start": "2026-09-15",
+    "end": null,
+    "calc": "streak",
+    "direction": "gte",
+    "target": 30,
+    "unit": "天",
+    "binding": {
+        "category": "diet",
+        "metric": "count",
+        "keywords": [
+            "16:8",
+            "轻断食"
+        ]
+    },
+    "id": 2,
+    "parentId": null,
+    "status": "active",
+    "createdAt": "2026-09-15T02:05:00.000Z",
+    "range": {
+        "from": "2026-09-15",
+        "to": "2999-12-31"
+    },
+    "rangeLabel": "9月15日 起",
+    "progress": {
+        "target": 30,
+        "unit": "天",
+        "ended": false,
+        "daysLeft": 355455,
+        "tone": "good",
+        "pct": 0.26666666666666666,
+        "actual": 8,
+        "best": 13,
+        "reached": false,
+        "prediction": {
+            "kind": "date",
+            "date": "2026-11-10"
+        },
+        "headline": "连续 8 天 · 最长 13 天"
+    },
+    "series": [],
+    "prediction": "按最近的速度，11月10日左右完成",
+    "contributions": [
+        {
+            "entryId": 598,
+            "day": "2026-10-19",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 582,
+            "day": "2026-10-18",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 573,
+            "day": "2026-10-17",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 560,
+            "day": "2026-10-16",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 545,
+            "day": "2026-10-15",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 534,
+            "day": "2026-10-14",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 523,
+            "day": "2026-10-13",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 510,
+            "day": "2026-10-12",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 485,
+            "day": "2026-10-10",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 475,
+            "day": "2026-10-09",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 463,
+            "day": "2026-10-08",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 448,
+            "day": "2026-10-07",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 436,
+            "day": "2026-10-06",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 426,
+            "day": "2026-10-05",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 417,
+            "day": "2026-10-04",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 408,
+            "day": "2026-10-03",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 400,
+            "day": "2026-10-02",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 388,
+            "day": "2026-10-01",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 371,
+            "day": "2026-09-30",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 358,
+            "day": "2026-09-29",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 345,
+            "day": "2026-09-28",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 323,
+            "day": "2026-09-26",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 311,
+            "day": "2026-09-25",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 299,
+            "day": "2026-09-24",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 289,
+            "day": "2026-09-23",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 276,
+            "day": "2026-09-22",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 268,
+            "day": "2026-09-21",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 256,
+            "day": "2026-09-20",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 244,
+            "day": "2026-09-19",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 233,
+            "day": "2026-09-18",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 221,
+            "day": "2026-09-17",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 211,
+            "day": "2026-09-16",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        },
+        {
+            "entryId": 202,
+            "day": "2026-09-15",
+            "text": "🍽 16:8 轻断食",
+            "value": 1
+        }
+    ],
+    "streakDays": [
+        {
+            "day": "2026-09-15",
+            "met": true
+        },
+        {
+            "day": "2026-09-16",
+            "met": true
+        },
+        {
+            "day": "2026-09-17",
+            "met": true
+        },
+        {
+            "day": "2026-09-18",
+            "met": true
+        },
+        {
+            "day": "2026-09-19",
+            "met": true
+        },
+        {
+            "day": "2026-09-20",
+            "met": true
+        },
+        {
+            "day": "2026-09-21",
+            "met": true
+        },
+        {
+            "day": "2026-09-22",
+            "met": true
+        },
+        {
+            "day": "2026-09-23",
+            "met": true
+        },
+        {
+            "day": "2026-09-24",
+            "met": true
+        },
+        {
+            "day": "2026-09-25",
+            "met": true
+        },
+        {
+            "day": "2026-09-26",
+            "met": true
+        },
+        {
+            "day": "2026-09-27",
+            "met": false
+        },
+        {
+            "day": "2026-09-28",
+            "met": true
+        },
+        {
+            "day": "2026-09-29",
+            "met": true
+        },
+        {
+            "day": "2026-09-30",
+            "met": true
+        },
+        {
+            "day": "2026-10-01",
+            "met": true
+        },
+        {
+            "day": "2026-10-02",
+            "met": true
+        },
+        {
+            "day": "2026-10-03",
+            "met": true
+        },
+        {
+            "day": "2026-10-04",
+            "met": true
+        },
+        {
+            "day": "2026-10-05",
+            "met": true
+        },
+        {
+            "day": "2026-10-06",
+            "met": true
+        },
+        {
+            "day": "2026-10-07",
+            "met": true
+        },
+        {
+            "day": "2026-10-08",
+            "met": true
+        },
+        {
+            "day": "2026-10-09",
+            "met": true
+        },
+        {
+            "day": "2026-10-10",
+            "met": true
+        },
+        {
+            "day": "2026-10-11",
+            "met": false
+        },
+        {
+            "day": "2026-10-12",
+            "met": true
+        },
+        {
+            "day": "2026-10-13",
+            "met": true
+        },
+        {
+            "day": "2026-10-14",
+            "met": true
+        },
+        {
+            "day": "2026-10-15",
+            "met": true
+        },
+        {
+            "day": "2026-10-16",
+            "met": true
+        },
+        {
+            "day": "2026-10-17",
+            "met": true
+        },
+        {
+            "day": "2026-10-18",
+            "met": true
+        },
+        {
+            "day": "2026-10-19",
+            "met": true
+        }
+    ]
+}

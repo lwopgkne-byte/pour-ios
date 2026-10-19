@@ -56,4 +56,41 @@ final class WebDemoShots: XCTestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(0.8))
         }
     }
+
+    /// 目标页和「今年跑 500 公里」的详情，和网页版的 /goals、/goals?goal=1 放在一起比
+    @MainActor
+    func testWebDemoGoals() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["POUR_SHOTS"] == "1", "对照截图：只在手动指定时跑")
+        let app = XCUIApplication()
+        app.launchArguments += ["-serverURL", "http://127.0.0.1:5199"]
+        app.launch()
+        XCTAssertTrue(app.descendants(matching: .any)["today.menu"].waitForExistence(timeout: 5))
+        app.descendants(matching: .any)["today.menu"].tap()
+        app.buttons["目标"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["添加目标"].waitForExistence(timeout: 5))
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        for index in 1...3 {
+            shot(app, "对照-目标-\(index)")
+            app.swipeUp(velocity: .slow)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+        }
+        app.swipeDown(velocity: .fast)
+        app.swipeDown(velocity: .fast)
+        let run = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '今年跑 500 公里'")).firstMatch
+        XCTAssertTrue(run.waitForExistence(timeout: 3))
+        run.tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        shot(app, "对照-目标详情-1")
+        app.swipeUp(velocity: .slow)
+        RunLoop.current.run(until: Date().addingTimeInterval(1))
+        shot(app, "对照-目标详情-2")
+    }
+
+    @MainActor
+    private func shot(_ app: XCUIApplication, _ name: String) {
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = name
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
 }

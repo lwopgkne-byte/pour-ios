@@ -199,6 +199,57 @@ struct TimeEdit: View {
     }
 }
 
+/// 改日期（网页版 InlineEdit type="date"）：平时是一段能点的字「9月15日 周二」；点一下弹出系统的日历，选了就保存
+struct DateEdit: View {
+    let label: String
+    /// 「2026-09-15」
+    let value: String
+    var display: String?
+    let onSave: (String) -> Void
+
+    @State private var picking = false
+    @State private var chosen = Date()
+
+    var body: some View {
+        Button {
+            chosen = Self.date(value) ?? Date()
+            picking = true
+        } label: {
+            Text(display ?? value).foregroundStyle(Web.fgSecondary).frame(minHeight: Web.touch).contentShape(
+                Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("修改\(label)"))
+        .accessibilityValue(Text(display ?? value))
+        .popover(isPresented: $picking) {
+            DatePicker(label, selection: $chosen, displayedComponents: .date)
+                .datePickerStyle(.graphical)
+                .labelsHidden()
+                .environment(\.locale, Locale(identifier: "zh_CN"))
+                .tint(Web.accent)
+                .padding(Web.space2)
+                .presentationCompactAdaptation(.popover)
+                .onChange(of: chosen) { _, now in
+                    let day = Self.day(now)
+                    picking = false
+                    if day != value { onSave(day) }
+                }
+        }
+    }
+
+    /// 那一天的中午（不怕时区差一点跳到前后一天）
+    static func date(_ day: String) -> Date? {
+        let parts = day.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 3 else { return nil }
+        return Calendar.current.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2], hour: 12))
+    }
+
+    static func day(_ date: Date) -> String {
+        let parts = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
+    }
+}
+
 /// 设置页每一块都这样拿数据：拿的时候灰条，拿不到说为什么、能重试
 struct Loaded<Value: Sendable, Content: View>: View {
     @Environment(AppModel.self) private var model

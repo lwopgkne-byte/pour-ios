@@ -47,6 +47,10 @@ final class AppModel {
     var chatOpen = false
     /// 打开详情的那条记录
     var detail: EntryRef?
+    /// 打开的目标详情（画布上的目标、卡片底下那一行、回顾、目标页，点了都打开它）
+    var goalDetail: GoalRef?
+    /// 记录、目标变了（整理完一段话、改了记录、改了目标）就加一：目标页、钱、回顾这些页看到就重新拿
+    private(set) var dataVersion = 0
     /// 轻提示（网页版 toast：「已删除 · 撤销」「密钥已保存」），4 秒后自己消失
     private(set) var notice: Notice?
     /// 服务器是在用真实数据（real）还是演示数据（demo，页面顶上有一条横幅）
@@ -64,22 +68,22 @@ final class AppModel {
     private var noticeTimer: Task<Void, Never>?
     private var noticeAction: (() -> Void)?
     private let network = NWPathMonitor()
-    private var remindersOn = false
+    private(set) var remindersOn = false
     /// 看过的日子里要提醒的待办（按日子存，换着看也不丢）
-    private var reminders: [String: [Reminder]] = [:]
+    var reminders: [String: [Reminder]] = [:]
 
     init(client: APIClient) {
         self.client = client
         let today = PourDate.logicalDay(Date(), in: .current)
         self.today = today
         shownDay = today
-        outbox = Self.loadOutbox()
+        outbox = OutboxStore.load()
     }
 
     static func launch() -> AppModel {
         let arguments = ProcessInfo.processInfo.arguments
         // 界面测试每次从头开始：上一个测试没发出去的话不留到这一个
-        if arguments.contains("-uiTest") { UserDefaults.standard.removeObject(forKey: outboxKey) }
+        if arguments.contains("-uiTest") { UserDefaults.standard.removeObject(forKey: OutboxStore.key) }
         let model = AppModel(client: ServerConfiguration.client(arguments: arguments))
         model.start()
         // 开发时对照网页版：-day 2026-10-15 直接打开那一天
@@ -212,15 +216,15 @@ final class AppModel {
     private func handle(_ event: ServerEvent) async {
         switch event.type {
         case "notes-changed":
-            if !event.statusOnly, let fresh = try? await client.categories() { categories = fresh }
-            await reloadDay()
-            await reloadChat()
-            // 排队的数量、为什么在排队
-            if let fresh = try? await client.llmStatus() { llm = fresh }
+            await notesChanged(statusOnly: event.statusOnly)
         case "entries-changed":
+            dataVersion += 1
             if let fresh = try? await client.categories() { categories = fresh }
             await reloadDay()
-        case "summary-changed", "goals-changed":
+        case "goals-changed":
+            dataVersion += 1
+            await reloadDay()
+        case "summary-changed":
             await reloadDay()
         case "messages-changed", "settings-changed":
             if event.type == "settings-changed" { settingsVersion += 1 }
@@ -231,6 +235,24 @@ final class AppModel {
         default:
             break
         }
+    }
+
+    /// 原话的状态变了；整理完了（不只是状态）的话记录、类别、目标都可能变了
+    private func notesChanged(statusOnly: Bool) async {
+        if !statusOnly {
+            dataVersion += 1
+            if let fresh = try? await client.categories() { categories = fresh }
+        }
+        await reloadDay()
+        await reloadChat()
+        // 排队的数量、为什么在排队
+        if let fresh = try? await client.llmStatus() { llm = fresh }
+    }
+
+    /// 在手机上改了记录、目标：马上让各页重新拿（服务器的推送随后也会来）
+    func dataChanged() {
+        dataVersion += 1
+        Task { await reloadDay() }
     }
 
     /// 回答又长出来一截（null 是这段回答结束了：清空，整理好的结果里有完整的）
@@ -346,7 +368,7 @@ extension AppModel {
             return
         }
         outbox.append(Outbox(clientId: UUID().uuidString, text: text, createdAt: Date()))
-        saveOutbox()
+        OutboxStore.save(outbox)
         chatOpen = true
         if shownDay != today { show(today) }
         Task { await flushOutbox() }
@@ -364,35 +386,10 @@ extension AppModel {
                     outbox[index].failed = error.message
                 }
             }
-            saveOutbox()
+            OutboxStore.save(outbox)
         }
         await reloadChat()
         await reloadDay()
     }
 
-    /// 界面测试（假服务器）的发件箱单独放：测试留下的话不会在平时打开时发给真的服务器
-    private static let outboxKey =
-        ProcessInfo.processInfo.arguments.contains("-uiTest") ? "pour.outbox.uiTest" : "pour.outbox"
-
-    private static func loadOutbox() -> [Outbox] {
-        guard let data = UserDefaults.standard.data(forKey: outboxKey) else { return [] }
-        return (try? JSONDecoder().decode([Outbox].self, from: data)) ?? []
-    }
-
-    private func saveOutbox() {
-        UserDefaults.standard.set(try? JSONEncoder().encode(outbox), forKey: Self.outboxKey)
-    }
-
-    // MARK: - 提醒
-
-    /// 看到的待办里要提醒的，手机自己排系统通知
-    private func noteReminders(_ view: API.DayView) {
-        guard remindersOn else { return }
-        reminders[view.day] = view.entries.compactMap { entry in
-            guard case .todo(let todo) = entry.data, !todo.done, let time = todo.remindAt else { return nil }
-            return Reminder(id: String(entry.id), content: todo.content, time: time)
-        }
-        let all = reminders.values.flatMap { $0 }
-        Task { await Reminders.sync(all) }
-    }
 }

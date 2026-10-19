@@ -115,28 +115,33 @@ struct EntryPeek: View {
             PeekSection(title: "相关目标") {
                 VStack(alignment: .leading, spacing: Web.space3) {
                     ForEach(goals) { goal in
-                        VStack(alignment: .leading, spacing: Web.space1) {
-                            HStack(spacing: Web.space2) {
-                                ToneDot(tone: goal.tone)
-                                Text(Show.spaced(goal.title)).foregroundStyle(Web.fg).lineLimit(1)
-                                Spacer(minLength: 0)
-                                if let delta = goal.delta { Text(Show.spaced(delta)).foregroundStyle(Web.fgSecondary) }
-                            }
-                            .font(Web.body)
-                            GeometryReader { proxy in
-                                Capsule().fill(Web.bgHover).overlay(alignment: .leading) {
-                                    Capsule().fill(Web.status(goal.tone))
-                                        .frame(width: proxy.size.width * min(1, max(0, goal.pct)))
-                                }
-                            }
-                            .frame(height: Web.space1)
-                            Text(Show.spaced(goal.headline)).font(Web.caption).foregroundStyle(Web.fgTertiary)
+                        Button {
+                            model.openGoal(goal.id)
+                        } label: {
+                            relatedGoal(goal)
                         }
+                        .buttonStyle(.plain)
                         .accessibilityElement(children: .combine)
                     }
                 }
             }
         }
+    }
+
+    /// 相关的一个目标：名称、这天推进了多少、进度条、一句话
+    private func relatedGoal(_ goal: API.DayGoal) -> some View {
+        VStack(alignment: .leading, spacing: Web.space1) {
+            HStack(spacing: Web.space2) {
+                ToneDot(tone: goal.tone)
+                Text(Show.spaced(goal.title)).foregroundStyle(Web.fg).lineLimit(1)
+                Spacer(minLength: 0)
+                if let delta = goal.delta { Text(Show.spaced(delta)).foregroundStyle(Web.fgSecondary) }
+            }
+            .font(Web.body)
+            GoalBar(pct: goal.pct, tone: goal.tone)
+            Text(Show.spaced(goal.headline)).font(Web.caption).foregroundStyle(Web.fgTertiary)
+        }
+        .contentShape(Rectangle())
     }
 
     private func sources(_ entry: API.Entry) -> some View {

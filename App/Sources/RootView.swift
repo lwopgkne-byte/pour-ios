@@ -52,6 +52,7 @@ struct RootView: View {
         .animation(Web.panel, value: model.chatOpen)
         .animation(Web.panel, value: model.notice)
         .sheet(item: $model.detail) { ref in EntryPeek(entryId: ref.id) }
+        .sheet(item: $model.goalDetail) { ref in GoalPeek(goalId: ref.id) }
         // 搜索和问答还在照网页版搬（docs/复刻网页版-交接.md）：搬好了换成搜索界面，要搜的字在 model.search
         .alert(
             "搜索还在做",

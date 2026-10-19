@@ -17,10 +17,28 @@ extension AppModel {
         let id: Int
     }
 
+    struct GoalRef: Identifiable, Hashable {
+        let id: Int
+    }
+
     struct Notice: Equatable {
         let message: String
         /// 右边的操作（「撤销」「打开对话」）；没有是 nil
         let action: String?
         let id = UUID()
+    }
+}
+
+/// 还没交给服务器的话存在手机上（UserDefaults）；界面测试（假服务器）的单独放：测试留下的话不会在平时打开时发给真的服务器
+enum OutboxStore {
+    static let key = ProcessInfo.processInfo.arguments.contains("-uiTest") ? "pour.outbox.uiTest" : "pour.outbox"
+
+    static func load() -> [AppModel.Outbox] {
+        guard let data = UserDefaults.standard.data(forKey: key) else { return [] }
+        return (try? JSONDecoder().decode([AppModel.Outbox].self, from: data)) ?? []
+    }
+
+    static func save(_ items: [AppModel.Outbox]) {
+        UserDefaults.standard.set(try? JSONEncoder().encode(items), forKey: key)
     }
 }

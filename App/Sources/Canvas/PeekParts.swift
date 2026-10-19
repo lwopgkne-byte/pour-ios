@@ -60,19 +60,24 @@ struct InlineEdit: View {
             }
             .onAppear { focused = true }
         } else {
-            Button {
-                text = value
-                problem = nil
-                editing = true
-            } label: {
-                Text(Show.spaced(display ?? (value.isEmpty ? placeholder : value)))
-                    .foregroundStyle(value.isEmpty && display == nil ? Web.fgTertiary : Web.fgSecondary)
-                    .frame(minHeight: Web.touch)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("修改\(label)"))
-            .accessibilityValue(Text(display ?? (value.isEmpty ? placeholder : value)))
-            .onAppear { if startEditing && !editing { editing = true } }
+            // 看起来是一段字；能点的范围至少 44×44（网页版 quiet-link 在手机上撑开），不另占地方
+            Text(Show.spaced(display ?? (value.isEmpty ? placeholder : value)))
+                .foregroundStyle(value.isEmpty && display == nil ? Web.fgTertiary : Web.fgSecondary)
+                .frame(minHeight: Web.touch)
+                .accessibilityHidden(true)
+                .overlay {
+                    Button {
+                        text = value
+                        problem = nil
+                        editing = true
+                    } label: {
+                        Color.clear.frame(minWidth: Web.touch, minHeight: Web.touch).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("修改\(label)"))
+                    .accessibilityValue(Text(display ?? (value.isEmpty ? placeholder : value)))
+                }
+                .onAppear { if startEditing && !editing { editing = true } }
         }
     }
 

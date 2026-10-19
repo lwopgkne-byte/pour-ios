@@ -131,25 +131,34 @@ private struct CanvasBody: View {
 }
 
 /// 这一天推进的目标（网页版 goal-pills）：状态色小圆点、目标、推进了多少
+/// 这天推进的目标（网页版 .goal-pills，规格 7.1）：一排胶囊，点了打开目标详情
 private struct GoalPills: View {
+    @Environment(AppModel.self) private var model
     let goals: [API.DayGoal]
 
     var body: some View {
         if !goals.isEmpty {
             PourFlowLayout(spacing: Web.space2, lineSpacing: Web.space2) {
                 ForEach(goals) { goal in
-                    HStack(spacing: Web.space2) {
-                        ToneDot(tone: goal.tone)
-                        Text(Show.spaced(goal.title)).foregroundStyle(Web.fgSecondary)
-                        if let delta = goal.delta {
-                            Text(Show.spaced(delta)).font(Web.bodyMedium).foregroundStyle(Web.fg).monospacedDigit()
+                    Button {
+                        model.openGoal(goal.id)
+                    } label: {
+                        HStack(spacing: Web.space2) {
+                            ToneDot(tone: goal.tone)
+                            Text(Show.spaced(goal.title)).foregroundStyle(Web.fgSecondary)
+                            if let delta = goal.delta {
+                                Text(Show.spaced(delta)).font(Web.captionMedium).foregroundStyle(Web.fg)
+                                    .monospacedDigit()
+                            }
                         }
+                        .font(Web.caption)
+                        .padding(.horizontal, Web.space3)
+                        .frame(minHeight: Web.touch)
+                        .background(Capsule().fill(Web.bg))
+                        .overlay(Capsule().strokeBorder(Web.line, lineWidth: 1))
+                        .contentShape(Capsule())
                     }
-                    .font(Web.body)
-                    .padding(.horizontal, Web.space3)
-                    .frame(minHeight: Web.touch)
-                    .background(Capsule().fill(Web.bg))
-                    .overlay(Capsule().strokeBorder(Web.line, lineWidth: 1))
+                    .buttonStyle(.plain)
                     .accessibilityElement(children: .combine)
                 }
             }
@@ -157,24 +166,6 @@ private struct GoalPills: View {
         }
     }
 }
-
-/// 目标的状态色小圆点；还谈不上状态的是空心圈
-struct ToneDot: View {
-    let tone: String
-
-    var body: some View {
-        Group {
-            if tone == "idle" {
-                Circle().strokeBorder(Web.fgTertiary, lineWidth: 1)
-            } else {
-                Circle().fill(Web.status(tone))
-            }
-        }
-        .frame(width: Web.space2, height: Web.space2)
-        .accessibilityHidden(true)
-    }
-}
-
 /// 网页版的 quiet-link：小图标 + 次要文字，至少 44 点高
 struct QuietLabel: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {

@@ -42,7 +42,7 @@ struct PageView: View {
         case .review: LaterPage(page: page)
         case .money: LaterPage(page: page)
         case .about: LaterPage(page: page)
-        case .goals: LaterPage(page: page)
+        case .goals: GoalsPage()
         case .library: LaterPage(page: page)
         case .settings: SettingsPage()
         }
