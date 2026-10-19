@@ -90,6 +90,11 @@ enum AppAudit {
         {
             return "表情不是字"
         }
+        // 对话里的「昨天的回顾好了 · …」「上周的周报好了 · …」：网页版这一行本来就只占一行、放不下用省略号（truncate），
+        // 完整的点开就是；读屏念的是整行
+        if type == .textClipped, ["昨天的回顾好了 · ", "上周的周报好了 · ", "上个月的月报好了 · "].contains(where: label.hasPrefix) {
+            return "网页版就是一行"
+        }
         // 会换行的字一律被报截断（testAuditProbeStillMisreportsWrappedText）
         if type == .textClipped && frame.height >= 30 { return "审计自己的毛病" }
         // 带全角括号的一行字一律被报截断（testAuditProbeParentheses）

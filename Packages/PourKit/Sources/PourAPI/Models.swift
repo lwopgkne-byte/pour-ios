@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 /// 网页版服务器的数据（shared/src/entries.ts、types.ts、goals.ts 原样）：手机直接用网页版的接口，
 /// 业务规则和 AI 全在网页版的服务器上（产品主人 2026-10-19 选的 B：复刻网页版，不在手机上重写）
@@ -302,9 +302,13 @@ extension API {
         public var parent: String?
         public var measure: String
         public var synonyms: [String]?
+        /// 一共有多少条记录
+        public var count: Int?
     }
 
     public struct CategoriesPage: Codable, Hashable, Sendable {
         public var categories: [Category]
+        /// 整理建议（设置页「类别」最上面）
+        public var suggestions: [CategorySuggestion]?
     }
 }

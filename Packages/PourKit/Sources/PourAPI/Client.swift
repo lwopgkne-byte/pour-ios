@@ -107,17 +107,19 @@ public actor APIClient {
 
     struct Empty: Decodable {}
 
-    private func get<T: Decodable>(_ path: String) async throws(APIError) -> T {
+    // 下面这几个不是 private：每一页的接口写在 PourAPI 里它自己的文件（像 Messages.swift），也用它们发请求
+
+    func get<T: Decodable>(_ path: String) async throws(APIError) -> T {
         try await request("GET", path)
     }
 
-    private func request<T: Decodable>(
+    func request<T: Decodable>(
         _ method: String, _ path: String, body: [String: String]? = nil
     ) async throws(APIError) -> T {
         try await request(method, path, json: body.map { .object($0.mapValues { .string($0) }) })
     }
 
-    private func request<T: Decodable>(_ method: String, _ path: String, json: JSONValue?) async throws(APIError) -> T {
+    func request<T: Decodable>(_ method: String, _ path: String, json: JSONValue?) async throws(APIError) -> T {
         guard let url = URL(string: path, relativeTo: baseURL) else { throw .unreachable }
         var request = URLRequest(url: url)
         request.httpMethod = method

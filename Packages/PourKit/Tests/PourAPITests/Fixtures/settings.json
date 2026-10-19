@@ -1,0 +1,388 @@
+{
+  "llmStatus": {
+    "baseUrl": "https://api.deepseek.com",
+    "model": "deepseek-v4-pro",
+    "modelSource": "default",
+    "keySource": null,
+    "keyMasked": null,
+    "thinking": "disabled",
+    "configured": false,
+    "consentAccepted": false,
+    "showSetup": true,
+    "confidenceThreshold": 0.8,
+    "monthlyTokenLimit": 0,
+    "usage": {
+      "month": "2026-10",
+      "calls": 0,
+      "promptTokens": 0,
+      "cacheHitTokens": 0,
+      "completionTokens": 0,
+      "totalTokens": 0,
+      "costCny": 0,
+      "costPartial": false,
+      "byFeature": []
+    },
+    "queue": {
+      "pending": 0,
+      "blocker": null
+    },
+    "local": true
+  },
+  "reminders": {
+    "morning": {
+      "enabled": true,
+      "time": "07:30"
+    },
+    "evening": {
+      "enabled": true,
+      "time": "21:30"
+    },
+    "warning": {
+      "enabled": true,
+      "time": "20:30"
+    },
+    "weekly": {
+      "enabled": true
+    },
+    "monthly": {
+      "enabled": true
+    },
+    "dnd": {
+      "enabled": true,
+      "from": "23:00",
+      "to": "07:00"
+    },
+    "bedtime": "00:00",
+    "channels": {
+      "serverchan": true,
+      "bark": true
+    },
+    "keys": {
+      "serverchan": null,
+      "bark": null
+    }
+  },
+  "lan": {
+    "ok": true,
+    "local": true,
+    "pinEnabled": false,
+    "pinUnset": true,
+    "urls": [
+      "http://192.168.1.8:5188"
+    ],
+    "rememberDays": 30
+  },
+  "growth": {
+    "weeks": [
+      {
+        "start": "2026-08-31",
+        "notes": 42,
+        "corrections": 7,
+        "asks": 0
+      },
+      {
+        "start": "2026-09-07",
+        "notes": 38,
+        "corrections": 6,
+        "asks": 0
+      },
+      {
+        "start": "2026-09-14",
+        "notes": 43,
+        "corrections": 7,
+        "asks": 0
+      },
+      {
+        "start": "2026-09-21",
+        "notes": 44,
+        "corrections": 4,
+        "asks": 1
+      },
+      {
+        "start": "2026-09-28",
+        "notes": 41,
+        "corrections": 3,
+        "asks": 0
+      },
+      {
+        "start": "2026-10-05",
+        "notes": 41,
+        "corrections": 1,
+        "asks": 1
+      },
+      {
+        "start": "2026-10-12",
+        "notes": 41,
+        "corrections": 0,
+        "asks": 1
+      },
+      {
+        "start": "2026-10-19",
+        "notes": 2,
+        "corrections": 0,
+        "asks": 0
+      }
+    ],
+    "dictionary": {
+      "total": 3,
+      "thisWeek": 0
+    },
+    "about": {
+      "right": 0,
+      "wrong": 0
+    },
+    "checklist": {
+      "general": 340,
+      "personal": 0
+    },
+    "knows": {
+      "people": 8,
+      "habits": 5,
+      "places": 5
+    }
+  },
+  "audit": {
+    "model": "deepseek-v4-pro",
+    "capCny": 5,
+    "monthCostCny": 0,
+    "exam": {
+      "at": "2026-08-17T22:50:00.000Z",
+      "caught": 16,
+      "wrongTotal": 17,
+      "falseAlarms": 0,
+      "rightTotal": 28,
+      "passed": true,
+      "current": true
+    },
+    "examRunning": false,
+    "week": {
+      "found": 0,
+      "confirmed": 0,
+      "manual": 0
+    },
+    "decided": {
+      "confirmed": 2,
+      "dismissed": 1
+    },
+    "lastRun": {
+      "day": "2026-10-18",
+      "outcome": "done",
+      "detail": null
+    }
+  },
+  "data": {
+    "mode": "demo",
+    "backups": [],
+    "backupCount": 0,
+    "dayBoundary": 240,
+    "notes": 367
+  },
+  "categories": {
+    "categories": [
+      {
+        "key": "sleep",
+        "name": "睡眠",
+        "emoji": "😴",
+        "color": "purple",
+        "parent": null,
+        "measure": "duration",
+        "synonyms": [
+          "睡觉",
+          "午睡",
+          "小睡",
+          "补觉"
+        ],
+        "count": 61
+      },
+      {
+        "key": "exercise",
+        "name": "运动",
+        "emoji": "🏃",
+        "color": "green",
+        "parent": null,
+        "measure": "duration",
+        "synonyms": [
+          "锻炼",
+          "健身",
+          "散步",
+          "走路",
+          "步数",
+          "骑车",
+          "游泳",
+          "爬山",
+          "打球",
+          "拉伸",
+          "太极",
+          "太极拳",
+          "广场舞",
+          "跳绳",
+          "羽毛球",
+          "篮球",
+          "足球",
+          "乒乓球",
+          "网球",
+          "跳操",
+          "徒步",
+          "普拉提",
+          "健走",
+          "打拳",
+          "动感单车",
+          "骑行"
+        ],
+        "count": 7
+      },
+      {
+        "key": "run",
+        "name": "跑步",
+        "emoji": "🏃",
+        "color": "green",
+        "parent": "exercise",
+        "measure": "duration",
+        "synonyms": [
+          "慢跑",
+          "晨跑",
+          "夜跑",
+          "跑"
+        ],
+        "count": 15
+      },
+      {
+        "key": "strength",
+        "name": "力量",
+        "emoji": "🏋",
+        "color": "green",
+        "parent": "exercise",
+        "measure": "duration",
+        "synonyms": [
+          "撸铁",
+          "力量训练",
+          "深蹲",
+          "卧推"
+        ],
+        "count": 5
+      }
+    ],
+    "suggestions": [
+      {
+        "kind": "tidy-other",
+        "keys": [
+          "other"
+        ],
+        "text": "「📌 其他」里最近有 9 条记录，可以让 AI 按现在的规则重新归类（该有新类别的会自动建）"
+      }
+    ]
+  },
+  "candidates": {
+    "candidates": [
+      {
+        "id": 5,
+        "noteId": 316,
+        "text": "七点半到八点半陪儿子拼了个拼图",
+        "createdAt": "2026-10-10T15:50:00.000Z",
+        "expected": [
+          {
+            "kind": "event",
+            "category": "c-8dc516e6",
+            "label": "陪儿子拼拼图",
+            "day": "2026-10-10",
+            "start": "2026-10-10T19:30",
+            "end": "2026-10-10T20:30",
+            "durationMin": 60
+          }
+        ],
+        "updatedAt": "2026-10-11T02:50:00.000Z",
+        "scope": "general",
+        "scopeWhy": "说的是下午、晚上的时间，按字面就不会是凌晨、早上",
+        "scopeBy": "ai",
+        "phrase": null,
+        "meaning": null
+      },
+      {
+        "id": 4,
+        "noteId": 254,
+        "text": "三点和小王对了下周的排期",
+        "createdAt": "2026-09-29T10:20:00.000Z",
+        "expected": [
+          {
+            "kind": "event",
+            "category": "work",
+            "label": "和小王对排期",
+            "day": "2026-09-29",
+            "start": "2026-09-29T15:00",
+            "end": "2026-09-29T16:00",
+            "durationMin": 60
+          }
+        ],
+        "updatedAt": "2026-09-29T10:40:00.000Z",
+        "scope": "general",
+        "scopeWhy": "「三点」在下午说的，按字面就是 15:00，是时间算错了",
+        "scopeBy": "ai",
+        "phrase": null,
+        "meaning": null
+      }
+    ],
+    "classifying": false
+  },
+  "evals": {
+    "runs": [
+      {
+        "file": "2026-10-18T10-00-00.json",
+        "at": "2026-10-18T10:00:00.000Z",
+        "model": "deepseek-v4-flash",
+        "skills": [
+          "parse-note@12"
+        ],
+        "overall": 0.983,
+        "cases": 340,
+        "costCny": 0.42,
+        "summary": {
+          "category": {
+            "rate": 0.99,
+            "checks": 300
+          },
+          "time": {
+            "rate": 0.97,
+            "checks": 120
+          },
+          "value": {
+            "rate": 1,
+            "checks": 80
+          },
+          "scope": {
+            "rate": 0,
+            "checks": 0
+          }
+        },
+        "scopes": {
+          "general": {
+            "rate": 0.99,
+            "cases": 330
+          },
+          "personal": {
+            "rate": 0.9,
+            "cases": 10
+          }
+        },
+        "failures": [
+          {
+            "id": "t-12",
+            "text": "早上七点半跑了五公里",
+            "problems": [
+              {
+                "dim": "time",
+                "what": "开始时间应该是 07:30，整理成了 19:30"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "progress": {
+      "running": false,
+      "startedAt": null,
+      "done": 0,
+      "total": null,
+      "error": null
+    }
+  }
+}

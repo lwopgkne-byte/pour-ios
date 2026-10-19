@@ -58,8 +58,7 @@ private struct DayHeader: View {
             if let relative = Show.relative(model.shownDay, today: model.today) {
                 Text(relative).font(Web.section).foregroundStyle(Web.fgTertiary)
             } else {
-                Button("回到今天") { withAnimation(Web.panel) { model.show(model.today) } }
-                    .font(Web.bodyMedium).foregroundStyle(Web.accent)
+                WebTextButton("回到今天") { withAnimation(Web.panel) { model.show(model.today) } }
             }
         }
     }
@@ -75,9 +74,7 @@ private struct CanvasBody: View {
         } else if let offline = model.offline {
             VStack(alignment: .leading, spacing: Web.space2) {
                 Text(offline).font(Web.body).foregroundStyle(Web.fgSecondary)
-                Button("重试") { Task { await model.refreshAll() } }
-                    .font(Web.bodyMedium).foregroundStyle(Web.accent).buttonStyle(.plain)
-                    .frame(minHeight: Web.touch)
+                WebTextButton("重试") { Task { await model.refreshAll() } }
             }
         }
     }

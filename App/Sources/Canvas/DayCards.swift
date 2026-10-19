@@ -122,7 +122,7 @@ struct DayRow<Content: View>: View {
             HStack(spacing: Web.space2) {
                 content().frame(maxWidth: .infinity, alignment: .leading)
                 if entry.pending, quiet {
-                    confirm.accessibilityHint(Text(question))
+                    WebTextButton("确认", hint: question) { model.confirm(entry.id) }
                 }
             }
             .padding(.horizontal, Web.space2)
@@ -152,9 +152,7 @@ struct DayRow<Content: View>: View {
     private var question: String { entry.question ?? "我理解得对吗？" }
 
     private var confirm: some View {
-        Button("确认") { model.confirm(entry.id) }
-            .font(Web.bodyMedium).foregroundStyle(Web.accent).buttonStyle(.plain)
-            .frame(minHeight: Web.touch)
+        WebTextButton("确认") { model.confirm(entry.id) }
     }
 }
 

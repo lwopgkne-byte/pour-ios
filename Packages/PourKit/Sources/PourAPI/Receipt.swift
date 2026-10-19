@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 extension Show {
     /// 整行收据（formatReceipt）：「已记录：🏃 跑步 60 分钟 · 💡 2 条感悟；已删除：💼 被老板骂」。
@@ -44,5 +44,13 @@ extension Show {
         if actions.count > 1 { return "已更新" }
         if !(result.goals ?? []).isEmpty { return "已更新目标" }
         return "已收到"
+    }
+
+    /// 「记住了」的一条里说的是哪个说法（shared about.ts 的 learnedPhrase）：
+    /// 「「小王」= 同事」→「小王」；不是这个样子的（以前存的收据）是 nil
+    public static func learnedPhrase(_ text: String) -> String? {
+        guard let match = text.firstMatch(of: /^\s*[「『](.+?)[」』]\s*=/) else { return nil }
+        let phrase = match.output.1.trimmingCharacters(in: .whitespacesAndNewlines)
+        return phrase.isEmpty ? nil : phrase
     }
 }

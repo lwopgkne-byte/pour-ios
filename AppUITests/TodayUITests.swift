@@ -110,6 +110,20 @@ final class TodayUITests: XCTestCase {
         XCTAssertTrue((input.value as? String)?.hasPrefix("还没想好") == true, "草稿没了")
     }
 
+    /// 对话里的系统消息：「昨天的回顾好了」只是一行，点了收起对话、去「回顾」
+    @MainActor func testDailyReviewInChat() throws {
+        let app = launch()
+        app.buttons["pourbar.chat"].tap()
+        let link = text(app, startingWith: "昨天的回顾好了")
+        XCTAssertTrue(link.waitForExistence(timeout: 5), "对话里没有每日回顾")
+        settle()
+        attach(app, "对话-每日回顾")
+        try AppAudit.run(app, name: "对话-每日回顾")
+        link.tap()
+        XCTAssertTrue(app.staticTexts["这一页正在照网页版搬过来。"].waitForExistence(timeout: 3), "没去回顾")
+        XCTAssertEqual(app.buttons["pourbar.chat"].label, "展开对话", "对话没收起来")
+    }
+
     // MARK: -
 
     private static let largestText = [

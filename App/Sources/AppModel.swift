@@ -24,6 +24,10 @@ final class AppModel {
     /// 对话面板：最近说的话，从早到晚
     private(set) var chat: [API.Note] = []
     private(set) var chatHasMore = false
+    /// 对话里的系统消息：提醒、预警、每日回顾、周报月报（和原话按时间排在一起）
+    private(set) var messages: [API.SystemMessage] = []
+    /// 几点算新的一天（分钟；系统消息按它分到哪一天）
+    private(set) var dayBoundary = PourDate.defaultBoundary
     private(set) var categories: [API.Category] = []
     /// 没连上服务器时说一句（连上了是 nil）
     private(set) var offline: String?
@@ -33,6 +37,8 @@ final class AppModel {
     var draft = ""
     /// 正在看哪一页（左上角菜单换）
     var page: Page = .canvas
+    /// 这一页要先打开哪一篇：网页版的地址（对话里点「昨天的回顾好了」→「/review/2026-10-18」），那一页看完清掉
+    var pagePath: String?
     /// 对话面板开着没有（网页版 Composer：发出去就向上展开）
     var chatOpen = false
     /// 打开详情的那条记录
@@ -78,6 +84,8 @@ final class AppModel {
 
     static func launch() -> AppModel {
         let arguments = ProcessInfo.processInfo.arguments
+        // 界面测试每次从头开始：上一个测试没发出去的话不留到这一个
+        if arguments.contains("-uiTest") { UserDefaults.standard.removeObject(forKey: outboxKey) }
         let model = AppModel(client: ServerConfiguration.client(arguments: arguments))
         model.start()
         // 开发时对照网页版：-day 2026-10-15 直接打开那一天
@@ -118,6 +126,7 @@ final class AppModel {
     func refreshAll() async {
         do {
             let meta = try await client.meta()
+            dayBoundary = meta.dayBoundary
             if meta.today != today {
                 let wasToday = shownDay == today
                 today = meta.today
@@ -158,7 +167,16 @@ final class AppModel {
             chatHasMore = page.hasMore ?? false
         } catch {
             offline = error.message
+            return
         }
+        await reloadMessages()
+    }
+
+    /// 系统消息：从对话里已经拿到的最早那段话开始；对话的历史都拿完了就要最近的（网页版 ChatPanel 的 since）
+    private func reloadMessages() async {
+        let since = chatHasMore ? chat.first?.createdAt : nil
+        // 拿不到就先留着上次的：系统消息不影响说话和看画布
+        if let fresh = try? await client.messages(since: since) { messages = fresh }
     }
 
     /// 对话往上翻：更早的一页
@@ -167,6 +185,7 @@ final class AppModel {
         if let page = try? await client.recentNotes(limit: 30, before: first.id) {
             chat = page.notes + chat
             chatHasMore = page.hasMore ?? false
+            await reloadMessages()
         }
     }
 
@@ -197,6 +216,8 @@ final class AppModel {
             await reloadDay()
         case "summary-changed", "goals-changed":
             await reloadDay()
+        case "messages-changed":
+            await reloadMessages()
         default:
             break
         }
@@ -210,6 +231,14 @@ final class AppModel {
         day = nil
         dayNotes = []
         Task { await reloadDay() }
+    }
+
+    /// 打开网页版的一个地址（对话里的回顾、周报月报链接）：换到那一页，收起对话
+    func open(_ path: String) {
+        if path.hasPrefix("/review") { page = .review }
+        if path.hasPrefix("/about") { page = .about }
+        pagePath = path
+        chatOpen = false
     }
 
     // MARK: - 说一句
@@ -255,8 +284,23 @@ final class AppModel {
         UserDefaults.standard.set(try? JSONEncoder().encode(outbox), forKey: Self.outboxKey)
     }
 
-    // MARK: - 改
+    // MARK: - 提醒
 
+    /// 看到的待办里要提醒的，手机自己排系统通知
+    private func noteReminders(_ view: API.DayView) {
+        guard remindersOn else { return }
+        reminders[view.day] = view.entries.compactMap { entry in
+            guard case .todo(let todo) = entry.data, !todo.done, let time = todo.remindAt else { return nil }
+            return Reminder(id: String(entry.id), content: todo.content, time: time)
+        }
+        let all = reminders.values.flatMap { $0 }
+        Task { await Reminders.sync(all) }
+    }
+}
+
+// MARK: - 改
+
+extension AppModel {
     /// 对话里收据后面的「撤销」：这段话整理出的记录都撤掉，原话留着
     func undo(note id: Int) { act { client in try await client.undo(note: id) } }
 
@@ -306,50 +350,5 @@ final class AppModel {
             await reloadDay()
             await reloadChat()
         }
-    }
-
-    // MARK: - 提醒
-
-    /// 看到的待办里要提醒的，手机自己排系统通知
-    private func noteReminders(_ view: API.DayView) {
-        guard remindersOn else { return }
-        reminders[view.day] = view.entries.compactMap { entry in
-            guard case .todo(let todo) = entry.data, !todo.done, let time = todo.remindAt else { return nil }
-            return Reminder(id: String(entry.id), content: todo.content, time: time)
-        }
-        let all = reminders.values.flatMap { $0 }
-        Task { await Reminders.sync(all) }
-    }
-}
-
-/// 服务器在哪：界面测试用假服务器（-uiTest）；启动参数 -serverURL 可以临时指定（对照网页版演示数据时用）；
-/// 设置里改过的地址在钥匙串里；都没有就用 Info.plist 的 PourServerURL
-/// （Config/Base.xcconfig 的 POUR_SERVER_URL；装到手机时 install-device.sh 换成这台 Mac 在局域网里的名字）
-enum ServerConfiguration {
-    static let fallback = "http://127.0.0.1:5188"
-    static let addressKey = "server.address"
-
-    static var builtIn: URL {
-        let configured = Bundle.main.object(forInfoDictionaryKey: "PourServerURL") as? String ?? ""
-        return URL(string: configured.isEmpty ? fallback : configured) ?? URL(fileURLWithPath: "/")
-    }
-
-    static var address: URL { Keychain.read(addressKey).flatMap(URL.init(string:)) ?? builtIn }
-
-    static func client(arguments: [String]) -> APIClient {
-        #if DEBUG
-            if arguments.contains("-uiTest") { return StubServer.client() }
-        #endif
-        if let index = arguments.firstIndex(of: "-serverURL"), index + 1 < arguments.count,
-            let url = URL(string: arguments[index + 1])
-        {
-            return APIClient(baseURL: url)
-        }
-        return APIClient(baseURL: address)
-    }
-
-    /// 设置里改了地址
-    static func remember(address: URL) {
-        Keychain.save(address.absoluteString, for: addressKey)
     }
 }

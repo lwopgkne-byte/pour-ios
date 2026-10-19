@@ -30,12 +30,18 @@ struct ChatPanel: View {
             ScrollViewReader { reader in
                 ScrollView {
                     LazyVStack(spacing: Web.space3) {
+                        // 翻到最上面自动拿更早的一页，拿完停在原来看的地方（网页版：看见「加载更早的记录」就拿）
                         if model.chatHasMore {
-                            Button("加载更早的记录") { Task { await model.loadEarlierChat() } }
-                                .font(Web.caption).foregroundStyle(Web.fgTertiary).buttonStyle(.plain)
-                                .frame(minHeight: Web.touch)
+                            Dots(label: "加载更早的记录").foregroundStyle(Web.fgTertiary).padding(.top, Web.space2)
+                                .onScrollVisibilityChange { visible in
+                                    guard visible, let first = rows.first?.id else { return }
+                                    Task {
+                                        await model.loadEarlierChat()
+                                        reader.scrollTo(first, anchor: .top)
+                                    }
+                                }
                         }
-                        if model.chat.isEmpty && model.outbox.isEmpty {
+                        if rows.isEmpty {
                             Text("说过的话会出现在这里。").font(Web.body).foregroundStyle(Web.fgTertiary)
                                 .padding(.top, Web.space12)
                         }
@@ -45,13 +51,23 @@ struct ChatPanel: View {
                                 Text(label).font(Web.caption).foregroundStyle(Web.fgTertiary).padding(.top, Web.space2)
                             case .note(let note):
                                 NoteMessage(note: note)
+                            case .message(let message):
+                                MessageCard(message: message)
                             case .outbox(let item):
                                 OutboxMessage(item: item)
                             }
                         }
-                        if let offline = model.offline, !model.outbox.isEmpty {
-                            Text("\(offline)这段话先存在这台手机上，连上了会自动发。")
+                        // 排队的话共用一个暂停原因（比如还没填大模型的 API Key），只在最后说一次
+                        if let blocker {
+                            Text(Show.spaced("\(waiting) 段话在排队：\(blocker)")).font(Web.caption)
+                                .foregroundStyle(Web.fgTertiary).multilineTextAlignment(.center)
+                                .containerRelativeFrame(.horizontal) { width, _ in width * 0.85 }
+                                .padding(.top, Web.space2)
+                        }
+                        if let failed = model.outbox.first(where: { $0.failed != nil })?.failed {
+                            Text("\(failed)这段话先存在这台设备上，恢复后会自动重发。")
                                 .font(Web.caption).foregroundStyle(Web.fgSecondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         Color.clear.frame(height: 1).id("bottom")
                     }
@@ -72,18 +88,20 @@ struct ChatPanel: View {
     private enum Row {
         case day(String, String)
         case note(API.Note)
+        case message(API.SystemMessage)
         case outbox(AppModel.Outbox)
 
         var id: String {
             switch self {
             case .day(let day, _): "day-\(day)"
             case .note(let note): "note-\(note.id)"
+            case .message(let message): "msg-\(message.id)"
             case .outbox(let item): "out-\(item.clientId)"
             }
         }
     }
 
-    /// 原话按时间排，每天前面插一个分隔；还没交给服务器的放在最后（算今天）
+    /// 原话和系统消息按时间排，每天前面插一个分隔；还没交给服务器的放在最后（算今天）
     private var rows: [Row] {
         var out: [Row] = []
         var lastDay: String?
@@ -92,9 +110,14 @@ struct ChatPanel: View {
             lastDay = value
             out.append(.day(value, Show.daySeparator(value, today: model.today)))
         }
-        for note in model.chat {
-            day(note.day)
-            out.append(.note(note))
+        let notes = model.chat.map { (at: $0.createdAt, day: $0.day, row: Row.note($0)) }
+        let messages = model.messages.map { message in
+            let day = Show.logicalDay(message.createdAt, boundary: model.dayBoundary) ?? model.today
+            return (at: message.createdAt, day: day, row: Row.message(message))
+        }
+        for item in (notes + messages).sorted(by: { $0.at < $1.at }) {
+            day(item.day)
+            out.append(item.row)
         }
         for item in model.outbox {
             day(model.today)
@@ -103,11 +126,11 @@ struct ChatPanel: View {
         return out
     }
 
+    private var waiting: Int { model.chat.filter { $0.status == "pending" }.count }
+    private var blocker: String? { model.chat.first { $0.status == "pending" && $0.error != nil }?.error }
+
     /// 有新的话、最后一段整理完长出结果时滚到底
-    private var bottomKey: String {
-        let last = model.chat.last
-        return "\(last?.id ?? 0)-\(last?.status ?? "")-\(last?.result?.receipt.count ?? 0)-\(model.outbox.count)"
-    }
+    private var bottomKey: String { "\(rows.last?.id ?? "")-\(model.chat.last?.status ?? "")" }
 }
 
 /// 你说的那段话：右边的白底框，下面是几点说的和状态
@@ -141,12 +164,14 @@ private struct OutboxMessage: View {
     var body: some View {
         Bubble(text: item.text, time: MoodRows.clock(ISO8601DateFormatter().string(from: item.createdAt))) {
             if item.failed == nil {
-                Text("正在保存")
+                HStack(spacing: Web.space1) {
+                    Dots()
+                    Text("正在保存")
+                }
             } else {
                 HStack(spacing: Web.space1) {
                     Text("没有保存上 ·").foregroundStyle(Web.danger)
-                    Button("重试") { Task { await model.flushOutbox() } }
-                        .font(Web.captionMedium).foregroundStyle(Web.accent).buttonStyle(.plain)
+                    WebTextButton("重试", font: Web.captionMedium) { Task { await model.flushOutbox() } }
                 }
             }
         }
@@ -185,7 +210,10 @@ private struct NoteMessage: View {
     @ViewBuilder private func status(quiet: Bool) -> some View {
         switch note.status {
         case "processing":
-            Text("正在整理…")
+            HStack(spacing: Web.space1) {
+                Dots()
+                Text("正在整理…")
+            }
         case "pending":
             Label("已保存 · 待处理", systemImage: "circle").labelStyle(StatusLabelStyle())
         case "confirm":
@@ -194,8 +222,7 @@ private struct NoteMessage: View {
         case "failed":
             HStack(spacing: Web.space1) {
                 Label("处理失败", systemImage: "xmark").labelStyle(StatusLabelStyle()).foregroundStyle(Web.danger)
-                Button("重试") { model.retry(note: note.id) }.font(Web.captionMedium).foregroundStyle(Web.accent)
-                    .buttonStyle(.plain)
+                WebTextButton("重试", font: Web.captionMedium) { model.retry(note: note.id) }
             }
         default:
             let label = Show.doneLabel(note.result)
@@ -228,8 +255,7 @@ private struct Reply: View {
                 if undone {
                     muted("已撤销，原话还在")
                 } else {
-                    Button("撤销") { model.undo(note: note.id) }.font(Web.bodyMedium).foregroundStyle(Web.accent)
-                        .buttonStyle(.plain)
+                    WebTextButton("撤销") { model.undo(note: note.id) }
                 }
             }
             if !undone, let advanced = result.advanced, !advanced.isEmpty {
@@ -239,7 +265,15 @@ private struct Reply: View {
                 muted("新建了类别：\(created.joined(separator: "、"))")
             }
             if !undone, let learned = result.learned, !learned.isEmpty {
-                muted("记住了：\(learned.joined(separator: "、"))")
+                Text(learnedText(learned)).font(Web.caption).foregroundStyle(Web.fgTertiary)
+                    .environment(
+                        \.openURL,
+                        OpenURLAction { url in
+                            let find = url.lastPathComponent.addingPercentEncoding(
+                                withAllowedCharacters: .alphanumerics)
+                            model.open("/about?find=\(find ?? "")")
+                            return .handled
+                        })
             }
             if !result.reply.isEmpty { Text(Show.spaced(result.reply)).font(Web.body).foregroundStyle(Web.fg) }
             if let answer = result.answer { Text(Show.spaced(answer.text)).font(Web.body).foregroundStyle(Web.fg) }
@@ -259,6 +293,22 @@ private struct Reply: View {
             model.undo(note: note.id)
             return .handled
         }
+    }
+
+    /// 「记住了：「小王」= 同事」能点：收起对话，打开「关于我」里这一条（docs/prd-about-me.md 6.9）
+    private func learnedText(_ learned: [String]) -> AttributedString {
+        var text = AttributedString("记住了：")
+        for (index, item) in learned.enumerated() {
+            if index > 0 { text += AttributedString("、") }
+            var part = AttributedString(Show.spaced(item))
+            if let phrase = Show.learnedPhrase(item) {
+                part.foregroundColor = Web.accent
+                part.font = Web.captionMedium
+                part.link = URL(string: "pour://find")?.appending(path: phrase)
+            }
+            text += part
+        }
+        return text
     }
 
     /// 收据后面紧跟「撤销」；撤销了就划掉，后面说一句「已撤销，原话还在」

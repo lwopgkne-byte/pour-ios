@@ -4,6 +4,8 @@ import XCTest
 /// （审计只看屏幕上看得见的部分，不往下滑就只审了第一屏——M1 自验收发现的），留截图给自验收看。
 final class GalleryUITests: XCTestCase {
     private let samples = ["today", "receipt", "about", "money", "review"]
+    /// 每张样张应该停在哪个标签
+    private let sampleTabs = ["today": "今天", "receipt": "今天", "about": "关于我", "money": "钱", "review": "回顾"]
     private let pages = ["颜色", "字", "组件", "图表", "动效和触感", "App 图标"]
 
     override func setUp() {
@@ -150,9 +152,25 @@ final class GalleryUITests: XCTestCase {
             row.tap()
             let close = app.buttons["关闭样张"].firstMatch
             XCTAssertTrue(close.waitForExistence(timeout: 5), "样张 \(sample) 没打开")
+            showTab(sampleTabs[sample] ?? "", in: app)
             auditEveryScreen(app, name: "样张-\(sample)-\(tag)", hasBottomGlass: true)
             close.tap()
         }
+    }
+
+    /// 确认样张停在它那个标签上，标签栏也不在动：电脑忙的时候，点开样张那一下偶尔落到了标签栏上，
+    /// 换到了别的标签、玻璃还在滑——这时审计量到的是动画里的一帧（2026-10-19 推送前检查踩到：「今天」开成了「关于我」）
+    @MainActor
+    private func showTab(_ label: String, in app: XCUIApplication) {
+        let tab = app.tabBars.buttons[label].firstMatch
+        XCTAssertTrue(tab.waitForExistence(timeout: 5), "标签栏里没有「\(label)」")
+        if !tab.isSelected {
+            print("样张没停在「\(label)」上，点回去")
+            tab.tap()
+        }
+        let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isSelected == true"), object: tab)
+        XCTAssertEqual(XCTWaiter().wait(for: [selected], timeout: 5), .completed, "样张没停在「\(label)」上")
+        RunLoop.current.run(until: Date().addingTimeInterval(1))
     }
 
     @MainActor

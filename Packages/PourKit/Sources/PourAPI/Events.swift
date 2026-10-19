@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 /// 服务器推过来的「哪些东西变了」（网页版 useServerEvents：GET /api/events，text/event-stream）
 public struct ServerEvent: Hashable, Sendable {
