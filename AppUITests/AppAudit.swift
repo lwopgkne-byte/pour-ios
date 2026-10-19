@@ -46,7 +46,11 @@ enum AppAudit {
         // 底部的输入框（网页版 composer-dock）：页面在它后面滚，压在它下面、只露出一半的字量出来对比度不准、像被截断
         let bar = ["pourbar.input", "pourbar.chat", "pourbar.send"]
             .map { app.descendants(matching: .any)[$0] }.filter(\.exists).map(\.frame.minY).min()
-        let place = Place(glass: glass, navigation: navigation, barTop: bar.map { $0 - Self.barPadding })
+        // 顶栏（菜单、搜索）：页面往上滚到它后面去的字也只露出一截
+        let header = app.descendants(matching: .any)["today.menu"]
+        let headerBottom = header.exists ? header.frame.maxY + Self.headerPadding : nil
+        let place = Place(
+            glass: glass, navigation: navigation, barTop: bar.map { $0 - Self.barPadding }, headerBottom: headerBottom)
         // 审计自己偶尔超时（「Audit failed to complete in time」）：检查用的模拟器刚开机、电脑同时在忙别的时更常见
         // （设置页那么长的一页，推送前检查里连着超时三次）。等十秒再审，最多四次
         for attempt in 1...4 {
@@ -76,6 +80,8 @@ enum AppAudit {
             // 输入框自己的字和按钮照样审
             var place = place
             if element.identifier.hasPrefix("pourbar") { place.barTop = nil }
+            // 顶栏自己的菜单、搜索也照样审
+            if element.identifier == "today.menu" || element.label == "搜索" { place.headerBottom = nil }
             if let reason = exemption(type: issue.auditType, frame: element.frame, label: element.label, place: place) {
                 print("放过（\(reason)）[\(name)] \(issue.compactDescription) ← \(element.label)")
                 return true
@@ -87,6 +93,8 @@ enum AppAudit {
 
     /// 输入框上沿到里面的字、按钮的距离（Composer：上下各 4 点、外面再 8 点）
     private static let barPadding: CGFloat = 12
+    /// 顶栏 48 点高，菜单按钮 44 点、上下各空 2 点
+    private static let headerPadding: CGFloat = 2
 
     /// 屏幕上系统的栏在哪
     struct Place {
@@ -94,6 +102,8 @@ enum AppAudit {
         let navigation: [CGRect]
         /// 底部输入框的上沿（没有输入框是 nil）
         var barTop: CGFloat?
+        /// 顶栏的下沿
+        var headerBottom: CGFloat?
 
         func inside(_ frames: [CGRect], _ frame: CGRect) -> Bool {
             frames.contains { $0.insetBy(dx: -2, dy: -2).contains(frame) }
@@ -114,6 +124,9 @@ enum AppAudit {
         // 压在底部输入框下面的（页面滚到它后面了）：露出来的那一截量不准；滚上来以后照样审
         if let top = place.barTop, frame.maxY > top, [.textClipped, .contrast].contains(type) {
             return "在输入框后面"
+        }
+        if let bottom = place.headerBottom, frame.minY < bottom, [.textClipped, .contrast].contains(type) {
+            return "在顶栏后面"
         }
         // 只有一个表情（卡片标题前的 🏃）：是彩色的图，不是字，量对比度、量截断都没有意义
         if [.contrast, .textClipped].contains(type), !label.isEmpty,

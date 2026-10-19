@@ -10,14 +10,18 @@ struct Composer: View {
     @Environment(\.visibleHeight) private var visibleHeight
     @FocusState private var focused: Bool
     @State private var drag: CGFloat = 0
+    /// 斜杠命令列表有多高：对话面板让出这么多（网页版：输入框这一块往上长，对话被顶上去），
+    /// 不然键盘弹着时输入框会被挤到键盘后面
+    @State private var menuHeight: CGFloat = 0
 
     var body: some View {
         @Bindable var model = model
         let open = model.chatOpen
         VStack(spacing: 0) {
-            if open {
+            let chatHeight = visibleHeight * 0.55 - menuHeight
+            if open, chatHeight >= Web.touch {
                 ChatPanel(drag: $drag)
-                    .frame(height: visibleHeight * 0.55)
+                    .frame(height: chatHeight)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             let commands = Show.slashMenu(model.draft)
@@ -27,6 +31,12 @@ struct Composer: View {
                     focused = true
                 }
                 .background(open ? Web.bg : Web.bgSubtle)
+                .onGeometryChange(for: CGFloat.self) {
+                    $0.size.height
+                } action: {
+                    menuHeight = $0
+                }
+                .onDisappear { menuHeight = 0 }
             }
             HStack(alignment: .bottom, spacing: Web.space2) {
                 TextField(Show.spaced(placeholder), text: $model.draft, axis: .vertical)
