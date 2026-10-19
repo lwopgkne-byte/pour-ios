@@ -70,6 +70,9 @@ for MAJOR in ${IOS_MAJORS}; do
   xcrun simctl shutdown "${SIM_ID}" >/dev/null 2>&1 || true
   xcrun simctl boot "${SIM_ID}"
   xcrun simctl bootstatus "${SIM_ID}" -b >/dev/null
+  # 开好以后系统还在后台忙一阵：这时跑审计容易超时（2026-10-19：第一个界面测试——设置页——一连几次「审计没跑完」，
+  # 后面跑的画布测试都没事）。等它歇一会儿再测
+  sleep 30
   echo "模拟器：${SIM_NAME}（已开好）"
   for SCHEME in Pour PourGallery; do
     RESULT="build/check-ios${MAJOR}-${SCHEME}-$(date +%Y%m%d-%H%M%S).xcresult"
