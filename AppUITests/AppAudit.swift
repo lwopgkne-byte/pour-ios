@@ -43,7 +43,28 @@ enum AppAudit {
         // 浮在底部的玻璃：倾倒栏（标签栏的底部附件）、撤销条；导航栏
         let glass = [app.buttons["pourbar"], app.descendants(matching: .any)["undoToast"]].filter(\.exists).map(\.frame)
         let navigation = app.navigationBars.allElementsBoundByIndex.filter(\.exists).map(\.frame)
-        let place = Place(glass: glass, navigation: navigation)
+        // 底部的输入框（网页版 composer-dock）：页面在它后面滚，压在它下面、只露出一半的字量出来对比度不准、像被截断
+        let bar = ["pourbar.input", "pourbar.chat", "pourbar.send"]
+            .map { app.descendants(matching: .any)[$0] }.filter(\.exists).map(\.frame.minY).min()
+        let place = Place(glass: glass, navigation: navigation, barTop: bar.map { $0 - Self.barPadding })
+        // 审计自己偶尔超时（「Audit failed to complete in time」，电脑同时在忙别的时更常见；画廊也这样）：
+        // 等五秒再审，最多三次
+        for attempt in 1...3 {
+            do {
+                try audit(app, name: name, types: types, place: place, unresolved: unresolved)
+                return
+            } catch let error as NSError where error.code == -56 && attempt < 3 {
+                print("审计超时，等五秒重审 [\(name)]")
+                RunLoop.current.run(until: Date().addingTimeInterval(5))
+            }
+        }
+    }
+
+    @MainActor
+    private static func audit(
+        _ app: XCUIApplication, name: String, types: XCUIAccessibilityAuditType, place: Place,
+        unresolved: @escaping (XCUIAccessibilityAuditIssue) -> Bool
+    ) throws {
         try app.performAccessibilityAudit(for: types) { issue in
             guard let element = issue.element else { return unresolved(issue) }
             // 网页版的辅助文字（60% 的墨色，对比度约 3.6:1）：产品主人 2026-10-19 要界面 1 比 1 照网页版，
@@ -52,6 +73,9 @@ enum AppAudit {
                 print("放过（网页版的辅助文字）[\(name)] \(issue.compactDescription) ← \(element.label)")
                 return true
             }
+            // 输入框自己的字和按钮照样审
+            var place = place
+            if element.identifier.hasPrefix("pourbar") { place.barTop = nil }
             if let reason = exemption(type: issue.auditType, frame: element.frame, label: element.label, place: place) {
                 print("放过（\(reason)）[\(name)] \(issue.compactDescription) ← \(element.label)")
                 return true
@@ -61,10 +85,15 @@ enum AppAudit {
         }
     }
 
+    /// 输入框上沿到里面的字、按钮的距离（Composer：上下各 4 点、外面再 8 点）
+    private static let barPadding: CGFloat = 12
+
     /// 屏幕上系统的栏在哪
     struct Place {
         let glass: [CGRect]
         let navigation: [CGRect]
+        /// 底部输入框的上沿（没有输入框是 nil）
+        var barTop: CGFloat?
 
         func inside(_ frames: [CGRect], _ frame: CGRect) -> Bool {
             frames.contains { $0.insetBy(dx: -2, dy: -2).contains(frame) }
@@ -81,6 +110,10 @@ enum AppAudit {
         // 导航栏里系统自己的按钮（「完成」）：也是字号封顶、长按看大字；玻璃上量对比度不准
         if place.inside(place.navigation, frame), [.dynamicType, .textClipped, .contrast].contains(type) {
             return "系统的栏"
+        }
+        // 压在底部输入框下面的（页面滚到它后面了）：露出来的那一截量不准；滚上来以后照样审
+        if let top = place.barTop, frame.maxY > top, [.textClipped, .contrast].contains(type) {
+            return "在输入框后面"
         }
         // 只有一个表情（卡片标题前的 🏃）：是彩色的图，不是字，量对比度、量截断都没有意义
         if [.contrast, .textClipped].contains(type), !label.isEmpty,

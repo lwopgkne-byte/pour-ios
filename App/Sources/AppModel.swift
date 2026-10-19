@@ -31,6 +31,8 @@ final class AppModel {
     private(set) var categories: [API.Category] = []
     /// 没连上服务器时说一句（连上了是 nil）
     private(set) var offline: String?
+    /// 电脑上的 Pour 开了 PIN、这台手机还没输过：整个 App 先显示输入 PIN 的那一页（网页版 PinGate）
+    private(set) var needsPin = false
     /// 还没交给服务器的话：没网时先存在手机上，连上了自动发（网页版 chat.tsx 的 outbox）
     private(set) var outbox: [Outbox] = []
 
@@ -39,40 +41,32 @@ final class AppModel {
     var page: Page = .canvas
     /// 这一页要先打开哪一篇：网页版的地址（对话里点「昨天的回顾好了」→「/review/2026-10-18」），那一页看完清掉
     var pagePath: String?
+    /// 要搜什么（右上角的搜索、「/找 三体」）：不是 nil 就打开搜索
+    var search: String?
     /// 对话面板开着没有（网页版 Composer：发出去就向上展开）
     var chatOpen = false
     /// 打开详情的那条记录
     var detail: EntryRef?
-    /// 删掉一条之后的轻提示（「已删除 · 撤销」，几秒后自己消失）
-    private(set) var undoable: Undoable?
+    /// 轻提示（网页版 toast：「已删除 · 撤销」「密钥已保存」），4 秒后自己消失
+    private(set) var notice: Notice?
+    /// 服务器是在用真实数据（real）还是演示数据（demo，页面顶上有一条横幅）
+    private(set) var mode = "real"
+    /// 大模型的状态：没连大模型时画布上有「连接大模型」（网页版 SetupCard）
+    private(set) var llm: API.LlmStatus?
+    /// 「回顾」列表：早上画布上那一行「昨天的回顾好了 →」看昨天的看过没有
+    private(set) var reviews: [API.ReviewItem] = []
+    /// 正在生成的回答：一边生成一边推过来，整理完之前在对话里逐字显示（网页版 answer-stream）
+    private(set) var answers: [Int: String] = [:]
+    /// 别处改了设置（电脑上、另一台手机）就加一：设置页看到就重新拿
+    private(set) var settingsVersion = 0
 
     private var events: Task<Void, Never>?
-    private var undoTimer: Task<Void, Never>?
+    private var noticeTimer: Task<Void, Never>?
+    private var noticeAction: (() -> Void)?
     private let network = NWPathMonitor()
     private var remindersOn = false
     /// 看过的日子里要提醒的待办（按日子存，换着看也不丢）
     private var reminders: [String: [Reminder]] = [:]
-
-    /// 一段还没交给服务器的话
-    struct Outbox: Codable, Hashable, Identifiable {
-        let clientId: String
-        let text: String
-        let createdAt: Date
-        /// 连不上、服务器拒了：说清楚，自动重试
-        var failed: String?
-
-        var id: String { clientId }
-    }
-
-    struct EntryRef: Identifiable, Hashable {
-        let id: Int
-    }
-
-    struct Undoable: Equatable {
-        let entryId: Int
-        let message: String
-        let id = UUID()
-    }
 
     init(client: APIClient) {
         self.client = client
@@ -127,6 +121,7 @@ final class AppModel {
         do {
             let meta = try await client.meta()
             dayBoundary = meta.dayBoundary
+            mode = meta.mode ?? "real"
             if meta.today != today {
                 let wasToday = shownDay == today
                 today = meta.today
@@ -134,12 +129,21 @@ final class AppModel {
             }
             categories = try await client.categories()
             offline = nil
+            needsPin = false
         } catch {
             offline = error.message
+            needsPin = error == .needPin
             return
         }
         await reloadDay()
         await reloadChat()
+        await reloadStatus()
+    }
+
+    /// 大模型的状态、回顾列表：拿不到就先留着上次的，不影响说话和看画布
+    func reloadStatus() async {
+        if let fresh = try? await client.llmStatus() { llm = fresh }
+        if let fresh = try? await client.reviewList() { reviews = fresh }
     }
 
     private func reloadDay() async {
@@ -211,16 +215,28 @@ final class AppModel {
             if !event.statusOnly, let fresh = try? await client.categories() { categories = fresh }
             await reloadDay()
             await reloadChat()
+            // 排队的数量、为什么在排队
+            if let fresh = try? await client.llmStatus() { llm = fresh }
         case "entries-changed":
             if let fresh = try? await client.categories() { categories = fresh }
             await reloadDay()
         case "summary-changed", "goals-changed":
             await reloadDay()
-        case "messages-changed":
+        case "messages-changed", "settings-changed":
+            if event.type == "settings-changed" { settingsVersion += 1 }
             await reloadMessages()
+            await reloadStatus()
+        case "answer-delta":
+            grow(answer: event)
         default:
             break
         }
+    }
+
+    /// 回答又长出来一截（null 是这段回答结束了：清空，整理好的结果里有完整的）
+    private func grow(answer event: ServerEvent) {
+        guard let noteId = event.noteId else { return }
+        answers[noteId] = event.text.map { (answers[noteId] ?? "") + $0 } ?? ""
     }
 
     /// 换到某一天看（不能看还没到的日子）
@@ -237,17 +253,98 @@ final class AppModel {
     func open(_ path: String) {
         if path.hasPrefix("/review") { page = .review }
         if path.hasPrefix("/about") { page = .about }
+        if path.hasPrefix("/settings") { page = .settings }
         pagePath = path
         chatOpen = false
     }
 
-    // MARK: - 说一句
+}
 
+// MARK: - 改
+
+extension AppModel {
+    /// 对话里收据后面的「撤销」：这段话整理出的记录都撤掉，原话留着
+    func undo(note id: Int) { act { client in try await client.undo(note: id) } }
+
+    /// 没整理成的，点「重试」
+    func retry(note id: Int) { act { client in try await client.retry(note: id) } }
+
+    func confirm(_ entryId: Int) { act { client in try await client.confirm(entry: entryId) } }
+
+    func setDone(_ entryId: Int, _ done: Bool) { act { client in try await client.setDone(entry: entryId, done) } }
+
+    /// 详情里原地改（字段名照网页版：label、start、duration_min、metrics……）
+    func update(_ entryId: Int, _ fields: [String: JSONValue]) {
+        act { client in try await client.update(entry: entryId, fields: fields) }
+    }
+
+    func delete(_ entryId: Int) {
+        detail = nil
+        act { client in try await client.delete(entry: entryId) }
+        // 轻提示上的「撤销」：删掉的放回来
+        toast("已删除", action: "撤销") { [weak self] in
+            self?.act { client in try await client.restore(entry: entryId) }
+        }
+    }
+
+    /// 「连接大模型」上的「知道了，开始整理」：同意把原话发给大模型整理
+    func acceptConsent() { act { client in try await client.acceptConsent() } }
+
+    /// 「连接大模型」上的「跳过」：不再出现，以后在设置里填
+    func dismissSetup() { act { client in try await client.dismissSetup() } }
+
+    /// 说一声（网页版 toast）：一句话，右边可以有一个操作；4 秒后自己消失，新的顶掉旧的
+    func toast(_ message: String, action: String? = nil, perform: (() -> Void)? = nil) {
+        notice = Notice(message: message, action: action)
+        noticeAction = perform
+        noticeTimer?.cancel()
+        noticeTimer = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(4))
+            guard !Task.isCancelled else { return }
+            self?.notice = nil
+        }
+    }
+
+    /// 点了轻提示右边的操作
+    func performNotice() {
+        let action = noticeAction
+        notice = nil
+        noticeAction = nil
+        noticeTimer?.cancel()
+        action?()
+    }
+
+    /// 做一件事，做完重新拿这一天（服务器的推送也会来，这里不等它）
+    private func act(_ work: @escaping @Sendable (APIClient) async throws -> Void) {
+        let client = self.client
+        Task {
+            do {
+                try await work(client)
+            } catch let error as APIError {
+                offline = error.message
+            } catch {
+                offline = APIError.unreachable.message
+            }
+            await reloadDay()
+            await reloadChat()
+            await reloadStatus()
+        }
+    }
+}
+
+// MARK: - 说一句、提醒
+
+extension AppModel {
     /// 发出去：原话先存在手机上，马上出现在对话里；交给服务器排队整理
     func send() {
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         draft = ""
+        // 在手机上直接做的命令（/找 /今天 /周报 /撤销）：不发给 AI
+        if let slash = Show.parseSlash(text), slash.command.intent == nil {
+            Task { await run(slash.command, slash.rest) }
+            return
+        }
         outbox.append(Outbox(clientId: UUID().uuidString, text: text, createdAt: Date()))
         saveOutbox()
         chatOpen = true
@@ -273,7 +370,9 @@ final class AppModel {
         await reloadDay()
     }
 
-    private static let outboxKey = "pour.outbox"
+    /// 界面测试（假服务器）的发件箱单独放：测试留下的话不会在平时打开时发给真的服务器
+    private static let outboxKey =
+        ProcessInfo.processInfo.arguments.contains("-uiTest") ? "pour.outbox.uiTest" : "pour.outbox"
 
     private static func loadOutbox() -> [Outbox] {
         guard let data = UserDefaults.standard.data(forKey: outboxKey) else { return [] }
@@ -295,60 +394,5 @@ final class AppModel {
         }
         let all = reminders.values.flatMap { $0 }
         Task { await Reminders.sync(all) }
-    }
-}
-
-// MARK: - 改
-
-extension AppModel {
-    /// 对话里收据后面的「撤销」：这段话整理出的记录都撤掉，原话留着
-    func undo(note id: Int) { act { client in try await client.undo(note: id) } }
-
-    /// 没整理成的，点「重试」
-    func retry(note id: Int) { act { client in try await client.retry(note: id) } }
-
-    func confirm(_ entryId: Int) { act { client in try await client.confirm(entry: entryId) } }
-
-    func setDone(_ entryId: Int, _ done: Bool) { act { client in try await client.setDone(entry: entryId, done) } }
-
-    /// 详情里原地改（字段名照网页版：label、start、duration_min、metrics……）
-    func update(_ entryId: Int, _ fields: [String: JSONValue]) {
-        act { client in try await client.update(entry: entryId, fields: fields) }
-    }
-
-    func delete(_ entryId: Int) {
-        detail = nil
-        act { client in try await client.delete(entry: entryId) }
-        undoable = Undoable(entryId: entryId, message: "已删除")
-        undoTimer?.cancel()
-        undoTimer = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(5))
-            guard !Task.isCancelled else { return }
-            self?.undoable = nil
-        }
-    }
-
-    /// 轻提示上的「撤销」：删掉的放回来
-    func undo() {
-        guard let undo = undoable else { return }
-        undoable = nil
-        undoTimer?.cancel()
-        act { client in try await client.restore(entry: undo.entryId) }
-    }
-
-    /// 做一件事，做完重新拿这一天（服务器的推送也会来，这里不等它）
-    private func act(_ work: @escaping @Sendable (APIClient) async throws -> Void) {
-        let client = self.client
-        Task {
-            do {
-                try await work(client)
-            } catch let error as APIError {
-                offline = error.message
-            } catch {
-                offline = APIError.unreachable.message
-            }
-            await reloadDay()
-            await reloadChat()
-        }
     }
 }

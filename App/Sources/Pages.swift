@@ -1,9 +1,9 @@
 import PourDesign
 import SwiftUI
 
-/// 左上角菜单里的页面（网页版 Layout 的 PAGES，顺序一样；「设置」是另开的一层）
+/// 左上角菜单里的页面（网页版 Layout 的 PAGES，顺序一样）
 enum Page: String, CaseIterable, Identifiable {
-    case canvas, review, money, about, goals, library
+    case canvas, review, money, about, goals, library, settings
 
     var id: String { rawValue }
 
@@ -15,6 +15,7 @@ enum Page: String, CaseIterable, Identifiable {
         case .about: "关于我"
         case .goals: "目标"
         case .library: "笔记库"
+        case .settings: "设置"
         }
     }
 
@@ -26,6 +27,7 @@ enum Page: String, CaseIterable, Identifiable {
         case .about: "person"
         case .goals: "target"
         case .library: "books.vertical"
+        case .settings: "gearshape"
         }
     }
 }
@@ -42,6 +44,7 @@ struct PageView: View {
         case .about: LaterPage(page: page)
         case .goals: LaterPage(page: page)
         case .library: LaterPage(page: page)
+        case .settings: SettingsPage()
         }
     }
 }

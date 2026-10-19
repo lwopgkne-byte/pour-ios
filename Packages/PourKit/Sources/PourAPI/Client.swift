@@ -22,7 +22,8 @@ public enum APIError: Error, Hashable, Sendable {
 /// 网页版服务器的客户端：所有业务规则和 AI 都在服务器上，手机只读写它的接口（网页版 lib/api.ts、queries.ts）
 public actor APIClient {
     public let baseURL: URL
-    private let session: URLSession
+    /// 不是 private：下载文件（导出）也用它，带着登录 PIN 以后的 cookie
+    let session: URLSession
 
     public init(baseURL: URL, session: URLSession? = nil) {
         self.baseURL = baseURL

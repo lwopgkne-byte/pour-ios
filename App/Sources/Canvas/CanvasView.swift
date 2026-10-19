@@ -13,6 +13,8 @@ struct CanvasView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 DayHeader(picking: $picking)
+                SetupCard()
+                if model.shownDay == model.today { ReviewHint() }
                 CanvasBody()
                     .padding(.top, Web.space4)
                     .id(model.shownDay)

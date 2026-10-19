@@ -38,6 +38,8 @@ extension API {
         public var keyMasked: String?
         public var configured: Bool
         public var consentAccepted: Bool
+        /// 画布上要不要显示「连接大模型」（确认过、跳过了就不显示）
+        public var showSetup: Bool?
         public var confidenceThreshold: Double
         public var monthlyTokenLimit: Int
         public var usage: Usage
@@ -223,14 +225,9 @@ extension API {
         public var progress: Progress
     }
 
-    /// 你改过的地方（评测候选）：只数有几条
+    /// 你改过的地方（评测候选）；AI 正在分通用的 / 个人的时 classifying 是 true
     public struct Candidates: Codable, Hashable, Sendable {
-        public struct Item: Codable, Hashable, Sendable {
-            public var id: Int
-            public var text: String
-        }
-
-        public var candidates: [Item]
+        public var candidates: [Candidate]
         public var classifying: Bool
     }
 

@@ -49,6 +49,8 @@
             var nextId = 1
             /// 对话里的系统消息：今天早上来的「昨天的回顾好了」
             var messages: [[String: Any]] = [Self.dailyReview]
+            /// 提醒和推送的设置：改了的那几项盖上去（网页版服务器 PUT /api/reminders）
+            var reminders = Self.defaultReminders
 
             var today: String { PourDate.logicalDay(Date(), in: .current) }
 
@@ -75,6 +77,7 @@
             /// 不带编号的接口：今天是哪天、类别表、说过的话、说一句
             private mutating func basic(_ method: String, _ url: URL, _ body: [String: Any]) -> Reply? {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+                if let value = settingsReply(method, url.path, body) { return ok(value) }
                 switch (method, url.path) {
                 case ("GET", "/api/meta"): return ok(["today": today, "dayBoundary": 240, "mode": "real"])
                 case ("GET", "/api/categories"): return ok(["categories": Self.categories])
@@ -170,20 +173,6 @@
             }
 
             /// 一条事件来自哪段话、原话里哪一段
-            /// 每日回顾：今天早上 10 点来的，回顾的是昨天
-            static var dailyReview: [String: Any] {
-                let today = PourDate.logicalDay(Date(), in: .current)
-                let morning = Calendar.current.date(bySettingHour: 10, minute: 0, second: 0, of: Date()) ?? Date()
-                return [
-                    "id": 1, "kind": "daily", "createdAt": ISO8601DateFormatter().string(from: morning),
-                    "title": "昨天", "body": "睡了 7 小时，跑步 5 公里。",
-                    "daily": [
-                        "day": PourDate.addDays(today, -1), "overview": "睡了 7 小时，跑步 5 公里。", "observation": NSNull(),
-                        "facts": "",
-                    ],
-                ]
-            }
-
             struct Seed {
                 let category: String
                 let noteId: Int

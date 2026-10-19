@@ -34,4 +34,26 @@ final class WebDemoShots: XCTestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(0.8))
         }
     }
+
+    /// 设置页：从上往下一屏一屏截，和网页版的 /settings 放在一起比
+    @MainActor
+    func testWebDemoSettings() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["POUR_SHOTS"] == "1", "对照截图：只在手动指定时跑")
+        let app = XCUIApplication()
+        app.launchArguments += ["-serverURL", "http://127.0.0.1:5199"]
+        app.launch()
+        XCTAssertTrue(app.descendants(matching: .any)["today.menu"].waitForExistence(timeout: 5))
+        app.descendants(matching: .any)["today.menu"].tap()
+        app.buttons["设置"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["大模型"].waitForExistence(timeout: 5))
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        for index in 1...9 {
+            let shot = XCTAttachment(screenshot: app.screenshot())
+            shot.name = "对照-设置-\(index)"
+            shot.lifetime = .keepAlways
+            add(shot)
+            app.swipeUp(velocity: .slow)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+        }
+    }
 }

@@ -20,6 +20,14 @@ struct Composer: View {
                     .frame(height: visibleHeight * 0.55)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
+            let commands = Show.slashMenu(model.draft)
+            if !commands.isEmpty {
+                SlashMenu(commands: commands) { command in
+                    model.draft = "\(command.cmd) "
+                    focused = true
+                }
+                .background(open ? Web.bg : Web.bgSubtle)
+            }
             HStack(alignment: .bottom, spacing: Web.space2) {
                 TextField(Show.spaced(placeholder), text: $model.draft, axis: .vertical)
                     .font(Web.body)
@@ -77,7 +85,45 @@ struct Composer: View {
 
     /// 白天问做了什么；晚上（6 点到日界线）换成「今天哪一刻觉得挺好？」
     private var placeholder: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        return hour >= 18 || hour < PourDate.defaultBoundary / 60 ? "今天哪一刻觉得挺好？" : "今天做了什么？比如：跑步1小时"
+        Show.isEvening(Date(), boundary: model.dayBoundary) ? "今天哪一刻觉得挺好？" : "今天做了什么？比如：跑步1小时"
+    }
+}
+
+/// 斜杠命令（网页版 slash-menu）：刚输入「/」时在输入框上方列出可以用的命令，点一下填进输入框；
+/// 第一个是选中的样子（电脑上按回车选它）
+private struct SlashMenu: View {
+    let commands: [SlashCommand]
+    let pick: (SlashCommand) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(commands.enumerated()), id: \.element.cmd) { index, command in
+                Button {
+                    pick(command)
+                } label: {
+                    HStack(spacing: Web.space3) {
+                        Text(command.cmd).font(Web.bodyMedium)
+                        Text(command.label)
+                        Spacer(minLength: 0)
+                        Text(command.example).foregroundStyle(Web.fgTertiary).lineLimit(1)
+                    }
+                    .font(Web.body)
+                    .foregroundStyle(index == 0 ? Web.fg : Web.fgSecondary)
+                    .padding(.horizontal, Web.space3)
+                    .frame(minHeight: Web.touch)
+                    .background(
+                        RoundedRectangle(cornerRadius: Web.radiusControl).fill(index == 0 ? Web.bgHover : .clear)
+                    )
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("\(command.cmd)，\(command.label)"))
+                .accessibilityHint(Text("比如：\(command.example)"))
+            }
+        }
+        .padding(Web.space1)
+        .overlay(alignment: .bottom) { Rectangle().fill(Web.line).frame(height: 1) }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("斜杠命令"))
     }
 }

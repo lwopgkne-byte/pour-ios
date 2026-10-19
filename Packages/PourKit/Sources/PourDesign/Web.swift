@@ -38,6 +38,8 @@ public enum Web {
     /// 手机抽屉背后的遮罩
     public static let overlay = Color(red: 15 / 255, green: 15 / 255, blue: 15 / 255).opacity(0.2)
     public static let danger = hex(0xA23A36)
+    /// 演示数据的横幅、原话里对应的那一段：黄色标签的底色和字色
+    public static var notice: Tag { tag("yellow") }
 
     /// 类别标签的九种柔和色：bg 很浅的底色，fg 较深的文字色，solid 用于时间轴色块、圆点
     public struct Tag: Sendable {
@@ -88,11 +90,15 @@ public enum Web {
 
     public static let title = pingfang(26, .title, .bold)
     public static let section = pingfang(18, .title3)
+    /// 小节标题（设置页的「大模型」「类别」，详情的标题）
+    public static let sectionSemibold = pingfang(18, .title3, .semibold)
     public static let body = pingfang(16, .body)
     public static let bodyMedium = pingfang(16, .body, .medium)
     public static let bodySemibold = pingfang(16, .body, .semibold)
     public static let caption = pingfang(13, .footnote)
     public static let captionMedium = pingfang(13, .footnote, .medium)
+    /// 等宽字（处理日志里的原始内容）
+    public static let mono = Font.system(.footnote, design: .monospaced)
     /// 正文行高 1.6 多出来的行距（苹方本身的行高约 1.4 倍）
     public static let bodyLineSpacing: CGFloat = 16 * 0.2
     /// 引用的原话行高 1.8
@@ -116,12 +122,20 @@ public enum Web {
     public static let header: CGFloat = 48
     /// 左侧导航的宽度
     public static let navWidth: CGFloat = 240
+    /// 轻提示、输入 PIN 那一页最宽多少
+    public static let toastWidth: CGFloat = 400
     public static let radiusControl: CGFloat = 6
     public static let radiusCard: CGFloat = 8
     public static let radiusPanel: CGFloat = 12
     /// 面板、抽屉展开收起：200 毫秒，平滑减速不弹跳
     public static let panel = Animation.timingCurve(0.2, 0, 0, 1, duration: 0.2)
     public static let fast = Animation.timingCurve(0.2, 0, 0, 1, duration: 0.1)
+    /// 加载中的灰条慢慢明暗：一圈 1.6 秒
+    public static let pulse = Animation.easeInOut(duration: 0.8).repeatForever(autoreverses: true)
+    /// 浮在内容上方的东西的影子（开关上的圆点）：很淡
+    public static let shadow = Color(red: 15 / 255, green: 15 / 255, blue: 15 / 255).opacity(0.08)
+    /// 九种类别色的名字，按网页版的顺序（TAG_COLORS）
+    public static let tagNames = ["gray", "brown", "orange", "yellow", "green", "blue", "purple", "pink", "red"]
 }
 
 extension Optional where Wrapped == Web.Tag {

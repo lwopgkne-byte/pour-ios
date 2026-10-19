@@ -43,6 +43,9 @@ struct InlineEdit: View {
                     .font(Web.body).foregroundStyle(Web.fg)
                     .multilineTextAlignment(.trailing)
                     .keyboardType(keyboard)
+                    // 地址不要自动大写、不要自动改
+                    .textInputAutocapitalization(keyboard == .URL ? .never : nil)
+                    .autocorrectionDisabled(keyboard == .URL)
                     .submitLabel(.done)
                     .focused($focused)
                     .padding(.horizontal, Web.space2)

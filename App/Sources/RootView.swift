@@ -1,3 +1,4 @@
+import PourAPI
 import PourDesign
 import SwiftUI
 
@@ -7,20 +8,23 @@ struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.scenePhase) private var scenePhase
     @State private var navOpen = false
-    @State private var showsSettings = false
-    @State private var showsLater: String?
 
     var body: some View {
         // 看得见的高度（键盘弹出时是键盘上面那一截）：对话面板占它的 55%（网页版 --viewport-height × 0.55）
         GeometryReader { proxy in
-            shell.environment(\.visibleHeight, proxy.size.height)
+            if model.needsPin {
+                PinGate()
+            } else {
+                shell.environment(\.visibleHeight, proxy.size.height)
+            }
         }
     }
 
     private var shell: some View {
         @Bindable var model = model
         return VStack(spacing: 0) {
-            AppHeader(navOpen: $navOpen) { showsLater = "搜索" }
+            AppHeader(navOpen: $navOpen) { model.search = "" }
+            if model.mode == "demo" { DemoBanner() }
             PageView(page: model.page)
         }
         .background(Web.bg)
@@ -36,24 +40,24 @@ struct RootView: View {
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: Web.space3) {
-                if let undo = model.undoable {
-                    Toast(message: undo.message, action: "撤销") { model.undo() }
+                if let notice = model.notice {
+                    Toast(message: notice.message, action: notice.action) { model.performNotice() }
                         .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .id(undo.id)
+                        .id(notice.id)
                 }
                 Composer()
             }
         }
-        .overlay { NavDrawer(open: $navOpen, settings: $showsSettings) }
+        .overlay { NavDrawer(open: $navOpen) }
         .animation(Web.panel, value: model.chatOpen)
-        .animation(Web.panel, value: model.undoable)
+        .animation(Web.panel, value: model.notice)
         .sheet(item: $model.detail) { ref in EntryPeek(entryId: ref.id) }
-        .sheet(isPresented: $showsSettings) { SettingsSheet() }
+        // 搜索和问答还在照网页版搬（docs/复刻网页版-交接.md）：搬好了换成搜索界面，要搜的字在 model.search
         .alert(
-            "\(showsLater ?? "")还在做",
-            isPresented: .init(get: { showsLater != nil }, set: { if !$0 { showsLater = nil } })
+            "搜索还在做",
+            isPresented: .init(get: { model.search != nil }, set: { if !$0 { model.search = nil } })
         ) {
-            Button("好") { showsLater = nil }
+            Button("好") { model.search = nil }
         } message: {
             Text("页面正在一个一个照网页版搬过来。")
         }
@@ -98,11 +102,27 @@ private struct AppHeader: View {
     }
 }
 
-/// 左侧导航（网页版 NavDrawer）：点哪一页换到哪一页；「设置」另开一层
+/// 演示数据：页面顶上一条安静但清楚的横幅（网页版 demo-banner，规格第十三章）
+private struct DemoBanner: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("正在看演示数据，你的真实数据没有变化 · ")
+            WebTextButton("回到真实数据", font: Web.captionMedium) { model.open("/settings#data") }
+        }
+        .font(Web.caption).foregroundStyle(Web.notice.fg)
+        .multilineTextAlignment(.center)
+        .padding(.vertical, Web.space2).padding(.horizontal, Web.space4)
+        .frame(maxWidth: .infinity)
+        .background(Web.notice.bg)
+    }
+}
+
+/// 左侧导航（网页版 NavDrawer）：点哪一页换到哪一页
 private struct NavDrawer: View {
     @Environment(AppModel.self) private var model
     @Binding var open: Bool
-    @Binding var settings: Bool
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -118,10 +138,6 @@ private struct NavDrawer: View {
                             close()
                             model.page = page
                         }
-                    }
-                    link("设置", icon: "gearshape", current: false) {
-                        close()
-                        settings = true
                     }
                     Spacer()
                 }
@@ -167,17 +183,19 @@ enum UIScreenWidth {
     }
 }
 
-/// 轻提示（网页版 toast）：深底浅字，右边一个操作
+/// 轻提示（网页版 toast）：深底浅字，右边可以有一个操作
 private struct Toast: View {
     let message: String
-    let action: String
+    let action: String?
     let perform: () -> Void
 
     var body: some View {
         HStack(spacing: Web.space3) {
-            Text(message).font(Web.body).foregroundStyle(Web.onAccent)
-            Button(action, action: perform).font(Web.bodyMedium).foregroundStyle(Web.onAccent).buttonStyle(.plain)
-                .accessibilityIdentifier("undoToast")
+            Text(Show.spaced(message)).font(Web.body).foregroundStyle(Web.onAccent)
+            if let action {
+                Button(action, action: perform).font(Web.bodyMedium).foregroundStyle(Web.onAccent).buttonStyle(.plain)
+                    .accessibilityIdentifier("undoToast")
+            }
         }
         .padding(.horizontal, Web.space4)
         .padding(.vertical, Web.space2)

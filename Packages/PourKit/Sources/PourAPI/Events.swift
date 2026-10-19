@@ -7,6 +7,10 @@ public struct ServerEvent: Hashable, Sendable {
     /// 只是原话的状态变了（刚收下、开始整理）：记录还没动
     public var statusOnly: Bool
     public var day: String?
+    /// answer-delta：哪段话的回答
+    public var noteId: Int?
+    /// answer-delta：回答新长出来的一截；nil 是这段回答结束了（清空）
+    public var text: String?
 }
 
 extension APIClient {
@@ -47,8 +51,11 @@ extension APIClient {
         struct Body: Decodable {
             let statusOnly: Bool?
             let day: String?
+            let noteId: Int?
+            let text: String?
         }
         let body = try? JSONDecoder().decode(Body.self, from: Data(data.utf8))
-        return ServerEvent(type: type, statusOnly: body?.statusOnly ?? false, day: body?.day)
+        return ServerEvent(
+            type: type, statusOnly: body?.statusOnly ?? false, day: body?.day, noteId: body?.noteId, text: body?.text)
     }
 }

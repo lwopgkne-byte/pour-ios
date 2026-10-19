@@ -97,8 +97,29 @@ extension APIClient {
             "POST", "/api/data/mode", json: .object(["mode": .string(mode), "regenerate": .bool(regenerate)]))
     }
 
-    /// 导出全部数据的地址（zip）
-    public var exportURL: URL { baseURL.appending(path: "api/data/export") }
+    /// 下载一个文件（导出全部数据的 zip），存到手机的临时文件夹，回来的是存好的文件
+    public func download(_ path: String, name: String) async throws(APIError) -> URL {
+        guard let url = URL(string: path, relativeTo: baseURL) else { throw .unreachable }
+        let saved: URL
+        let response: URLResponse
+        do {
+            (saved, response) = try await session.download(from: url)
+        } catch {
+            throw .unreachable
+        }
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        guard (200..<300).contains(status) else {
+            throw .server(status: status, code: "http_\(status)", message: "导出没有成功（\(status)）。")
+        }
+        let target = FileManager.default.temporaryDirectory.appending(path: name)
+        try? FileManager.default.removeItem(at: target)
+        do {
+            try FileManager.default.moveItem(at: saved, to: target)
+        } catch {
+            throw .server(status: status, code: "save", message: "导出的文件没存上：\(error.localizedDescription)")
+        }
+        return target
+    }
 
     struct Reparsed: Decodable {
         let notes: Int

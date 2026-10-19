@@ -162,7 +162,7 @@ private struct OutboxMessage: View {
     let item: AppModel.Outbox
 
     var body: some View {
-        Bubble(text: item.text, time: MoodRows.clock(ISO8601DateFormatter().string(from: item.createdAt))) {
+        Bubble(text: item.text, time: Show.formatClock(ISO8601DateFormatter().string(from: item.createdAt))) {
             if item.failed == nil {
                 HStack(spacing: Web.space1) {
                     Dots()
@@ -193,10 +193,16 @@ private struct NoteMessage: View {
                     || !(result.goals ?? []).isEmpty || !(result.advanced ?? []).isEmpty || result.answer != nil
             } ?? false
         VStack(spacing: Web.space3) {
-            Bubble(text: note.text, time: MoodRows.clock(note.createdAt)) { status(quiet: hasReply) }
+            Bubble(text: note.text, time: Show.formatClock(note.createdAt)) { status(quiet: hasReply) }
             if note.status == "failed", let error = note.error {
                 Text(Show.spaced(error)).font(Web.caption).foregroundStyle(Web.fgTertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            // 正在生成的回答：整理完之前逐字显示（整理好了下面的回答是完整的）
+            if note.status == "processing", let live = model.answers[note.id], !live.isEmpty {
+                Text(Show.spaced(live)).font(Web.body).foregroundStyle(Web.fg)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.trailing, Web.space12)
             }
             if let result, hasReply {
                 Reply(note: note, result: result, receipt: receipt)

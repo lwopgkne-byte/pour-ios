@@ -38,6 +38,10 @@ struct DecodingTests {
         let event = APIClient.event("notes-changed", #"{"day":"2026-10-19","statusOnly":true}"#)
         #expect(event == ServerEvent(type: "notes-changed", statusOnly: true, day: "2026-10-19"))
         #expect(APIClient.event("summary-changed", "{}").statusOnly == false)
+        // 回答一边生成一边推过来：一截一截的字；null 是结束
+        let delta = APIClient.event("answer-delta", #"{"noteId":12,"text":"上次去爬山"}"#)
+        #expect(delta.noteId == 12 && delta.text == "上次去爬山")
+        #expect(APIClient.event("answer-delta", #"{"noteId":12,"text":null}"#).text == nil)
     }
 }
 

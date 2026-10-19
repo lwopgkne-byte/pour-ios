@@ -124,6 +124,24 @@ final class TodayUITests: XCTestCase {
         XCTAssertEqual(app.buttons["pourbar.chat"].label, "展开对话", "对话没收起来")
     }
 
+    /// 斜杠命令：输入「/」列出命令，点一个填进输入框；「/撤销」撤掉最近那一段整理出的记录（不发给 AI）
+    @MainActor func testSlashCommands() throws {
+        let app = launch()
+        say("早上跑了五公里", in: app)
+        XCTAssertTrue(text(app, startingWith: "已记录：").waitForExistence(timeout: 5))
+        let field = app.descendants(matching: .any)["pourbar.input"]
+        field.tap()
+        field.typeText("/")
+        let undo = app.buttons["/撤销，撤销上一段话"]
+        XCTAssertTrue(undo.waitForExistence(timeout: 3), "没列出斜杠命令")
+        attach(app, "斜杠命令")
+        undo.tap()
+        XCTAssertTrue((field.value as? String)?.hasPrefix("/撤销") == true, "命令没填进输入框")
+        app.buttons["pourbar.send"].tap()
+        XCTAssertTrue(text(app, startingWith: "已撤销「早上跑了五公里」").waitForExistence(timeout: 5), "没说撤销了")
+        XCTAssertFalse(app.staticTexts["/撤销"].exists, "命令不该当成一段话发出去")
+    }
+
     // MARK: -
 
     private static let largestText = [
