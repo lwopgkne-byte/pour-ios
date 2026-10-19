@@ -20,6 +20,14 @@
         override func stopLoading() {}
 
         override func startLoading() {
+            // 服务器推送：连上了就一直开着、不说话（真的服务器有变化才推；界面测试里不推）
+            if request.url?.path == "/api/events", let url = request.url,
+                let response = HTTPURLResponse(
+                    url: url, statusCode: 200, httpVersion: nil, headerFields: ["content-type": "text/event-stream"])
+            {
+                client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+                return
+            }
             let reply = Self.state.withLock { $0.answer(request) }
             guard !reply.offline, let url = request.url,
                 let response = HTTPURLResponse(url: url, statusCode: reply.status, httpVersion: nil, headerFields: nil)

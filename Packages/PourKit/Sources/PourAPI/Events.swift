@@ -17,13 +17,18 @@ extension APIClient {
     /// 一直听着服务器的推送；断了由调用方等一会儿再接
     public nonisolated func events() -> AsyncThrowingStream<ServerEvent, any Error> {
         let url = baseURL.appending(path: "api/events")
+        // 和别的请求同一套设置（输过 PIN 以后的 cookie、界面测试的假服务器）；
+        // 服务器每 25 秒发一次心跳，90 秒什么都没收到就算断了，由调用方重连
+        let config = session.configuration
+        config.timeoutIntervalForRequest = Self.eventsSilence
+        let listener = URLSession(configuration: config)
         return AsyncThrowingStream { continuation in
             let task = Task {
                 do {
                     var request = URLRequest(url: url)
-                    request.timeoutInterval = 60 * 60 * 24
+                    request.timeoutInterval = Self.eventsSilence
                     request.setValue("text/event-stream", forHTTPHeaderField: "accept")
-                    let (bytes, response) = try await URLSession.shared.bytes(for: request)
+                    let (bytes, response) = try await listener.bytes(for: request)
                     guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw APIError.unreachable }
                     var type = "message"
                     var data = ""
@@ -43,9 +48,15 @@ extension APIClient {
                     continuation.finish(throwing: error)
                 }
             }
-            continuation.onTermination = { _ in task.cancel() }
+            continuation.onTermination = { _ in
+                task.cancel()
+                listener.invalidateAndCancel()
+            }
         }
     }
+
+    /// 多久没收到任何东西算断了（服务器 25 秒一次心跳）
+    static let eventsSilence: TimeInterval = 90
 
     static func event(_ type: String, _ data: String) -> ServerEvent {
         struct Body: Decodable {
