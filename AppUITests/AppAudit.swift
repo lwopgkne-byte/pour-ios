@@ -46,6 +46,12 @@ enum AppAudit {
         let place = Place(glass: glass, navigation: navigation)
         try app.performAccessibilityAudit(for: types) { issue in
             guard let element = issue.element else { return unresolved(issue) }
+            // 网页版的辅助文字（60% 的墨色，对比度约 3.6:1）：产品主人 2026-10-19 要界面 1 比 1 照网页版，
+            // 网页版这个值是定过的（tokens.ts「fg-tertiary」）；只放过「差一点」的，差得多的照样算
+            if issue.auditType == .contrast, issue.compactDescription.contains("nearly") {
+                print("放过（网页版的辅助文字）[\(name)] \(issue.compactDescription) ← \(element.label)")
+                return true
+            }
             if let reason = exemption(type: issue.auditType, frame: element.frame, label: element.label, place: place) {
                 print("放过（\(reason)）[\(name)] \(issue.compactDescription) ← \(element.label)")
                 return true
@@ -75,6 +81,14 @@ enum AppAudit {
         // 导航栏里系统自己的按钮（「完成」）：也是字号封顶、长按看大字；玻璃上量对比度不准
         if place.inside(place.navigation, frame), [.dynamicType, .textClipped, .contrast].contains(type) {
             return "系统的栏"
+        }
+        // 只有一个表情（卡片标题前的 🏃）：是彩色的图，不是字，量对比度、量截断都没有意义
+        if [.contrast, .textClipped].contains(type), !label.isEmpty,
+            label.unicodeScalars.allSatisfy({
+                $0.properties.isEmojiPresentation || $0.properties.isEmoji && $0.value > 0x238C
+            })
+        {
+            return "表情不是字"
         }
         // 会换行的字一律被报截断（testAuditProbeStillMisreportsWrappedText）
         if type == .textClipped && frame.height >= 30 { return "审计自己的毛病" }

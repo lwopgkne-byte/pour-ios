@@ -122,3 +122,14 @@ struct EntryDetailView: View {
         return (clock.isEmpty ? date : "\(date) \(clock)") + places
     }
 }
+
+extension PourDomain {
+    /// 类别表里的颜色名 → 领域色：网页版的名字（gray、green……）也认；对不上是「石」
+    init(_ name: String) {
+        let web = [
+            "gray": "stone", "brown": "clay", "orange": "apricot", "yellow": "straw", "green": "moss",
+            "blue": "lake", "purple": "wisteria", "pink": "sakura", "red": "brick",
+        ]
+        self = PourDomain(rawValue: web[name] ?? name) ?? .stone
+    }
+}

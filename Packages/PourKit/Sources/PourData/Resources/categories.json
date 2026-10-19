@@ -1,11 +1,11 @@
 {
-  "_说明": "预置类别（手机建库时放进类别表，网关的测试也读这一份）。说法来自网页版 server/src/db/migrations.ts 第 1、12、14、15 版合起来的结果（网页版提交 0286834）；颜色按 iOS 规范 01 第 3.1 节「默认给」",
+  "_说明": "预置类别（手机建库时放进类别表，网关的测试也读这一份）。说法来自网页版 server/src/db/migrations.ts 第 1、12、14、15 版合起来的结果（网页版提交 0286834）；颜色是网页版的九种标签色（产品主人 2026-10-19：界面照网页版）",
   "categories": [
     {
       "key": "sleep",
       "name": "睡眠",
       "emoji": "😴",
-      "color": "wisteria",
+      "color": "purple",
       "parent": null,
       "measure": "duration",
       "synonyms": [
@@ -20,7 +20,7 @@
       "key": "exercise",
       "name": "运动",
       "emoji": "🏃",
-      "color": "moss",
+      "color": "green",
       "parent": null,
       "measure": "duration",
       "synonyms": [
@@ -57,7 +57,7 @@
       "key": "run",
       "name": "跑步",
       "emoji": "🏃",
-      "color": "moss",
+      "color": "green",
       "parent": "exercise",
       "measure": "duration",
       "synonyms": [
@@ -72,7 +72,7 @@
       "key": "strength",
       "name": "力量",
       "emoji": "🏋",
-      "color": "moss",
+      "color": "green",
       "parent": "exercise",
       "measure": "duration",
       "synonyms": [
@@ -87,7 +87,7 @@
       "key": "yoga",
       "name": "瑜伽",
       "emoji": "🧘",
-      "color": "moss",
+      "color": "green",
       "parent": "exercise",
       "measure": "duration",
       "synonyms": [],
@@ -97,7 +97,7 @@
       "key": "diet",
       "name": "饮食",
       "emoji": "🍽",
-      "color": "apricot",
+      "color": "orange",
       "parent": null,
       "measure": "count",
       "synonyms": [
@@ -131,7 +131,7 @@
       "key": "study",
       "name": "学习",
       "emoji": "📚",
-      "color": "straw",
+      "color": "blue",
       "parent": null,
       "measure": "duration",
       "synonyms": [
@@ -166,7 +166,7 @@
       "key": "work",
       "name": "工作",
       "emoji": "💼",
-      "color": "lake",
+      "color": "brown",
       "parent": null,
       "measure": "duration",
       "synonyms": [
@@ -214,7 +214,7 @@
       "key": "other",
       "name": "其他",
       "emoji": "📌",
-      "color": "stone",
+      "color": "gray",
       "parent": null,
       "measure": "duration",
       "synonyms": [],

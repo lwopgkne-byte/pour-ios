@@ -23,14 +23,14 @@ final class RealAIUITests: XCTestCase {
         app.launchArguments += ["-freshStore"]
         app.launch()
         XCTAssertTrue(app.descendants(matching: .any)["today.header"].waitForExistence(timeout: 5))
+        let field = app.descendants(matching: .any)["pourbar.input"]
         for (index, sentence) in Self.sentences.enumerated() {
-            app.buttons["pourbar"].tap()
-            let field = app.descendants(matching: .any)["pourbar.input"]
             XCTAssertTrue(field.waitForExistence(timeout: 3))
+            field.tap()
             field.typeText(sentence)
             app.buttons["pourbar.send"].tap()
-            // 等它整理完：「整理中」「还在整理」都没了
-            let waiting = NSPredicate(format: "label == '整理中' OR label == '还在整理' OR label BEGINSWITH '网络慢'")
+            // 等它整理完：对话里「正在整理…」「待处理」都没了
+            let waiting = NSPredicate(format: "label CONTAINS '正在整理' OR label CONTAINS '待处理'")
             let organizing = app.staticTexts.matching(waiting).firstMatch
             let done = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: organizing)
             XCTAssertEqual(XCTWaiter().wait(for: [done], timeout: 60), .completed, "「\(sentence)」一分钟没整理完")
@@ -40,5 +40,17 @@ final class RealAIUITests: XCTestCase {
             shot.lifetime = .keepAlways
             add(shot)
         }
+        // 收起对话，看整个画布
+        app.buttons["pourbar.chat"].tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(1))
+        let canvas = XCTAttachment(screenshot: app.screenshot())
+        canvas.name = "真的 AI-画布"
+        canvas.lifetime = .keepAlways
+        add(canvas)
+        app.swipeUp()
+        let lower = XCTAttachment(screenshot: app.screenshot())
+        lower.name = "真的 AI-画布下面"
+        lower.lifetime = .keepAlways
+        add(lower)
     }
 }

@@ -1,156 +1,112 @@
 import XCTest
 
-/// 「今天」和说一句的流程（M2a）：用假网关（-uiTest，不连网、不花钱），亮色、暗色、最大字号都走一遍，
+/// 生活画布和说一句的流程（照网页版 1 比 1，2026-10-19）：用假网关（-uiTest，不连网、不花钱），
 /// 跑系统的无障碍审计，截图留给自验收看
 final class TodayUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
     }
 
-    override func tearDown() {
-        // 放回亮色。XCTest 在主线程上调用同步的 tearDown
-        MainActor.assumeIsolated { XCUIDevice.shared.appearance = .light }
+    @MainActor func testEmptyCanvas() throws { try emptyCanvas(name: "画布-空") }
+
+    @MainActor func testEmptyCanvasLargestText() throws {
+        try emptyCanvas(name: "画布-空-最大字号", arguments: Self.largestText)
     }
 
-    @MainActor func testEmptyTodayLight() throws { try emptyToday(.light, name: "今天-空-亮色") }
-    @MainActor func testEmptyTodayDark() throws { try emptyToday(.dark, name: "今天-空-暗色") }
-
-    @MainActor func testEmptyTodayLargestText() throws {
-        try emptyToday(.light, name: "今天-空-最大字号", arguments: Self.largestText)
-    }
-
-    /// 打一句 → 原话马上出现、标「整理中」→ 凝结成两条记录，吃面那条待确认
+    /// 打一句 → 对话展开、原话马上出现 → 收据「已记录：…」；收起对话，卡片里有跑步、吃面，吃面那条在问
     @MainActor func testSayOneSentence() throws {
         let app = launch()
         say("早上跑了五公里 中午和小王吃面三十二", in: app)
         XCTAssertTrue(app.staticTexts["早上跑了五公里 中午和小王吃面三十二"].waitForExistence(timeout: 1), "原话没有马上出现")
-        attach(app, "说一句-整理中")
-        XCTAssertTrue(text(app, startingWith: "跑步 5 公里").waitForExistence(timeout: 5), "没凝结出跑步")
-        XCTAssertTrue(text(app, startingWith: "吃面 · 小王").exists, "没凝结出吃面")
-        XCTAssertTrue(app.staticTexts["三十二是花了 32 块吗？"].exists, "没问拿不准的那条")
+        XCTAssertTrue(text(app, startingWith: "已记录：").waitForExistence(timeout: 5), "对话里没有收据")
         settle()
-        attach(app, "说一句-凝结好")
-        try AppAudit.run(app, name: "说一句-凝结好")
+        attach(app, "说一句-对话")
+        closeChat(app)
+        XCTAssertTrue(text(app, startingWith: "跑步").waitForExistence(timeout: 3), "卡片里没有跑步")
+        XCTAssertTrue(text(app, startingWith: "吃面").exists, "卡片里没有吃面")
+        XCTAssertTrue(app.staticTexts["三十二是花了 32 块吗？"].exists, "没问拿不准的那条")
+        attach(app, "说一句-画布")
+        try AppAudit.run(app, name: "说一句-画布")
     }
 
-    /// 收据留一会儿（测试里 3 秒）就回到时间轴：记录按钟点排在自己的位置上，带着时刻
-    @MainActor func testReceiptSettlesIntoTheTimeline() throws {
-        let app = launch(arguments: ["-shortReceipts"])
-        say("早上跑了五公里", in: app)
-        XCTAssertTrue(text(app, startingWith: "跑步 5 公里").waitForExistence(timeout: 5), "没凝结出跑步")
-        XCTAssertTrue(app.staticTexts["07:10"].waitForExistence(timeout: 8), "收据没有回到时间轴")
-        XCTAssertFalse(app.staticTexts["早上跑了五公里"].exists, "收据还在")
-        attach(app, "说一句-回到时间轴")
-        try AppAudit.run(app, name: "说一句-回到时间轴")
-    }
-
-    /// 点追问的「对」：当作说了一句「对」，那条就确认了，不再待确认（M2b）
-    @MainActor func testAnswerTheQuestion() throws {
+    /// 卡片里点「确认」：不再问
+    @MainActor func testConfirm() throws {
         let app = launch()
         say("中午和小王吃面三十二", in: app)
+        closeChat(app)
         XCTAssertTrue(app.staticTexts["三十二是花了 32 块吗？"].waitForExistence(timeout: 5))
-        app.buttons["对"].firstMatch.tap()
-        XCTAssertTrue(text(app, startingWith: "确认 吃面").waitForExistence(timeout: 5), "没确认")
-        XCTAssertFalse(app.staticTexts["三十二是花了 32 块吗？"].exists, "还在问")
-        settle()
-        attach(app, "回答追问")
-        try AppAudit.run(app, name: "回答追问")
+        app.buttons["确认"].firstMatch.tap()
+        XCTAssertTrue(waitGone(app.staticTexts["三十二是花了 32 块吗？"]), "还在问")
     }
 
-    /// 凝结以后 5 秒内能撤销：记录退回去，原话留着（M2b）
-    @MainActor func testUndo() throws {
+    /// 收据后面的「撤销」：记录没了，原话还在
+    @MainActor func testUndoFromReceipt() throws {
         let app = launch()
         say("早上跑了五公里", in: app)
-        let undo = app.descendants(matching: .any)["undoToast"]
-        XCTAssertTrue(undo.waitForExistence(timeout: 5), "没有撤销条")
-        XCTAssertTrue(undo.label.hasPrefix("已记下 1 件事"))
-        app.buttons["撤销"].firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["已撤销 · 原话还在"].waitForExistence(timeout: 3))
-        XCTAssertFalse(text(app, startingWith: "跑步 5 公里").exists)
-        attach(app, "撤销")
+        XCTAssertTrue(text(app, startingWith: "已记录：").waitForExistence(timeout: 5))
+        app.links["撤销"].firstMatch.tap()
+        XCTAssertTrue(waitGone(app.links["撤销"].firstMatch), "还能撤销")
+        XCTAssertTrue(app.staticTexts["早上跑了五公里"].exists, "原话没了")
+        closeChat(app)
+        XCTAssertTrue(app.staticTexts["说过的话里没有整理出记录。"].waitForExistence(timeout: 3), "撤销了卡片还在")
     }
 
-    /// 点一行看详情：原话、改动历史；点「对」确认；删除以后能撤销（M2b）
+    /// 点一行看详情：原话、删掉（轻提示上能放回来）
     @MainActor func testDetail() throws {
         let app = launch()
         say("中午和小王吃面三十二", in: app)
-        let line = text(app, startingWith: "吃面 · 小王")
-        XCTAssertTrue(line.waitForExistence(timeout: 5))
-        line.tap()
+        closeChat(app)
+        let row = text(app, startingWith: "吃面")
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.tap()
         XCTAssertTrue(app.staticTexts["原话"].waitForExistence(timeout: 3), "详情没打开")
-        XCTAssertTrue(app.staticTexts["中午和小王吃面三十二"].exists)
-        XCTAssertTrue(text(app, startingWith: "记下").exists, "没有改动历史")
         attach(app, "详情")
-        try AppAudit.run(app, name: "详情")
-        app.buttons["对"].firstMatch.tap()
-        XCTAssertTrue(text(app, startingWith: "确认 · 你在这里点的").waitForExistence(timeout: 3))
         app.buttons["detail.delete"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["undoToast"].waitForExistence(timeout: 3))
-        XCTAssertFalse(line.exists, "删掉了还在")
-        app.buttons["撤销"].firstMatch.tap()
-        XCTAssertTrue(line.waitForExistence(timeout: 3), "撤销以后没回来")
+        app.descendants(matching: .any)["undoToast"].tap()
+        XCTAssertTrue(text(app, startingWith: "吃面").waitForExistence(timeout: 3), "没放回来")
     }
 
-    /// 字调大（XXXL，还没到无障碍字号）：时间轴的时刻、收据的每一行都不被挤（截图核对）
-    @MainActor func testLargeTextTimeline() throws {
-        let app = launch(arguments: [
-            "-shortReceipts", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryXXXL",
-        ])
-        say("早上跑了五公里 中午和小王吃面三十二", in: app)
-        XCTAssertTrue(text(app, startingWith: "跑步 5 公里").waitForExistence(timeout: 5))
-        attach(app, "特大字号-收据")
-        XCTAssertTrue(app.staticTexts["07:10"].waitForExistence(timeout: 8), "收据没有回到时间轴")
-        settle()
-        attach(app, "特大字号-时间轴")
-        try AppAudit.run(app, name: "特大字号-时间轴")
-    }
-
-    /// 换到前一天、再回来：日子头跟着变，前一天是空的（M2b）
+    /// 往右滑看昨天，往左滑回来；说一句自动回到今天
     @MainActor func testSwitchDays() throws {
         let app = launch()
-        app.buttons["前一天"].tap()
+        app.swipeRight()
         XCTAssertTrue(app.staticTexts["昨天"].waitForExistence(timeout: 3), "没换到昨天")
-        XCTAssertTrue(app.staticTexts["这一天没有记录"].exists)
-        attach(app, "换日子-昨天")
-        app.buttons["后一天"].tap()
+        XCTAssertTrue(app.staticTexts["这一天没有留下记录。"].exists)
+        app.swipeLeft()
         XCTAssertTrue(app.staticTexts["今天"].waitForExistence(timeout: 3), "没回到今天")
-        XCTAssertFalse(app.buttons["后一天"].isEnabled, "还没到的日子不能看")
-        // 在看昨天时说一句：回到今天看它凝结
-        app.buttons["前一天"].tap()
+        app.swipeRight()
         say("早上跑了五公里", in: app)
-        XCTAssertTrue(text(app, startingWith: "跑步 5 公里").waitForExistence(timeout: 5))
-        XCTAssertTrue(app.staticTexts["今天"].exists, "说完没回到今天")
+        XCTAssertTrue(app.staticTexts["今天"].waitForExistence(timeout: 3), "说完没回到今天")
     }
 
-    /// 连不上：原话留着、标「等网络」
+    /// 连不上：原话留着、标「已保存 · 待处理」
     @MainActor func testWaitsForNetwork() throws {
         let app = launch()
         say("断网了也要记下来", in: app)
-        XCTAssertTrue(app.staticTexts["等网络，联网后自动整理"].waitForExistence(timeout: 5))
+        XCTAssertTrue(text(app, startingWith: "已保存 · 待处理").waitForExistence(timeout: 5))
         attach(app, "说一句-等网络")
     }
 
-    /// 要人处理的问题：说清楚，能再试一次
+    /// 要人处理的问题：说清楚，能重试
     @MainActor func testFailedCanRetry() throws {
         let app = launch()
         say("余额不足的时候", in: app)
         XCTAssertTrue(app.staticTexts["没整理成：大模型账户余额不足。"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["receipt.retry"].exists)
+        XCTAssertTrue(app.buttons["重试"].exists)
         attach(app, "说一句-没整理成")
     }
 
-    /// 打了一半收起来，草稿还在
-    @MainActor func testDraftSurvivesClosing() throws {
+    /// 打了一半，收起展开对话，草稿还在
+    @MainActor func testDraftSurvives() throws {
         let app = launch()
-        app.buttons["pourbar"].tap()
         let input = app.descendants(matching: .any)["pourbar.input"]
-        XCTAssertTrue(input.waitForExistence(timeout: 3))
+        input.tap()
         input.typeText("还没想好")
-        app.descendants(matching: .any)["收起"].firstMatch.tap()
-        XCTAssertTrue(app.buttons["pourbar"].waitForExistence(timeout: 3))
-        app.buttons["pourbar"].tap()
-        XCTAssertTrue(input.waitForExistence(timeout: 3))
-        XCTAssertEqual(input.value as? String, "还没想好")
+        app.buttons["pourbar.chat"].tap()
+        app.buttons["pourbar.chat"].tap()
+        // 键盘的联想可能在后面补几个字：前面的草稿在就行
+        XCTAssertTrue((input.value as? String)?.hasPrefix("还没想好") == true, "草稿没了")
     }
 
     // MARK: -
@@ -164,36 +120,51 @@ final class TodayUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"] + arguments
         app.launch()
-        XCTAssertTrue(app.descendants(matching: .any)["today.header"].waitForExistence(timeout: 5), "「今天」没打开")
+        XCTAssertTrue(app.descendants(matching: .any)["today.header"].waitForExistence(timeout: 5), "画布没打开")
         return app
     }
 
     @MainActor
-    private func emptyToday(_ appearance: XCUIDevice.Appearance, name: String, arguments: [String] = []) throws {
-        XCUIDevice.shared.appearance = appearance
+    private func emptyCanvas(name: String, arguments: [String] = []) throws {
         let app = launch(arguments: arguments)
-        XCTAssertTrue(app.descendants(matching: .any)["today.empty"].waitForExistence(timeout: 3), "没有空状态")
+        let empty = app.staticTexts["今天还是空白。说说你做了什么，这里会自己长出来。"]
+        XCTAssertTrue(empty.waitForExistence(timeout: 3), "没有空状态")
         attach(app, name)
         try AppAudit.run(app, name: name)
     }
 
     @MainActor
     private func say(_ text: String, in app: XCUIApplication) {
-        app.buttons["pourbar"].tap()
         let field = app.descendants(matching: .any)["pourbar.input"]
-        XCTAssertTrue(field.waitForExistence(timeout: 3), "打字的栏没出来")
+        XCTAssertTrue(field.waitForExistence(timeout: 3), "输入框没有")
+        field.tap()
         field.typeText(text)
         app.buttons["pourbar.send"].tap()
     }
 
-    /// 等凝结的动画走完再截图、审计：逐张出现、青色浅底 1.5 秒内淡完（规范 07）；电脑忙时慢一点，留足 3 秒。
-    /// 不等的话，审计量到的是正在变的颜色和位置，偶尔报出指不出元素的问题（M2b 实测）
+    /// 收起对话，看画布
     @MainActor
-    private func settle() {
-        RunLoop.current.run(until: Date().addingTimeInterval(3))
+    private func closeChat(_ app: XCUIApplication) {
+        let toggle = app.buttons["pourbar.chat"]
+        if toggle.label == "收起对话" { toggle.tap() }
+        let closed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == '展开对话'"), object: toggle)
+        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 3), .completed, "对话没收起来")
+        settle()
     }
 
-    /// 以某段字开头的那一行（收据的一行会把名字、人、数合成一句读出来）
+    /// 等动画走完再截图、审计
+    @MainActor
+    private func settle() {
+        RunLoop.current.run(until: Date().addingTimeInterval(1))
+    }
+
+    @MainActor
+    private func waitGone(_ element: XCUIElement) -> Bool {
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: element)
+        return XCTWaiter().wait(for: [gone], timeout: 3) == .completed
+    }
+
+    /// 以某段字开头的那一个元素
     @MainActor
     private func text(_ app: XCUIApplication, startingWith prefix: String) -> XCUIElement {
         app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch

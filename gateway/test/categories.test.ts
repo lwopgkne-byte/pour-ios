@@ -25,7 +25,7 @@ describe('类别和生活领域（照网页版 categories.ts）', () => {
   it('AI 放进了「其他」：按名称认出生活领域，没有就建上（带上颜色），记录用新类别', async () => {
     const out = await organize([event({ label: '带娃去公园' })])
     expect(out.newCategories).toHaveLength(1)
-    expect(out.newCategories[0]).toMatchObject({ name: '育儿', color: 'sakura', parent: null })
+    expect(out.newCategories[0]).toMatchObject({ name: '育儿', color: 'pink', parent: null })
     expect(out.creates[0]!.data).toMatchObject({ category: out.newCategories[0]!.key })
   })
 
@@ -35,12 +35,12 @@ describe('类别和生活领域（照网页版 categories.ts）', () => {
     expect(out.creates.map((c) => (c.data.kind === 'event' ? c.data.category : ''))).toEqual([out.newCategories[0]!.key, out.newCategories[0]!.key])
   })
 
-  it('AI 提议新活动：和已有类别相近就用它；认得出领域就用领域；都不是才新建（颜色换成九色）', async () => {
+  it('AI 提议新活动：和已有类别相近就用它；认得出领域就用领域；都不是才新建（颜色是网页版的九种标签色）', async () => {
     const similar = await organize([event({ label: '晨跑', new_category: { name: '晨跑', emoji: '🏃', color: 'green' } })])
     expect(similar.newCategories).toEqual([])
     expect(similar.creates[0]!.data).toMatchObject({ category: 'run' })
     const fresh = await organize([event({ label: '冥想', new_category: { name: '冥想', emoji: '🧘', color: 'purple', measure: 'duration', synonyms: ['打坐'] } })])
-    expect(fresh.newCategories[0]).toMatchObject({ name: '冥想', color: 'wisteria', synonyms: ['打坐'] })
+    expect(fresh.newCategories[0]).toMatchObject({ name: '冥想', color: 'purple', synonyms: ['打坐'] })
     expect(fresh.newCategories[0]!.key).toMatch(/^c-[0-9a-f]{8}$/)
   })
 

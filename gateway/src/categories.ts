@@ -38,36 +38,35 @@ export function findSimilarCategory(name: string, categories: Category[], extraS
 }
 
 /**
- * 常见的生活领域和各种人的典型说法（网页版 LIFE_DOMAINS 原样，颜色换成 iOS 的九个领域色）。
+ * 常见的生活领域和各种人的典型说法（网页版 LIFE_DOMAINS 原样，颜色也是网页版的）。
  * 数组顺序就是认的顺序：越具体的越靠前（「陪孩子」先被育儿认走，「宠物医院」先被宠物认走）。
- * 颜色：规范 01 第 3.1 节「默认给」——育儿、家人朋友樱，健康砖，家务陶，出行湖，娱乐藤；
- * 规范没列的四个（M2c 定）：宠物陶、兴趣麦、购物杏、办事石
  */
 export const LIFE_DOMAINS: NewCategory[] = [
-  { name: '育儿', emoji: '🍼', color: 'sakura', measure: 'count', synonyms: ['带娃', '带孩子', '陪孩子', '陪娃', '亲子', '喂奶', '夜奶', '冲奶粉', '奶粉', '尿不湿', '纸尿裤', '换尿布', '哄睡', '接孩子', '送孩子', '接送孩子', '幼儿园', '辅导作业', '家长会', '绘本', '宝宝', '大宝', '小宝', '孩子'] },
-  { name: '宠物', emoji: '🐕', color: 'clay', measure: 'count', synonyms: ['养宠', '萌宠', '遛狗', '喂猫', '喂狗', '铲屎', '猫砂', '狗粮', '猫粮', '猫咪', '狗狗', '宠物医院', '逗猫', '撸猫', '给狗洗澡', '给猫洗澡', '给猫', '给狗', '带狗', '带猫', '养猫', '养狗', '驱虫', '绝育'] },
-  { name: '健康', emoji: '🩺', color: 'brick', measure: 'count', synonyms: ['头痛', '头疼', '感冒', '发烧', '咳嗽', '胃疼', '肚子疼', '牙疼', '不舒服', '生病', '看病', '医院', '吃药', '体检', '过敏', '身体', '血压', '血糖', '体重', '称重', '心率', '体温', '降压药', '打针', '输液', '挂号', '复查', '看牙', '理疗', '疫苗'] },
-  { name: '家人朋友', emoji: '👨‍👩‍👧', color: 'sakura', measure: 'count', synonyms: ['社交', '亲友', '朋友', '家人', '聚会', '聊天', '约会', '礼物', '老公', '老婆', '儿子', '女儿', '爸爸', '妈妈', '爸妈', '父母', '爷爷', '奶奶', '外公', '外婆', '孙子', '孙女', '同学', '同事', '看望', '回老家'] },
-  { name: '兴趣', emoji: '🎨', color: 'straw', measure: 'duration', synonyms: ['爱好', '书法', '毛笔字', '画画', '绘画', '素描', '吉他', '钢琴', '古筝', '尤克里里', '摄影', '拍照', '手工', '钓鱼', '下棋', '围棋', '象棋', '社团', '话剧', '插花', '烘焙', '编织', '乐高'] },
-  { name: '娱乐', emoji: '🎬', color: 'wisteria', measure: 'duration', synonyms: ['休闲', '电影', '追剧', '看剧', '电视', '游戏', '打游戏', '王者', '吃鸡', '刷手机', '刷抖音', '短视频', '综艺', '演唱会', '唱歌', 'K歌', '看直播', '番剧', '刷B站'] },
-  { name: '家务', emoji: '🧹', color: 'clay', measure: 'duration', synonyms: ['做家务', '打扫', '打扫卫生', '大扫除', '拖地', '扫地', '洗衣服', '晾衣服', '洗碗', '收拾', '整理房间', '做饭', '倒垃圾', '擦窗'] },
-  { name: '出行', emoji: '🚗', color: 'lake', measure: 'duration', synonyms: ['交通', '开车', '通勤', '地铁', '公交', '打车', '滴滴', '出差', '旅行', '旅游', '坐飞机', '高铁', '火车', '自驾'] },
-  { name: '购物', emoji: '🛒', color: 'apricot', measure: 'count', synonyms: ['买东西', '逛街', '逛商场', '超市', '网购', '买菜', '菜市场', '买衣服', '淘宝', '京东', '拼多多'] },
-  { name: '办事', emoji: '📋', color: 'stone', measure: 'count', synonyms: ['杂事', '事务', '银行', '办卡', '缴费', '交费', '交电费', '电费', '水费', '燃气费', '话费', '取快递', '寄快递', '快递', '营业厅', '办证', '身份证', '护照', '签证', '社保', '医保', '公积金', '物业', '政务', '房租', '交房租', '续租'] },
+  { name: '育儿', emoji: '🍼', color: 'pink', measure: 'count', synonyms: ['带娃', '带孩子', '陪孩子', '陪娃', '亲子', '喂奶', '夜奶', '冲奶粉', '奶粉', '尿不湿', '纸尿裤', '换尿布', '哄睡', '接孩子', '送孩子', '接送孩子', '幼儿园', '辅导作业', '家长会', '绘本', '宝宝', '大宝', '小宝', '孩子'] },
+  { name: '宠物', emoji: '🐕', color: 'orange', measure: 'count', synonyms: ['养宠', '萌宠', '遛狗', '喂猫', '喂狗', '铲屎', '猫砂', '狗粮', '猫粮', '猫咪', '狗狗', '宠物医院', '逗猫', '撸猫', '给狗洗澡', '给猫洗澡', '给猫', '给狗', '带狗', '带猫', '养猫', '养狗', '驱虫', '绝育'] },
+  { name: '健康', emoji: '🩺', color: 'red', measure: 'count', synonyms: ['头痛', '头疼', '感冒', '发烧', '咳嗽', '胃疼', '肚子疼', '牙疼', '不舒服', '生病', '看病', '医院', '吃药', '体检', '过敏', '身体', '血压', '血糖', '体重', '称重', '心率', '体温', '降压药', '打针', '输液', '挂号', '复查', '看牙', '理疗', '疫苗'] },
+  { name: '家人朋友', emoji: '👨‍👩‍👧', color: 'pink', measure: 'count', synonyms: ['社交', '亲友', '朋友', '家人', '聚会', '聊天', '约会', '礼物', '老公', '老婆', '儿子', '女儿', '爸爸', '妈妈', '爸妈', '父母', '爷爷', '奶奶', '外公', '外婆', '孙子', '孙女', '同学', '同事', '看望', '回老家'] },
+  { name: '兴趣', emoji: '🎨', color: 'yellow', measure: 'duration', synonyms: ['爱好', '书法', '毛笔字', '画画', '绘画', '素描', '吉他', '钢琴', '古筝', '尤克里里', '摄影', '拍照', '手工', '钓鱼', '下棋', '围棋', '象棋', '社团', '话剧', '插花', '烘焙', '编织', '乐高'] },
+  { name: '娱乐', emoji: '🎬', color: 'purple', measure: 'duration', synonyms: ['休闲', '电影', '追剧', '看剧', '电视', '游戏', '打游戏', '王者', '吃鸡', '刷手机', '刷抖音', '短视频', '综艺', '演唱会', '唱歌', 'K歌', '看直播', '番剧', '刷B站'] },
+  { name: '家务', emoji: '🧹', color: 'brown', measure: 'duration', synonyms: ['做家务', '打扫', '打扫卫生', '大扫除', '拖地', '扫地', '洗衣服', '晾衣服', '洗碗', '收拾', '整理房间', '做饭', '倒垃圾', '擦窗'] },
+  { name: '出行', emoji: '🚗', color: 'blue', measure: 'duration', synonyms: ['交通', '开车', '通勤', '地铁', '公交', '打车', '滴滴', '出差', '旅行', '旅游', '坐飞机', '高铁', '火车', '自驾'] },
+  { name: '购物', emoji: '🛒', color: 'orange', measure: 'count', synonyms: ['买东西', '逛街', '逛商场', '超市', '网购', '买菜', '菜市场', '买衣服', '淘宝', '京东', '拼多多'] },
+  { name: '办事', emoji: '📋', color: 'gray', measure: 'count', synonyms: ['杂事', '事务', '银行', '办卡', '缴费', '交费', '交电费', '电费', '水费', '燃气费', '话费', '取快递', '寄快递', '快递', '营业厅', '办证', '身份证', '护照', '签证', '社保', '医保', '公积金', '物业', '政务', '房租', '交房租', '续租'] },
 ]
 
-const COLORS = ['stone', 'clay', 'apricot', 'straw', 'moss', 'lake', 'wisteria', 'sakura', 'brick']
-/** AI 照网页版的 Skill 写颜色名（gray、brown……）：换成 iOS 的九个领域色 */
-const WEB_COLORS: Record<string, string> = {
-  gray: 'stone',
-  brown: 'clay',
-  orange: 'apricot',
-  yellow: 'straw',
-  green: 'moss',
-  blue: 'lake',
-  purple: 'wisteria',
-  pink: 'sakura',
-  red: 'brick',
+const COLORS = ['gray', 'brown', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'red']
+
+/** 以前按 iOS 规范的颜色名（stone、moss……）：换回网页版的九种标签色（产品主人 2026-10-19：界面照网页版） */
+const IOS_COLORS: Record<string, string> = {
+  stone: 'gray',
+  clay: 'brown',
+  apricot: 'orange',
+  straw: 'yellow',
+  moss: 'green',
+  lake: 'blue',
+  wisteria: 'purple',
+  sakura: 'pink',
+  brick: 'red',
 }
 
 /** 这件事按常见的生活领域能认出来吗（名称、人物、关键词都看） */
@@ -136,7 +135,7 @@ export class CategoryBook {
       name: input.name.trim().slice(0, 12),
       emoji: input.emoji.trim() || '📌',
       // 子类别跟上级同色；颜色不在九色里时用石
-      color: parentColor ?? (COLORS.includes(input.color) ? input.color : (WEB_COLORS[input.color] ?? 'stone')),
+      color: parentColor ?? (COLORS.includes(input.color) ? input.color : (IOS_COLORS[input.color] ?? 'gray')),
       parent,
       measure: input.measure?.trim() || 'duration',
       synonyms: input.synonyms ?? [],

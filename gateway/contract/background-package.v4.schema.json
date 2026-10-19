@@ -81,7 +81,7 @@
             }
           },
           "color": {
-            "default": "stone",
+            "default": "gray",
             "type": "string"
           },
           "order": {

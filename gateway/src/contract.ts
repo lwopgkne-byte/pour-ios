@@ -24,8 +24,8 @@ export const Category = z.object({
   /** duration 时长 / count 次数 / 其他是数量的单位（公里、页） */
   measure: z.string().default('duration'),
   synonyms: z.array(z.string()).default([]),
-  /** 九个领域色之一（stone、moss……） */
-  color: z.string().default('stone'),
+  /** 网页版九种标签色之一（gray、green……） */
+  color: z.string().default('gray'),
   /** 排第几（预置的 10–900，新建的 500） */
   order: z.number().int().default(500),
 })

@@ -34,6 +34,11 @@ final class AppModel {
     var tab: Tab = .today
     var composing = false
     var draft = ""
+    /// 对话面板开着没有（网页版 Composer：发出去就向上展开）
+    var chatOpen = false
+    /// 对话面板里的样子：最近说过的话（不分哪天）
+    private(set) var chat = ChatSnapshot()
+    private var chatObservation: Task<Void, Never>?
     /// 打开详情的那条记录
     var detail: EntryRef?
     /// 底部的撤销条（5 秒后自己消失）
@@ -104,6 +109,7 @@ final class AppModel {
         if remindersOn { Reminders.showWhileOpen() }
         syncReminders()
         observeToday()
+        observeChat()
         let organizer = self.organizer
         network.pathUpdateHandler = { path in
             guard path.status == .satisfied else { return }
@@ -134,6 +140,28 @@ final class AppModel {
         Task { await Reminders.sync(items) }
     }
 
+    private func observeChat() {
+        chatObservation?.cancel()
+        let stream = store.observeChat()
+        chatObservation = Task { [weak self] in
+            do {
+                for try await snapshot in stream { self?.chat = snapshot }
+            } catch {
+                Log.error("观察对话出错：\(error.localizedDescription)")
+            }
+        }
+    }
+
+    /// 对话里收据后面的「撤销」：撤掉这段话整理出的全部记录，原话留着
+    func undo(note noteId: String) {
+        try? store.undo(noteId)
+    }
+
+    /// 待办打勾、取消打勾
+    func setDone(_ entryId: String, _ done: Bool) {
+        try? store.setDone(entryId, done)
+    }
+
     /// 换到某一天看（不能看还没到的日子）
     func show(_ target: DayString) {
         let day = min(target, today)
@@ -157,9 +185,8 @@ final class AppModel {
         }
     }
 
-    /// 新的一天的样子：看着整理的那段话刚整理好，就给撤销条
+    /// 新的一天的样子：记录变了就重排提醒、等安静下来重新总结
     private func receive(_ snapshot: DaySnapshot) {
-        let before = Dictionary(day.notes.map { ($0.id, $0.status) }, uniquingKeysWith: { first, _ in first })
         let sameDay = day.day == snapshot.day
         let recordsChanged = sameDay && day.entries != snapshot.entries
         day = snapshot
@@ -170,21 +197,7 @@ final class AppModel {
             let changed = snapshot.day
             Task { await summarizer.changed(changed) }
         }
-        for note in snapshot.notes where watching.contains(note.id) && note.status == .done {
-            guard let previous = before[note.id], previous != .done else { continue }
-            offerUndo(for: note)
-        }
-    }
-
-    private func offerUndo(for note: Note) {
-        let changed = note.actions.filter { $0.kind != .duplicate }
-        guard !changed.isEmpty else { return }
-        let kinds = Set(changed.map(\.kind))
-        let verbs: [Set<NoteAction.Kind>: String] = [
-            [.created]: "记下", [.deleted]: "删掉", [.confirmed]: "确认", [.completed]: "完成",
-        ]
-        let verb = verbs[kinds] ?? "改了"
-        show(Undoable(target: .note(note.id), message: "已\(verb) \(changed.count) 件事"))
+        // 整理好以后不弹撤销条：撤销在对话里收据的后面（网页版就是这样）；删掉一条时才有轻提示
     }
 
     private func show(_ undo: Undoable) {
@@ -241,6 +254,7 @@ final class AppModel {
             watching.insert(note.id)
             lastSent = note.id
             composing = false
+            chatOpen = true
             tab = .today
             // 说的话都在「今天」凝结：在看别的日子就回到今天
             if note.day != today { today = note.day }

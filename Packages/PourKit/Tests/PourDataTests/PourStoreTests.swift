@@ -23,8 +23,8 @@ struct PourStoreTests {
         #expect(categories.first { $0.key == "run" }?.parent == "exercise")
         #expect(categories.first { $0.key == "diet" }?.synonyms.contains("外卖") == true)
         // 颜色按规范 01「默认给」：运动是苔、睡眠是藤
-        #expect(categories.color(of: "run") == "moss")
-        #expect(categories.color(of: "sleep") == "wisteria")
+        #expect(categories.color(of: "run") == "green")
+        #expect(categories.color(of: "sleep") == "purple")
     }
 
     @Test func aNoteBelongsToItsLogicalDay() throws {

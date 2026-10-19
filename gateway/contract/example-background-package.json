@@ -21,7 +21,7 @@
         "小睡",
         "补觉"
       ],
-      "color": "wisteria",
+      "color": "purple",
       "order": 10
     },
     {
@@ -58,7 +58,7 @@
         "动感单车",
         "骑行"
       ],
-      "color": "moss",
+      "color": "green",
       "order": 20
     },
     {
@@ -73,7 +73,7 @@
         "夜跑",
         "跑"
       ],
-      "color": "moss",
+      "color": "green",
       "order": 21
     },
     {
@@ -88,7 +88,7 @@
         "深蹲",
         "卧推"
       ],
-      "color": "moss",
+      "color": "green",
       "order": 22
     },
     {
@@ -98,7 +98,7 @@
       "parent": "exercise",
       "measure": "duration",
       "synonyms": [],
-      "color": "moss",
+      "color": "green",
       "order": 23
     },
     {
@@ -132,7 +132,7 @@
         "下馆子",
         "点外卖"
       ],
-      "color": "apricot",
+      "color": "orange",
       "order": 30
     },
     {
@@ -167,7 +167,7 @@
         "驾校",
         "看小说"
       ],
-      "color": "straw",
+      "color": "blue",
       "order": 40
     },
     {
@@ -215,7 +215,7 @@
         "复盘",
         "甲方"
       ],
-      "color": "lake",
+      "color": "brown",
       "order": 50
     },
     {
@@ -225,7 +225,7 @@
       "parent": null,
       "measure": "duration",
       "synonyms": [],
-      "color": "stone",
+      "color": "gray",
       "order": 900
     }
   ],

@@ -125,6 +125,22 @@ public final class PourStore: Sendable {
                 table.add(column: "replyByProgram", .boolean).notNull().defaults(to: false)
             }
         }
+        migrator.registerMigration("v6 网页版的颜色") { db in
+            // 产品主人 2026-10-19：界面照网页版，类别颜色也换回网页版的九种标签色
+            let names = [
+                "stone": "gray", "clay": "brown", "apricot": "orange", "straw": "yellow", "moss": "green",
+                "lake": "blue", "wisteria": "purple", "sakura": "pink", "brick": "red",
+            ]
+            for (old, web) in names {
+                try db.execute(sql: "UPDATE category SET color = ? WHERE color = ?", arguments: [web, old])
+            }
+            // 和网页版不一样的几个：学习蓝、工作棕、宠物橙
+            let differ = [("study", "blue"), ("work", "brown")]
+            for (key, color) in differ {
+                try db.execute(sql: "UPDATE category SET color = ? WHERE key = ?", arguments: [color, key])
+            }
+            try db.execute(sql: "UPDATE category SET color = 'orange' WHERE name = '宠物'")
+        }
         return migrator
     }
 }

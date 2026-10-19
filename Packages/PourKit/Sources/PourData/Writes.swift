@@ -171,6 +171,24 @@ extension PourStore {
         }
     }
 
+    /// 画布上给待办打勾、取消打勾（改动历史记一笔，不算哪段话改的）
+    public func setDone(_ entryId: String, _ done: Bool, at date: Date = Date()) throws {
+        try writer.write { db in
+            guard var row = try EntryRow.fetchOne(db, key: entryId), row.deletedAt == nil else { return }
+            let before = try row.entry().state
+            guard case .todo(var todo) = before.data, todo.done != done else { return }
+            todo.done = done
+            var after = before
+            after.data = .todo(todo)
+            try row.set(after, said: try Self.said(db, row))
+            try row.update(db)
+            try EntryVersionRow(
+                entryId, done ? .completed : .updated, noteId: nil, span: "", before: before, after: after, at: date
+            )
+            .insert(db)
+        }
+    }
+
     /// 详情里点「删除」：删掉（留着，撤销条上能放回来）
     public func delete(_ entryId: String, at date: Date = Date()) throws {
         try writer.write { db in

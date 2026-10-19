@@ -49,6 +49,30 @@ public enum PourDate {
         return Int((left.timeIntervalSince(right) / 86_400).rounded())
     }
 
+    /// 本地时刻当成 UTC 的那一刻（只做钟点加减，碰不到夏令时）
+    private static func utcMoment(_ local: LocalDateTime) -> Date? {
+        guard local.count == 16, let day = utcDate(String(local.prefix(10))), let clock = minutesOfDay(local) else {
+            return nil
+        }
+        return day.addingTimeInterval(TimeInterval(clock) * 60)
+    }
+
+    /// 往后（负数往前）加几分钟：「2026-10-18T23:30」+ 60 →「2026-10-19T00:30」
+    public static func addMinutes(_ local: LocalDateTime, _ minutes: Int) -> LocalDateTime {
+        guard let moment = utcMoment(local) else { return local }
+        let parts = utc.dateComponents(
+            [.year, .month, .day, .hour, .minute], from: moment.addingTimeInterval(TimeInterval(minutes) * 60))
+        return String(
+            format: "%04d-%02d-%02dT%02d:%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0, parts.hour ?? 0,
+            parts.minute ?? 0)
+    }
+
+    /// until - from，单位分钟
+    public static func minutesBetween(_ from: LocalDateTime, _ until: LocalDateTime) -> Int {
+        guard let start = utcMoment(from), let end = utcMoment(until) else { return 0 }
+        return Int((end.timeIntervalSince(start) / 60).rounded())
+    }
+
     /// 0 = 周一 … 6 = 周日
     public static func weekdayMon0(_ day: DayString) -> Int {
         guard let date = utcDate(day) else { return 0 }

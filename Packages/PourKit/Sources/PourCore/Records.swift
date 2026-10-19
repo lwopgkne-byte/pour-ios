@@ -173,7 +173,7 @@ public struct LifeCategory: Codable, Hashable, Sendable, Identifiable {
     public var key: String
     public var name: String
     public var emoji: String
-    /// 九个领域色之一：stone、clay、apricot、straw、moss、lake、wisteria、sakura、brick（规范 01 第 3.1 节）
+    /// 网页版九种标签色之一：gray、brown、orange、yellow、green、blue、purple、pink、red（以前存的 stone、moss……也认）
     public var color: String
     public var parent: String?
     /// duration 时长、count 次数，其他是数量的单位（公里、页）
@@ -184,7 +184,7 @@ public struct LifeCategory: Codable, Hashable, Sendable, Identifiable {
     public var id: String { key }
 
     public init(
-        key: String, name: String, emoji: String = "", color: String = "stone", parent: String? = nil,
+        key: String, name: String, emoji: String = "", color: String = "gray", parent: String? = nil,
         measure: String = "duration", synonyms: [String] = [], order: Int = 0
     ) {
         self.key = key
@@ -209,8 +209,8 @@ extension Array where Element == LifeCategory {
         return current
     }
 
-    /// 类别的颜色：自己没有就看上级；都没有是「石」
+    /// 类别的颜色：自己没有就看上级；都没有是灰
     public func color(of key: String) -> String {
-        first(where: { $0.key == key })?.color ?? first(where: { $0.key == root(of: key) })?.color ?? "stone"
+        first(where: { $0.key == key })?.color ?? first(where: { $0.key == root(of: key) })?.color ?? "gray"
     }
 }
