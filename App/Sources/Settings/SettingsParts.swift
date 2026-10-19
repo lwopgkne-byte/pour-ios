@@ -211,8 +211,9 @@ struct Loaded<Value: Sendable, Content: View>: View {
 
     var body: some View {
         Group {
-            if let value {
-                content(value) { version += 1 }
+            // 滚出去又滚回来的那一块是新建的：先显示上次拿到的，不闪灰条
+            if let shown = value ?? LoadedCache.values[ObjectIdentifier(Value.self)] as? Value {
+                content(shown) { version += 1 }
             } else if let problem {
                 WebErrorState(problem) { version += 1 }
             } else {
@@ -222,13 +223,21 @@ struct Loaded<Value: Sendable, Content: View>: View {
         // 别处改了设置也重新拿（网页版 settings-changed）
         .task(id: [version, model.settingsVersion]) {
             do {
-                value = try await load()
+                let fresh = try await load()
+                value = fresh
+                LoadedCache.values[ObjectIdentifier(Value.self)] = fresh
                 problem = nil
             } catch {
                 problem = error.readable
             }
         }
     }
+}
+
+/// 设置页每一块上次拿到的（按数据的种类放：大模型、提醒、类别……各一份）
+@MainActor
+private enum LoadedCache {
+    static var values: [ObjectIdentifier: any Sendable] = [:]
 }
 
 /// 设置页里的数字写法

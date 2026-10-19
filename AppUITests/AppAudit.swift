@@ -47,15 +47,15 @@ enum AppAudit {
         let bar = ["pourbar.input", "pourbar.chat", "pourbar.send"]
             .map { app.descendants(matching: .any)[$0] }.filter(\.exists).map(\.frame.minY).min()
         let place = Place(glass: glass, navigation: navigation, barTop: bar.map { $0 - Self.barPadding })
-        // 审计自己偶尔超时（「Audit failed to complete in time」，电脑同时在忙别的时更常见；画廊也这样）：
-        // 等五秒再审，最多三次
-        for attempt in 1...3 {
+        // 审计自己偶尔超时（「Audit failed to complete in time」）：检查用的模拟器刚开机、电脑同时在忙别的时更常见
+        // （设置页那么长的一页，推送前检查里连着超时三次）。等十秒再审，最多四次
+        for attempt in 1...4 {
             do {
                 try audit(app, name: name, types: types, place: place, unresolved: unresolved)
                 return
-            } catch let error as NSError where error.code == -56 && attempt < 3 {
-                print("审计超时，等五秒重审 [\(name)]")
-                RunLoop.current.run(until: Date().addingTimeInterval(5))
+            } catch let error as NSError where error.code == -56 && attempt < 4 {
+                print("审计超时，等十秒重审 [\(name)]")
+                RunLoop.current.run(until: Date().addingTimeInterval(10))
             }
         }
     }
