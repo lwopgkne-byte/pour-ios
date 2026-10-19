@@ -22,6 +22,7 @@ let package = Package(
         .library(name: "PourAI", targets: ["PourAI"]),
         .library(name: "PourDesign", targets: ["PourDesign"]),
         .library(name: "PourPlatform", targets: ["PourPlatform"]),
+        .library(name: "PourAPI", targets: ["PourAPI"]),
     ],
     // 第三方库：每一个都先写进 ADR（A18），scripts/check-deps.py 核对
     dependencies: [
@@ -43,12 +44,16 @@ let package = Package(
         .target(name: "PourDesign", swiftSettings: swiftSettings),
         // 系统能力：通知、后台任务、钥匙串、Face ID（以后）
         .target(name: "PourPlatform", dependencies: ["PourCore", "PourData"], swiftSettings: swiftSettings),
+        // 网页版服务器的接口（产品主人 2026-10-19 选 B：业务规则和 AI 用网页版的服务器，手机只做界面）：只用系统框架
+        .target(name: "PourAPI", dependencies: ["PourCore"], swiftSettings: swiftSettings),
 
         .testTarget(name: "PourCoreTests", dependencies: ["PourCore"], swiftSettings: swiftSettings),
         .testTarget(name: "PourDataTests", dependencies: ["PourData", "PourCore"], swiftSettings: swiftSettings),
         .testTarget(
             name: "PourAITests", dependencies: ["PourAI", "PourData", "PourCore"], swiftSettings: swiftSettings),
         .testTarget(name: "PourDesignTests", dependencies: ["PourDesign"], swiftSettings: swiftSettings),
+        .testTarget(
+            name: "PourAPITests", dependencies: ["PourAPI"], resources: [.copy("Fixtures")], swiftSettings: swiftSettings),
         .testTarget(
             name: "PourPlatformTests", dependencies: ["PourPlatform", "PourData"], swiftSettings: swiftSettings),
     ],

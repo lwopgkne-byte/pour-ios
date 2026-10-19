@@ -59,7 +59,7 @@ final class TodayUITests: XCTestCase {
         let row = text(app, startingWith: "吃面")
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         row.tap()
-        XCTAssertTrue(app.staticTexts["原话"].waitForExistence(timeout: 3), "详情没打开")
+        XCTAssertTrue(app.staticTexts["来源"].waitForExistence(timeout: 3), "详情没打开")
         attach(app, "详情")
         app.buttons["detail.delete"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["undoToast"].waitForExistence(timeout: 3))
@@ -80,11 +80,12 @@ final class TodayUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["今天"].waitForExistence(timeout: 3), "说完没回到今天")
     }
 
-    /// 连不上：原话留着、标「已保存 · 待处理」
+    /// 连不上：原话先存在手机上，标「没有保存上 · 重试」，连上了自动发（网页版的发件箱）
     @MainActor func testWaitsForNetwork() throws {
         let app = launch()
         say("断网了也要记下来", in: app)
-        XCTAssertTrue(text(app, startingWith: "已保存 · 待处理").waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["断网了也要记下来"].waitForExistence(timeout: 3), "原话没留着")
+        XCTAssertTrue(text(app, startingWith: "没有保存上").waitForExistence(timeout: 5))
         attach(app, "说一句-等网络")
     }
 

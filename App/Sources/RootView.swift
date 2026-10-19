@@ -21,7 +21,7 @@ struct RootView: View {
         @Bindable var model = model
         return VStack(spacing: 0) {
             AppHeader(navOpen: $navOpen) { showsLater = "搜索" }
-            CanvasView()
+            PageView(page: model.page)
         }
         .background(Web.bg)
         .overlay {
@@ -44,10 +44,10 @@ struct RootView: View {
                 Composer()
             }
         }
-        .overlay { NavDrawer(open: $navOpen, settings: $showsSettings, later: $showsLater) }
+        .overlay { NavDrawer(open: $navOpen, settings: $showsSettings) }
         .animation(Web.panel, value: model.chatOpen)
         .animation(Web.panel, value: model.undoable)
-        .sheet(item: $model.detail) { ref in EntryDetailView(entryId: ref.id) }
+        .sheet(item: $model.detail) { ref in EntryPeek(entryId: ref.id) }
         .sheet(isPresented: $showsSettings) { SettingsSheet() }
         .alert(
             "\(showsLater ?? "")还在做",
@@ -55,7 +55,7 @@ struct RootView: View {
         ) {
             Button("好") { showsLater = nil }
         } message: {
-            Text("先做好生活画布，别的页面一个一个照网页版搬过来。")
+            Text("页面正在一个一个照网页版搬过来。")
         }
         .preferredColorScheme(.light)
         .tint(Web.accent)
@@ -98,16 +98,11 @@ private struct AppHeader: View {
     }
 }
 
-/// 左侧导航（网页版 NavDrawer）：页面一个一个照网页版搬，还没搬的点了说一声
+/// 左侧导航（网页版 NavDrawer）：点哪一页换到哪一页；「设置」另开一层
 private struct NavDrawer: View {
+    @Environment(AppModel.self) private var model
     @Binding var open: Bool
     @Binding var settings: Bool
-    @Binding var later: String?
-
-    private static let pages: [(label: String, icon: String)] = [
-        ("生活画布", "square.grid.2x2"), ("回顾", "book"), ("钱", "yensign.circle"), ("关于我", "person"),
-        ("目标", "target"), ("笔记库", "books.vertical"), ("设置", "gearshape"),
-    ]
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -118,7 +113,16 @@ private struct NavDrawer: View {
                     .accessibilityAddTraits(.isButton)
                     .transition(.opacity)
                 VStack(alignment: .leading, spacing: Web.space1) {
-                    ForEach(Self.pages, id: \.label) { page in link(page) }
+                    ForEach(Page.allCases) { page in
+                        link(page.label, icon: page.icon, current: model.page == page) {
+                            close()
+                            model.page = page
+                        }
+                    }
+                    link("设置", icon: "gearshape", current: false) {
+                        close()
+                        settings = true
+                    }
                     Spacer()
                 }
                 .padding(.horizontal, Web.space2)
@@ -132,20 +136,12 @@ private struct NavDrawer: View {
         .animation(Web.panel, value: open)
     }
 
-    private func link(_ page: (label: String, icon: String)) -> some View {
-        let current = page.label == "生活画布"
-        return Button {
-            close()
-            if page.label == "设置" {
-                settings = true
-            } else if !current {
-                later = page.label
-            }
-        } label: {
+    private func link(_ label: String, icon: String, current: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
             HStack(spacing: Web.space2) {
-                Image(systemName: page.icon).foregroundStyle(current ? Web.fgSecondary : Web.fgTertiary)
+                Image(systemName: icon).foregroundStyle(current ? Web.fgSecondary : Web.fgTertiary)
                     .frame(width: Web.icon)
-                Text(page.label).foregroundStyle(current ? Web.fg : Web.fgSecondary)
+                Text(label).foregroundStyle(current ? Web.fg : Web.fgSecondary)
                     .fontWeight(current ? .medium : .regular)
                 Spacer(minLength: 0)
             }

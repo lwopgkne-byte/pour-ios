@@ -22,6 +22,8 @@ ALLOWED = {
     "PourData": {"PourCore", "GRDB"},
     "PourAI": {"PourCore", "PourData"},
     "PourPlatform": {"PourCore", "PourData"},
+    # 网页版服务器的接口（产品主人 2026-10-19 选 B）：日期换算用 PourCore 的
+    "PourAPI": {"PourCore"},
 }
 LAYERS = set(ALLOWED)
 

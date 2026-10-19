@@ -1,3 +1,4 @@
+import PourAPI
 import PourCore
 import PourDesign
 import SwiftUI
@@ -20,7 +21,7 @@ struct Composer: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             HStack(alignment: .bottom, spacing: Web.space2) {
-                TextField(placeholder, text: $model.draft, axis: .vertical)
+                TextField(Show.spaced(placeholder), text: $model.draft, axis: .vertical)
                     .font(Web.body)
                     .foregroundStyle(Web.fg)
                     .lineLimit(1...6)

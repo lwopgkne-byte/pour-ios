@@ -1,3 +1,4 @@
+import PourAPI
 import PourCore
 import PourDesign
 import SwiftUI
@@ -6,20 +7,21 @@ import SwiftUI
 /// 说不出具体时间的事件放在下面的「未定时间」里
 struct TimelineStrip: View {
     @Environment(AppModel.self) private var model
-    let day: DayString
-    let entries: [Entry]
-    let categories: [LifeCategory]
+    let day: String
+    let entries: [API.Entry]
+    let categories: [API.Category]
 
     private struct Item: Identifiable {
-        let id: String
-        let event: RecordData.Event
+        let id: Int
+        let event: API.EventData
+        let category: String
         let pending: Bool
     }
 
     var body: some View {
         let events = entries.compactMap { entry -> Item? in
             guard case .event(let event) = entry.data else { return nil }
-            return Item(id: entry.id, event: event, pending: entry.needsConfirmation)
+            return Item(id: entry.id, event: event, category: entry.category, pending: entry.pending)
         }
         let timed = events.filter { $0.event.start != nil || $0.event.end != nil }
         let untimed = events.filter { $0.event.start == nil && $0.event.end == nil }
@@ -40,8 +42,10 @@ struct TimelineStrip: View {
         }
     }
 
+    private func color(_ item: Item) -> Color { Web.tag(Show.meta(item.category, categories).color).solid }
+
     /// 时间轴的范围：至少早上 6 点到晚上 11 点，有更早更晚的事件就往外扩（最多前一天 18 点到第二天 12 点），按整点取整
-    private func range(_ items: [Item]) -> (start: LocalDateTime, minutes: Int) {
+    private func range(_ items: [Item]) -> (start: String, minutes: Int) {
         var start = "\(day)T06:00"
         var end = "\(day)T23:00"
         for item in items {
@@ -65,7 +69,7 @@ struct TimelineStrip: View {
             let hour = Int(PourDate.addMinutes(range.start, minute).dropFirst(11).prefix(2)) ?? 0
             return hour % step == 0 ? (Double(minute) / Double(range.minutes), "\(hour):00") : nil
         }
-        func position(_ time: LocalDateTime) -> Double {
+        func position(_ time: String) -> Double {
             min(1, max(0, Double(PourDate.minutesBetween(range.start, time)) / Double(range.minutes)))
         }
         return GeometryReader { proxy in
@@ -80,7 +84,6 @@ struct TimelineStrip: View {
                             max((position(end) - position(start)) * width, width * 0.008)
                         } else { 0 }
                     block(item, left: left, span: span)
-                        .accessibilityLabel(Text("\(item.event.label) \(WebText.eventMeta(item.event))"))
                 }
                 ForEach(ticks, id: \.1) { place, label in
                     Text(label).font(Web.caption).foregroundStyle(Web.fgTertiary).fixedSize()
@@ -102,10 +105,12 @@ struct TimelineStrip: View {
     private func block(_ item: Item, left: CGFloat, span: CGFloat) -> some View {
         let shown = span > 0 ? span : Web.space2
         let tap = max(shown, Web.touch)
+        let label =
+            "\(Show.meta(item.category, categories).emoji) \(item.event.label) \(Show.eventMeta(item.event, day: day))"
         return Button {
             model.detail = .init(id: item.id)
         } label: {
-            Capsule().fill(Web.tag(categories.color(of: item.event.category)).solid)
+            Capsule().fill(color(item))
                 .frame(width: shown, height: Web.space2)
                 .opacity(item.pending ? 0.45 : 0.85)
                 .frame(width: tap, height: Web.touch)
@@ -113,6 +118,7 @@ struct TimelineStrip: View {
         }
         .buttonStyle(.plain)
         .offset(x: (span > 0 ? left : left - Web.space1) + shown / 2 - tap / 2, y: Web.space6 / 2 - Web.touch / 2)
+        .accessibilityLabel(Text(label))
     }
 
     private func chip(_ item: Item) -> some View {
@@ -120,11 +126,10 @@ struct TimelineStrip: View {
             model.detail = .init(id: item.id)
         } label: {
             HStack(spacing: Web.space1) {
-                Circle().fill(Web.tag(categories.color(of: item.event.category)).solid)
-                    .frame(width: Web.space2, height: Web.space2)
-                Text(item.event.label).foregroundStyle(Web.fg)
+                Circle().fill(color(item)).frame(width: Web.space2, height: Web.space2)
+                Text(Show.spaced(item.event.label)).foregroundStyle(Web.fg)
                 if item.event.durationMin != nil {
-                    Text(WebText.eventMeta(item.event)).foregroundStyle(Web.fgTertiary)
+                    Text(Show.spaced(Show.eventMeta(item.event, day: day))).foregroundStyle(Web.fgTertiary)
                 }
             }
             .font(Web.caption)

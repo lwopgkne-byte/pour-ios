@@ -3,6 +3,32 @@ public import Foundation
 /// 网页版画布和对话里的那些写法（shared/src/format.ts、tidy.ts、receipt.ts、mood.ts、web 的 entry-display.ts 原样）：
 /// 照网页版 1 比 1 做的界面用它，同一件事和网页版一字不差
 public enum WebText {
+    /// 中文和数字、英文挨着时中间留一点空（浏览器的 text-autospace：网页版显示「10 月 15 日」「跑步 1 小时」）。
+    /// 用六分之一个字宽的空格，已经有空格的不再加
+    public static func spaced(_ text: String) -> String {
+        var out = ""
+        var previous: Character?
+        for char in text {
+            if let last = previous, needsGap(last, char) { out.append("\u{2006}") }
+            out.append(char)
+            previous = char
+        }
+        return out
+    }
+
+    private static func isHan(_ char: Character) -> Bool {
+        char.unicodeScalars.first.map { (0x4E00...0x9FFF).contains($0.value) || (0x3400...0x4DBF).contains($0.value) }
+            ?? false
+    }
+
+    private static func isLatin(_ char: Character) -> Bool {
+        char.isASCII && (char.isLetter || char.isNumber)
+    }
+
+    private static func needsGap(_ left: Character, _ right: Character) -> Bool {
+        (isHan(left) && isLatin(right)) || (isLatin(left) && isHan(right))
+    }
+
     /// 「2026-09-24T07:30」→「7:30」（去掉前导零更口语）
     public static func clock(_ local: LocalDateTime) -> String {
         let time = local.dropFirst(11).prefix(5)
@@ -49,7 +75,7 @@ public enum WebText {
         return "¥\(formatter.string(from: NSNumber(value: value)) ?? String(value))"
     }
 
-    static func amount(_ value: Double) -> String {
+    public static func amount(_ value: Double) -> String {
         value == value.rounded() ? String(Int(value)) : String((value * 100).rounded() / 100)
     }
 

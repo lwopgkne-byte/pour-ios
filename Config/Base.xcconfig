@@ -11,7 +11,7 @@ CURRENT_PROJECT_VERSION = 1
 
 // AI 网关（M2 起）：模拟器直接连这台 Mac；真机连 Mac 的局域网地址（以后在 Local.xcconfig 里改）。
 // xcconfig 里「//」是注释，所以网址写成 http:/$()/……
-POUR_GATEWAY_URL = http:/$()/127.0.0.1:5480
+POUR_SERVER_URL = http:/$()/127.0.0.1:5188
 
 // 这台电脑自己的签名团队（DEVELOPMENT_TEAM）写在 Local.xcconfig 里：bootstrap.sh 生成，不提交
 #include? "Local.xcconfig"

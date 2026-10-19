@@ -1,106 +1,76 @@
-import PourAI
+import PourAPI
 import PourDesign
 import SwiftUI
 import UIKit
 
-/// 设置（从「今天」左上角的头像进）。M2a 只有「关于」：哪一版、AI 网关连没连上——验收时对得上构建号，
-/// 整理不动时一眼看出是不是网关没开。越来越懂你、通知、隐私中心、Face ID 以后再加（规范 12 第 2 节）
+/// 设置（左上角菜单里进）：连的是哪台电脑上的 Pour、连上没有、要不要输 PIN、哪一版。
+/// 网页版设置页的其余部分（日界线、提醒、类别、数据）照网页版搬过来以后放在这里
 struct SettingsSheet: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
-    @State private var health: GatewayHealth?
-    @State private var address = GatewayConfiguration.address.absoluteString
-    @State private var code = ""
-    @State private var pairing = false
-    @State private var pairMessage: String?
+    @State private var address = ServerConfiguration.address.absoluteString
+    @State private var pin = ""
+    @State private var message: String?
+    @State private var busy = false
 
     var body: some View {
         NavigationStack {
-            List {
+            Form {
                 Section {
-                    LabeledContent("版本", value: AppVersion.current.displayText)
-                        .accessibilityIdentifier("settings.version")
+                    LabeledContent("状态", value: model.offline == nil ? "连上了" : "没连上")
+                    if let offline = model.offline { Text(offline).font(Web.caption).foregroundStyle(Web.fgSecondary) }
+                    TextField("地址", text: $address)
+                        .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    Button("保存地址") { saveAddress() }
                 } header: {
-                    Text("关于 Pour")
-                }
-                Section {
-                    LabeledContent("地址", value: model.gateway.baseURL.absoluteString)
-                    LabeledContent("状态", value: status)
-                        .accessibilityIdentifier("settings.gateway")
-                } header: {
-                    Text("AI 网关")
+                    Text("电脑上的 Pour")
                 } footer: {
-                    Text("整理时，原话经过这台 Mac 上的网关交给 AI 服务商；网关不保存任何东西。")
+                    Text("记录和整理都在电脑上的 Pour 里，手机和电脑要在同一个 Wi-Fi 下。")
                 }
-                pairSection
+                Section {
+                    SecureField("PIN（4–6 位数字）", text: $pin).keyboardType(.numberPad)
+                    Button(busy ? "正在登录……" : "输入 PIN") { Task { await login() } }
+                        .disabled(busy || pin.count < 4)
+                } header: {
+                    Text("PIN")
+                } footer: {
+                    Text("电脑上的 Pour 开了局域网 PIN 时要输一次。")
+                }
+                if let message { Section { Text(message).font(Web.caption).foregroundStyle(Web.fgSecondary) } }
+                Section("关于") {
+                    LabeledContent("Pour", value: AppVersion.current.displayText)
+                }
             }
             .navigationTitle("设置")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } }
             }
-            .task { health = await model.gateway.health(deep: true) }
         }
-        .tint(PourColor.action.color)
+        .preferredColorScheme(.light)
+        .tint(Web.accent)
     }
 
-    /// 真机第一次连这台 Mac：输网关显示的 6 位配对码（模拟器直接连本机，不用配对）
-    @ViewBuilder private var pairSection: some View {
-        #if targetEnvironment(simulator)
-            EmptyView()
-        #else
-            Section {
-                TextField("网关地址", text: $address)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .keyboardType(.URL)
-                TextField("6 位配对码", text: $code)
-                    .keyboardType(.numberPad)
-                    .accessibilityIdentifier("settings.code")
-                Button(pairing ? "正在连……" : "连上这台 Mac") { Task { await pair() } }
-                    .disabled(pairing || code.count != 6)
-                if let pairMessage {
-                    Text(pairMessage).pourText(.callout).foregroundStyle(PourColor.inkSecondary.color)
-                }
-            } header: {
-                Text(GatewayConfiguration.isPaired ? "连这台 Mac（已经连上了）" : "连这台 Mac")
-            } footer: {
-                Text("配对码显示在 Mac 上网关的窗口里。配好以后，这台手机和 Mac 在同一个 Wi-Fi 下就能整理。")
-            }
-        #endif
-    }
-
-    private func pair() async {
-        guard let url = URL(string: address.trimmingCharacters(in: .whitespaces)) else {
-            pairMessage = "地址写得不对，像这样：http://Mac的名字.local:5480"
+    private func saveAddress() {
+        guard let url = URL(string: address.trimmingCharacters(in: .whitespaces)), url.scheme != nil else {
+            message = "地址写得不对，像这样：http://Mac的名字.local:5188"
             return
         }
-        pairing = true
-        defer { pairing = false }
-        do {
-            let token = try await GatewayClient(baseURL: url).pair(code: code, device: UIDevice.current.name)
-            GatewayConfiguration.remember(address: url, token: token)
-            code = ""
-            pairMessage = "连上了。"
-            health = await model.gateway.health(deep: true)
-        } catch .server(_, let message, _) {
-            pairMessage = message
-        } catch {
-            pairMessage = "连不上：手机和 Mac 要在同一个 Wi-Fi 下，Mac 上的网关要开着。"
-        }
+        ServerConfiguration.remember(address: url)
+        message = "保存了。重新打开 Pour 以后连新的地址。"
     }
 
-    private var status: String {
-        guard let health else { return "正在问……" }
-        guard health.reachable else { return "连不上：网关没开，或者不在同一个网络" }
-        let key =
-            switch health.key {
-            case "valid": "密钥能用"
-            case "invalid": "密钥不对"
-            case "missing": "还没填密钥"
-            default: health.problem ?? "密钥没查成"
-            }
-        return "连上了 · \(health.model ?? "") · \(key)"
+    private func login() async {
+        busy = true
+        defer { busy = false }
+        do {
+            try await model.client.login(pin: pin)
+            pin = ""
+            message = "登录了。"
+            await model.refreshAll()
+        } catch {
+            message = error.message
+        }
     }
 }
 

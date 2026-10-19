@@ -64,6 +64,16 @@ public enum Web {
         "lake": "blue", "wisteria": "purple", "sakura": "pink", "brick": "red",
     ]
 
+    /// 目标的状态色（只用于目标进度）：不落后、稍微落后、落后较多、已不可能完成 / 还没有状态
+    public static func status(_ tone: String) -> Color {
+        switch tone {
+        case "good": hex(0x5E9C73)
+        case "warn": hex(0xB58829)
+        case "bad": hex(0xD0766C)
+        default: hex(0x908F8A)
+        }
+    }
+
     /// 某个颜色名的标签色；认不出的用灰
     public static func tag(_ name: String) -> Tag {
         tags[name] ?? legacy[name].flatMap { tags[$0] } ?? tags["gray"].unsafelyUnwrappedTag
@@ -83,10 +93,10 @@ public enum Web {
     public static let bodySemibold = pingfang(16, .body, .semibold)
     public static let caption = pingfang(13, .footnote)
     public static let captionMedium = pingfang(13, .footnote, .medium)
-    /// 正文行高 1.6 多出来的行距
-    public static let bodyLineSpacing: CGFloat = 16 * 0.6
+    /// 正文行高 1.6 多出来的行距（苹方本身的行高约 1.4 倍）
+    public static let bodyLineSpacing: CGFloat = 16 * 0.2
     /// 引用的原话行高 1.8
-    public static let quoteLineSpacing: CGFloat = 16 * 0.8
+    public static let quoteLineSpacing: CGFloat = 16 * 0.4
 
     // MARK: - 间距、尺寸、圆角、动效
 
@@ -97,6 +107,7 @@ public enum Web {
     public static let space6: CGFloat = 24
     public static let space8: CGFloat = 32
     public static let space12: CGFloat = 48
+    public static let space16: CGFloat = 64
     /// 手机上可点击区域的最小尺寸
     public static let touch: CGFloat = 44
     /// 按钮、小标签的高度

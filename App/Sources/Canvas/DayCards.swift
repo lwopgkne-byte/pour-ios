@@ -1,28 +1,29 @@
+import PourAPI
 import PourCore
 import PourDesign
 import SwiftUI
 
 /// 类别卡片（网页版 DayCards 1 比 1）：当天出现过的每个类别一张卡片，没有记录的类别不显示。
-/// 点一行看详情；长按出现「修改 / 查看来源 / 删除」
+/// 点一行看详情；长按出现「修改 / 查看来源 / 删除」；卡片底部是相关目标的进度
 struct DayCards: View {
-    let entries: [Entry]
-    let categories: [LifeCategory]
-    let notes: [Note]
+    let entries: [API.Entry]
+    let categories: [API.Category]
+    let goals: [API.DayGoal]
 
     var body: some View {
         let openTodos = entries.contains { if case .todo(let todo) = $0.data { !todo.done } else { false } }
-        let keys = entries.map { WebText.group(of: $0, categories: categories) }
-        let groups = WebText.sortGroups(Array(Set(keys)), categories: categories, openTodos: openTodos)
+        let keys = entries.map { Show.group($0, categories) }
+        let groups = Show.sortGroups(Array(Set(keys)), categories, openTodos: openTodos)
+        // 当天感悟的摘录：心情的那一刻已经整句在里面，就不再写一遍
+        let quotes = entries.compactMap { if case .insight(let insight) = $0.data { insight.quote } else { nil } }
         if !groups.isEmpty {
             VStack(spacing: Web.space3) {
                 ForEach(groups, id: \.self) { group in
                     GroupCard(
-                        group: group,
-                        items: entries.filter { WebText.group(of: $0, categories: categories) == group },
-                        categories: categories, notes: notes,
-                        quotes: entries.compactMap {
-                            if case .insight(let insight) = $0.data { insight.quote } else { nil }
-                        })
+                        group: group, items: entries.filter { Show.group($0, categories) == group },
+                        categories: categories,
+                        goals: goals.filter { goal in goal.category.map { Show.root($0, categories) } == group },
+                        quotes: quotes)
                 }
             }
             .padding(.top, Web.space8)
@@ -30,22 +31,23 @@ struct DayCards: View {
     }
 }
 
-/// 一张卡片：标题行（图标、名称、标题旁的数字），下面一行一条
+/// 一张卡片：标题行（图标、名称、标题旁的数字），下面一行一条，最后是相关目标
 private struct GroupCard: View {
+    @Environment(AppModel.self) private var model
     let group: String
-    let items: [Entry]
-    let categories: [LifeCategory]
-    let notes: [Note]
+    let items: [API.Entry]
+    let categories: [API.Category]
+    let goals: [API.DayGoal]
     let quotes: [String]
 
     var body: some View {
-        let meta = WebReceipt.meta(group, categories: categories)
-        let pending = items.contains(where: \.needsConfirmation)
+        let meta = Show.meta(group, categories)
+        let pending = items.contains(where: \.pending)
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline, spacing: Web.space2) {
                 Text(meta.emoji).accessibilityHidden(true)
                 Text(meta.name).font(Web.bodySemibold).foregroundStyle(Web.fg)
-                if let head { Text(head).foregroundStyle(Web.fgSecondary) }
+                if let head { Text(Show.spaced(head)).foregroundStyle(Web.fgSecondary) }
                 // 心情是 AI 从话里听出来的：只在卡片右上角标一次
                 if group == "mood" {
                     Spacer(minLength: 0)
@@ -62,8 +64,19 @@ private struct GroupCard: View {
             case "diet": DietRows(items: items, categories: categories)
             case "insight": InsightRows(items: items)
             case "todo": TodoRows(items: items)
-            case "mood": MoodRows(items: items, notes: notes, quotes: quotes)
-            default: EventRows(items: items)
+            case "mood": MoodRows(items: items, quotes: quotes)
+            default: EventRows(items: items, categories: categories)
+            }
+            ForEach(goals) { goal in
+                HStack(spacing: Web.space2) {
+                    ToneDot(tone: goal.tone)
+                    Text(Show.spaced("\(goal.title) · \(goal.headline)")).lineLimit(1)
+                }
+                .font(Web.caption).foregroundStyle(Web.fgTertiary)
+                .padding(.horizontal, Web.space2)
+                .frame(maxWidth: .infinity, minHeight: Web.touch, alignment: .leading)
+                .padding(.top, Web.space1)
+                .accessibilityElement(children: .combine)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -82,8 +95,8 @@ private struct GroupCard: View {
             let left = items.filter { if case .todo(let todo) = $0.data { !todo.done } else { false } }.count
             return left > 0 ? "还有 \(left) 件" : "都做完了"
         case "mood":
-            let levels = items.compactMap { if case .mood(let mood) = $0.data { mood.level } else { nil } }
-            return levels.count > 1 ? WebText.dayMood(levels) : nil
+            let levels = items.compactMap { if case .mood(let mood) = $0.data { mood.mood } else { nil } }
+            return levels.count > 1 ? Show.dayMood(levels) : nil
         case "insight":
             return items.count > 1 ? "\(items.count) 条" : nil
         case "sleep":
@@ -91,7 +104,7 @@ private struct GroupCard: View {
         default:
             let measure = group == "diet" ? "duration" : (categories.first { $0.key == group }?.measure ?? "duration")
             let events = items.compactMap { if case .event(let event) = $0.data { event } else { nil } }
-            return WebText.headline(events, measure: measure)
+            return Show.headline(events, measure: measure)
         }
     }
 }
@@ -100,7 +113,7 @@ private struct GroupCard: View {
 /// quiet：追问和上一行一样，问的话不再写一遍，「确认」放在这一行末尾
 struct DayRow<Content: View>: View {
     @Environment(AppModel.self) private var model
-    let entry: Entry
+    let entry: API.Entry
     var quiet = false
     @ViewBuilder let content: () -> Content
 
@@ -108,7 +121,7 @@ struct DayRow<Content: View>: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: Web.space2) {
                 content().frame(maxWidth: .infinity, alignment: .leading)
-                if let question = entry.question, quiet {
+                if entry.pending, quiet {
                     confirm.accessibilityHint(Text(question))
                 }
             }
@@ -124,9 +137,9 @@ struct DayRow<Content: View>: View {
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isButton)
-            if let question = entry.question, !quiet {
+            if entry.pending, !quiet {
                 HStack(spacing: Web.space2) {
-                    Text(question).font(Web.caption).foregroundStyle(Web.fgSecondary)
+                    Text(Show.spaced(question)).font(Web.caption).foregroundStyle(Web.fgSecondary)
                     confirm
                 }
                 .padding(.horizontal, Web.space2)
@@ -134,6 +147,9 @@ struct DayRow<Content: View>: View {
             }
         }
     }
+
+    /// 待确认的记录追问的话（AI 没写就用默认的那句）
+    private var question: String { entry.question ?? "我理解得对吗？" }
 
     private var confirm: some View {
         Button("确认") { model.confirm(entry.id) }
@@ -143,32 +159,41 @@ struct DayRow<Content: View>: View {
 }
 
 /// 这一行的追问和上一行完全一样吗：一样的话只在第一行写一次
-private func repeatsQuestion(_ items: [Entry], _ index: Int) -> Bool {
-    guard index > 0, let question = items[index].question else { return false }
-    return items[index - 1].question == question
+func repeatsQuestion(_ items: [API.Entry], _ index: Int) -> Bool {
+    guard index > 0, items[index].pending, items[index - 1].pending else { return false }
+    return (items[index].question ?? "我理解得对吗？") == (items[index - 1].question ?? "我理解得对吗？")
 }
 
-/// 名称 + 次要信息（「跑步  5 公里」）：放不下时一起换行
-private func labelWithMeta(_ label: String, _ meta: String) -> Text {
-    var text = AttributedString(label)
+/// 名称 + 次要信息 + 话题（「跑步  5 公里  #晨练」）：放不下时一起换行
+private func labelWithMeta(_ label: String, _ meta: String, topic: String?) -> Text {
+    var text = AttributedString(Show.spaced(label))
     text.foregroundColor = Web.fg
     if !meta.isEmpty {
-        var tail = AttributedString("  \(meta)")
+        var tail = AttributedString("  \(Show.spaced(meta))")
         tail.foregroundColor = Web.fgSecondary
         text += tail
+    }
+    if let topic {
+        var tag = AttributedString("  #\(topic)")
+        tag.foregroundColor = Web.fgTertiary
+        text += tag
     }
     return Text(text)
 }
 
 private struct EventRows: View {
-    let items: [Entry]
+    let items: [API.Entry]
+    let categories: [API.Category]
 
     var body: some View {
         ForEach(Array(items.enumerated()), id: \.element.id) { index, entry in
             if case .event(let event) = entry.data {
                 DayRow(entry: entry, quiet: repeatsQuestion(items, index)) {
-                    labelWithMeta(event.label, WebText.eventMeta(event)).font(Web.body)
-                        .lineSpacing(Web.bodyLineSpacing / 2)
+                    labelWithMeta(
+                        event.label, Show.eventMeta(event, day: entry.day),
+                        topic: Show.topic(event, category: entry.category, categories)
+                    )
+                    .font(Web.body).lineSpacing(Web.bodyLineSpacing)
                 }
             }
         }
@@ -177,9 +202,9 @@ private struct EventRows: View {
 
 /// 一段时间在一条横向刻度上的位置（睡眠横条、进食窗口）
 private struct SpanBar: View {
-    let from: LocalDateTime
-    let until: LocalDateTime
-    let rangeStart: LocalDateTime
+    let from: String
+    let until: String
+    let rangeStart: String
     let rangeMinutes: Int
     let color: Color
 
@@ -202,8 +227,8 @@ private struct SpanBar: View {
 
 /// 睡眠：「23:30 → 7:00」和时长；夜里的睡眠画一条横条（前一天 20 点到这天 12 点）
 private struct SleepRows: View {
-    let items: [Entry]
-    let categories: [LifeCategory]
+    let items: [API.Entry]
+    let categories: [API.Category]
 
     var body: some View {
         ForEach(items) { entry in
@@ -211,10 +236,10 @@ private struct SleepRows: View {
                 DayRow(entry: entry) {
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(alignment: .firstTextBaseline) {
-                            Text(sleepTitle(event)).foregroundStyle(Web.fg)
+                            Text(Show.spaced(title(event))).foregroundStyle(Web.fg)
                             Spacer(minLength: Web.space3)
                             if let duration = event.durationMin {
-                                Text(WebText.minutes(duration)).foregroundStyle(Web.fgSecondary)
+                                Text(Show.spaced(Show.minutes(duration))).foregroundStyle(Web.fgSecondary)
                             }
                         }
                         .font(Web.body)
@@ -223,7 +248,7 @@ private struct SleepRows: View {
                                 from: start, until: end,
                                 rangeStart: PourDate.addMinutes("\(end.prefix(10))T00:00", -4 * 60),
                                 rangeMinutes: 16 * 60,
-                                color: Web.tag(categories.color(of: event.category)).solid)
+                                color: Web.tag(Show.meta(entry.category, categories).color).solid)
                         }
                     }
                 }
@@ -231,81 +256,44 @@ private struct SleepRows: View {
         }
     }
 
-    private func sleepTitle(_ event: RecordData.Event) -> String {
+    private func title(_ event: API.EventData) -> String {
         guard let start = event.start, let end = event.end else { return event.label }
-        return "\(WebText.clock(start)) → \(WebText.clock(end))"
+        return "\(Show.clock(start)) → \(Show.clock(end))"
     }
 }
 
 /// 饮食：有两个以上时间就画出进食窗口（最早到最晚），下面列出各餐
 private struct DietRows: View {
-    let items: [Entry]
-    let categories: [LifeCategory]
+    let items: [API.Entry]
+    let categories: [API.Category]
 
     var body: some View {
-        let times = items.flatMap { entry -> [LocalDateTime] in
+        let times = items.flatMap { entry -> [String] in
             guard case .event(let event) = entry.data else { return [] }
             return [event.start, event.end].compactMap { $0 }
         }.sorted()
         if let first = times.first, let last = times.last, times.count >= 2, first != last {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Text("进食窗口 \(WebText.clock(first))–\(WebText.clock(last))")
+                    Text(Show.spaced("进食窗口 \(Show.clock(first))–\(Show.clock(last))"))
                     Spacer()
-                    Text(WebText.minutes(PourDate.minutesBetween(first, last)))
+                    Text(Show.spaced(Show.minutes(PourDate.minutesBetween(first, last))))
                 }
                 .font(Web.caption).foregroundStyle(Web.fgSecondary)
                 SpanBar(
                     from: first, until: last, rangeStart: "\(first.prefix(10))T00:00", rangeMinutes: 24 * 60,
-                    color: Web.tag(WebReceipt.meta("diet", categories: categories).color).solid)
+                    color: Web.tag(Show.meta("diet", categories).color).solid)
             }
             .padding(.horizontal, Web.space2)
         }
-        EventRows(items: items)
-    }
-}
-
-/// 原话的摘录：左边一条细线表示「这是引用」，行高 1.8
-struct QuoteText: View {
-    let text: String
-
-    var body: some View {
-        Text(text).font(Web.body).foregroundStyle(Web.fg).lineSpacing(Web.quoteLineSpacing)
-            .padding(.leading, Web.space3)
-            .overlay(alignment: .leading) { Rectangle().fill(Web.lineStrong).frame(width: Web.space1 / 2) }
-    }
-}
-
-/// 感悟：引用原话，下面是标签
-private struct InsightRows: View {
-    let items: [Entry]
-
-    var body: some View {
-        ForEach(items) { entry in
-            if case .insight(let insight) = entry.data {
-                DayRow(entry: entry) {
-                    VStack(alignment: .leading, spacing: Web.space2) {
-                        QuoteText(text: insight.quote)
-                        if !insight.tags.isEmpty {
-                            PourFlowLayout(spacing: Web.space2, lineSpacing: Web.space2) {
-                                ForEach(insight.tags, id: \.self) { tag in
-                                    Text(tag).font(Web.caption).foregroundStyle(Web.tag("yellow").fg)
-                                        .padding(.horizontal, Web.space2)
-                                        .background(Capsule().fill(Web.tag("yellow").bg))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        EventRows(items: items, categories: categories)
     }
 }
 
 /// 待办：勾选框，做完了文字变淡划掉；没做完的在前（定了提醒时间的按时间先后），做完的放最后
 private struct TodoRows: View {
     @Environment(AppModel.self) private var model
-    let items: [Entry]
+    let items: [API.Entry]
 
     var body: some View {
         let sorted = items.sorted { key($0) < key($1) }
@@ -336,11 +324,12 @@ private struct TodoRows: View {
                         .padding(.horizontal, -Web.space3)
                         .accessibilityLabel(Text(todo.content))
                         .accessibilityValue(Text(todo.done ? "已完成" : "未完成"))
-                        Text(todo.content).font(Web.body)
+                        Text(Show.spaced(todo.content)).font(Web.body)
                             .foregroundStyle(todo.done ? Web.fgTertiary : Web.fg)
                             .strikethrough(todo.done, color: Web.fgTertiary)
                         if let remind = todo.remindAt, !todo.done {
-                            Text("⏰ \(WebText.clock(remind))").font(Web.body).foregroundStyle(Web.fgSecondary)
+                            Text("⏰ \(Show.clock(remind))\(todo.reminded == true ? " 已提醒" : "")")
+                                .font(Web.body).foregroundStyle(Web.fgSecondary)
                         }
                     }
                 }
@@ -348,7 +337,7 @@ private struct TodoRows: View {
         }
     }
 
-    private func key(_ entry: Entry) -> String {
+    private func key(_ entry: API.Entry) -> String {
         guard case .todo(let todo) = entry.data else { return "9" }
         if todo.done { return "2" }
         return todo.remindAt.map { "0\($0)" } ?? "1"

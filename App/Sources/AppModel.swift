@@ -1,318 +1,355 @@
 import Foundation
 import Network
 import Observation
-import PourAI
+import PourAPI
 import PourCore
 import PourData
 import PourPlatform
 
-/// App 的状态：本机数据库、理解服务、今天是哪一天、「今天」页看到的样子（M2a）。
-/// 说一句话的流程：原话马上存进本机数据库、出现在「今天」→ 理解服务排队问网关 → 改动包写回来 → 收据凝结
+/// App 的状态（产品主人 2026-10-19 选 B）：数据、业务规则和 AI 全在网页版的服务器上，手机读写它的接口。
+/// 说一句：原话先存在手机上（没网也不丢）→ 交给服务器 → 服务器整理完推过来「变了」→ 手机重新拿这一天
 @MainActor
 @Observable
 final class AppModel {
-    enum Tab: Hashable { case today, review, about, money, search }
+    let client: APIClient
 
-    let store: PourStore
-    let organizer: Organizer
-    let summarizer: Summarizer
-    let gateway: GatewayClient
+    /// 服务器按日界线算的今天
+    private(set) var today: String
+    /// 画布正在看哪一天
+    private(set) var shownDay: String
+    /// 正在看的那一天（还没拿到是 nil）
+    private(set) var day: API.DayView?
+    /// 这一天说的话（画布上「正在整理…」那一行）
+    private(set) var dayNotes: [API.Note] = []
+    /// 对话面板：最近说的话，从早到晚
+    private(set) var chat: [API.Note] = []
+    private(set) var chatHasMore = false
+    private(set) var categories: [API.Category] = []
+    /// 没连上服务器时说一句（连上了是 nil）
+    private(set) var offline: String?
+    /// 还没交给服务器的话：没网时先存在手机上，连上了自动发（网页版 chat.tsx 的 outbox）
+    private(set) var outbox: [Outbox] = []
 
-    /// 按日界线算的今天
-    private(set) var today: DayString
-    /// 「今天」页正在看哪一天（左右滑换日子）
-    private(set) var shownDay: DayString
-    /// 正在看的那一天的样子：一直观察着数据库
-    private(set) var day: DaySnapshot
-    /// 这次打开 App 以后说的、看着它整理的原话：整理好时收据逐张凝结
-    private(set) var watching: Set<String> = []
-    /// 刚发出去的那段话：「今天」页滚到它
-    private(set) var lastSent: String?
-    /// 打不开数据库、存不下这类大事（平时是 nil）
-    private(set) var problem: String?
-
-    var tab: Tab = .today
-    var composing = false
     var draft = ""
+    /// 正在看哪一页（左上角菜单换）
+    var page: Page = .canvas
     /// 对话面板开着没有（网页版 Composer：发出去就向上展开）
     var chatOpen = false
-    /// 对话面板里的样子：最近说过的话（不分哪天）
-    private(set) var chat = ChatSnapshot()
-    private var chatObservation: Task<Void, Never>?
     /// 打开详情的那条记录
     var detail: EntryRef?
-    /// 底部的撤销条（5 秒后自己消失）
+    /// 删掉一条之后的轻提示（「已删除 · 撤销」，几秒后自己消失）
     private(set) var undoable: Undoable?
 
-    /// 能撤销的一次改动：一段话整理出的全部改动，或者详情里删掉的一条
-    struct Undoable: Equatable {
-        enum Target: Equatable {
-            case note(String)
-            case deletedEntry(String)
-        }
+    private var events: Task<Void, Never>?
+    private var undoTimer: Task<Void, Never>?
+    private let network = NWPathMonitor()
+    private var remindersOn = false
+    /// 看过的日子里要提醒的待办（按日子存，换着看也不丢）
+    private var reminders: [String: [Reminder]] = [:]
 
-        let target: Target
+    /// 一段还没交给服务器的话
+    struct Outbox: Codable, Hashable, Identifiable {
+        let clientId: String
+        let text: String
+        let createdAt: Date
+        /// 连不上、服务器拒了：说清楚，自动重试
+        var failed: String?
+
+        var id: String { clientId }
+    }
+
+    struct EntryRef: Identifiable, Hashable {
+        let id: Int
+    }
+
+    struct Undoable: Equatable {
+        let entryId: Int
         let message: String
         let id = UUID()
     }
 
-    /// 打开详情的记录（sheet 认它）
-    struct EntryRef: Identifiable, Hashable {
-        let id: String
-    }
-
-    private var observation: Task<Void, Never>?
-    private var undoTimer: Task<Void, Never>?
-    /// 撤销条留多久（规范 12：5 秒）
-    static let undoWindow: Duration = .seconds(5)
-    private let network = NWPathMonitor()
-    /// 排不排待办的提醒（界面测试不排）
-    private var remindersOn = false
-
-    init(store: PourStore, gateway: GatewayClient) {
-        self.store = store
-        self.gateway = gateway
-        organizer = Organizer(store: store, gateway: gateway)
-        summarizer = Summarizer(store: store, gateway: gateway)
+    init(client: APIClient) {
+        self.client = client
         let today = PourDate.logicalDay(Date(), in: .current)
         self.today = today
         shownDay = today
-        day = DaySnapshot(day: today)
+        outbox = Self.loadOutbox()
     }
 
-    /// 打开 App：正式的数据库、配置里的网关。界面测试用内存里的数据库、假网关（-uiTest）
     static func launch() -> AppModel {
         let arguments = ProcessInfo.processInfo.arguments
-        let gateway = GatewayConfiguration.client(arguments: arguments)
-        let store: PourStore
-        var problem: String?
-        do {
-            // -uiTest、-freshStore：从空的开始（内存里，关掉就没了）
-            let fresh = arguments.contains("-uiTest") || arguments.contains("-freshStore")
-            store = fresh ? try PourStore.inMemory() : try PourStore.openDefault()
-        } catch {
-            // 数据库打不开：先用内存里的让你能看，告诉你出了什么事
-            Log.error("数据库打不开：\(error.localizedDescription)")
-            problem = "本机数据库打不开：\(error.localizedDescription)。这次说的话不会保存。"
-            do { store = try PourStore.inMemory() } catch { fatalError("连内存里的数据库都开不了：\(error)") }
-        }
-        let model = AppModel(store: store, gateway: gateway)
-        model.problem = problem
+        let model = AppModel(client: ServerConfiguration.client(arguments: arguments))
         model.start()
+        // 开发时对照网页版：-day 2026-10-15 直接打开那一天
+        if let index = arguments.firstIndex(of: "-day"), index + 1 < arguments.count {
+            model.show(arguments[index + 1])
+        }
         return model
     }
 
     private func start() {
-        try? store.recoverInterrupted()
         // 界面测试不排通知（会弹「允许通知」把界面挡住）
-        remindersOn = !ProcessInfo.processInfo.arguments.contains("-uiTest")
+        // 对照网页版演示数据时（-serverURL）也不排
+        let arguments = ProcessInfo.processInfo.arguments
+        remindersOn = !arguments.contains("-uiTest") && !arguments.contains("-serverURL")
         if remindersOn { Reminders.showWhileOpen() }
-        syncReminders()
-        observeToday()
-        observeChat()
-        let organizer = self.organizer
-        network.pathUpdateHandler = { path in
+        network.pathUpdateHandler = { [weak self] path in
             guard path.status == .satisfied else { return }
-            Task { await organizer.networkCameBack() }
+            Task { @MainActor in await self?.reconnected() }
         }
         network.start(queue: DispatchQueue(label: "pour.network"))
-        Task { await organizer.kick() }
+        listen()
+        Task { await refreshAll() }
     }
 
-    /// 回到前台：过了日界线就换成新的一天；有排着队的原话就接着整理
+    /// 回到前台：重新拿一遍（过了日界线就换成新的一天），没发出去的接着发
     func becameActive() {
-        let now = PourDate.logicalDay(Date(), in: .current)
-        if now != today {
-            // 过了日界线：还在看「今天」的就跟着换成新的今天
-            let wasToday = shownDay == today
-            today = now
-            if wasToday { shownDay = now }
-            observeToday()
+        Task { await reconnected() }
+    }
+
+    private func reconnected() async {
+        await refreshAll()
+        await flushOutbox()
+    }
+
+    // MARK: - 拿数据
+
+    /// 全部重新拿：今天是哪天、类别表、正在看的这一天、对话
+    func refreshAll() async {
+        do {
+            let meta = try await client.meta()
+            if meta.today != today {
+                let wasToday = shownDay == today
+                today = meta.today
+                if wasToday { shownDay = meta.today }
+            }
+            categories = try await client.categories()
+            offline = nil
+        } catch {
+            offline = error.message
+            return
         }
-        syncReminders()
-        Task { await organizer.kick() }
+        await reloadDay()
+        await reloadChat()
     }
 
-    /// 照数据库重排待办的提醒（记录一变就排：新的排上、改了的跟着改、做完删掉的撤掉）
-    private func syncReminders() {
-        guard remindersOn else { return }
-        let items = (try? store.reminders()) ?? []
-        Task { await Reminders.sync(items) }
+    private func reloadDay() async {
+        let target = shownDay
+        do {
+            async let view = client.day(target)
+            async let notes = client.notes(ofDay: target)
+            let (loadedView, loadedNotes) = try await (view, notes)
+            guard target == shownDay else { return }
+            day = loadedView
+            dayNotes = loadedNotes
+            offline = nil
+            noteReminders(loadedView)
+        } catch let error as APIError {
+            offline = error.message
+        } catch {
+            offline = APIError.unreachable.message
+        }
     }
 
-    private func observeChat() {
-        chatObservation?.cancel()
-        let stream = store.observeChat()
-        chatObservation = Task { [weak self] in
-            do {
-                for try await snapshot in stream { self?.chat = snapshot }
-            } catch {
-                Log.error("观察对话出错：\(error.localizedDescription)")
+    private func reloadChat() async {
+        do {
+            let page = try await client.recentNotes(limit: 30)
+            chat = page.notes
+            chatHasMore = page.hasMore ?? false
+        } catch {
+            offline = error.message
+        }
+    }
+
+    /// 对话往上翻：更早的一页
+    func loadEarlierChat() async {
+        guard chatHasMore, let first = chat.first else { return }
+        if let page = try? await client.recentNotes(limit: 30, before: first.id) {
+            chat = page.notes + chat
+            chatHasMore = page.hasMore ?? false
+        }
+    }
+
+    /// 一直听着服务器的推送（网页版 useServerEvents）：变了什么就重新拿什么；断了等一会儿再接
+    private func listen() {
+        events?.cancel()
+        let client = self.client
+        events = Task { [weak self] in
+            while !Task.isCancelled {
+                do {
+                    for try await event in client.events() { await self?.handle(event) }
+                } catch {}
+                try? await Task.sleep(for: .seconds(3))
+                await self?.refreshAll()
             }
         }
     }
 
-    /// 对话里收据后面的「撤销」：撤掉这段话整理出的全部记录，原话留着
-    func undo(note noteId: String) {
-        try? store.undo(noteId)
-    }
-
-    /// 待办打勾、取消打勾
-    func setDone(_ entryId: String, _ done: Bool) {
-        try? store.setDone(entryId, done)
+    /// 每种推送要重新拿哪些（网页版 keysToRefresh）
+    private func handle(_ event: ServerEvent) async {
+        switch event.type {
+        case "notes-changed":
+            if !event.statusOnly, let fresh = try? await client.categories() { categories = fresh }
+            await reloadDay()
+            await reloadChat()
+        case "entries-changed":
+            if let fresh = try? await client.categories() { categories = fresh }
+            await reloadDay()
+        case "summary-changed", "goals-changed":
+            await reloadDay()
+        default:
+            break
+        }
     }
 
     /// 换到某一天看（不能看还没到的日子）
-    func show(_ target: DayString) {
-        let day = min(target, today)
-        guard day != shownDay else { return }
-        shownDay = day
-        observeToday()
+    func show(_ target: String) {
+        let next = min(target, today)
+        guard next != shownDay else { return }
+        shownDay = next
+        day = nil
+        dayNotes = []
+        Task { await reloadDay() }
     }
 
-    private func observeToday() {
-        observation?.cancel()
-        let shown = shownDay
-        let summarizer = self.summarizer
-        Task { await summarizer.ensure(shown) }
-        let stream = store.observe(day: shown)
-        observation = Task { [weak self] in
+    // MARK: - 说一句
+
+    /// 发出去：原话先存在手机上，马上出现在对话里；交给服务器排队整理
+    func send() {
+        let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        draft = ""
+        outbox.append(Outbox(clientId: UUID().uuidString, text: text, createdAt: Date()))
+        saveOutbox()
+        chatOpen = true
+        if shownDay != today { show(today) }
+        Task { await flushOutbox() }
+    }
+
+    /// 把手机上存着的话交给服务器（同一段话带着同一个编号，重发不会记两遍）
+    func flushOutbox() async {
+        for item in outbox {
             do {
-                for try await snapshot in stream { self?.receive(snapshot) }
+                try await client.send(item.text, clientId: item.clientId)
+                outbox.removeAll { $0.clientId == item.clientId }
+                offline = nil
             } catch {
-                Log.error("观察今天的数据出错：\(error.localizedDescription)")
+                if let index = outbox.firstIndex(where: { $0.clientId == item.clientId }) {
+                    outbox[index].failed = error.message
+                }
             }
+            saveOutbox()
         }
+        await reloadChat()
+        await reloadDay()
     }
 
-    /// 新的一天的样子：记录变了就重排提醒、等安静下来重新总结
-    private func receive(_ snapshot: DaySnapshot) {
-        let sameDay = day.day == snapshot.day
-        let recordsChanged = sameDay && day.entries != snapshot.entries
-        day = snapshot
-        if recordsChanged { syncReminders() }
-        // 记录变了：等安静下来重新总结（连着说好几句只总结一次）
-        if recordsChanged {
-            let summarizer = self.summarizer
-            let changed = snapshot.day
-            Task { await summarizer.changed(changed) }
-        }
-        // 整理好以后不弹撤销条：撤销在对话里收据的后面（网页版就是这样）；删掉一条时才有轻提示
+    private static let outboxKey = "pour.outbox"
+
+    private static func loadOutbox() -> [Outbox] {
+        guard let data = UserDefaults.standard.data(forKey: outboxKey) else { return [] }
+        return (try? JSONDecoder().decode([Outbox].self, from: data)) ?? []
     }
 
-    private func show(_ undo: Undoable) {
-        undoable = undo
+    private func saveOutbox() {
+        UserDefaults.standard.set(try? JSONEncoder().encode(outbox), forKey: Self.outboxKey)
+    }
+
+    // MARK: - 改
+
+    /// 对话里收据后面的「撤销」：这段话整理出的记录都撤掉，原话留着
+    func undo(note id: Int) { act { client in try await client.undo(note: id) } }
+
+    /// 没整理成的，点「重试」
+    func retry(note id: Int) { act { client in try await client.retry(note: id) } }
+
+    func confirm(_ entryId: Int) { act { client in try await client.confirm(entry: entryId) } }
+
+    func setDone(_ entryId: Int, _ done: Bool) { act { client in try await client.setDone(entry: entryId, done) } }
+
+    /// 详情里原地改（字段名照网页版：label、start、duration_min、metrics……）
+    func update(_ entryId: Int, _ fields: [String: JSONValue]) {
+        act { client in try await client.update(entry: entryId, fields: fields) }
+    }
+
+    func delete(_ entryId: Int) {
+        detail = nil
+        act { client in try await client.delete(entry: entryId) }
+        undoable = Undoable(entryId: entryId, message: "已删除")
         undoTimer?.cancel()
         undoTimer = Task { [weak self] in
-            try? await Task.sleep(for: Self.undoWindow)
+            try? await Task.sleep(for: .seconds(5))
             guard !Task.isCancelled else { return }
             self?.undoable = nil
         }
     }
 
-    /// 点撤销条上的「撤销」
+    /// 轻提示上的「撤销」：删掉的放回来
     func undo() {
         guard let undo = undoable else { return }
         undoable = nil
         undoTimer?.cancel()
-        switch undo.target {
-        case .note(let id): try? store.undo(id)
-        case .deletedEntry(let id): try? store.restore(id)
-        }
+        act { client in try await client.restore(entry: undo.entryId) }
     }
 
-    // MARK: - 详情里改
-
-    func confirm(_ entryId: String) {
-        try? store.confirm(entryId)
-    }
-
-    func delete(_ entryId: String) {
-        try? store.delete(entryId)
-        detail = nil
-        show(Undoable(target: .deletedEntry(entryId), message: "已删掉 1 件事"))
-    }
-
-    // MARK: - 说一句
-
-    /// 点追问的选项：当作说了这一句（打了一半的草稿留着）
-    func answer(_ text: String) {
-        say(text)
-    }
-
-    /// 发出去：原话马上存下（100 毫秒内出现在「今天」），收起键盘，回到「今天」，排队整理
-    func send() {
-        if say(draft) { draft = "" }
-    }
-
-    @discardableResult
-    private func say(_ raw: String) -> Bool {
-        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return false }
-        do {
-            let note = try store.addNote(text)
-            watching.insert(note.id)
-            lastSent = note.id
-            composing = false
-            chatOpen = true
-            tab = .today
-            // 说的话都在「今天」凝结：在看别的日子就回到今天
-            if note.day != today { today = note.day }
-            if shownDay != note.day {
-                shownDay = note.day
-                observeToday()
+    /// 做一件事，做完重新拿这一天（服务器的推送也会来，这里不等它）
+    private func act(_ work: @escaping @Sendable (APIClient) async throws -> Void) {
+        let client = self.client
+        Task {
+            do {
+                try await work(client)
+            } catch let error as APIError {
+                offline = error.message
+            } catch {
+                offline = APIError.unreachable.message
             }
-            Task { await organizer.kick() }
-            return true
-        } catch {
-            problem = "这段话没存下：\(error.localizedDescription)"
-            return false
+            await reloadDay()
+            await reloadChat()
         }
     }
 
-    /// 没整理成的，点「再试一次」
-    func retry(_ noteId: String) {
-        watching.insert(noteId)
-        try? store.retry(noteId)
-        Task { await organizer.kick() }
+    // MARK: - 提醒
+
+    /// 看到的待办里要提醒的，手机自己排系统通知
+    private func noteReminders(_ view: API.DayView) {
+        guard remindersOn else { return }
+        reminders[view.day] = view.entries.compactMap { entry in
+            guard case .todo(let todo) = entry.data, !todo.done, let time = todo.remindAt else { return nil }
+            return Reminder(id: String(entry.id), content: todo.content, time: time)
+        }
+        let all = reminders.values.flatMap { $0 }
+        Task { await Reminders.sync(all) }
     }
 }
 
-/// 网关在哪：界面测试用假网关（-uiTest）；启动参数 -gatewayURL 可以临时指定；
-/// 真机配对时改过的地址和换来的令牌在钥匙串里；都没有就用 Info.plist 的 PourGatewayURL
-/// （Config/Base.xcconfig 的 POUR_GATEWAY_URL；装到手机时 install-device.sh 换成这台 Mac 在局域网里的名字）。
-/// 模拟器直接连这台 Mac 上的网关（127.0.0.1:5480），不用配对
-enum GatewayConfiguration {
-    static let fallback = "http://127.0.0.1:5480"
-    static let addressKey = "gateway.address"
-    static let tokenKey = "gateway.token"
+/// 服务器在哪：界面测试用假服务器（-uiTest）；启动参数 -serverURL 可以临时指定（对照网页版演示数据时用）；
+/// 设置里改过的地址在钥匙串里；都没有就用 Info.plist 的 PourServerURL
+/// （Config/Base.xcconfig 的 POUR_SERVER_URL；装到手机时 install-device.sh 换成这台 Mac 在局域网里的名字）
+enum ServerConfiguration {
+    static let fallback = "http://127.0.0.1:5188"
+    static let addressKey = "server.address"
 
-    /// 安装时写进 App 的地址
     static var builtIn: URL {
-        let configured = Bundle.main.object(forInfoDictionaryKey: "PourGatewayURL") as? String ?? ""
+        let configured = Bundle.main.object(forInfoDictionaryKey: "PourServerURL") as? String ?? ""
         return URL(string: configured.isEmpty ? fallback : configured) ?? URL(fileURLWithPath: "/")
     }
 
-    /// 现在用的地址：配对时改过的优先
     static var address: URL { Keychain.read(addressKey).flatMap(URL.init(string:)) ?? builtIn }
 
-    static var isPaired: Bool { Keychain.read(tokenKey) != nil }
-
-    static func client(arguments: [String]) -> GatewayClient {
+    static func client(arguments: [String]) -> APIClient {
         #if DEBUG
-            if arguments.contains("-uiTest") { return StubGateway.client() }
+            if arguments.contains("-uiTest") { return StubServer.client() }
         #endif
-        if let index = arguments.firstIndex(of: "-gatewayURL"), index + 1 < arguments.count,
+        if let index = arguments.firstIndex(of: "-serverURL"), index + 1 < arguments.count,
             let url = URL(string: arguments[index + 1])
         {
-            return GatewayClient(baseURL: url)
+            return APIClient(baseURL: url)
         }
-        return GatewayClient { .init(baseURL: address, token: Keychain.read(tokenKey)) }
+        return APIClient(baseURL: address)
     }
 
-    /// 配对成功：记下地址和令牌
-    static func remember(address: URL, token: String) {
+    /// 设置里改了地址
+    static func remember(address: URL) {
         Keychain.save(address.absoluteString, for: addressKey)
-        Keychain.save(token, for: tokenKey)
     }
 }

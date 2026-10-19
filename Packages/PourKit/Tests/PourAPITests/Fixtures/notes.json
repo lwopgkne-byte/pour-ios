@@ -1,0 +1,185 @@
+{
+    "notes": [
+        {
+            "id": 363,
+            "text": "下午三点到四点开了个会",
+            "createdAt": "2026-10-18T09:50:00.000Z",
+            "day": "2026-10-18",
+            "status": "done",
+            "result": {
+                "receipt": [
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 587,
+                        "text": "💼 开会 60 分钟",
+                        "pending": false
+                    }
+                ],
+                "reply": "",
+                "questions": [],
+                "notices": []
+            }
+        },
+        {
+            "id": 364,
+            "text": "5点带儿子去看了场电影 三张票150 整理了一下衣柜 给猫买了一袋猫粮 一百二 带猫去打了疫苗 花了八十",
+            "createdAt": "2026-10-18T13:10:00.000Z",
+            "day": "2026-10-18",
+            "status": "done",
+            "result": {
+                "receipt": [
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 588,
+                        "text": "🎬 看电影 110 分钟 电影票 ¥150 · 在电影院 · 和老婆、儿子",
+                        "pending": false
+                    },
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 589,
+                        "text": "🧹 整理衣柜 40 分钟",
+                        "pending": false
+                    },
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 590,
+                        "text": "🐕 买猫粮 ¥120",
+                        "pending": false
+                    },
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 591,
+                        "text": "🐕 打疫苗 ¥80",
+                        "pending": false
+                    }
+                ],
+                "reply": "",
+                "questions": [],
+                "notices": []
+            }
+        },
+        {
+            "id": 365,
+            "text": "睡前看了42页人类简史 单词背了25分钟 给儿子买了双运动鞋 259 明天上午十点提醒我给客户回电话 晚上楼下飘上来烤红薯的香味 一下子放松了 小王是我同事",
+            "createdAt": "2026-10-18T16:20:00.000Z",
+            "day": "2026-10-18",
+            "status": "done",
+            "result": {
+                "receipt": [
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 592,
+                        "text": "📚 看书 59 分钟 42 页",
+                        "pending": false
+                    },
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 593,
+                        "text": "📚 背单词 25 分钟",
+                        "pending": false
+                    },
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 594,
+                        "text": "🛒 给儿子买运动鞋 ¥259",
+                        "pending": false
+                    },
+                    {
+                        "action": "created",
+                        "kind": "todo",
+                        "entryId": 595,
+                        "text": "📝 待办：给客户回电话（⏰ 10月19日 10:00 提醒）",
+                        "pending": false
+                    },
+                    {
+                        "action": "created",
+                        "kind": "mood",
+                        "entryId": 596,
+                        "text": "💭 心情：挺好 · 放松（AI 推测）",
+                        "pending": false
+                    }
+                ],
+                "reply": "",
+                "questions": [],
+                "notices": [],
+                "learned": [
+                    "「小王」= 同事"
+                ],
+                "advanced": [
+                    "每周背单词 4 次 +1 次"
+                ]
+            }
+        },
+        {
+            "id": 366,
+            "text": "又过了12点才睡 12点20分 早上7点10分起的 今天继续168 早上跑了6.4公里 用了36分钟",
+            "createdAt": "2026-10-19T02:10:00.000Z",
+            "day": "2026-10-19",
+            "status": "done",
+            "result": {
+                "receipt": [
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 597,
+                        "text": "😴 0:20 → 7:10",
+                        "pending": false
+                    },
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 598,
+                        "text": "🍽 16:8 轻断食",
+                        "pending": false
+                    },
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 599,
+                        "text": "🏃 跑步 36 分钟 6.4 公里 · 在小区",
+                        "pending": false
+                    }
+                ],
+                "reply": "",
+                "questions": [],
+                "notices": [],
+                "advanced": [
+                    "今年跑 500 公里 +6.4 公里",
+                    "连续 30 天 16:8 轻断食 连续第 8 天",
+                    "每周运动 3 次 +1 次",
+                    "平均睡眠 7.5 小时"
+                ]
+            }
+        },
+        {
+            "id": 367,
+            "text": "食堂吃的 15",
+            "createdAt": "2026-10-19T07:10:00.000Z",
+            "day": "2026-10-19",
+            "status": "done",
+            "result": {
+                "receipt": [
+                    {
+                        "action": "created",
+                        "kind": "event",
+                        "entryId": 600,
+                        "text": "🍽 食堂午饭 ¥15 · 在公司食堂",
+                        "pending": false
+                    }
+                ],
+                "reply": "",
+                "questions": [],
+                "notices": []
+            }
+        }
+    ],
+    "hasMore": true
+}

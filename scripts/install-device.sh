@@ -36,13 +36,13 @@ echo "${DEVICE_NAME} · iOS ${IOS_VERSION}"
 [[ "${PAIRING}" == "paired" ]] || fail "手机还没信任这台 Mac：看手机屏幕上的「要信任此电脑吗」，点「信任」并输入锁屏密码，再运行一次"
 
 BUILD="$(git rev-list --count HEAD)"
-# 手机在局域网里找这台 Mac 上的网关：用 Mac 的局域网名字（不是秘密，装进 App 没关系；令牌靠配对，不进 App）
-GATEWAY="http://$(scutil --get LocalHostName).local:5480"
+# 手机在局域网里找这台 Mac 上的 Pour 服务器（网页版的服务器，产品主人 2026-10-19 选 B）：用 Mac 的局域网名字
+SERVER="http://$(scutil --get LocalHostName).local:5188"
 step "构建（版本 $(awk -F' = ' '/^MARKETING_VERSION/{print $2}' Config/Base.xcconfig) · 构建 ${BUILD}）"
 xcodegen generate --spec project.yml --quiet
 xcodebuild build -project Pour.xcodeproj -scheme Pour -configuration Debug \
   -destination "id=${UDID}" -derivedDataPath build/DeviceData -allowProvisioningUpdates \
-  CURRENT_PROJECT_VERSION="${BUILD}" POUR_GATEWAY_URL="${GATEWAY}" >build/install-device.log 2>&1 \
+  CURRENT_PROJECT_VERSION="${BUILD}" POUR_SERVER_URL="${SERVER}" >build/install-device.log 2>&1 \
   || { grep -E "error:" build/install-device.log | head -10; fail "构建没成功（完整输出：build/install-device.log）"; }
 
 step "装到手机上"
@@ -54,6 +54,4 @@ if xcrun devicectl device process launch --device "${DEVICE_ID}" "${BUNDLE_ID}" 
 else
   echo "装好了，但没能自动打开：第一次装要在手机上 设置 → 通用 → VPN 与设备管理 里信任开发者，再点开 Pour。"
 fi
-printf '\n✓ 装好了（构建 %s）。整理要连这台 Mac 上的网关：\n' "${BUILD}"
-printf '  1. Mac 上启动网关：cd gateway && POUR_GATEWAY_HOST=0.0.0.0 npm start（会显示 6 位配对码）\n'
-printf '  2. 手机上打开 Pour → 左上角「我」→「连这台 Mac」→ 输配对码（地址已经是 %s）\n' "${GATEWAY}"
+printf '\n✓ 装好了（构建 %s）。手机连的是这台 Mac 上的 Pour 服务器：%s\n' "${BUILD}" "${SERVER}"
