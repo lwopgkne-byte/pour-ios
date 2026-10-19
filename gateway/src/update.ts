@@ -8,7 +8,7 @@ import type { Category, ExistingRecord, Metric, RecordData } from './contract.ts
 import type { DateStr } from './dates.ts'
 import { levelOf } from './mood.ts'
 import type { UpdateItem } from './schemas.ts'
-import { type TimeExpr, logicalDayOf, resolveDateRef, resolveEventTime } from './time.ts'
+import { type LocalDateTime, type TimeExpr, logicalDayOf, resolveDateRef, resolveEventTime, resolveReminder } from './time.ts'
 import { CONFIDENCE_THRESHOLD, rootCategory, rootName } from './rules.ts'
 import { normalizeMoney } from './tidy.ts'
 
@@ -29,7 +29,14 @@ const clockOf = (s: string | undefined) => s?.slice(11)
 /** 人、物、地方：去重，空的不要 */
 const clean = (xs: string[] | undefined) => [...new Set((xs ?? []).map((x) => x.trim()).filter(Boolean))]
 
-export function applyUpdate(record: ExistingRecord, item: UpdateItem, boundary: number, cats: Category[]): Updated {
+export function applyUpdate(
+  record: ExistingRecord,
+  item: UpdateItem,
+  boundary: number,
+  cats: Category[],
+  /** 说这句话的本地时刻：「5 分钟后提醒我」从这里算 */
+  now?: LocalDateTime,
+): Updated {
   const f = item.fields
   let day: DateStr = record.day
   let data: RecordData
@@ -89,10 +96,17 @@ export function applyUpdate(record: ExistingRecord, item: UpdateItem, boundary: 
       break
     case 'todo': {
       const due = f.due ? resolveDateRef(f.due, record.day) : d.due
+      // 说了提醒的时间（回答「想什么时候提醒你？」、「改到 9 点提醒」）：照网页版 resolveReminder 算
+      const remindAt =
+        (f.remind_in_min || f.remind_at) && now
+          ? resolveReminder({ inMin: f.remind_in_min, at: f.remind_at, due: f.due ? due : d.due }, record.day, now, boundary)
+          : undefined
+      const at = remindAt ?? d.remindAt
       data = {
         kind: 'todo',
         content: f.content ?? d.content,
         ...(due ? { due } : {}),
+        ...(at ? { remindAt: at } : {}),
         done: d.done,
         people: clean(f.people ?? d.people),
         things: clean(f.things ?? d.things),

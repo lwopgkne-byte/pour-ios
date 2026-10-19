@@ -44,12 +44,13 @@ let package = Package(
         // 系统能力：通知、后台任务、钥匙串、Face ID（以后）
         .target(name: "PourPlatform", dependencies: ["PourCore", "PourData"], swiftSettings: swiftSettings),
 
-        // 还只是空壳的层（PourPlatform）等有了代码再加测试目标，不写凑数的测试
         .testTarget(name: "PourCoreTests", dependencies: ["PourCore"], swiftSettings: swiftSettings),
         .testTarget(name: "PourDataTests", dependencies: ["PourData", "PourCore"], swiftSettings: swiftSettings),
         .testTarget(
             name: "PourAITests", dependencies: ["PourAI", "PourData", "PourCore"], swiftSettings: swiftSettings),
         .testTarget(name: "PourDesignTests", dependencies: ["PourDesign"], swiftSettings: swiftSettings),
+        .testTarget(
+            name: "PourPlatformTests", dependencies: ["PourPlatform", "PourData"], swiftSettings: swiftSettings),
     ],
     swiftLanguageModes: [.v6]
 )

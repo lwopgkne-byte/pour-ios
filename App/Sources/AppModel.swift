@@ -61,6 +61,8 @@ final class AppModel {
     /// 撤销条留多久（规范 12：5 秒）
     static let undoWindow: Duration = .seconds(5)
     private let network = NWPathMonitor()
+    /// 排不排待办的提醒（界面测试不排）
+    private var remindersOn = false
 
     init(store: PourStore, gateway: GatewayClient) {
         self.store = store
@@ -97,6 +99,10 @@ final class AppModel {
 
     private func start() {
         try? store.recoverInterrupted()
+        // 界面测试不排通知（会弹「允许通知」把界面挡住）
+        remindersOn = !ProcessInfo.processInfo.arguments.contains("-uiTest")
+        if remindersOn { Reminders.showWhileOpen() }
+        syncReminders()
         observeToday()
         let organizer = self.organizer
         network.pathUpdateHandler = { path in
@@ -117,7 +123,15 @@ final class AppModel {
             if wasToday { shownDay = now }
             observeToday()
         }
+        syncReminders()
         Task { await organizer.kick() }
+    }
+
+    /// 照数据库重排待办的提醒（记录一变就排：新的排上、改了的跟着改、做完删掉的撤掉）
+    private func syncReminders() {
+        guard remindersOn else { return }
+        let items = (try? store.reminders()) ?? []
+        Task { await Reminders.sync(items) }
     }
 
     /// 换到某一天看（不能看还没到的日子）
@@ -149,6 +163,7 @@ final class AppModel {
         let sameDay = day.day == snapshot.day
         let recordsChanged = sameDay && day.entries != snapshot.entries
         day = snapshot
+        if recordsChanged { syncReminders() }
         // 记录变了：等安静下来重新总结（连着说好几句只总结一次）
         if recordsChanged {
             let summarizer = self.summarizer

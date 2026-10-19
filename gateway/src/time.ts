@@ -67,6 +67,22 @@ export function clockOnLogicalDay(day: DateStr, clock: number, boundary: number)
   return `${date}T${pad(Math.floor(clock / 60))}:${pad(clock % 60)}`
 }
 
+/**
+ * 提醒的时刻（照网页版 resolveReminder）：「5 分钟后」从说这句话的时刻往后数；「8 点」在 due 那天（没说哪天就是这段话那天），
+ * 没说哪天、那个钟点今天已经过了，就是明天的这个钟点
+ */
+export function resolveReminder(r: { inMin?: number | undefined; at?: string | undefined; due?: DateStr | undefined }, noteDay: DateStr, now: LocalDateTime, boundary: number): LocalDateTime | null {
+  if (r.inMin && r.inMin > 0) return addMinutes(now, Math.round(r.inMin))
+  const clock = parseTime(r.at ?? null)
+  if (clock === null) return null
+  const at = clockOnLogicalDay(r.due ?? noteDay, clock, boundary)
+  return !r.due && at <= now ? addMinutes(at, 24 * 60) : at
+}
+
+/** 提醒时刻写给人看：同一天只写钟点，别的日子带上几月几日（「10月20日 08:00」） */
+export const formatRemindAt = (at: LocalDateTime, day?: DateStr) =>
+  `${day !== undefined && at.slice(0, 10) === day ? '' : `${Number(at.slice(5, 7))}月${Number(at.slice(8, 10))}日 `}${at.slice(11, 16)}`
+
 export interface TimeExpr {
   date?: string | null
   start?: string | null

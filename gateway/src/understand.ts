@@ -27,10 +27,10 @@ import { aliases, backgroundVars } from './describe.ts'
 import type { LlmClient } from './llm.ts'
 import { DISTRESS_REPLY, cleanMoment, directMoodLevel, isDistress, keepEnergy, levelOf, moodWord, toneOfLevel } from './mood.ts'
 import { quickAnswer } from './quick.ts'
-import { isCorrectionCue, mentionsDay, upcomingRelativeDayIn, upcomingWeekdayIn } from './refer.ts'
+import { isCorrectionCue, mentionedDays, mentionsDay, upcomingRelativeDayIn, upcomingWeekdayIn } from './refer.ts'
 import { CONFIDENCE_THRESHOLD, rootCategory, rootName } from './rules.ts'
 import { type CreateItem, ParseOutput, RouterOutput, type UpdateItem } from './schemas.ts'
-import { minutesBetween, resolveDateRef, resolveEventTime } from './time.ts'
+import { formatRemindAt, logicalDayOf, minutesBetween, resolveDateRef, resolveEventTime, resolveReminder } from './time.ts'
 import { tidyEvent } from './tidy.ts'
 import { applyUpdate } from './update.ts'
 
@@ -125,6 +125,34 @@ function compose(o: {
     replyByProgram = reply !== ''
   }
   return { reply, replyByProgram, questions }
+}
+
+/** 要提醒、但没说什么时候：照样记下，问一句（程序写的，每条都一样：一段话里好几条只问一次） */
+/** 早上「今天的安排」的时间（网页版设置的默认值；设置页做出来以后用你定的） */
+const MORNING_TIME = '07:30'
+
+export const REMIND_QUESTION = '想什么时候提醒你？说个时间就行，比如「晚上 9 点」'
+
+/**
+ * 待办的提醒（照网页版 buildEntry）：提醒的日子由程序定——
+ * 只说了钟点、哪天都没说：下一次到这个钟点（晚上说「早上七点提醒我吃药」是明天早上）；
+ * 说了是哪天几点、那个时间却已经过了：不悄悄定在过去，问一句改到什么时候；要提醒、没说什么时候：问一句
+ */
+function todoReminder(item: Extract<CreateItem, { kind: 'todo' }>, aiDue: DateStr | undefined, bg: BackgroundPackage): { at?: string; due?: DateStr; ask?: string } {
+  const noteDay = bg.note.day
+  const now = bg.note.localTime
+  const dayGiven = mentionedDays(`${item.span}\n${bg.note.text}`, noteDay).length > 0
+  const clockOnly = Boolean(item.remind_at) && !dayGiven
+  const asked = resolveReminder({ inMin: item.remind_in_min, at: item.remind_at, due: clockOnly ? undefined : aiDue }, noteDay, now, bg.dayBoundary)
+  // 说了哪天、没说几点：到那天早上「今天的安排」的时间提醒，不再问几点（那个时间已经过了就照样问）
+  const morning = item.remind === true && !asked && aiDue ? resolveReminder({ at: MORNING_TIME, due: aiDue }, noteDay, now, bg.dayBoundary) : null
+  const candidate = asked ?? (morning && morning > now ? morning : null)
+  const passed = candidate !== null && candidate <= now
+  const at = passed ? null : candidate
+  // 要提醒的待办：没说日期就归到提醒的那天
+  const due = clockOnly && at ? logicalDayOf(at, bg.dayBoundary) : (aiDue ?? (at ? logicalDayOf(at, bg.dayBoundary) : undefined))
+  const ask = passed ? `${formatRemindAt(candidate!, noteDay)} 已经过了，改到什么时候提醒你？` : item.remind === true && !at ? REMIND_QUESTION : undefined
+  return { ...(at ? { at } : {}), ...(due ? { due } : {}), ...(ask ? { ask } : {}) }
 }
 
 /** 对话里改心情的字段：那一刻要一字不差在原话里、不是只说了心情；原话没说到精力就不改精力 */
@@ -294,7 +322,7 @@ export function applyItems(
     switch (item.op) {
       case 'update': {
         // 对话里改心情：那一刻同样要一字不差在这段原话里，没说精力的字就不改精力（清空照样可以）
-        const u = applyUpdate(record, record.data.kind === 'mood' ? { ...item, fields: guardedMoodFields(item.fields, text) } : item, bg.dayBoundary, book.all)
+        const u = applyUpdate(record, record.data.kind === 'mood' ? { ...item, fields: guardedMoodFields(item.fields, text) } : item, bg.dayBoundary, book.all, bg.note.localTime)
         // 要动别的日子记下的事的时间、数量，得有根据：意图是纠正、原话明说了是改（「改成」「不是…是」）、说到了那天、
         // 或者就是刚才对话里正在说的那条。都没有，多半是今天又做了同样的事（「进货一共1950」被当成改昨天的进货）：
         // 照今天新的一次记，以前那条不动
@@ -370,7 +398,10 @@ export function newRecord(item: CreateItem, bg: BackgroundPackage, book = new Ca
       : unsure
         ? (item.question ?? '我理解得对吗？')
         : undefined
-  return { day, data, span: item.span, confidence: item.confidence, ...(question ? { question } : {}) }
+  // 要提醒却没说什么时候、说的时间已经过了：问一句（和把握不够的追问合在一起）
+  const ask = item.kind === 'todo' && data.kind === 'todo' ? todoReminder(item, data.due, bg).ask : undefined
+  const asked = ask ? (question ? `${question}还有，${ask}` : ask) : question
+  return { day, data, span: item.span, confidence: item.confidence, ...(asked ? { question: asked } : {}) }
 }
 
 function recordOf(item: CreateItem, bg: BackgroundPackage, book: CategoryBook): { day: DateStr; data: RecordData } {
@@ -430,8 +461,12 @@ function recordOf(item: CreateItem, bg: BackgroundPackage, book: CategoryBook): 
     case 'todo': {
       // 要做的事的日子由程序往后数（照网页版 buildEntry）：「明天」「大后天」程序数；AI 把星期几写成了已经过去的那天，改回还没到的那天
       const said = item.due ? resolveDateRef(item.due, noteDay) : undefined
-      const due = upcomingRelativeDayIn(item.span ?? '', noteDay) ?? (said && said < noteDay ? (upcomingWeekdayIn(item.span ?? '', noteDay) ?? said) : said)
-      return { day: noteDay, data: { kind: 'todo', content: item.content, ...(due ? { due } : {}), done: false, ...mentions(item) } }
+      const aiDue = upcomingRelativeDayIn(item.span ?? '', noteDay) ?? (said && said < noteDay ? (upcomingWeekdayIn(item.span ?? '', noteDay) ?? said) : said)
+      const remind = todoReminder(item, aiDue, bg)
+      return {
+        day: noteDay,
+        data: { kind: 'todo', content: item.content, ...(remind.due ? { due: remind.due } : {}), ...(remind.at ? { remindAt: remind.at } : {}), done: false, ...mentions(item) },
+      }
     }
     case 'mood': {
       // 级别由程序查表；说到很难受的定为很差（M2c 搬网页版的整套说法）；精力只在原话说到时才有；那一刻要一字不差

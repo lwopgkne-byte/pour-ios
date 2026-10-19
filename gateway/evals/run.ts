@@ -303,7 +303,7 @@ function match(expected: ExpectEntry[], actual: Stored[]): [ExpectEntry, Stored 
 const WEB_STAGE = 6
 
 /** 还没搬的能力：这些期望不算对也不算错，数出来 */
-const NOT_PORTED_FIELDS = ['remindAt', 'verdict', 'renqing'] as const
+const NOT_PORTED_FIELDS = ['verdict', 'renqing'] as const
 
 function score(c: Case, intents: string[], phone: Phone): { checks: Check[]; skipped: string[] } {
   const checks: Check[] = []
@@ -370,9 +370,8 @@ function score(c: Case, intents: string[], phone: Phone): { checks: Check[]; ski
     }
     if (exp.money?.for !== undefined || exp.money?.flag !== undefined || exp.money?.flagNot !== undefined || exp.money?.pack !== undefined || exp.money?.kind !== undefined) skipped.push('钱的去向和分类')
     for (const f of NOT_PORTED_FIELDS) if (exp[f] !== undefined) skipped.push(f)
-    // 要提醒、没说什么时候（问一句「想什么时候提醒你？」）是 M4 提醒的能力（能力对照表 6.6）：这一项不算
-    if (exp.status === 'confirm' && exp.kind === 'todo' && c.tags?.includes('提醒')) skipped.push('没说时间的提醒')
-    else if (exp.status) {
+    if (exp.remindAt) eq('time', '提醒', exp.remindAt, d?.remindAt)
+    if (exp.status) {
       const status = r?.question ? 'confirm' : 'ok'
       eq('value', '状态', exp.status, r ? status : undefined)
     }

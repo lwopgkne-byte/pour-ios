@@ -52,7 +52,12 @@ public struct RecordLine: Hashable, Sendable {
             color = "stone"
         case .todo(let todo):
             title = todo.content
-            detail = todo.due.map { "\(PourFormat.dayTitle($0, today: today))前" }
+            // 要提醒的写几点提醒（做完了就不写）；不然写期限
+            if let reminder = todo.remindAt, !todo.done {
+                detail = "\(PourFormat.remindAt(reminder, today: today)) 提醒"
+            } else {
+                detail = todo.due.map { "\(PourFormat.dayTitle($0, today: today))前" }
+            }
             let people = todo.people.filter { !todo.content.contains($0) }
             person = people.isEmpty ? nil : people.joined(separator: "、")
             color = "stone"

@@ -85,17 +85,20 @@ public enum RecordData: Hashable, Sendable {
     public struct Todo: Codable, Hashable, Sendable {
         public var content: String
         public var due: DayString?
+        /// 到点提醒你的时刻（本地钟点）：手机照它排系统通知
+        public var remindAt: LocalDateTime?
         public var done: Bool
         public var people: [String]
         public var things: [String]
         public var places: [String]
 
         public init(
-            content: String, due: DayString? = nil, done: Bool = false, people: [String] = [],
-            things: [String] = [], places: [String] = []
+            content: String, due: DayString? = nil, remindAt: LocalDateTime? = nil, done: Bool = false,
+            people: [String] = [], things: [String] = [], places: [String] = []
         ) {
             self.content = content
             self.due = due
+            self.remindAt = remindAt
             self.done = done
             self.people = people
             self.things = things

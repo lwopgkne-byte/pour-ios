@@ -43,6 +43,12 @@ public enum PourFormat {
     }
 
     /// 日子的大标题：「今天」「昨天」「明天」（待办的期限）；今年的「10月14日」；往年的「2025年10月14日」
+    /// 提醒的时刻：今天的只写钟点（「10:35」），别的日子带上哪天（「明天 08:00」「10月21日 15:00」）
+    public static func remindAt(_ time: LocalDateTime, today: DayString) -> String {
+        let day = String(time.prefix(10))
+        return day == today ? clock(time) : "\(dayTitle(day, today: today)) \(clock(time))"
+    }
+
     public static func dayTitle(_ day: DayString, today: DayString) -> String {
         switch PourDate.diffDays(day, today) {
         case 0: return "今天"

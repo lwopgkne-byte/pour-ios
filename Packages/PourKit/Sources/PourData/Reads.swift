@@ -30,6 +30,19 @@ public struct DaySnapshot: Hashable, Sendable {
     }
 }
 
+/// 一条要提醒的待办：哪条、提醒什么、几点（本地钟点）
+public struct Reminder: Hashable, Sendable {
+    public var id: String
+    public var content: String
+    public var time: LocalDateTime
+
+    public init(id: String, content: String, time: LocalDateTime) {
+        self.id = id
+        self.content = content
+        self.time = time
+    }
+}
+
 extension PourStore {
     public func categories() throws -> [LifeCategory] {
         try writer.read { db in try Self.categories(db) }
@@ -73,6 +86,19 @@ extension PourStore {
                 .filter { !nearIds.contains($0.id) }
                 .sorted { ($0.day, $0.createdAt) < ($1.day, $1.createdAt) }
             return try (near + todos).map { try $0.entry() }
+        }
+    }
+
+    /// 要提醒的待办（还没做完、有提醒时刻的；删掉的不算）：手机照它们排系统通知
+    public func reminders() throws -> [Reminder] {
+        try writer.read { db in
+            try EntryRow.filter(Column("deletedAt") == nil).filter(Column("kind") == "todo")
+                .filter(sql: "json_extract(data, '$.done') = 0 AND json_extract(data, '$.remindAt') IS NOT NULL")
+                .fetchAll(db)
+                .compactMap { row -> Reminder? in
+                    guard case .todo(let todo) = try row.entry().data, let time = todo.remindAt else { return nil }
+                    return Reminder(id: row.id, content: todo.content, time: time)
+                }
         }
     }
 

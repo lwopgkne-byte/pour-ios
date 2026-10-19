@@ -17,6 +17,14 @@ struct FormatTests {
         #expect(PourFormat.clock("2026-10-18T07:05") == "07:05")
     }
 
+    @Test func reminderTimes() {
+        #expect(PourFormat.remindAt("2026-10-18T10:35", today: "2026-10-18") == "10:35")
+        #expect(PourFormat.remindAt("2026-10-19T08:00", today: "2026-10-18") == "明天 08:00")
+        let todo = RecordData.todo(.init(content: "开会", remindAt: "2026-10-18T10:35"))
+        let line = RecordLine(todo, categories: [], said: "2026-10-18T10:30", today: "2026-10-18")
+        #expect(line.detail == "10:35 提醒")
+    }
+
     @Test func dayTitles() {
         #expect(PourFormat.dayTitle("2026-10-18", today: "2026-10-18") == "今天")
         #expect(PourFormat.dayTitle("2026-10-17", today: "2026-10-18") == "昨天")

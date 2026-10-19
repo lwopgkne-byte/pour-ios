@@ -5,7 +5,7 @@
  * v3（M2c）：类别带上颜色和顺序；改动包带上这段话新建的类别（生活领域、AI 提的新活动），手机照着建上
  * v4（M2c）：问了要不要删、在等回答的那几条（awaitingDelete）：改动包里带出来，手机记在这段话上，下一句的对话里带回来——
  *   回答「对」「删吧」时程序直接删这几条，不再问 AI（网页版 awaiting）
- *   后来加的可选字段（不升版本，旧的手机不认也不出错）：replyByProgram
+ *   后来加的可选字段（不升版本，旧的手机不认也不出错）：replyByProgram、待办的 remindAt
  */
 import { z } from 'zod'
 
@@ -63,7 +63,15 @@ export const RecordData = z.discriminatedUnion('kind', [
     ...Mentions,
   }),
   z.object({ kind: z.literal('insight'), title: z.string().min(1), quote: z.string().min(1), tags: z.array(z.string()).default([]) }),
-  z.object({ kind: z.literal('todo'), content: z.string().min(1), due: DateStr.optional(), done: z.boolean().default(false), ...Mentions }),
+  z.object({
+    kind: z.literal('todo'),
+    content: z.string().min(1),
+    due: DateStr.optional(),
+    /** 到点提醒你的时刻（本地钟点）：手机照它排系统通知 */
+    remindAt: LocalDateTime.optional(),
+    done: z.boolean().default(false),
+    ...Mentions,
+  }),
   z.object({
     kind: z.literal('mood'),
     /** 1–5：很差、不太好、一般、挺好、很好（由程序查表定，不是 AI 直接给的数） */

@@ -99,6 +99,20 @@ struct ChangesTests {
         #expect(turns.first?.awaitingDelete == [])
     }
 
+    @Test func remindersAreTheOpenTodosWithATime() throws {
+        let store = try PourStore.inMemory()
+        let note = try store.addNote("5分钟之后叫我开会 买牛奶", at: noon, timeZone: shanghai)
+        try store.apply(
+            NoteChanges(creates: [
+                NewEntry(day: "2026-10-18", data: .todo(.init(content: "开会", remindAt: "2026-10-18T13:05"))),
+                NewEntry(day: "2026-10-18", data: .todo(.init(content: "买牛奶"))),
+                NewEntry(
+                    day: "2026-10-18", data: .todo(.init(content: "交表", remindAt: "2026-10-18T15:00", done: true))),
+            ]), toNote: note.id, package: Data("{}".utf8))
+        #expect(try store.reminders().map(\.content) == ["开会"])
+        #expect(try store.reminders().first?.time == "2026-10-18T13:05")
+    }
+
     @Test func aProgramWrittenReplyIsRemembered() throws {
         let store = try PourStore.inMemory()
         let note = try store.addNote("跑步", at: noon, timeZone: shanghai)

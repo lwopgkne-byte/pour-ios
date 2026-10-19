@@ -63,7 +63,7 @@ export function describeRecordLine(r: ExistingRecord): string {
     case 'insight':
       return `感悟「${d.title}」：${d.quote}${tail}`
     case 'todo':
-      return `待办${d.done ? '（已完成）' : '（未完成）'}：${d.content}${d.due ? `，期限 ${d.due}` : ''}${tail}`
+      return `待办${d.done ? '（已完成）' : '（未完成）'}：${d.content}${d.due ? `，期限 ${d.due}` : ''}${d.remindAt ? `，提醒 ${d.remindAt.replace('T', ' ')}` : ''}${tail}`
     case 'mood':
       return `${describeMoodForAi(d)}${tail}`
   }
