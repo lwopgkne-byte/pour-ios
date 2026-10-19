@@ -17,7 +17,9 @@ xcrun devicectl list devices --json-output "${JSON}" >/dev/null
 DEVICE="$(python3 - "${JSON}" <<'PY'
 import json, sys
 devices = json.load(open(sys.argv[1]))["result"]["devices"]
-phones = [d for d in devices if d.get("hardwareProperties", {}).get("deviceType") == "iPhone"]
+# 只要真机：新的 Xcode 把模拟器也列在这里（reality 是 simulated）
+phones = [d for d in devices if d.get("hardwareProperties", {}).get("deviceType") == "iPhone"
+          and d.get("hardwareProperties", {}).get("reality") == "physical"]
 # 以前配对过的手机拔了线也会列出来（tunnelState 是 unavailable）：只要现在连着的
 connected = [d for d in phones if d.get("connectionProperties", {}).get("tunnelState") != "unavailable"]
 if connected:
