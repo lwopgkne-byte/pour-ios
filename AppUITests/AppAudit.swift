@@ -132,8 +132,9 @@ enum AppAudit {
         }
     }
 
-    /// 输入框上沿到里面的字、按钮的距离（Composer：上下各 4 点、外面再 8 点）
-    private static let barPadding: CGFloat = 12
+    /// 输入框里的字、按钮到整条输入栏上沿那条分隔线的距离（Composer：上下各 4 点、外面再 8 点，再加分隔线上下几点：
+    /// 检查用的模拟器上，压着分隔线的那一行字量出来对比度不够）
+    private static let barPadding: CGFloat = 18
     /// 顶栏 48 点高，菜单按钮 44 点、上下各空 2 点
     private static let headerPadding: CGFloat = 2
 
