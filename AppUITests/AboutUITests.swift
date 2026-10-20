@@ -1,0 +1,94 @@
+import XCTest
+
+/// 关于我（照网页版 1 比 1，2026-10-20）：主页和点进去的几页；跑系统的无障碍审计，截图留给自验收看。
+/// 用假服务器（-uiTest）：网页版演示数据里的关于我
+final class AboutUITests: XCTestCase {
+    override func setUp() {
+        continueAfterFailure = false
+    }
+
+    @MainActor func testAboutHome() throws {
+        let app = open()
+        audit(app, "关于我")
+        app.swipeUp(velocity: .slow)
+        settle()
+        audit(app, "关于我-2")
+        app.swipeUp(velocity: .slow)
+        settle()
+        audit(app, "关于我-3")
+        app.swipeUp(velocity: .slow)
+        settle()
+        audit(app, "关于我-4")
+    }
+
+    @MainActor func testAboutPages() throws {
+        let app = open()
+        // 方块图点一块：那一块生活的那一页
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH '饮食'")).firstMatch.tap()
+        let back = app.buttons["‹ 关于我"]
+        XCTAssertTrue(back.waitForExistence(timeout: 5), "饮食那一页没打开")
+        settle()
+        audit(app, "关于我-饮食")
+        back.tap()
+        // 换个角度看你：心情、人、你说的话
+        for (name, title) in [("mood", "关于我-心情"), ("people", "关于我-人"), ("talk", "关于我-你说的话")] {
+            let card = app.buttons["angle.\(name)"]
+            scroll(app, to: card)
+            card.tap()
+            XCTAssertTrue(back.waitForExistence(timeout: 5), "\(name)那一页没打开")
+            settle()
+            audit(app, title)
+            back.tap()
+            XCTAssertTrue(app.staticTexts["关于我"].waitForExistence(timeout: 5), "没回到关于我")
+        }
+        let year = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '你的 '")).firstMatch
+        scroll(app, to: year)
+        year.tap()
+        XCTAssertTrue(back.waitForExistence(timeout: 5), "你的一年没打开")
+        settle()
+        audit(app, "关于我-一年")
+    }
+
+    @MainActor
+    private func open() -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTest"]
+        app.launch()
+        let menu = app.descendants(matching: .any)["today.menu"]
+        XCTAssertTrue(menu.waitForExistence(timeout: 5), "画布没打开")
+        menu.tap()
+        app.buttons["关于我"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["你的生活由什么组成"].waitForExistence(timeout: 5), "关于我没打开")
+        settle()
+        return app
+    }
+
+    @MainActor
+    private func audit(_ app: XCUIApplication, _ name: String) {
+        let screenshot = app.screenshot()
+        let shot = XCTAttachment(screenshot: screenshot)
+        shot.name = name
+        shot.lifetime = .keepAlways
+        add(shot)
+        if let folder = ProcessInfo.processInfo.environment["POUR_SHOT_DIR"] {
+            try? screenshot.pngRepresentation.write(to: URL(fileURLWithPath: folder).appending(path: "\(name).png"))
+        }
+        XCTAssertNoThrow(try AppAudit.run(app, name: name))
+    }
+
+    /// 往下翻到它能点为止（最多翻 8 次）
+    @MainActor
+    private func scroll(_ app: XCUIApplication, to element: XCUIElement) {
+        // 翻到它能点、而且在输入框上面（压在输入框下面也算「能点」，点到的却是输入框）
+        var tries = 0
+        while !(element.isHittable && element.frame.maxY < app.frame.height * 0.7) && tries < 8 {
+            app.swipeUp(velocity: .slow)
+            tries += 1
+        }
+    }
+
+    @MainActor
+    private func settle() {
+        RunLoop.current.run(until: Date().addingTimeInterval(2))
+    }
+}

@@ -86,6 +86,17 @@ extension API {
             public var points: [ChartPoint]
             public var trend: [Double?]?
             public var target: Double?
+
+            public init(
+                type: String, title: String, unit: String, points: [ChartPoint], trend: [Double?]?, target: Double?
+            ) {
+                self.type = type
+                self.title = title
+                self.unit = unit
+                self.points = points
+                self.trend = trend
+                self.target = target
+            }
         }
 
         public struct Ring: Codable, Hashable, Sendable {
@@ -102,6 +113,12 @@ extension API {
             public var title: String
             public var unit: String
             public var days: [ChartDay]
+
+            public init(title: String, unit: String, days: [ChartDay]) {
+                self.title = title
+                self.unit = unit
+                self.days = days
+            }
         }
 
         public struct Timeline: Codable, Hashable, Sendable {

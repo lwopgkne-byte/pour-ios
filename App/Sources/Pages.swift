@@ -41,7 +41,7 @@ struct PageView: View {
         case .canvas: CanvasView()
         case .review: ReviewPage()
         case .money: MoneyPage()
-        case .about: LaterPage(page: page)
+        case .about: AboutPage()
         case .goals: GoalsPage()
         case .library: LibraryPage()
         case .settings: SettingsPage()

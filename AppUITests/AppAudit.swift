@@ -152,7 +152,9 @@ enum AppAudit {
         // 只有一个表情（卡片标题前的 🏃）：是彩色的图，不是字，量对比度、量截断都没有意义
         if [.contrast, .textClipped].contains(type), !label.isEmpty,
             label.unicodeScalars.allSatisfy({
+                // 一家人 👨‍👩‍👧 这种是几个表情用「零宽连接符」连起来的，连接符和变体选择符也算在表情里
                 $0.properties.isEmojiPresentation || $0.properties.isEmoji && $0.value > 0x238C
+                    || [0x200D, 0xFE0F].contains($0.value)
             })
         {
             return "表情不是字"

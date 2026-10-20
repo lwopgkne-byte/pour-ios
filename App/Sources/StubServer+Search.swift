@@ -6,6 +6,7 @@
         func pageReply(_ method: String, _ path: String) -> Any? {
             goalsReply(method, path) ?? reviewReply(method, path) ?? moneyReply(method, path)
                 ?? libraryReply(method, path) ?? searchReply(method, path)
+                ?? aboutReply(method, path)
         }
 
         /// 搜索：不管搜什么都给网页版演示数据里搜「跑步」的结果（界面测试只看打得开、点得动）
