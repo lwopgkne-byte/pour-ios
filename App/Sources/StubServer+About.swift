@@ -5,7 +5,9 @@
         /// 关于我：从网页版演示数据里拿的主页、说的和做的、时间去向、心情、人、你说的话、你的一年、饮食那一页、看板的数
         /// （日子是演示数据的日子，界面测试只看页面打得开、点得动）
         func aboutReply(_ method: String, _ path: String) -> Any? {
-            if method == "POST", path.hasPrefix("/api/about/") { return ["ok": true] }
+            if method != "GET", path.hasPrefix("/api/about/") || path.hasPrefix("/api/dictionary") {
+                return ["ok": true]
+            }
             guard method == "GET" else { return nil }
             if path.hasPrefix("/api/about/year/") { return AboutStub.json(AboutStub.year) }
             if path.hasPrefix("/api/about/domain/") { return AboutStub.json(AboutStub.domain) }
@@ -17,7 +19,8 @@
     enum AboutStub {
         /// 地址 → 演示数据
         static let pages = [
-            "/api/about/home": home, "/api/about/care": care, "/api/about/mood": mood, "/api/about/people": people,
+            "/api/about": known, "/api/about/home": home, "/api/about/care": care, "/api/about/mood": mood,
+            "/api/about/people": people,
             "/api/about/talk": talk, "/api/board/time": time, "/api/board/metrics": metrics, "/api/board/trend": trend,
             "/api/board/heatmap": heat,
         ]

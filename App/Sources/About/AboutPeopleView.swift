@@ -9,6 +9,7 @@ struct AboutPeopleView: View {
     let navigate: (String) -> Void
     @State private var page: API.MePeoplePage?
     @State private var problem: String?
+    @State private var known = KnownStore()
 
     var body: some View {
         Group {
@@ -22,6 +23,8 @@ struct AboutPeopleView: View {
         }
         .moneyPage()
         .task(id: model.dataVersion) { await load() }
+        .task(id: model.dataVersion) { await known.load(model.client) }
+        .sheet(item: $known.opened) { KnownPeek(store: known, key: $0.id) }
     }
 
     @ViewBuilder private func content(_ page: API.MePeoplePage) -> some View {
@@ -46,6 +49,7 @@ struct AboutPeopleView: View {
                 }
                 MoneyList { ForEach(page.people, id: \.name) { person($0) } }.padding(.top, Web.space4)
             }
+            ReviewSection(title: "Pour 认识的") { KnownPeople(store: known, names: page.people.map(\.name)) }
             if !page.findings.isEmpty { ReviewSection(title: "发现") { MeFindings(findings: page.findings) } }
             if !page.changes.isEmpty {
                 ReviewSection(title: "变化") { MeChanges(changes: page.changes, navigate: navigate) }
@@ -69,8 +73,14 @@ struct AboutPeopleView: View {
             ? "最近一次 \(Show.monthDay(person.lastDay))"
             : (["\(person.days.count) 天", person.doing].filter { !$0.isEmpty }).joined(separator: " · ")
         let pill = person.mood == "better" ? "green" : person.mood == "worse" ? "yellow" : "gray"
-        return MoneyLinkRow(minHeight: Web.space12) {
-            model.open("/library?tag=\(person.name.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "")")
+        // Pour 认识这个人（提到 3 次以上）：点开是依据、关系；还不认识的，去笔记库看和他有关的原话
+        return MoneyLinkRow(minHeight: Web.space12, chevron: !known.has("person:\(person.name)")) {
+            if known.has("person:\(person.name)") {
+                known.open("person:\(person.name)")
+            } else {
+                model.open(
+                    "/library?tag=\(person.name.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "")")
+            }
         } label: {
             HStack(spacing: Web.space3) {
                 VStack(alignment: .leading, spacing: 0) {

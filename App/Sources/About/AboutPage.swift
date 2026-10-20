@@ -71,6 +71,7 @@ private struct AboutHome: View {
     let navigate: (String) -> Void
     @State private var page: API.MeHomePage?
     @State private var care: API.MeCare?
+    @State private var known = KnownStore()
     @State private var problem: String?
 
     var body: some View {
@@ -85,6 +86,8 @@ private struct AboutHome: View {
         }
         .moneyPage()
         .task(id: model.dataVersion) { await load() }
+        .task(id: model.dataVersion) { await known.load(model.client) }
+        .sheet(item: $known.opened) { KnownPeek(store: known, key: $0.id) }
     }
 
     @ViewBuilder private func content(_ page: API.MeHomePage) -> some View {
@@ -122,6 +125,18 @@ private struct AboutHome: View {
                 ReviewSection(title: "你没注意到的变化") { MeChanges(changes: page.changes, navigate: navigate) }
             }
             if let care { MeCareView(care: care) { await load() } }
+            if let about = known.about,
+                !about.sayings.isEmpty || !about.places.isEmpty
+                    || about.people.contains(where: { $0.relation != nil && !$0.titled })
+            {
+                ReviewSection(title: "Pour 认识的") {
+                    VStack(alignment: .leading, spacing: Web.space6) {
+                        KnownPeople(store: known, onlyRelations: true)
+                        KnownPlaces(store: known)
+                        KnownSayings(store: known)
+                    }
+                }
+            }
             if !page.waiting.isEmpty { waiting(page.waiting) }
             yearLink
             MeFoot()

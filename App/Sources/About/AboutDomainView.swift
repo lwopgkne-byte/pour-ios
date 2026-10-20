@@ -10,6 +10,7 @@ struct AboutDomainView: View {
     let navigate: (String) -> Void
     @State private var page: API.MeDomainPage?
     @State private var problem: String?
+    @State private var known = KnownStore()
 
     var body: some View {
         Group {
@@ -23,6 +24,8 @@ struct AboutDomainView: View {
         }
         .moneyPage()
         .task(id: "\(key)-\(model.dataVersion)") { await load() }
+        .task(id: model.dataVersion) { await known.load(model.client) }
+        .sheet(item: $known.opened) { KnownPeek(store: known, key: $0.id) }
     }
 
     @ViewBuilder private func content(_ page: API.MeDomainPage) -> some View {
@@ -60,11 +63,29 @@ struct AboutDomainView: View {
             if let mood = page.mood { ReviewSection(title: "那些日子的心情") { MoodScale(mood: mood, color: page.color) } }
             if !page.quotes.isEmpty { ReviewSection(title: "你说过的话") { MeQuotes(quotes: page.quotes) } }
             DomainTrend(domain: key)
+            knownSection
             if !page.findings.isEmpty { ReviewSection(title: "发现") { MeFindings(findings: page.findings) } }
             if !page.changes.isEmpty {
                 ReviewSection(title: "变化") { MeChanges(changes: page.changes, navigate: navigate) }
             }
             MeFoot()
+        }
+    }
+
+    /// Pour 认识的：作息（睡眠那一页）、这个领域里常做的事；都没有就不出现
+    @ViewBuilder private var knownSection: some View {
+        let about = known.about
+        let habits =
+            about?.habits.contains { $0.domain == key } == true
+            || about?.hidden.contains { $0.block == "habits" && $0.domain == key } == true
+        let sleep = key == "sleep" && (about?.sleep != nil || about?.hidden.contains { $0.block == "sleep" } == true)
+        if habits || sleep {
+            ReviewSection(title: "Pour 认识的") {
+                VStack(alignment: .leading, spacing: Web.space6) {
+                    if key == "sleep" { KnownSleep(store: known) }
+                    KnownHabits(store: known, domain: key)
+                }
+            }
         }
     }
 

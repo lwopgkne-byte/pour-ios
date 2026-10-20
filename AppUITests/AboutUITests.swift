@@ -49,6 +49,27 @@ final class AboutUITests: XCTestCase {
         audit(app, "关于我-一年")
     }
 
+    /// Pour 认识的：点一个说法看从哪学来的；人那一页点一个认识的人
+    @MainActor func testKnown() throws {
+        let app = open()
+        let saying = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '老地方 = '")).firstMatch
+        scroll(app, to: saying)
+        saying.tap()
+        XCTAssertTrue(app.staticTexts["从哪学来的"].waitForExistence(timeout: 5), "说法的详情没打开")
+        settle()
+        expandSheet(app)
+        audit(app, "关于我-一个说法")
+    }
+
+    /// 底部弹出的详情拉到全屏再审：半屏的那一层系统画得略小一点（约 96%），审计量字的大小会以为字被截了
+    @MainActor
+    private func expandSheet(_ app: XCUIApplication) {
+        let title = app.staticTexts["从哪学来的"].firstMatch
+        title.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(
+            forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
+        settle()
+    }
+
     @MainActor
     private func open() -> XCUIApplication {
         let app = XCUIApplication()

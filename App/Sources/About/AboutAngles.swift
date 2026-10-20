@@ -206,6 +206,6 @@ struct MeCareView: View {
     /// 「其中 5 小时在周末」；周末不到两成就不说（shared weekendNote）
     static func weekendNote(_ row: API.CareRow) -> String {
         guard let minutes = row.minutes, minutes > 0, let weekend = row.weekendMinutes else { return "" }
-        return weekend / minutes >= 0.2 ? "其中 \(Show.minutes(Int(weekend)))在周末" : ""
+        return weekend / minutes >= 0.2 ? "其中 \(Show.durationCn(Int(weekend)))在周末" : ""
     }
 }
