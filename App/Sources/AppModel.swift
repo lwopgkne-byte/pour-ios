@@ -274,6 +274,7 @@ final class AppModel {
     /// 打开网页版的一个地址（对话里的回顾、周报月报链接）：换到那一页，收起对话
     func open(_ path: String) {
         if path.hasPrefix("/review") { page = .review }
+        if path.hasPrefix("/money") { page = .money }
         if path.hasPrefix("/about") { page = .about }
         if path.hasPrefix("/settings") { page = .settings }
         pagePath = path

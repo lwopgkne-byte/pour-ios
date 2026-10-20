@@ -86,7 +86,7 @@
             private mutating func basic(_ method: String, _ url: URL, _ body: [String: Any]) -> Reply? {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
                 if let value = settingsReply(method, url.path, body) ?? goalsReply(method, url.path)
-                    ?? reviewReply(method, url.path)
+                    ?? reviewReply(method, url.path) ?? moneyReply(method, url.path)
                 {
                     return ok(value)
                 }

@@ -52,6 +52,11 @@ extension API.Metric {
         if let from { fields["from"] = .string(from) }
         if settled == true { fields["settled"] = .bool(true) }
         if monthly == true { fields["monthly"] = .bool(true) }
+        if let pack { fields["pack"] = .number(pack) }
+        if ended == true { fields["ended"] = .bool(true) }
+        if let returned {
+            fields["returned"] = .object(["amount": .number(returned.amount), "why": .string(returned.why)])
+        }
         return .object(fields)
     }
 
@@ -94,7 +99,7 @@ private struct EventFields: View {
                     validate: notNumber
                 ) { text in if let minutes = Double(text) { save(["duration_min": .number(minutes)]) } }
             }
-            ForEach(Array((event.metrics ?? []).enumerated()), id: \.offset) { _, metric in
+            ForEach(Array((event.metrics ?? []).enumerated()), id: \.offset) { index, metric in
                 let label = metric.item.map { "\(metric.name)（\($0)）" } ?? metric.name
                 PeekRow(label: label) {
                     InlineEdit(
@@ -104,7 +109,9 @@ private struct EventFields: View {
                         if let value = Double(text) { save(["metrics": .array([metric.json(value: value)])]) }
                     }
                 }
+                MetricMoneyRows(entry: entry, event: event, metric: metric, index: index)
             }
+            EventMoneyRows(entry: entry, event: event)
             MentionRows(
                 values: [
                     .people: event.people ?? [], .things: event.things ?? [], .places: event.places ?? [],

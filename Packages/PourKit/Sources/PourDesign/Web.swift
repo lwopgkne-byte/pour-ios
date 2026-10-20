@@ -91,6 +91,16 @@ public enum Web {
     public static let title = pingfang(26, .title, .bold)
     /// 回顾里的关键数字：一页唯一的焦点（网页版 text-display，手机 28）
     public static let displaySemibold = pingfang(28, .largeTitle, .semibold)
+    /// 「钱」那个大数（网页版 money-big：text-display、粗体）
+    public static let displayBold = pingfang(28, .largeTitle, .bold)
+    /// 「花在哪」小方块里的钱
+    public static let sectionBold = pingfang(18, .title3, .bold)
+    /// 你说的原话（值不值、借钱时怎么说的）：宋体，和网页版 --font-serif 一样
+    public static let quote = Font.custom("Songti SC", size: 16, relativeTo: .body)
+    /// 「你怎么说它」那句原话：宋体、小节那么大
+    public static let quoteSection = Font.custom("Songti SC", size: 18, relativeTo: .title3)
+    /// 人情往来里你当时的原话：宋体、小一号
+    public static let quoteCaption = Font.custom("Songti SC", size: 13, relativeTo: .footnote)
     public static let section = pingfang(18, .title3)
     /// 小节标题（设置页的「大模型」「类别」，详情的标题）
     public static let sectionSemibold = pingfang(18, .title3, .semibold)

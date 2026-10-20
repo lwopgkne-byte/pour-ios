@@ -40,7 +40,7 @@ struct PageView: View {
         switch page {
         case .canvas: CanvasView()
         case .review: ReviewPage()
-        case .money: LaterPage(page: page)
+        case .money: MoneyPage()
         case .about: LaterPage(page: page)
         case .goals: GoalsPage()
         case .library: LaterPage(page: page)

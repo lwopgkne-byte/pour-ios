@@ -4,8 +4,8 @@ import PourAPI
 /// 对一个目标的操作（网页版 goals/use-goal-actions.ts）：确认、标记完成、原地修改、调整某个月、添加、删除（可撤销）
 extension AppModel {
     /// 打开一条记录的详情；day 是它是哪一天的（不是画布正在看的那天时，详情自己去拿那一天）
-    func openEntry(_ id: Int, day: String?) {
-        detail = .init(id: id, day: day == shownDay ? nil : day)
+    func openEntry(_ id: Int, day: String?, fixed: FixedPay? = nil) {
+        detail = .init(id: id, day: day == shownDay ? nil : day, fixed: fixed)
     }
 
     /// 打开目标详情；记录详情开着就先收起它（网页版：从记录详情点相关目标，记录详情关掉、目标详情打开）
