@@ -24,7 +24,8 @@ public struct PourFlowLayout: Layout {
             var x = bounds.minX
             for item in row.items {
                 let origin = CGPoint(x: x, y: y + (row.height - item.size.height) / 2)
-                subviews[item.index].place(at: origin, proposal: ProposedViewSize(item.size))
+                // 高度不卡死：字号调大时字可以往下长，不被截
+                subviews[item.index].place(at: origin, proposal: ProposedViewSize(width: item.size.width, height: nil))
                 x += item.size.width + spacing
             }
             y += row.height + lineSpacing

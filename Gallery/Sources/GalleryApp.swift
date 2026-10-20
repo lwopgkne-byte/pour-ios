@@ -44,7 +44,7 @@ struct GalleryHome: View {
                 } header: {
                     GalleryHeader("样张")
                 } footer: {
-                    GalleryHeader("用网页版演示数据里那个人 \(Sample.shared.day) 真实的一天。亮色、暗色在系统设置里切换。")
+                    GalleryHeader("用演示数据里那个人 \(Sample.shared.day) 真实的一天。亮色、暗色在系统设置里切换。")
                 }
 
                 Section(header: GalleryHeader("设计规范")) {

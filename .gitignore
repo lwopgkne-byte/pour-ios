@@ -27,3 +27,11 @@ Secrets.xcconfig
 
 # Python 的缓存
 __pycache__/
+
+# AI 网关（gateway/）的依赖：npm install 装的，不提交
+node_modules/
+# 配好的真机令牌：只在这台 Mac 上
+gateway/.paired.json
+
+# 评测结果：每次跑一份，不进仓库（结论写进自验收报告）
+gateway/evals/results/

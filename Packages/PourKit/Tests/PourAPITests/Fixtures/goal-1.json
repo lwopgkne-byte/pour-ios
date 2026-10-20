@@ -1,0 +1,1334 @@
+{
+    "title": "今年跑 500 公里",
+    "kind": "quantity",
+    "period": "year",
+    "start": "2026-09-15",
+    "end": "2026-12-31",
+    "calc": "sum",
+    "direction": "gte",
+    "target": 500,
+    "unit": "公里",
+    "binding": {
+        "category": "run",
+        "metric": "value",
+        "metricUnit": "公里"
+    },
+    "id": 1,
+    "parentId": null,
+    "status": "active",
+    "createdAt": "2026-09-15T02:05:00.000Z",
+    "range": {
+        "from": "2026-09-15",
+        "to": "2026-12-31"
+    },
+    "rangeLabel": "9月15日–12月31日",
+    "progress": {
+        "target": 500,
+        "unit": "公里",
+        "ended": false,
+        "daysLeft": 74,
+        "tone": "bad",
+        "pct": 0.2038,
+        "actual": 101.9,
+        "expected": 157.4074074074074,
+        "diff": -55.507407407407385,
+        "diffRatio": -0.35263529411764694,
+        "reached": false,
+        "prediction": {
+            "kind": "too_slow",
+            "percentAtEnd": 0.6240714285714286
+        },
+        "headline": "已完成 101.9 公里 · 落后 35%"
+    },
+    "overLocked": false,
+    "monthRows": [
+        {
+            "key": "2026-09",
+            "label": "9 月",
+            "range": {
+                "from": "2026-09-15",
+                "to": "2026-09-30"
+            },
+            "target": 74.07407407407408,
+            "locked": false,
+            "current": false,
+            "progress": {
+                "target": 74.07407407407408,
+                "unit": "公里",
+                "ended": true,
+                "daysLeft": 0,
+                "tone": "none",
+                "pct": 0.6641999999999999,
+                "actual": 49.199999999999996,
+                "expected": 74.07407407407408,
+                "diff": -24.87407407407408,
+                "diffRatio": -0.3358000000000001,
+                "reached": false,
+                "prediction": {
+                    "kind": "none"
+                },
+                "headline": "已完成 49.2 公里 · 落后 34%"
+            },
+            "weeks": [
+                {
+                    "key": "2026-09-15",
+                    "label": "9月15日–9月20日",
+                    "range": {
+                        "from": "2026-09-15",
+                        "to": "2026-09-20"
+                    },
+                    "target": 27.77777777777778,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 27.77777777777778,
+                        "unit": "公里",
+                        "ended": true,
+                        "daysLeft": 0,
+                        "tone": "none",
+                        "pct": 0.5364,
+                        "actual": 14.899999999999999,
+                        "expected": 27.777777777777782,
+                        "diff": -12.877777777777784,
+                        "diffRatio": -0.4636000000000001,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "已完成 14.9 公里 · 落后 46%"
+                    }
+                },
+                {
+                    "key": "2026-09-21",
+                    "label": "9月21日–9月27日",
+                    "range": {
+                        "from": "2026-09-21",
+                        "to": "2026-09-27"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": true,
+                        "daysLeft": 0,
+                        "tone": "none",
+                        "pct": 0.7282285714285716,
+                        "actual": 23.6,
+                        "expected": 32.407407407407405,
+                        "diff": -8.807407407407403,
+                        "diffRatio": -0.27177142857142844,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "已完成 23.6 公里 · 落后 27%"
+                    }
+                },
+                {
+                    "key": "2026-09-28",
+                    "label": "9月28日–9月30日",
+                    "range": {
+                        "from": "2026-09-28",
+                        "to": "2026-09-30"
+                    },
+                    "target": 13.88888888888889,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 13.88888888888889,
+                        "unit": "公里",
+                        "ended": true,
+                        "daysLeft": 0,
+                        "tone": "none",
+                        "pct": 0.7704,
+                        "actual": 10.7,
+                        "expected": 13.888888888888891,
+                        "diff": -3.1888888888888918,
+                        "diffRatio": -0.22960000000000017,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "已完成 10.7 公里 · 落后 23%"
+                    }
+                }
+            ]
+        },
+        {
+            "key": "2026-10",
+            "label": "10 月",
+            "range": {
+                "from": "2026-10-01",
+                "to": "2026-10-31"
+            },
+            "target": 143.5185185185185,
+            "locked": false,
+            "current": true,
+            "progress": {
+                "target": 143.5185185185185,
+                "unit": "公里",
+                "ended": false,
+                "daysLeft": 13,
+                "tone": "bad",
+                "pct": 0.3672,
+                "actual": 52.699999999999996,
+                "expected": 83.33333333333333,
+                "diff": -30.633333333333333,
+                "diffRatio": -0.36760000000000004,
+                "reached": false,
+                "prediction": {
+                    "kind": "too_slow",
+                    "percentAtEnd": 0.5822709677419355
+                },
+                "headline": "已完成 52.7 公里 · 落后 37%"
+            },
+            "weeks": [
+                {
+                    "key": "2026-10-01",
+                    "label": "10月1日–10月4日",
+                    "range": {
+                        "from": "2026-10-01",
+                        "to": "2026-10-04"
+                    },
+                    "target": 18.518518518518515,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 18.518518518518515,
+                        "unit": "公里",
+                        "ended": true,
+                        "daysLeft": 0,
+                        "tone": "none",
+                        "pct": 0.4482000000000001,
+                        "actual": 8.3,
+                        "expected": 18.518518518518515,
+                        "diff": -10.218518518518515,
+                        "diffRatio": -0.5517999999999998,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "已完成 8.3 公里 · 落后 55%"
+                    }
+                },
+                {
+                    "key": "2026-10-05",
+                    "label": "10月5日–10月11日",
+                    "range": {
+                        "from": "2026-10-05",
+                        "to": "2026-10-11"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": true,
+                        "daysLeft": 0,
+                        "tone": "none",
+                        "pct": 0.45051428571428576,
+                        "actual": 14.6,
+                        "expected": 32.407407407407405,
+                        "diff": -17.807407407407403,
+                        "diffRatio": -0.5494857142857142,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "已完成 14.6 公里 · 落后 55%"
+                    }
+                },
+                {
+                    "key": "2026-10-12",
+                    "label": "10月12日–10月18日",
+                    "range": {
+                        "from": "2026-10-12",
+                        "to": "2026-10-18"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": true,
+                        "daysLeft": 0,
+                        "tone": "none",
+                        "pct": 0.7220571428571428,
+                        "actual": 23.4,
+                        "expected": 32.407407407407405,
+                        "diff": -9.007407407407406,
+                        "diffRatio": -0.2779428571428571,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "none"
+                        },
+                        "headline": "已完成 23.4 公里 · 落后 28%"
+                    }
+                },
+                {
+                    "key": "2026-10-19",
+                    "label": "10月19日–10月25日",
+                    "range": {
+                        "from": "2026-10-19",
+                        "to": "2026-10-25"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": true,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 7,
+                        "tone": "good",
+                        "pct": 0.19748571428571432,
+                        "actual": 6.4,
+                        "expected": 0,
+                        "diff": 6.4,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 6.4 公里 · 还差 26 公里"
+                    }
+                },
+                {
+                    "key": "2026-10-26",
+                    "label": "10月26日–10月31日",
+                    "range": {
+                        "from": "2026-10-26",
+                        "to": "2026-10-31"
+                    },
+                    "target": 27.77777777777778,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 27.77777777777778,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 6,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 27.8 公里"
+                    }
+                }
+            ]
+        },
+        {
+            "key": "2026-11",
+            "label": "11 月",
+            "range": {
+                "from": "2026-11-01",
+                "to": "2026-11-30"
+            },
+            "target": 138.88888888888889,
+            "locked": false,
+            "current": false,
+            "progress": {
+                "target": 138.88888888888889,
+                "unit": "公里",
+                "ended": false,
+                "daysLeft": 30,
+                "tone": "idle",
+                "pct": 0,
+                "actual": 0,
+                "expected": 0,
+                "diff": 0,
+                "diffRatio": 0,
+                "reached": false,
+                "prediction": {
+                    "kind": "not_enough"
+                },
+                "headline": "已完成 0 公里 · 刚开始"
+            },
+            "weeks": [
+                {
+                    "key": "2026-11-01",
+                    "label": "11月1日",
+                    "range": {
+                        "from": "2026-11-01",
+                        "to": "2026-11-01"
+                    },
+                    "target": 4.62962962962963,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 4.62962962962963,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 1,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 4.6 公里"
+                    }
+                },
+                {
+                    "key": "2026-11-02",
+                    "label": "11月2日–11月8日",
+                    "range": {
+                        "from": "2026-11-02",
+                        "to": "2026-11-08"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 7,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 32.4 公里"
+                    }
+                },
+                {
+                    "key": "2026-11-09",
+                    "label": "11月9日–11月15日",
+                    "range": {
+                        "from": "2026-11-09",
+                        "to": "2026-11-15"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 7,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 32.4 公里"
+                    }
+                },
+                {
+                    "key": "2026-11-16",
+                    "label": "11月16日–11月22日",
+                    "range": {
+                        "from": "2026-11-16",
+                        "to": "2026-11-22"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 7,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 32.4 公里"
+                    }
+                },
+                {
+                    "key": "2026-11-23",
+                    "label": "11月23日–11月29日",
+                    "range": {
+                        "from": "2026-11-23",
+                        "to": "2026-11-29"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 7,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 32.4 公里"
+                    }
+                },
+                {
+                    "key": "2026-11-30",
+                    "label": "11月30日",
+                    "range": {
+                        "from": "2026-11-30",
+                        "to": "2026-11-30"
+                    },
+                    "target": 4.62962962962963,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 4.62962962962963,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 1,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 4.6 公里"
+                    }
+                }
+            ]
+        },
+        {
+            "key": "2026-12",
+            "label": "12 月",
+            "range": {
+                "from": "2026-12-01",
+                "to": "2026-12-31"
+            },
+            "target": 143.5185185185185,
+            "locked": false,
+            "current": false,
+            "progress": {
+                "target": 143.5185185185185,
+                "unit": "公里",
+                "ended": false,
+                "daysLeft": 31,
+                "tone": "idle",
+                "pct": 0,
+                "actual": 0,
+                "expected": 0,
+                "diff": 0,
+                "diffRatio": 0,
+                "reached": false,
+                "prediction": {
+                    "kind": "not_enough"
+                },
+                "headline": "已完成 0 公里 · 刚开始"
+            },
+            "weeks": [
+                {
+                    "key": "2026-12-01",
+                    "label": "12月1日–12月6日",
+                    "range": {
+                        "from": "2026-12-01",
+                        "to": "2026-12-06"
+                    },
+                    "target": 27.77777777777778,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 27.77777777777778,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 6,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 27.8 公里"
+                    }
+                },
+                {
+                    "key": "2026-12-07",
+                    "label": "12月7日–12月13日",
+                    "range": {
+                        "from": "2026-12-07",
+                        "to": "2026-12-13"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 7,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 32.4 公里"
+                    }
+                },
+                {
+                    "key": "2026-12-14",
+                    "label": "12月14日–12月20日",
+                    "range": {
+                        "from": "2026-12-14",
+                        "to": "2026-12-20"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 7,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 32.4 公里"
+                    }
+                },
+                {
+                    "key": "2026-12-21",
+                    "label": "12月21日–12月27日",
+                    "range": {
+                        "from": "2026-12-21",
+                        "to": "2026-12-27"
+                    },
+                    "target": 32.407407407407405,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 32.407407407407405,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 7,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 32.4 公里"
+                    }
+                },
+                {
+                    "key": "2026-12-28",
+                    "label": "12月28日–12月31日",
+                    "range": {
+                        "from": "2026-12-28",
+                        "to": "2026-12-31"
+                    },
+                    "target": 18.518518518518515,
+                    "locked": false,
+                    "current": false,
+                    "progress": {
+                        "target": 18.518518518518515,
+                        "unit": "公里",
+                        "ended": false,
+                        "daysLeft": 4,
+                        "tone": "good",
+                        "pct": 0,
+                        "actual": 0,
+                        "expected": 0,
+                        "diff": 0,
+                        "diffRatio": 0,
+                        "reached": false,
+                        "prediction": {
+                            "kind": "not_enough"
+                        },
+                        "headline": "已完成 0 公里 · 还差 18.5 公里"
+                    }
+                }
+            ]
+        }
+    ],
+    "series": [
+        {
+            "day": "2026-09-15",
+            "actual": 0,
+            "expected": 4.62962962962963
+        },
+        {
+            "day": "2026-09-16",
+            "actual": 5.7,
+            "expected": 9.25925925925926
+        },
+        {
+            "day": "2026-09-17",
+            "actual": 5.7,
+            "expected": 13.88888888888889
+        },
+        {
+            "day": "2026-09-18",
+            "actual": 5.7,
+            "expected": 18.51851851851852
+        },
+        {
+            "day": "2026-09-19",
+            "actual": 14.899999999999999,
+            "expected": 23.14814814814815
+        },
+        {
+            "day": "2026-09-20",
+            "actual": 14.899999999999999,
+            "expected": 27.77777777777778
+        },
+        {
+            "day": "2026-09-21",
+            "actual": 20.299999999999997,
+            "expected": 32.407407407407405
+        },
+        {
+            "day": "2026-09-22",
+            "actual": 26.299999999999997,
+            "expected": 37.03703703703704
+        },
+        {
+            "day": "2026-09-23",
+            "actual": 33,
+            "expected": 41.66666666666667
+        },
+        {
+            "day": "2026-09-24",
+            "actual": 33,
+            "expected": 46.2962962962963
+        },
+        {
+            "day": "2026-09-25",
+            "actual": 33,
+            "expected": 50.925925925925924
+        },
+        {
+            "day": "2026-09-26",
+            "actual": 38.5,
+            "expected": 55.55555555555556
+        },
+        {
+            "day": "2026-09-27",
+            "actual": 38.5,
+            "expected": 60.18518518518519
+        },
+        {
+            "day": "2026-09-28",
+            "actual": 43.9,
+            "expected": 64.81481481481481
+        },
+        {
+            "day": "2026-09-29",
+            "actual": 43.9,
+            "expected": 69.44444444444444
+        },
+        {
+            "day": "2026-09-30",
+            "actual": 49.199999999999996,
+            "expected": 74.07407407407408
+        },
+        {
+            "day": "2026-10-01",
+            "actual": 49.199999999999996,
+            "expected": 78.70370370370371
+        },
+        {
+            "day": "2026-10-02",
+            "actual": 49.199999999999996,
+            "expected": 83.33333333333333
+        },
+        {
+            "day": "2026-10-03",
+            "actual": 57.5,
+            "expected": 87.96296296296296
+        },
+        {
+            "day": "2026-10-04",
+            "actual": 57.5,
+            "expected": 92.5925925925926
+        },
+        {
+            "day": "2026-10-05",
+            "actual": 57.5,
+            "expected": 97.22222222222223
+        },
+        {
+            "day": "2026-10-06",
+            "actual": 57.5,
+            "expected": 101.85185185185185
+        },
+        {
+            "day": "2026-10-07",
+            "actual": 63.9,
+            "expected": 106.48148148148148
+        },
+        {
+            "day": "2026-10-08",
+            "actual": 63.9,
+            "expected": 111.11111111111111
+        },
+        {
+            "day": "2026-10-09",
+            "actual": 63.9,
+            "expected": 115.74074074074073
+        },
+        {
+            "day": "2026-10-10",
+            "actual": 72.1,
+            "expected": 120.37037037037037
+        },
+        {
+            "day": "2026-10-11",
+            "actual": 72.1,
+            "expected": 125
+        },
+        {
+            "day": "2026-10-12",
+            "actual": 78.89999999999999,
+            "expected": 129.62962962962962
+        },
+        {
+            "day": "2026-10-13",
+            "actual": 78.89999999999999,
+            "expected": 134.25925925925927
+        },
+        {
+            "day": "2026-10-14",
+            "actual": 85.6,
+            "expected": 138.88888888888889
+        },
+        {
+            "day": "2026-10-15",
+            "actual": 85.6,
+            "expected": 143.5185185185185
+        },
+        {
+            "day": "2026-10-16",
+            "actual": 85.6,
+            "expected": 148.14814814814815
+        },
+        {
+            "day": "2026-10-17",
+            "actual": 95.5,
+            "expected": 152.77777777777777
+        },
+        {
+            "day": "2026-10-18",
+            "actual": 95.5,
+            "expected": 157.4074074074074
+        },
+        {
+            "day": "2026-10-19",
+            "actual": 101.9,
+            "expected": 162.03703703703704
+        },
+        {
+            "day": "2026-10-20",
+            "actual": null,
+            "expected": 166.66666666666666
+        },
+        {
+            "day": "2026-10-21",
+            "actual": null,
+            "expected": 171.2962962962963
+        },
+        {
+            "day": "2026-10-22",
+            "actual": null,
+            "expected": 175.92592592592592
+        },
+        {
+            "day": "2026-10-23",
+            "actual": null,
+            "expected": 180.55555555555554
+        },
+        {
+            "day": "2026-10-24",
+            "actual": null,
+            "expected": 185.1851851851852
+        },
+        {
+            "day": "2026-10-25",
+            "actual": null,
+            "expected": 189.8148148148148
+        },
+        {
+            "day": "2026-10-26",
+            "actual": null,
+            "expected": 194.44444444444446
+        },
+        {
+            "day": "2026-10-27",
+            "actual": null,
+            "expected": 199.07407407407408
+        },
+        {
+            "day": "2026-10-28",
+            "actual": null,
+            "expected": 203.7037037037037
+        },
+        {
+            "day": "2026-10-29",
+            "actual": null,
+            "expected": 208.33333333333331
+        },
+        {
+            "day": "2026-10-30",
+            "actual": null,
+            "expected": 212.96296296296293
+        },
+        {
+            "day": "2026-10-31",
+            "actual": null,
+            "expected": 217.59259259259258
+        },
+        {
+            "day": "2026-11-01",
+            "actual": null,
+            "expected": 222.2222222222222
+        },
+        {
+            "day": "2026-11-02",
+            "actual": null,
+            "expected": 226.85185185185185
+        },
+        {
+            "day": "2026-11-03",
+            "actual": null,
+            "expected": 231.48148148148147
+        },
+        {
+            "day": "2026-11-04",
+            "actual": null,
+            "expected": 236.1111111111111
+        },
+        {
+            "day": "2026-11-05",
+            "actual": null,
+            "expected": 240.74074074074073
+        },
+        {
+            "day": "2026-11-06",
+            "actual": null,
+            "expected": 245.37037037037035
+        },
+        {
+            "day": "2026-11-07",
+            "actual": null,
+            "expected": 250
+        },
+        {
+            "day": "2026-11-08",
+            "actual": null,
+            "expected": 254.62962962962962
+        },
+        {
+            "day": "2026-11-09",
+            "actual": null,
+            "expected": 259.25925925925924
+        },
+        {
+            "day": "2026-11-10",
+            "actual": null,
+            "expected": 263.88888888888886
+        },
+        {
+            "day": "2026-11-11",
+            "actual": null,
+            "expected": 268.51851851851853
+        },
+        {
+            "day": "2026-11-12",
+            "actual": null,
+            "expected": 273.14814814814815
+        },
+        {
+            "day": "2026-11-13",
+            "actual": null,
+            "expected": 277.77777777777777
+        },
+        {
+            "day": "2026-11-14",
+            "actual": null,
+            "expected": 282.4074074074074
+        },
+        {
+            "day": "2026-11-15",
+            "actual": null,
+            "expected": 287.037037037037
+        },
+        {
+            "day": "2026-11-16",
+            "actual": null,
+            "expected": 291.66666666666663
+        },
+        {
+            "day": "2026-11-17",
+            "actual": null,
+            "expected": 296.2962962962963
+        },
+        {
+            "day": "2026-11-18",
+            "actual": null,
+            "expected": 300.9259259259259
+        },
+        {
+            "day": "2026-11-19",
+            "actual": null,
+            "expected": 305.55555555555554
+        },
+        {
+            "day": "2026-11-20",
+            "actual": null,
+            "expected": 310.18518518518516
+        },
+        {
+            "day": "2026-11-21",
+            "actual": null,
+            "expected": 314.8148148148148
+        },
+        {
+            "day": "2026-11-22",
+            "actual": null,
+            "expected": 319.44444444444446
+        },
+        {
+            "day": "2026-11-23",
+            "actual": null,
+            "expected": 324.0740740740741
+        },
+        {
+            "day": "2026-11-24",
+            "actual": null,
+            "expected": 328.7037037037037
+        },
+        {
+            "day": "2026-11-25",
+            "actual": null,
+            "expected": 333.3333333333333
+        },
+        {
+            "day": "2026-11-26",
+            "actual": null,
+            "expected": 337.96296296296293
+        },
+        {
+            "day": "2026-11-27",
+            "actual": null,
+            "expected": 342.5925925925926
+        },
+        {
+            "day": "2026-11-28",
+            "actual": null,
+            "expected": 347.2222222222222
+        },
+        {
+            "day": "2026-11-29",
+            "actual": null,
+            "expected": 351.85185185185185
+        },
+        {
+            "day": "2026-11-30",
+            "actual": null,
+            "expected": 356.48148148148147
+        },
+        {
+            "day": "2026-12-01",
+            "actual": null,
+            "expected": 361.1111111111111
+        },
+        {
+            "day": "2026-12-02",
+            "actual": null,
+            "expected": 365.7407407407407
+        },
+        {
+            "day": "2026-12-03",
+            "actual": null,
+            "expected": 370.3703703703704
+        },
+        {
+            "day": "2026-12-04",
+            "actual": null,
+            "expected": 375
+        },
+        {
+            "day": "2026-12-05",
+            "actual": null,
+            "expected": 379.6296296296296
+        },
+        {
+            "day": "2026-12-06",
+            "actual": null,
+            "expected": 384.25925925925924
+        },
+        {
+            "day": "2026-12-07",
+            "actual": null,
+            "expected": 388.88888888888886
+        },
+        {
+            "day": "2026-12-08",
+            "actual": null,
+            "expected": 393.5185185185185
+        },
+        {
+            "day": "2026-12-09",
+            "actual": null,
+            "expected": 398.14814814814815
+        },
+        {
+            "day": "2026-12-10",
+            "actual": null,
+            "expected": 402.77777777777777
+        },
+        {
+            "day": "2026-12-11",
+            "actual": null,
+            "expected": 407.4074074074074
+        },
+        {
+            "day": "2026-12-12",
+            "actual": null,
+            "expected": 412.037037037037
+        },
+        {
+            "day": "2026-12-13",
+            "actual": null,
+            "expected": 416.66666666666663
+        },
+        {
+            "day": "2026-12-14",
+            "actual": null,
+            "expected": 421.2962962962963
+        },
+        {
+            "day": "2026-12-15",
+            "actual": null,
+            "expected": 425.92592592592587
+        },
+        {
+            "day": "2026-12-16",
+            "actual": null,
+            "expected": 430.55555555555554
+        },
+        {
+            "day": "2026-12-17",
+            "actual": null,
+            "expected": 435.18518518518516
+        },
+        {
+            "day": "2026-12-18",
+            "actual": null,
+            "expected": 439.8148148148148
+        },
+        {
+            "day": "2026-12-19",
+            "actual": null,
+            "expected": 444.44444444444446
+        },
+        {
+            "day": "2026-12-20",
+            "actual": null,
+            "expected": 449.074074074074
+        },
+        {
+            "day": "2026-12-21",
+            "actual": null,
+            "expected": 453.7037037037037
+        },
+        {
+            "day": "2026-12-22",
+            "actual": null,
+            "expected": 458.3333333333333
+        },
+        {
+            "day": "2026-12-23",
+            "actual": null,
+            "expected": 462.96296296296293
+        },
+        {
+            "day": "2026-12-24",
+            "actual": null,
+            "expected": 467.5925925925926
+        },
+        {
+            "day": "2026-12-25",
+            "actual": null,
+            "expected": 472.2222222222222
+        },
+        {
+            "day": "2026-12-26",
+            "actual": null,
+            "expected": 476.85185185185185
+        },
+        {
+            "day": "2026-12-27",
+            "actual": null,
+            "expected": 481.48148148148147
+        },
+        {
+            "day": "2026-12-28",
+            "actual": null,
+            "expected": 486.1111111111111
+        },
+        {
+            "day": "2026-12-29",
+            "actual": null,
+            "expected": 490.7407407407407
+        },
+        {
+            "day": "2026-12-30",
+            "actual": null,
+            "expected": 495.3703703703703
+        },
+        {
+            "day": "2026-12-31",
+            "actual": null,
+            "expected": 500
+        }
+    ],
+    "prediction": "按最近的速度，到期末大约完成 62%",
+    "contributions": [
+        {
+            "entryId": 599,
+            "day": "2026-10-19",
+            "text": "🏃 跑步 36 分钟 6.4 公里 · 在小区",
+            "value": 6.4
+        },
+        {
+            "entryId": 574,
+            "day": "2026-10-17",
+            "text": "🏃 跑步 61 分钟 9.9 公里 · 在滨江步道",
+            "value": 9.9
+        },
+        {
+            "entryId": 536,
+            "day": "2026-10-14",
+            "text": "🏃 跑步 38 分钟 6.7 公里 · 在小区",
+            "value": 6.7
+        },
+        {
+            "entryId": 512,
+            "day": "2026-10-12",
+            "text": "🏃 跑步 38 分钟 6.8 公里 · 在小区",
+            "value": 6.8
+        },
+        {
+            "entryId": 487,
+            "day": "2026-10-10",
+            "text": "🏃 跑步 47 分钟 8.2 公里 · 在滨江步道",
+            "value": 8.2
+        },
+        {
+            "entryId": 449,
+            "day": "2026-10-07",
+            "text": "🏃 跑步 37 分钟 6.4 公里 · 在小区",
+            "value": 6.4
+        },
+        {
+            "entryId": 409,
+            "day": "2026-10-03",
+            "text": "🏃 跑步 47 分钟 8.3 公里 · 在滨江步道",
+            "value": 8.3
+        },
+        {
+            "entryId": 373,
+            "day": "2026-09-30",
+            "text": "🏃 跑步 31 分钟 5.3 公里 · 在小区",
+            "value": 5.3
+        },
+        {
+            "entryId": 347,
+            "day": "2026-09-28",
+            "text": "🏃 跑步 33 分钟 5.4 公里 · 在小区",
+            "value": 5.4
+        },
+        {
+            "entryId": 325,
+            "day": "2026-09-26",
+            "text": "🏃 跑步 32 分钟 5.5 公里 · 在滨江步道",
+            "value": 5.5
+        },
+        {
+            "entryId": 290,
+            "day": "2026-09-23",
+            "text": "🏃 跑步 39 分钟 6.7 公里 · 在小区",
+            "value": 6.7
+        },
+        {
+            "entryId": 281,
+            "day": "2026-09-22",
+            "text": "🏃 跑步 35 分钟 6 公里",
+            "value": 6
+        },
+        {
+            "entryId": 269,
+            "day": "2026-09-21",
+            "text": "🏃 跑步 32 分钟 5.4 公里 · 在小区",
+            "value": 5.4
+        },
+        {
+            "entryId": 245,
+            "day": "2026-09-19",
+            "text": "🏃 跑步 56 分钟 9.2 公里 · 在滨江步道",
+            "value": 9.2
+        },
+        {
+            "entryId": 212,
+            "day": "2026-09-16",
+            "text": "🏃 跑步 35 分钟 5.7 公里 · 在小区",
+            "value": 5.7
+        }
+    ]
+}

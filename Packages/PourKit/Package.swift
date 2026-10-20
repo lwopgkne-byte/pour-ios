@@ -1,5 +1,5 @@
 // swift-tools-version: 6.2
-// Pour 的分层代码包（docs/03-架构与开发方案.md 第 6.1 节）。
+// Pour 的分层代码包（docs/归档/03-架构与开发方案.md 第 6.1 节）。
 // 每一层只能依赖下面「dependencies」里写明的层：没写的，import 了也编译不过——依赖方向靠编译器守住。
 // scripts/check-deps.py 再核对一遍这张表和 6.1 节一致（功能包之间不许互相依赖、不许有没写进 ADR 的第三方库）。
 
@@ -22,22 +22,41 @@ let package = Package(
         .library(name: "PourAI", targets: ["PourAI"]),
         .library(name: "PourDesign", targets: ["PourDesign"]),
         .library(name: "PourPlatform", targets: ["PourPlatform"]),
+        .library(name: "PourAPI", targets: ["PourAPI"]),
+    ],
+    // 第三方库：每一个都先写进 ADR（A18），scripts/check-deps.py 核对
+    dependencies: [
+        // 本机数据库（ADR A05）：MIT 许可证；钉在一个版本上，升级先看更新说明、跑全部数据测试
+        .package(url: "https://github.com/groue/GRDB.swift.git", exact: "7.11.1")
     ],
     targets: [
         // 领域：规则和计算、格式化。只用 Foundation
         .target(name: "PourCore", swiftSettings: swiftSettings),
-        // 数据：表结构、迁移、仓储、同步（M2 起）
-        .target(name: "PourData", dependencies: ["PourCore"], swiftSettings: swiftSettings),
+        // 数据：表结构、迁移、仓储、同步（M2 起）。预置类别放在 Resources/categories.json（网关的测试也读它）
+        .target(
+            name: "PourData",
+            dependencies: ["PourCore", .product(name: "GRDB", package: "GRDB.swift")],
+            resources: [.process("Resources")],
+            swiftSettings: swiftSettings),
         // AI：网关客户端、理解服务、问答、端侧语音和向量（M2 起）
         .target(name: "PourAI", dependencies: ["PourCore", "PourData"], swiftSettings: swiftSettings),
         // 设计系统：令牌、组件。只用 SwiftUI，不认识业务
         .target(name: "PourDesign", swiftSettings: swiftSettings),
         // 系统能力：通知、后台任务、钥匙串、Face ID（以后）
         .target(name: "PourPlatform", dependencies: ["PourCore", "PourData"], swiftSettings: swiftSettings),
+        // 服务器的接口（产品主人 2026-10-19 选 B：业务规则和 AI 用 Pour 服务器，手机只做界面）：只用系统框架
+        .target(name: "PourAPI", dependencies: ["PourCore"], swiftSettings: swiftSettings),
 
-        // 还只是空壳的层（PourData、PourAI、PourPlatform）等有了代码再加测试目标，不写凑数的测试
         .testTarget(name: "PourCoreTests", dependencies: ["PourCore"], swiftSettings: swiftSettings),
+        .testTarget(name: "PourDataTests", dependencies: ["PourData", "PourCore"], swiftSettings: swiftSettings),
+        .testTarget(
+            name: "PourAITests", dependencies: ["PourAI", "PourData", "PourCore"], swiftSettings: swiftSettings),
         .testTarget(name: "PourDesignTests", dependencies: ["PourDesign"], swiftSettings: swiftSettings),
+        .testTarget(
+            name: "PourAPITests", dependencies: ["PourAPI"], resources: [.copy("Fixtures")],
+            swiftSettings: swiftSettings),
+        .testTarget(
+            name: "PourPlatformTests", dependencies: ["PourPlatform", "PourData"], swiftSettings: swiftSettings),
     ],
     swiftLanguageModes: [.v6]
 )

@@ -4,7 +4,7 @@ public import SwiftUI
     import UIKit
 #endif
 
-/// 动效令牌（docs/设计规范/07-动效与触感.md 第 1 节）：动效表达因果和去向，不炫技、可打断、能关掉。
+/// 动效令牌（docs/归档/设计规范/07-动效与触感.md 第 1 节）：动效表达因果和去向，不炫技、可打断、能关掉。
 public enum PourMotion {
     /// 按下的回应
     public static let instant: Double = 0.1

@@ -1,0 +1,535 @@
+{
+    "review": {
+        "day": "2026-10-18",
+        "numbers": [
+            {
+                "key": "sleep",
+                "label": "睡眠",
+                "parts": [
+                    {
+                        "n": "8",
+                        "u": "小时"
+                    },
+                    {
+                        "n": "20",
+                        "u": "分"
+                    }
+                ],
+                "text": "8 小时 20 分",
+                "compare": "和平常的周末差不多",
+                "notable": false
+            },
+            {
+                "key": "focus",
+                "label": "专注",
+                "parts": [
+                    {
+                        "n": "2",
+                        "u": "小时"
+                    },
+                    {
+                        "n": "24",
+                        "u": "分"
+                    }
+                ],
+                "text": "2 小时 24 分",
+                "compare": "比平常的周末多 1 小时 30 分钟",
+                "notable": true
+            },
+            {
+                "key": "mood",
+                "label": "心情",
+                "parts": [
+                    {
+                        "n": "有起有落",
+                        "u": ""
+                    }
+                ],
+                "text": "有起有落",
+                "compare": "比平常的周末差一些",
+                "notable": true
+            }
+        ],
+        "entries": [
+            {
+                "id": 581,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "sleep",
+                "data": {
+                    "label": "睡觉",
+                    "start": "2026-10-18T00:20",
+                    "end": "2026-10-18T08:40",
+                    "durationMin": 500
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 582,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "diet",
+                "data": {
+                    "label": "16:8 轻断食"
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 583,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "c-09897138",
+                "data": {
+                    "label": "量血压",
+                    "metrics": [
+                        {
+                            "name": "收缩压",
+                            "value": 130,
+                            "unit": "mmHg"
+                        },
+                        {
+                            "name": "舒张压",
+                            "value": 83,
+                            "unit": "mmHg"
+                        }
+                    ]
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 584,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "c-09897138",
+                "data": {
+                    "label": "称体重",
+                    "metrics": [
+                        {
+                            "name": "体重",
+                            "value": 70.8,
+                            "unit": "公斤"
+                        }
+                    ]
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 585,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "work",
+                "data": {
+                    "label": "改方案"
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 586,
+                "day": "2026-10-18",
+                "kind": "mood",
+                "category": "mood",
+                "data": {
+                    "mood": 2,
+                    "emotions": [
+                        "烦躁"
+                    ],
+                    "tone": "bad",
+                    "strength": "medium",
+                    "moment": "下午方案被改了三遍"
+                },
+                "confidence": 0.75,
+                "status": "ok"
+            },
+            {
+                "id": 587,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "work",
+                "data": {
+                    "label": "开会",
+                    "start": "2026-10-19T03:00",
+                    "end": "2026-10-19T04:00",
+                    "durationMin": 60
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 588,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "c-c916946f",
+                "data": {
+                    "label": "看电影",
+                    "people": [
+                        "老婆",
+                        "儿子"
+                    ],
+                    "places": [
+                        "电影院"
+                    ],
+                    "start": "2026-10-18T17:00",
+                    "end": "2026-10-18T18:50",
+                    "durationMin": 110,
+                    "metrics": [
+                        {
+                            "name": "花费",
+                            "value": 150,
+                            "unit": "元",
+                            "item": "电影票"
+                        }
+                    ]
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 589,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "c-b7328bba",
+                "data": {
+                    "label": "整理衣柜",
+                    "durationMin": 40
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 590,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "c-f4b9b270",
+                "data": {
+                    "label": "买猫粮",
+                    "metrics": [
+                        {
+                            "name": "花费",
+                            "value": 120,
+                            "unit": "元"
+                        }
+                    ],
+                    "tags": [
+                        "囤货"
+                    ]
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 591,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "c-f4b9b270",
+                "data": {
+                    "label": "打疫苗",
+                    "metrics": [
+                        {
+                            "name": "花费",
+                            "value": 80,
+                            "unit": "元"
+                        }
+                    ],
+                    "tags": [
+                        "健康管理"
+                    ]
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 592,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "study",
+                "data": {
+                    "label": "看书",
+                    "durationMin": 59,
+                    "things": [
+                        "《人类简史》"
+                    ],
+                    "metrics": [
+                        {
+                            "name": "页数",
+                            "value": 42,
+                            "unit": "页"
+                        }
+                    ]
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 593,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "study",
+                "data": {
+                    "label": "背单词",
+                    "durationMin": 25
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 594,
+                "day": "2026-10-18",
+                "kind": "event",
+                "category": "c-84f6a689",
+                "data": {
+                    "label": "给儿子买运动鞋",
+                    "people": [
+                        "儿子"
+                    ],
+                    "things": [
+                        "运动鞋"
+                    ],
+                    "metrics": [
+                        {
+                            "name": "花费",
+                            "value": 259,
+                            "unit": "元",
+                            "for": "儿子"
+                        }
+                    ]
+                },
+                "confidence": 0.9,
+                "status": "ok"
+            },
+            {
+                "id": 595,
+                "day": "2026-10-18",
+                "kind": "todo",
+                "category": "todo",
+                "data": {
+                    "content": "给客户回电话",
+                    "done": false,
+                    "due": "2026-10-19",
+                    "remindAt": "2026-10-19T10:00",
+                    "people": [
+                        "客户"
+                    ]
+                },
+                "confidence": 0.95,
+                "status": "ok"
+            },
+            {
+                "id": 596,
+                "day": "2026-10-18",
+                "kind": "mood",
+                "category": "mood",
+                "data": {
+                    "mood": 4,
+                    "emotions": [
+                        "放松"
+                    ],
+                    "tone": "good",
+                    "strength": "medium",
+                    "moment": "晚上楼下飘上来烤红薯的香味"
+                },
+                "confidence": 0.75,
+                "status": "ok"
+            }
+        ],
+        "groups": [
+            {
+                "key": "diet",
+                "emoji": "🍽",
+                "name": "饮食",
+                "items": [
+                    {
+                        "entryId": 582,
+                        "text": "16:8 轻断食"
+                    }
+                ]
+            },
+            {
+                "key": "study",
+                "emoji": "📚",
+                "name": "学习",
+                "items": [
+                    {
+                        "entryId": 592,
+                        "text": "看书 42 页 · 59 分钟"
+                    },
+                    {
+                        "entryId": 593,
+                        "text": "背单词 · 25 分钟"
+                    }
+                ]
+            },
+            {
+                "key": "work",
+                "emoji": "💼",
+                "name": "工作",
+                "items": [
+                    {
+                        "entryId": 585,
+                        "text": "改方案"
+                    },
+                    {
+                        "entryId": 587,
+                        "text": "开会 · 1 小时"
+                    }
+                ]
+            },
+            {
+                "key": "c-09897138",
+                "emoji": "🩺",
+                "name": "健康",
+                "items": [
+                    {
+                        "entryId": 583,
+                        "text": "量血压 收缩压 130 mmHg、舒张压 83 mmHg"
+                    },
+                    {
+                        "entryId": 584,
+                        "text": "称体重 70.8 公斤"
+                    }
+                ]
+            },
+            {
+                "key": "c-84f6a689",
+                "emoji": "🛒",
+                "name": "购物",
+                "items": [
+                    {
+                        "entryId": 594,
+                        "text": "给儿子买运动鞋 ¥259"
+                    }
+                ]
+            },
+            {
+                "key": "c-b7328bba",
+                "emoji": "🧹",
+                "name": "家务",
+                "items": [
+                    {
+                        "entryId": 589,
+                        "text": "整理衣柜 · 40 分钟"
+                    }
+                ]
+            },
+            {
+                "key": "c-c916946f",
+                "emoji": "🎬",
+                "name": "娱乐",
+                "items": [
+                    {
+                        "entryId": 588,
+                        "text": "看电影 电影票 ¥150 · 1 小时 50 分钟 · 在电影院 · 和老婆、儿子"
+                    }
+                ]
+            },
+            {
+                "key": "c-f4b9b270",
+                "emoji": "🐕",
+                "name": "宠物",
+                "items": [
+                    {
+                        "entryId": 590,
+                        "text": "买猫粮 ¥120"
+                    },
+                    {
+                        "entryId": 591,
+                        "text": "打疫苗 ¥80"
+                    }
+                ]
+            }
+        ],
+        "goals": [
+            {
+                "id": 2,
+                "title": "连续 30 天 16:8 轻断食",
+                "tone": "good",
+                "pct": 0.23333333333333334,
+                "headline": "连续 7 天 · 最长 13 天",
+                "delta": "连续第 7 天",
+                "category": "diet"
+            },
+            {
+                "id": 5,
+                "title": "平均睡眠 7.5 小时",
+                "tone": "warn",
+                "pct": 0.9682539682539683,
+                "headline": "实际 7.3 小时 · 差 0.2 小时",
+                "delta": "当天 8.3 小时",
+                "category": "sleep"
+            },
+            {
+                "id": 7,
+                "title": "体重降到 69.5 公斤",
+                "tone": "warn",
+                "pct": 0.9740714786264892,
+                "headline": "实际 71.4 公斤 · 多 1.8 公斤",
+                "delta": "当天 70.8 公斤",
+                "category": "c-09897138"
+            },
+            {
+                "id": 9,
+                "title": "每周背单词 4 次",
+                "tone": "good",
+                "pct": 1,
+                "headline": "已完成 5 次 · 已达成",
+                "delta": "+1 次",
+                "category": "study"
+            }
+        ],
+        "moods": [
+            {
+                "entryId": 586,
+                "mood": 2,
+                "emotions": [
+                    "烦躁"
+                ],
+                "moment": "下午方案被改了三遍",
+                "at": "16:20"
+            },
+            {
+                "entryId": 596,
+                "mood": 4,
+                "emotions": [
+                    "放松"
+                ],
+                "moment": "晚上楼下飘上来烤红薯的香味",
+                "at": "21:50"
+            }
+        ],
+        "insights": [],
+        "open": {
+            "todos": [
+                {
+                    "entryId": 595,
+                    "content": "给客户回电话"
+                }
+            ],
+            "pending": []
+        },
+        "today": {
+            "todos": [
+                "给客户回电话",
+                "交水费（本来是 10月17日 周六 要做的）"
+            ],
+            "goals": [
+                "「今年跑 500 公里」还差 398.1 公里，还剩 74 天，平均每天 5.4 公里（落后 35%）",
+                "「连续 30 天 16:8 轻断食」已经连续 8 天，今天做到就是第 9 天",
+                "「每周运动 3 次」这周还差 2 次，还剩 7 天",
+                "「平均睡眠 7.5 小时」这周平均 6.8 小时，剩下的天里平均每天要 7.6 小时"
+            ]
+        },
+        "notes": 5,
+        "overview": "睡了 8 小时 20 分，16:8 轻断食，看书 42 页，背单词。",
+        "observation": "专注 2 小时 24 分，比平常的周末多 1 小时 30 分钟。",
+        "updated": false
+    },
+    "messageId": 83,
+    "read": false,
+    "prev": "2026-10-17",
+    "next": null,
+    "weekly": "2026-10-12"
+}

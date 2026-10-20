@@ -1,6 +1,6 @@
 public import SwiftUI
 
-// 柱和横条（docs/设计规范/09-数据可视化.md）：对比横条、一周七天。从 Charts.swift 分出来（文件太长）
+// 柱和横条（docs/归档/设计规范/09-数据可视化.md）：对比横条、一周七天。从 Charts.swift 分出来（文件太长）
 
 // MARK: - 对比横条（2.5，发现卡）
 

@@ -1,6 +1,6 @@
 """
 Pour 的原始色板：按 OKLCH 色彩空间的亮度阶梯生成，并按 WCAG 2.2 公式实测对比度。
-设计规范 docs/设计规范/01-颜色.md 里的每个色值都来自这里，不手调十六进制。
+设计规范 docs/归档/设计规范/01-颜色.md 里的每个色值都来自这里，不手调十六进制。
 
 用法：python3 scripts/palette.py [输出的 json 路径，默认 scripts/palette.json]
       python3 scripts/palette.py --swift          重新生成 PourDesign 的原始色板（PourPalette.swift）

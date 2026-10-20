@@ -31,8 +31,10 @@ line_length:
   ignores_urls: true
 
 identifier_name:
-  # xs / sm / md / lg 是设计规范 06 的圆角令牌名
-  excluded: [id, x, y, r, g, b, xs, sm, md, lg]
+  # xs / sm / md / lg 是设计规范 06 的圆角令牌名；db 是 GRDB 惯用的数据库参数名（ADR A05）
+  # bg / fg 是 Web 令牌的名字（底色、字色）
+  # at / ok / to 是服务器接口里的字段名（什么时候、成没成、到哪天）：PourAPI 照原样解码，字段名一字不差
+  excluded: [id, x, y, r, g, b, xs, sm, md, lg, db, bg, fg, at, ok, to]
 
 nesting:
   type_level: 2

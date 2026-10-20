@@ -1,4 +1,4 @@
-# iOS 检查（docs/07-代码管理与发布.md）：在一台干净的 Mac 上从头生成工程、跑 scripts/check.sh。
+# iOS 检查（docs/归档/07-代码管理与发布.md）：在一台干净的 Mac 上从头生成工程、跑 scripts/check.sh。
 # 只在「合并请求进 main」和手动触发时跑：私有仓库的 macOS 分钟按 10 倍计，平时靠本机的推送前检查。只改文档的不跑。
 # 加入苹果开发者计划后，按原方案换成 Xcode Cloud（构建 → 测试 → TestFlight）。
 name: iOS 检查

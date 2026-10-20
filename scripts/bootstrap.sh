@@ -1,6 +1,6 @@
 #!/bin/bash
 # 在 Mac 上一键准备好开发环境。可以重复运行，已经装好的会跳过。
-#   1. 检查 Xcode   2. 装工具（Brewfile）   3. 启用推送前检查   4. 这台电脑的签名团队   5. 生成 Xcode 工程
+#   1. 检查 Xcode   2. 装工具（Brewfile）   3. 启用推送前检查   4. 这台电脑的签名团队   5. 生成 Xcode 工程、装网关的依赖
 # 用法：在仓库根目录运行 scripts/bootstrap.sh
 set -euo pipefail
 
@@ -19,7 +19,7 @@ XCODE_VERSION="$(xcodebuild -version | awk 'NR==1{print $2}')"
 xcodebuild -checkFirstLaunchStatus || fail "Xcode 还没完成第一次启动：打开一次 Xcode，等它装完组件"
 echo "Xcode ${XCODE_VERSION} ✓"
 
-step "2/5 装工具（XcodeGen、SwiftLint）"
+step "2/5 装工具（XcodeGen、SwiftLint、Node）"
 command -v brew >/dev/null || fail "没找到 Homebrew：先按 https://brew.sh 的一行命令装上"
 brew bundle --file Brewfile --quiet
 echo "XcodeGen $(xcodegen --version | awk '{print $2}') · SwiftLint $(swiftlint version) ✓"
@@ -44,8 +44,10 @@ else
   fi
 fi
 
-step "5/5 生成 Xcode 工程"
+step "5/5 生成 Xcode 工程、装网关的依赖"
 xcodegen generate --spec project.yml --quiet
 echo "Pour.xcodeproj ✓"
+(cd gateway && npm ci --silent)
+echo "网关的依赖 ✓（启动网关：cd gateway && npm run dev；密钥写在 gateway/.env，照 .env.example）"
 
 printf '\n✓ 环境准备好了（%d 秒）。\n  检查：scripts/check.sh\n  打开工程：open Pour.xcodeproj\n' $((SECONDS - START))

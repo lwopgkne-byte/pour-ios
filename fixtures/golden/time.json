@@ -1,5 +1,5 @@
 {
- "说明": "对拍的标准答案：网页版规则在这些输入上的输出。由 scripts/export-golden.ts 生成，不要手改。",
+ "说明": "对拍的标准答案：服务器的规则在这些输入上的输出。由 scripts/export-golden.ts 生成，不要手改。",
  "source": "shared/src/time.ts",
  "timeZone": "Asia/Shanghai",
  "cases": {

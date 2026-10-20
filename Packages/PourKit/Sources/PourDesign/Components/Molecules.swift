@@ -1,6 +1,6 @@
 public import SwiftUI
 
-// 分子组件（docs/设计规范/08-组件.md「分子」）。只认识显示用的值，不认识业务。
+// 分子组件（docs/归档/设计规范/08-组件.md「分子」）。只认识显示用的值，不认识业务。
 
 // MARK: - 倾倒栏（全 App 最重要的组件）
 
@@ -111,6 +111,58 @@ public struct PourBar: View {
     }
 }
 
+/// 倾倒栏（打字时）：真的能输入，和 PourBar 的「输入中」同一个样子——玻璃、圆角变大、最多长到 6 行。
+/// 没字时发送是灰的（录音在 M3 接上）。占位只说「说点什么」：空闲的栏上已经给过完整的例子
+public struct PourInputBar: View {
+    @Binding var text: String
+    let isFocused: FocusState<Bool>.Binding
+    let onSend: () -> Void
+
+    public init(text: Binding<String>, isFocused: FocusState<Bool>.Binding, onSend: @escaping () -> Void) {
+        _text = text
+        self.isFocused = isFocused
+        self.onSend = onSend
+    }
+
+    private var canSend: Bool { !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+
+    public var body: some View {
+        HStack(alignment: .bottom, spacing: PourSpace.related) {
+            TextField(
+                text: $text, prompt: Text("说点什么").foregroundStyle(PourColor.inkSecondary.color), axis: .vertical
+            ) { Text("说点什么") }
+            .pourText(.body)
+            .foregroundStyle(PourColor.ink.color)
+            .lineLimit(1...6)
+            .focused(isFocused)
+            .frame(minHeight: PourSize.minTap)
+            .accessibilityIdentifier("pourbar.input")
+            Button {
+                PourHaptic.send.play()
+                onSend()
+            } label: {
+                Image(systemName: "arrow.up")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(PourColor.onAction.color)
+                    .frame(width: PourSize.sendButton, height: PourSize.sendButton)
+                    .background(Circle().fill((canSend ? PourColor.action : PourColor.inkDisabled).color))
+                    .frame(minWidth: PourSize.minTap, minHeight: PourSize.minTap)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!canSend)
+            .accessibilityLabel(Text("发送"))
+            .accessibilityIdentifier("pourbar.send")
+        }
+        .padding(.leading, 18)
+        .padding(.trailing, 10)
+        .padding(.vertical, 4)
+        .frame(minHeight: PourSize.pourBarCollapsed)
+        .glassEffect(.regular.interactive(), in: .rect(cornerRadius: PourRadius.lg))
+        .padding(.horizontal, PourSpace.element)
+    }
+}
+
 /// 倾倒栏的占位：放得下就给完整的例子，放不下（窄屏、大字号、收起的小栏）就只说「说点什么」——永远不截断
 public struct PourBarPlaceholder: View {
     let example: String
@@ -124,158 +176,6 @@ public struct PourBarPlaceholder: View {
         }
         .pourText(.body)
         .foregroundStyle(PourColor.inkSecondary.color)
-    }
-}
-
-// MARK: - 收据
-
-/// 收据里的一行记录
-public struct ReceiptLine: Identifiable, Sendable {
-    public let id = UUID()
-    public let domain: PourDomain
-    public let title: String
-    /// 认出的人或地方（青色）
-    public let person: String?
-    /// 右侧的数（等宽）
-    public let value: String?
-    public let needsConfirmation: Bool
-
-    public init(
-        domain: PourDomain, title: String, person: String? = nil, value: String? = nil, needsConfirmation: Bool = false
-    ) {
-        self.domain = domain
-        self.title = title
-        self.person = person
-        self.value = value
-        self.needsConfirmation = needsConfirmation
-    }
-}
-
-public enum ReceiptState: String, CaseIterable, Sendable {
-    case organizing, waitingForNetwork, done, failed
-}
-
-/// 收据：一段话整理完，就地显示它被整理成了什么
-public struct ReceiptView: View {
-    let time: String
-    let quote: String
-    let state: ReceiptState
-    let lines: [ReceiptLine]
-    let question: QuestionPrompt?
-    var highlightNew: Bool
-
-    public init(
-        time: String, quote: String, state: ReceiptState, lines: [ReceiptLine] = [],
-        question: QuestionPrompt? = nil, highlightNew: Bool = false
-    ) {
-        self.time = time
-        self.quote = quote
-        self.state = state
-        self.lines = lines
-        self.question = question
-        self.highlightNew = highlightNew
-    }
-
-    public var body: some View {
-        VStack(alignment: .leading, spacing: PourSpace.related) {
-            VStack(alignment: .leading, spacing: PourSpace.tight) {
-                Text(time).pourText(.caption).monospacedDigit().foregroundStyle(PourColor.inkSecondary.color)
-                Text(quote).pourText(.quote).foregroundStyle(PourColor.ink.color)
-            }
-            switch state {
-            case .organizing:
-                PourSkeleton(lines: 2)
-                Text("整理中").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
-            case .waitingForNetwork:
-                Label("等网络，联网后自动整理", systemImage: "wifi.slash")
-                    .pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
-            case .failed:
-                PourFlowLayout {
-                    Text("没整理成").pourText(.callout).foregroundStyle(PourColor.inkSecondary.color)
-                    Button("再试一次") {}.buttonStyle(PourButtonStyle(.text))
-                }
-            case .done:
-                VStack(alignment: .leading, spacing: PourSpace.tight) {
-                    ForEach(lines) { line in receiptLine(line) }
-                }
-                if let question { QuestionBar(prompt: question) }
-            }
-        }
-        .accessibilityElement(children: .contain)
-    }
-
-    private func receiptLine(_ line: ReceiptLine) -> some View {
-        PourTitleValueRow {
-            HStack(spacing: PourSpace.related) {
-                PourDomainDot(line.domain)
-                Text(line.title, person: line.person, joiner: " · ").foregroundStyle(PourColor.ink.color)
-                    .pourText(.body)
-            }
-        } value: {
-            // 「待确认」跟在数后面，排在版面里（原来用固定偏移盖在右上角，字调大时压住内容——M1 自验收）
-            HStack(alignment: .firstTextBaseline, spacing: PourSpace.related) {
-                if let value = line.value {
-                    Text(value).pourText(.body).monospacedDigit().foregroundStyle(PourColor.inkSecondary.color)
-                }
-                if line.needsConfirmation {
-                    Text("待确认").pourText(.caption).foregroundStyle(PourColor.inkSecondary.color)
-                }
-            }
-        }
-        .padding(.vertical, 6)
-        .padding(.horizontal, PourSpace.related)
-        .background {
-            RoundedRectangle.pour(PourRadius.sm)
-                .fill(highlightNew ? PourColor.qingSoft.color : Color.clear)
-        }
-        .overlay {
-            if line.needsConfirmation {
-                RoundedRectangle.pour(PourRadius.sm)
-                    .strokeBorder(PourColor.lineStrong.color, style: StrokeStyle(lineWidth: 1, dash: [4, 3]))
-            }
-        }
-        .accessibilityElement(children: .combine)
-    }
-}
-
-/// 一个追问：问题 + 最多 3 个选项
-public struct QuestionPrompt: Sendable {
-    public let question: String
-    public let options: [String]
-
-    public init(_ question: String, options: [String]) {
-        self.question = question
-        // 选项是按字认的（ForEach 用字当编号）：去掉重复的，不然 SwiftUI 会少显示、多显示
-        var seen = Set<String>()
-        self.options = Array(options.filter { seen.insert($0).inserted }.prefix(3))
-    }
-}
-
-/// 追问条：凹底、左侧琥珀细条；一次只问一个
-public struct QuestionBar: View {
-    let prompt: QuestionPrompt
-
-    public init(prompt: QuestionPrompt) { self.prompt = prompt }
-
-    public var body: some View {
-        VStack(alignment: .leading, spacing: PourSpace.related) {
-            Text(prompt.question).pourText(.callout).foregroundStyle(PourColor.ink.color)
-            PourFlowLayout {
-                ForEach(prompt.options, id: \.self) { option in
-                    Button(option) { PourHaptic.selection.play() }.buttonStyle(PourButtonStyle(.secondary))
-                }
-            }
-        }
-        .padding(PourSpace.element)
-        .padding(.leading, 3)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle.pour(PourRadius.md).fill(PourColor.surfaceSunken.color))
-        .overlay(alignment: .leading) {
-            UnevenRoundedRectangle(
-                topLeadingRadius: PourRadius.md, bottomLeadingRadius: PourRadius.md, style: .continuous
-            )
-            .fill(PourColor.attention.color).frame(width: 3)
-        }
     }
 }
 

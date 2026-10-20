@@ -1,0 +1,454 @@
+{
+    "day": "2026-10-15",
+    "entries": [
+        {
+            "id": 544,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "sleep",
+            "data": {
+                "label": "睡觉",
+                "start": "2026-10-15T00:10",
+                "end": "2026-10-15T07:10",
+                "durationMin": 420
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 343,
+                    "span": "昨晚12点10分才睡 早上7点10分起",
+                    "action": "created",
+                    "text": "昨晚12点10分才睡 早上7点10分起 继续168",
+                    "createdAt": "2026-10-15T02:05:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 545,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "diet",
+            "data": {
+                "label": "16:8 轻断食"
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 343,
+                    "span": "继续168",
+                    "action": "created",
+                    "text": "昨晚12点10分才睡 早上7点10分起 继续168",
+                    "createdAt": "2026-10-15T02:05:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 546,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "c-94fb6da3",
+            "data": {
+                "label": "坐地铁",
+                "places": [
+                    "地铁"
+                ],
+                "things": [
+                    "降噪耳机"
+                ]
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 344,
+                    "span": "地铁上戴着降噪耳机听了会儿播客",
+                    "action": "created",
+                    "text": "地铁上戴着降噪耳机听了会儿播客",
+                    "createdAt": "2026-10-15T03:20:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 547,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "c-84f6a689",
+            "data": {
+                "label": "网购牛奶",
+                "things": [
+                    "牛奶"
+                ],
+                "start": "2026-10-15T22:20",
+                "metrics": [
+                    {
+                        "name": "花费",
+                        "value": 69,
+                        "unit": "元"
+                    }
+                ]
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 345,
+                    "span": "晚上下单了一箱牛奶 69",
+                    "action": "created",
+                    "text": "晚上下单了一箱牛奶 69",
+                    "createdAt": "2026-10-15T16:52:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 548,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "diet",
+            "data": {
+                "label": "和小李吃午饭",
+                "people": [
+                    "小李"
+                ],
+                "metrics": [
+                    {
+                        "name": "花费",
+                        "value": 26,
+                        "unit": "元"
+                    }
+                ]
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 346,
+                    "span": "中午和小李吃了碗面 26",
+                    "action": "created",
+                    "text": "中午和小李吃了碗面 26",
+                    "createdAt": "2026-10-15T07:10:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 549,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "work",
+            "data": {
+                "label": "上班",
+                "durationMin": 540,
+                "start": "2026-10-15T09:00",
+                "end": "2026-10-15T18:00"
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 347,
+                    "span": "今天9点到6点 在公司9个小时",
+                    "action": "created",
+                    "text": "今天9点到6点 在公司9个小时 去接儿子放学 晚上8点去健身房练了力量 卧推70公斤5组",
+                    "createdAt": "2026-10-15T13:40:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 550,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "c-8dc516e6",
+            "data": {
+                "label": "接儿子放学",
+                "people": [
+                    "儿子"
+                ],
+                "places": [
+                    "学校"
+                ]
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 347,
+                    "span": "去接儿子放学",
+                    "action": "created",
+                    "text": "今天9点到6点 在公司9个小时 去接儿子放学 晚上8点去健身房练了力量 卧推70公斤5组",
+                    "createdAt": "2026-10-15T13:40:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 551,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "strength",
+            "data": {
+                "label": "力量训练",
+                "start": "2026-10-15T20:00",
+                "end": "2026-10-15T20:45",
+                "durationMin": 45,
+                "places": [
+                    "健身房"
+                ],
+                "metrics": [
+                    {
+                        "name": "卧推重量",
+                        "value": 70,
+                        "unit": "公斤"
+                    },
+                    {
+                        "name": "卧推组数",
+                        "value": 5,
+                        "unit": "组"
+                    }
+                ]
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 347,
+                    "span": "晚上8点去健身房练了力量 卧推70公斤5组",
+                    "action": "created",
+                    "text": "今天9点到6点 在公司9个小时 去接儿子放学 晚上8点去健身房练了力量 卧推70公斤5组",
+                    "createdAt": "2026-10-15T13:40:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 552,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "c-c916946f",
+            "data": {
+                "label": "追剧",
+                "people": [
+                    "老婆"
+                ],
+                "durationMin": 90
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 348,
+                    "span": "和老婆追了两集剧",
+                    "action": "created",
+                    "text": "和老婆追了两集剧 睡前看了33页人类简史 背了40个新单词 半小时 房贷扣了 6800 两周后把车送去保养 午休听见楼下有人在拉二胡 挺放松的 关掉消息专心做一件事 两个小时顶一天 以后应该每天留出这么一段",
+                    "createdAt": "2026-10-15T16:10:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 553,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "study",
+            "data": {
+                "label": "看书",
+                "durationMin": 46,
+                "things": [
+                    "《人类简史》"
+                ],
+                "metrics": [
+                    {
+                        "name": "页数",
+                        "value": 33,
+                        "unit": "页"
+                    }
+                ]
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 348,
+                    "span": "睡前看了33页人类简史",
+                    "action": "created",
+                    "text": "和老婆追了两集剧 睡前看了33页人类简史 背了40个新单词 半小时 房贷扣了 6800 两周后把车送去保养 午休听见楼下有人在拉二胡 挺放松的 关掉消息专心做一件事 两个小时顶一天 以后应该每天留出这么一段",
+                    "createdAt": "2026-10-15T16:10:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 554,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "study",
+            "data": {
+                "label": "背单词",
+                "durationMin": 30
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 348,
+                    "span": "背了40个新单词 半小时",
+                    "action": "created",
+                    "text": "和老婆追了两集剧 睡前看了33页人类简史 背了40个新单词 半小时 房贷扣了 6800 两周后把车送去保养 午休听见楼下有人在拉二胡 挺放松的 关掉消息专心做一件事 两个小时顶一天 以后应该每天留出这么一段",
+                    "createdAt": "2026-10-15T16:10:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 555,
+            "day": "2026-10-15",
+            "kind": "event",
+            "category": "c-b27062be",
+            "data": {
+                "label": "房贷",
+                "metrics": [
+                    {
+                        "name": "花费",
+                        "value": 6800,
+                        "unit": "元"
+                    }
+                ]
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 348,
+                    "span": "房贷扣了 6800",
+                    "action": "created",
+                    "text": "和老婆追了两集剧 睡前看了33页人类简史 背了40个新单词 半小时 房贷扣了 6800 两周后把车送去保养 午休听见楼下有人在拉二胡 挺放松的 关掉消息专心做一件事 两个小时顶一天 以后应该每天留出这么一段",
+                    "createdAt": "2026-10-15T16:10:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 556,
+            "day": "2026-10-15",
+            "kind": "todo",
+            "category": "todo",
+            "data": {
+                "content": "送车去保养",
+                "done": false,
+                "due": "2026-10-29"
+            },
+            "confidence": 0.95,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 348,
+                    "span": "两周后把车送去保养",
+                    "action": "created",
+                    "text": "和老婆追了两集剧 睡前看了33页人类简史 背了40个新单词 半小时 房贷扣了 6800 两周后把车送去保养 午休听见楼下有人在拉二胡 挺放松的 关掉消息专心做一件事 两个小时顶一天 以后应该每天留出这么一段",
+                    "createdAt": "2026-10-15T16:10:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 557,
+            "day": "2026-10-15",
+            "kind": "mood",
+            "category": "mood",
+            "data": {
+                "mood": 4,
+                "emotions": [
+                    "放松"
+                ],
+                "tone": "good",
+                "strength": "medium",
+                "moment": "午休听见楼下有人在拉二胡"
+            },
+            "confidence": 0.75,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 348,
+                    "span": "午休听见楼下有人在拉二胡 挺放松的",
+                    "action": "created",
+                    "text": "和老婆追了两集剧 睡前看了33页人类简史 背了40个新单词 半小时 房贷扣了 6800 两周后把车送去保养 午休听见楼下有人在拉二胡 挺放松的 关掉消息专心做一件事 两个小时顶一天 以后应该每天留出这么一段",
+                    "createdAt": "2026-10-15T16:10:00.000Z"
+                }
+            ]
+        },
+        {
+            "id": 558,
+            "day": "2026-10-15",
+            "kind": "insight",
+            "category": "insight",
+            "data": {
+                "title": "专注比时间长更重要",
+                "quote": "关掉消息专心做一件事 两个小时顶一天 以后应该每天留出这么一段",
+                "tags": [
+                    "专注",
+                    "效率"
+                ]
+            },
+            "confidence": 0.9,
+            "status": "ok",
+            "sources": [
+                {
+                    "noteId": 348,
+                    "span": "关掉消息专心做一件事 两个小时顶一天 以后应该每天留出这么一段",
+                    "action": "created",
+                    "text": "和老婆追了两集剧 睡前看了33页人类简史 背了40个新单词 半小时 房贷扣了 6800 两周后把车送去保养 午休听见楼下有人在拉二胡 挺放松的 关掉消息专心做一件事 两个小时顶一天 以后应该每天留出这么一段",
+                    "createdAt": "2026-10-15T16:10:00.000Z"
+                }
+            ],
+            "related": [
+                {
+                    "noteId": 324,
+                    "day": "2026-10-11",
+                    "text": "陪孩子不在于时间长：陪儿子二十分钟 手机放远一点 比陪一下午心不在焉强"
+                },
+                {
+                    "noteId": 230,
+                    "day": "2026-09-25",
+                    "text": "早睡的第二天效率高：昨晚十一点就睡了 今天上午做事特别顺"
+                },
+                {
+                    "noteId": 287,
+                    "day": "2026-10-05",
+                    "text": "累的时候先休息：上线熬到三点多 今天什么都不想干 与其硬撑不如早点睡"
+                }
+            ]
+        }
+    ],
+    "summary": null,
+    "goals": [
+        {
+            "id": 2,
+            "title": "连续 30 天 16:8 轻断食",
+            "tone": "good",
+            "pct": 0.13333333333333333,
+            "headline": "连续 4 天 · 最长 13 天",
+            "delta": "连续第 4 天",
+            "category": "diet"
+        },
+        {
+            "id": 3,
+            "title": "每周运动 3 次",
+            "tone": "good",
+            "pct": 1,
+            "headline": "已完成 3 次 · 已达成",
+            "delta": "+1 次",
+            "category": "exercise"
+        },
+        {
+            "id": 5,
+            "title": "平均睡眠 7.5 小时",
+            "tone": "warn",
+            "pct": 0.9222222222222222,
+            "headline": "实际 6.9 小时 · 差 0.6 小时",
+            "delta": "当天 7 小时",
+            "category": "sleep"
+        },
+        {
+            "id": 9,
+            "title": "每周背单词 4 次",
+            "tone": "good",
+            "pct": 1,
+            "headline": "已完成 4 次 · 已达成",
+            "delta": "+1 次",
+            "category": "study"
+        }
+    ]
+}

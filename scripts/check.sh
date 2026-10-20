@@ -54,6 +54,11 @@ plutil -lint App/Resources/PrivacyInfo.xcprivacy || fail "隐私清单格式不�
 step "⑦ 规则和设计系统的单元测试（Mac）"
 (cd Packages/PourKit && swift test --quiet 2>&1 | tail -3) || fail "单元测试没通过"
 
+step "⑦½ AI 网关的测试（Node，假大模型，不连网、不花钱）"
+command -v npm >/dev/null || fail "没找到 Node：brew install node（网关要 Node 24 以上，ADR A08）"
+[[ -d gateway/node_modules ]] || (cd gateway && npm ci --silent) || fail "网关的依赖没装上"
+(cd gateway && npm run --silent typecheck && npx vitest run 2>&1 | tail -4) || fail "网关的测试没通过"
+
 step "⑧ App 和设计画廊的测试"
 EXTRA=()
 [[ ${SKIP_UI} == 1 ]] && EXTRA=(-skip-testing:PourUITests -skip-testing:GalleryUITests) && echo "（跳过界面测试）"
@@ -65,6 +70,9 @@ for MAJOR in ${IOS_MAJORS}; do
   xcrun simctl shutdown "${SIM_ID}" >/dev/null 2>&1 || true
   xcrun simctl boot "${SIM_ID}"
   xcrun simctl bootstatus "${SIM_ID}" -b >/dev/null
+  # 开好以后系统还在后台忙一阵：这时跑审计容易超时（2026-10-19：第一个界面测试——设置页——一连几次「审计没跑完」，
+  # 后面跑的画布测试都没事）。等它歇一会儿再测
+  sleep 30
   echo "模拟器：${SIM_NAME}（已开好）"
   for SCHEME in Pour PourGallery; do
     RESULT="build/check-ios${MAJOR}-${SCHEME}-$(date +%Y%m%d-%H%M%S).xcresult"

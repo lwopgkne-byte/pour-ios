@@ -1,7 +1,7 @@
 import Foundation
 import PourDesign
 
-/// 样张用的示例数据（Gallery/Resources/Sample.json：网页版演示数据里真实的一天，冻结的数据，出处写在文件开头）
+/// 样张用的示例数据（Gallery/Resources/Sample.json：演示数据里真实的一天，冻结的数据，出处写在文件开头）
 struct Sample: Decodable {
     struct Goal: Decodable, Identifiable {
         var id: String { name }
