@@ -67,16 +67,34 @@ enum AppAudit {
         if chatOpen { print("对话面板上沿：\(panelTop.map { "\($0)" } ?? "没找到")") }
         // 审计自己偶尔超时（「Audit failed to complete in time」）：检查用的模拟器刚开机、电脑同时在忙别的时更常见
         // （设置页那么长的一页，推送前检查里连着超时三次）。等十秒再审，最多四次
-        for attempt in 1...4 {
+        // 连着超时两次：一类一类分开审（一次审的少，就审得完）
+        for attempt in 1...2 {
             do {
                 try audit(app, name: name, types: types, place: place, unresolved: unresolved)
                 return
-            } catch let error as NSError where error.code == -56 && attempt < 4 {
+            } catch let error as NSError where error.code == -56 {
                 print("审计超时，等十秒重审 [\(name)]")
                 RunLoop.current.run(until: Date().addingTimeInterval(10))
+                if attempt == 2 { break }
+            }
+        }
+        for single in Self.singles where types.contains(single) {
+            for attempt in 1...3 {
+                do {
+                    try audit(app, name: name, types: single, place: place, unresolved: unresolved)
+                    break
+                } catch let error as NSError where error.code == -56 && attempt < 3 {
+                    print("审计超时（分开审），等十秒重审 [\(name)]")
+                    RunLoop.current.run(until: Date().addingTimeInterval(10))
+                }
             }
         }
     }
+
+    /// 审计的每一类（分开审时一类一类来）
+    private static let singles: [XCUIAccessibilityAuditType] = [
+        .contrast, .elementDetection, .hitRegion, .sufficientElementDescription, .dynamicType, .textClipped, .trait,
+    ]
 
     @MainActor
     private static func audit(

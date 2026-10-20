@@ -18,7 +18,8 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["大模型"].waitForExistence(timeout: 5), "设置没打开")
         XCTAssertTrue(app.staticTexts["只能在电脑上填写"].waitForExistence(timeout: 5), "手机上不该能填密钥")
         for screen in 1...6 {
-            RunLoop.current.run(until: Date().addingTimeInterval(1))
+            // 等页面滚停（滚动条还在、页面还在减速时审计常常超时）
+            RunLoop.current.run(until: Date().addingTimeInterval(2.5))
             attach(app, "设置-第\(screen)屏")
             try AppAudit.run(app, name: "设置-第\(screen)屏")
             app.swipeUp(velocity: .slow)
@@ -47,9 +48,13 @@ final class SettingsUITests: XCTestCase {
 
     @MainActor
     private func attach(_ app: XCUIApplication, _ name: String) {
-        let shot = XCTAttachment(screenshot: app.screenshot())
+        let screenshot = app.screenshot()
+        let shot = XCTAttachment(screenshot: screenshot)
         shot.name = name
         shot.lifetime = .keepAlways
         add(shot)
+        if let folder = ProcessInfo.processInfo.environment["POUR_SHOT_DIR"] {
+            try? screenshot.pngRepresentation.write(to: URL(fileURLWithPath: folder).appending(path: "\(name).png"))
+        }
     }
 }
