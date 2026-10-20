@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 网页版的 Peek 在手机上的样子：从底部滑出的一层，上面是标题和右上角的关闭，下面能滚。
+/// 详情层：从底部滑出的一层，上面是标题和右上角的关闭，下面能滚。
 /// 设置里的类别、没答对的句子、你改过的地方、处理日志都用它（记录详情 EntryPeek 是同一个样子）
 struct WebPeek<Content: View>: View {
     let title: String

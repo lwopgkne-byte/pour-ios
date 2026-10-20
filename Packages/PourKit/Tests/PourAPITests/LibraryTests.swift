@@ -3,7 +3,7 @@ import Testing
 
 @testable import PourAPI
 
-/// 笔记库（Fixtures/library-*.json：网页版演示数据的 /api/library、/api/library/people、/api/insights、/api/moments）
+/// 笔记库（Fixtures/library-*.json：演示数据的 /api/library、/api/library/people、/api/insights、/api/moments）
 @Suite("笔记库")
 struct LibraryTests {
     func fixture<T: Decodable>(_ name: String, as type: T.Type) throws -> T {

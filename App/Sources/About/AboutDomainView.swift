@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 一个生活领域一页（网页版 AboutDomainPage.tsx，docs/prd-about-me-2.md 5.3、8.4）：一个模板，有什么数据就长什么——
+/// 一个生活领域一页（docs/prd-about-me-2.md 5.3、8.4）：一个模板，有什么数据就长什么——
 /// 大数字和日历 → 什么时候 → 做什么 → 和谁、在哪 → 那些日子的心情 → 你说过的话 → 这些数的变化 → 发现 → 变化
 struct AboutDomainView: View {
     @Environment(AppModel.self) private var model
@@ -44,11 +44,17 @@ struct AboutDomainView: View {
                     open: { day in
                         model.page = .canvas
                         model.show(day)
-                    })
+                    }
+                )
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel(
+                    Text("\(page.span)每一天：\(page.person.map { "和\($0)在一起" } ?? "说到\(page.name)")的那天是彩色的"))
             }
             if let when = page.when {
                 ReviewSection(title: "什么时候") {
                     WhenGrid(cells: when.cells, color: page.color)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityLabel(Text("一周七天里，上午、下午、晚上各有几天"))
                     if !when.sentence.isEmpty {
                         Text(Show.spaced(when.sentence)).font(Web.caption).foregroundStyle(Web.fg)
                     }
@@ -261,6 +267,8 @@ private struct DomainTrend: View {
             }
             .scrollIndicators(.hidden)
             .padding(.vertical, -(Web.touch - Web.control) / 2)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text("看哪个数"))
         }
         WebSegmented("维度", options: Self.dims, selected: dim) { dim = $0 }
         if let trend {

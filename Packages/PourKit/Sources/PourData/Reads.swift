@@ -68,7 +68,7 @@ extension PourStore {
         }
     }
 
-    /// 整理一段话要给 AI 看的已有记录（照网页版 contextEntries）：这一天和前后一天的全部记录，
+    /// 整理一段话要给 AI 看的已有记录（照服务器 contextEntries）：这一天和前后一天的全部记录，
     /// 加上最近 30 条还没做完的待办（不管哪天的；删掉的不算）。
     /// 前后一天的也要：「昨天下馆子花了 216」再说一遍时认得出是同一件事，「昨天跑的是 8 公里」改得到昨天那条
     public func existingEntries(around day: DayString, openTodos limit: Int = 30) throws -> [Entry] {

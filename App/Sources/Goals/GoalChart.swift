@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 应达 vs 实际（网页版 goals/GoalChart.tsx，规格 8.5）：实线是实际，虚线是应达（平均型的虚线是目标值）；
+/// 应达 vs 实际（规格 8.5）：实线是实际，虚线是应达（平均型的虚线是目标值）；
 /// 最新的一点是个圆点。下面一行是起止日期和图例
 struct GoalChart: View {
     let series: [API.GoalPoint]
@@ -86,7 +86,7 @@ struct GoalChart: View {
     }
 }
 
-/// 连续型：最近每一天有没有做到，一格一天（网页版 StreakStrip）
+/// 连续型：最近每一天有没有做到，一格一天
 struct StreakStrip: View {
     let days: [API.StreakDay]
 

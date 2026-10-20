@@ -2,7 +2,7 @@ import Foundation
 
 // 画布上另外要用到的：「回顾」列表（早上那一行「昨天的回顾好了 →」看昨天的看过没有）、跳过「连接大模型」
 extension API {
-    /// 「回顾」列表里的一项（网页版 lib/queries.ts 的 ReviewItem）
+    /// 「回顾」列表里的一项
     public struct ReviewItem: Codable, Hashable, Sendable, Identifiable {
         public var id: Int
         /// daily 每日回顾、weekly、monthly、warning……

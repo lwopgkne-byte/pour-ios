@@ -6,7 +6,7 @@ public typealias DayString = String
 /// 本地时刻：YYYY-MM-DDTHH:mm，说这句话的地方墙上的钟点，不带时区（和网关的接口契约一致）
 public typealias LocalDateTime = String
 
-/// 日历上的加减（和网页版 shared/src/date.ts 对拍：fixtures/golden/date.json）。
+/// 日历上的加减（和服务器 shared/src/date.ts 对拍：fixtures/golden/date.json）。
 /// 一律当成 UTC 的零点算——只做日历换算，碰不到夏令时；「现在几点、属于哪一天」由 `logicalDay` 按手机的时区算
 public enum PourDate {
     /// 日界线默认凌晨 4:00（当日 240 分钟）：这之前说的话算前一天
@@ -107,7 +107,7 @@ public enum PourDate {
         return parseTime(clock)
     }
 
-    /// "HH:mm" 或 "H:mm" → 当日分钟数；不合法返回 nil（和网页版 parseTime 对拍）
+    /// "HH:mm" 或 "H:mm" → 当日分钟数；不合法返回 nil（和服务器的 parseTime 对拍）
     public static func parseTime(_ value: String) -> Int? {
         let trimmed = value.trimmingCharacters(in: .whitespaces)
         guard let match = trimmed.wholeMatch(of: /(\d{1,2}):(\d{2})/), let hour = Int(match.1),
@@ -116,7 +116,7 @@ public enum PourDate {
         return hour * 60 + minute
     }
 
-    /// 当日分钟数 → "HH:mm"（对 1440 取模，跨零点的溢出值也行；和网页版 formatTime 对拍）
+    /// 当日分钟数 → "HH:mm"（对 1440 取模，跨零点的溢出值也行；和服务器的 formatTime 对拍）
     public static func formatTime(_ minutes: Double) -> String {
         let rounded = Int(jsRound(minutes))
         let wrapped = ((rounded % 1440) + 1440) % 1440

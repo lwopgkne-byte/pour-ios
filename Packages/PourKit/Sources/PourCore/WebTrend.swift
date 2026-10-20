@@ -1,6 +1,6 @@
 public import Foundation
 
-/// 详情里的「最近 7 天」（网页版 server/src/services/trend.ts 原样）：一条记录所在那天往前 7 天，同类活动每天的量。
+/// 详情里的「最近 7 天」：一条记录所在那天往前 7 天，同类活动每天的量。
 /// 心情每条一个点（一天几条就几个）；事件优先看时长，没有时长看第一个数量，都没有就数次数
 public struct WebTrend: Hashable, Sendable {
     public struct Point: Hashable, Sendable {

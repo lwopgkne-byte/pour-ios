@@ -2,7 +2,7 @@ public import Foundation
 internal import GRDB
 public import PourCore
 
-/// 对话面板的样子（照网页版 ChatPanel）：最近说过的话（不分哪天，从早到晚）、它们动到的记录、类别表
+/// 对话面板的样子：最近说过的话（不分哪天，从早到晚）、它们动到的记录、类别表
 public struct ChatSnapshot: Hashable, Sendable {
     public var notes: [Note]
     /// 这些话动到的每一条记录（收据要写出来）：删掉的是删之前的样子

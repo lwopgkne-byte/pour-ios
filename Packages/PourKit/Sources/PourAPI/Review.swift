@@ -1,7 +1,7 @@
 public import Foundation
 import PourCore
 
-// 回顾（shared daily.ts、period.ts，web lib/queries.ts 的 DailyReviewPage、PeriodReviewPage、AuditFinding），字段名一字不差
+// 回顾（服务器 shared daily.ts、period.ts；DailyReviewPage、PeriodReviewPage、AuditFinding），字段名一字不差
 extension API {
     /// 关键数字的一段：数字和它的单位（「8」「小时」）
     public struct NumberPart: Codable, Hashable, Sendable {

@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 人那一页（网页版 AboutPeoplePage.tsx，docs/prd-about-me-2.md 5.4、15.2）：人际星图（你在中间，越常在一起离得越近；
+/// 人那一页（docs/prd-about-me-2.md 5.4、15.2）：人际星图（你在中间，越常在一起离得越近；
 /// 分家人、工作、朋友和其他三块；颜色是在一起那天的心情），下面一列是每个人的细节
 struct AboutPeopleView: View {
     @Environment(AppModel.self) private var model
@@ -109,7 +109,7 @@ struct AboutPeopleView: View {
 }
 
 /// 人际星图：你在中间；越常在一起离得越近，圆点越大天数越多；上面是家人，右下是工作，左下是朋友和其他。
-/// 按 400×400 的画来算位置（和网页版一样），画的时候按实际大小缩放
+/// 按 400×400 的画来算位置，画的时候按实际大小缩放
 private struct StarMap: View {
     let people: [API.MePerson]
 

@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 「钱」一个月（网页版 MoneyPage.tsx）：日常花的那个大数、月历、每一笔 / 固定的 / 收入 / 人情往来，
+/// 「钱」一个月：日常花的那个大数、月历、每一笔 / 固定的 / 收入 / 人情往来，
 /// 下面是留意、花在哪、花给了谁、值不值、钱和你的日子、还在攒的。留意以下几块说的是「现在」：这个月才有
 struct MoneyMonthView: View {
     @Environment(AppModel.self) private var model

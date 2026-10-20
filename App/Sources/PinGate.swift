@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 输入 PIN（网页版 PinGate）：电脑上的 Pour 开了局域网 PIN、这台手机还没输过时整个 App 先显示这一页；
+/// 输入 PIN：电脑上的 Pour 开了局域网 PIN、这台手机还没输过时整个 App 先显示这一页；
 /// 输对了这台手机记住 30 天（令牌在 cookie 里）
 struct PinGate: View {
     @Environment(AppModel.self) private var model

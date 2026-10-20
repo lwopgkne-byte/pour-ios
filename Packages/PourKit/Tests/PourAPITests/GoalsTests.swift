@@ -3,7 +3,7 @@ import Testing
 
 @testable import PourAPI
 
-/// 目标（Fixtures/goals.json、goal-1.json、goal-2.json：网页版演示数据的 /api/goals、/api/goals/1、/api/goals/2）
+/// 目标（Fixtures/goals.json、goal-1.json、goal-2.json：演示数据的 /api/goals、/api/goals/1、/api/goals/2）
 @Suite("目标")
 struct GoalsTests {
     func fixture<T: Decodable>(_ name: String, as type: T.Type) throws -> T {

@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 设置页「局域网访问」（网页版 SettingsPage.tsx 的 LanSettings）：手机访问地址、PIN（只能在电脑上改）、记住设备几天
+/// 设置页「局域网访问」：手机访问地址、PIN（只能在电脑上用「Pour 设置」改）、记住设备几天
 struct LanSettings: View {
     @Environment(AppModel.self) private var model
 
@@ -24,7 +24,7 @@ struct LanSettings: View {
                         }
                     }
                     SettingRow(label: "PIN") {
-                        Text("\(info.pinEnabled ? "已开启" : "未开启") · 只能在电脑上修改")
+                        Text("\(info.pinEnabled ? "已开启" : "未开启") · 在电脑上用「Pour 设置」改")
                     }
                     SettingRow(label: "记住设备") { Text("\(info.rememberDays) 天") }
                 }
@@ -32,8 +32,8 @@ struct LanSettings: View {
     }
 }
 
-/// 设置页「数据」（网页版 DataSettings.tsx 1 比 1）：日界线、自动备份、导出、重新解析、演示数据。
-/// 从备份导入只能在电脑上做，手机上不显示（和网页版在手机上打开时一样）
+/// 设置页「数据」：日界线、自动备份、导出、重新解析、演示数据。
+/// 从备份导入只能在电脑上做（「Pour 设置」），手机上不显示
 struct DataSettings: View {
     @Environment(AppModel.self) private var model
 
@@ -238,7 +238,7 @@ private struct ReparseRows: View {
         }
     }
 
-    /// 网页版的日期输入框（手机上点开是系统的日期选择）
+    /// 日期输入框：点开是系统的日期选择
     private func dayField(_ label: String, value: Binding<String>, range: some RangeExpression<Date>) -> some View {
         VStack(alignment: .leading, spacing: Web.space1) {
             Text(label).font(Web.captionMedium).foregroundStyle(Web.fgSecondary)

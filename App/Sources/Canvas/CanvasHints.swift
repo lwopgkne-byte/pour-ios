@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 首次使用（网页版 SetupCard，规格 3 / 5.1）：说明原话会发送到大模型整理。手机上填不了密钥（只能在电脑上），
+/// 首次使用（规格 3 / 5.1）：说明原话会发送到大模型整理。手机上填不了密钥（只能在电脑上用「Pour 设置」），
 /// 只说一声；.env 里已经有密钥的，确认一下就开始整理。确认过或者跳过就不再出现
 struct SetupCard: View {
     @Environment(AppModel.self) private var model
@@ -23,7 +23,7 @@ struct SetupCard: View {
                     }
                 } else {
                     HStack(spacing: Web.space3) {
-                        Text("密钥请在电脑上打开 Pour 填写。").font(Web.body).foregroundStyle(Web.fgSecondary)
+                        Text("密钥请在电脑上双击「Pour 设置」填写。").font(Web.body).foregroundStyle(Web.fgSecondary)
                         WebButton("跳过", variant: .ghost) { model.dismissSetup() }
                     }
                 }
@@ -38,7 +38,7 @@ struct SetupCard: View {
     }
 }
 
-/// 早上的一行提示：「昨天的回顾好了 →」（网页版 ReviewHint，docs/prd-review.md 6.1）。
+/// 早上的一行提示：「昨天的回顾好了 →」（docs/prd-review.md 6.1）。
 /// 看过了、或者过了中午就不显示；不是弹窗，也没有红点
 struct ReviewHint: View {
     @Environment(AppModel.self) private var model

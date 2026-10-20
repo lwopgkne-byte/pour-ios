@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 设置页「提醒和推送」（网页版 ReminderSettings.tsx 1 比 1）：推送渠道（密钥只显示打码、只能在电脑上填）、
+/// 设置页「提醒和推送」：推送渠道（密钥只显示打码、只能在电脑上用「Pour 设置」填）、
 /// 测试推送、各种提醒的开关和时间、「试一下」、目标入睡时间、周报月报、免打扰
 struct ReminderSettings: View {
     @Environment(AppModel.self) private var model
@@ -36,7 +36,7 @@ private struct ReminderRows: View {
             channel(
                 "serverchan", label: "Server酱（微信）", key: status.keys.serverchan, enabled: status.channels.serverchan)
             channel("bark", label: "Bark（iPhone）", key: status.keys.bark, enabled: status.channels.bark)
-            FieldMessage(text: "推送密钥只能在电脑上填写。")
+            FieldMessage(text: "推送密钥在电脑上用「Pour 设置」填写。")
             if status.keys.serverchan != nil || status.keys.bark != nil {
                 VStack(alignment: .leading, spacing: Web.space2) {
                     WebButton("发一条测试推送", loading: testing) { testPush() }
@@ -57,7 +57,7 @@ private struct ReminderRows: View {
                     TimeEdit(label: "目标入睡时间", value: bedtime) { save(["bedtime": .string($0)]) }
                     WebTextButton("不检查") { save(["bedtime": .null]) }
                 } else {
-                    // 网页版：空着显示灰色的「不检查」，点一下选时间
+                    // 空着显示灰色的「不检查」，点一下选时间
                     TimeEdit(label: "目标入睡时间", value: "00:00", display: "不检查", unset: true) {
                         save(["bedtime": .string($0)])
                     }
@@ -79,7 +79,7 @@ private struct ReminderRows: View {
         }
     }
 
-    /// 推送渠道一行：打码的密钥；填过了能开关（填写只能在电脑上）
+    /// 推送渠道一行：打码的密钥；填过了能开关（填写只能在电脑上用「Pour 设置」）
     private func channel(_ name: String, label: String, key: String?, enabled: Bool) -> some View {
         SettingRow(label: label) {
             Text(key ?? "还没填写").foregroundStyle(key == nil ? Web.fgTertiary : Web.fgSecondary)

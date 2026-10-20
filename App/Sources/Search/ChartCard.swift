@@ -4,7 +4,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 对话里的图表（网页版 components/charts/ChartSpecView.tsx，规格 5.4 的白名单）：折线、柱状、环形进度、热力图、时间轴。
+/// 对话里的图表（规格 5.4 的白名单）：折线、柱状、环形进度、热力图、时间轴。
 /// 白底细边的卡片，上面一行小标题；颜色用设计令牌
 struct ChartCard: View {
     let spec: API.ChartSpec

@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 目标详情里能原地改的（网页版 GoalPeek 的设置部分）：名称、目标值、类别、只算哪些、周期、从哪天算
+/// 目标详情里能原地改的：名称、目标值、类别、只算哪些、周期、从哪天算
 struct GoalSettings: View {
     @Environment(AppModel.self) private var model
     let goal: API.Goal

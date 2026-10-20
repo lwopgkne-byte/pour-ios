@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 月历（网页版 MoneyCalendar，docs/prd-money.md 5.4）：日期在上，金色的圆在下，面积是那天日常花的；
+/// 月历（docs/prd-money.md 5.4）：日期在上，金色的圆在下，面积是那天日常花的；
 /// 没说到钱的那天不画（没说 ≠ 没花）；今天一圈细框；整周都在今天以后（或开始记以前）的几行变矮。
 /// 比例尺：这个月最多的一天画最大的圆；刚开始用的时候按 ¥600 一天来比
 struct MoneyCalendar: View {
@@ -103,7 +103,7 @@ struct MoneyCalendar: View {
     }
 }
 
-/// 花在哪（网页版 Mosaic，docs/prd-money.md 5.6）：方块图，面积是钱。最多的两块在上面一行，接着三块一行，
+/// 花在哪（docs/prd-money.md 5.6）：方块图，面积是钱。最多的两块在上面一行，接着三块一行，
 /// 其余合成一条「还有」。颜色是生活领域自己的颜色
 struct MoneyMosaic: View {
     @AppStorage(MoneyHidden.key) private var hide = false
@@ -157,7 +157,7 @@ struct MoneyMosaic: View {
     }
 }
 
-/// 一行几块，宽窄按分量分（网页版 flex-grow），但再小也放得下自己的字
+/// 一行几块，宽窄按分量分，但再小也放得下自己的字
 struct GrowRow: Layout {
     let weights: [Double]
     var spacing = Web.space1

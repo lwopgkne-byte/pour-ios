@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 一天的钱（网页版 MoneyDayPage.tsx，docs/prd-money.md 5.4）：每一笔的时间、给谁、你说的值不值；
+/// 一天的钱（docs/prd-money.md 5.4）：每一笔的时间、给谁、你说的值不值；
 /// 那天和谁在一起、你说的心情；那天你还说了什么。点一笔打开那条记录的详情；左右滑到前后有钱的日子
 struct MoneyDayView: View {
     @Environment(AppModel.self) private var model
@@ -96,7 +96,7 @@ struct MoneyDayView: View {
     }
 }
 
-/// 每一笔（网页版 MoneyListPage.tsx，docs/prd-money.md 5.14）：按天分组，新的在上；每天写「花了 ¥…」（只算日常的）；
+/// 每一笔（docs/prd-money.md 5.14）：按天分组，新的在上；每天写「花了 ¥…」（只算日常的）；
 /// 能搜名目、人、生活领域。点一笔打开那条记录的详情
 struct MoneyListView: View {
     @Environment(AppModel.self) private var model

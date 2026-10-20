@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 每个月固定的（网页版 MoneyWatchPage 的 Fixed）：一条一个月的尺子（哪几天扣、今天在哪；已经扣过的浅一档，
+/// 每个月固定的：一条一个月的尺子（哪几天扣、今天在哪；已经扣过的浅一档，
 /// 名字一高一低错开），下面一样一行。点一行打开最近扣的那一笔，详情里可以「不再算固定的」
 struct FixedSection: View {
     @Environment(AppModel.self) private var model

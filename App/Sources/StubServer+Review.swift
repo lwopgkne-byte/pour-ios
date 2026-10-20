@@ -2,7 +2,7 @@
     import Foundation
 
     extension StubServer.State {
-        /// 回顾：从网页版演示数据里拿的回顾列表、10月18日的每日回顾、10月12日那一周的周报、自动检查发现的一处
+        /// 回顾：从演示数据里拿的回顾列表、10月18日的每日回顾、10月12日那一周的周报、自动检查发现的一处
         /// （日子是演示数据的日子，界面测试只看页面打得开、点得动）
         func reviewReply(_ method: String, _ path: String) -> Any? {
             switch (method, path) {

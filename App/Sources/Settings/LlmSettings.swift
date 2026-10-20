@@ -2,8 +2,8 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 设置页「大模型」（网页版 LlmSettings.tsx 1 比 1）：模型、密钥（只显示打码）、测试连接、排队、本月用量和花费、
-/// 每月上限、自动入库的把握程度。手机上不是在电脑上打开的：密钥只能在电脑上填
+/// 设置页「大模型」：模型、密钥（只显示打码）、测试连接、排队、本月用量和花费、
+/// 每月上限、自动入库的把握程度。手机上不是在电脑上打开的：密钥只能在电脑上用「Pour 设置」填
 struct LlmSettings: View {
     @Environment(AppModel.self) private var model
 
@@ -51,12 +51,9 @@ private struct LlmRows: View {
                         + "flash 花费约为 pro 的三成，也更快。"
                         + (status.modelSource == "env" ? "现在用的是 .env 里设置的模型，在这里选了以后以这里为准。" : ""))
             }
-            SettingRow(label: "密钥") {
+            SettingRow(label: "密钥", hint: status.local ? nil : "在电脑上用「Pour 设置」填") {
                 Text(status.keyMasked ?? "还没有填写")
-                if let source = status.keySource {
-                    Text(source == "env" ? "来自 .env" : "设置页填写").foregroundStyle(Web.fgTertiary)
-                }
-                if !status.local { Text("只能在电脑上填写").foregroundStyle(Web.fgTertiary) }
+                if status.keySource == "env" { Text("来自 .env").foregroundStyle(Web.fgTertiary) }
             }
             if status.keySource == "env" {
                 FieldMessage(text: "当前使用 .env 中的密钥，此处修改不会生效。").padding(.bottom, Web.space2)
@@ -180,7 +177,7 @@ private struct LlmRows: View {
 
 }
 
-/// 原地改一个数（网页版 NumberEditor）：平时是一段能点的字；点一下变成输入框，按「完成」或者点别处保存
+/// 原地改一个数：平时是一段能点的字；点一下变成输入框，按「完成」或者点别处保存
 struct NumberEdit: View {
     let label: String
     let value: Double

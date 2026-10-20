@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 目标页（网页版 GoalsPage.tsx 1 比 1，规格 8.5）：回答「我离目标还有多远」。
+/// 目标页（规格 8.5）：回答「我离目标还有多远」。
 /// 按周期分组，模糊目标自成一组，完成的收在最后；每个目标一行：状态色小圆点、名称、细进度条、关键数字；
 /// 年目标能展开到月、再到周。点一行打开详情
 struct GoalsPage: View {
@@ -171,7 +171,7 @@ private struct ParentGroup: View {
     }
 }
 
-/// 一个目标一行；年目标可以展开到月、月再展开到周（网页版 GoalRow）
+/// 一个目标一行；年目标可以展开到月、月再展开到周
 private struct GoalRow: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -191,11 +191,11 @@ private struct GoalRow: View {
                     VStack(alignment: .leading, spacing: Web.space1) {
                         HStack(spacing: Web.space2) {
                             ToneDot(tone: goal.status == "proposed" ? "idle" : progress.tone)
-                            // 平时一行、放不下用省略号（网页版 truncate）；系统字号调大了就换行，不藏字
+                            // 平时一行、放不下用省略号；系统字号调大了就换行，不藏字
                             Text(Show.spaced(goal.title)).foregroundStyle(Web.fg)
                                 .lineLimit(typeSize > .large ? nil : 1)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            // 数字不换行，放不下时名称用省略号（网页版 truncate）
+                            // 数字不换行，放不下时名称用省略号
                             Text(Show.spaced(Show.keyNumber(goal, progress))).foregroundStyle(Web.fgSecondary)
                                 .monospacedDigit().fixedSize()
                         }

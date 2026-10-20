@@ -1,7 +1,7 @@
 #if DEBUG
     import Foundation
 
-    /// 关于我的演示数据（续）：心情从哪来（这 30 天）、心情按天的变化（网页版 5199 演示服务器拿的，原样）
+    /// 关于我的演示数据（续）：心情从哪来（这 30 天）、心情按天的变化（5199 演示服务器拿的，原样）
     extension AboutStub {
         static let sources = #"""
             {"range":{"from":"2026-09-21","to":"2026-10-20","label":"这 30 天"},"when":{"good":

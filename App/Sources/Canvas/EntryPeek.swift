@@ -3,8 +3,8 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 记录详情（网页版 EntryPeek 手机那一档 1 比 1）：从底部滑出的半屏，标题是图标和名称，右上角关闭。
-/// 拿不准的先问一句、能确认；所有字段原地修改（交给网页版服务器改）；最近 7 天；相关目标；来源原话（对应的那一段标黄）；删除
+/// 记录详情：从底部滑出的半屏，标题是图标和名称，右上角关闭。
+/// 拿不准的先问一句、能确认；所有字段原地修改（交给服务器改）；最近 7 天；相关目标；来源原话（对应的那一段标黄）；删除
 struct EntryPeek: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
@@ -112,7 +112,7 @@ struct EntryPeek: View {
         .background(RoundedRectangle(cornerRadius: Web.radiusCard).fill(Web.bgSubtle))
     }
 
-    /// 相关目标的完整进度（网页版「相关目标」）：圆点、目标、推进了多少、细进度条、进度说明
+    /// 相关目标的完整进度：圆点、目标、推进了多少、细进度条、进度说明
     @ViewBuilder private func relatedGoals(_ entry: API.Entry) -> some View {
         let goals = (source?.goals ?? []).filter { goal in
             guard entry.kind == "event", let category = goal.category else { return false }
@@ -162,9 +162,17 @@ struct EntryPeek: View {
                         Text(caption(source)).font(Web.caption).foregroundStyle(Web.fgTertiary)
                     }
                 }
-                Button("在对话里查看") {
-                    dismiss()
-                    model.chatOpen = true
+                HStack(spacing: Web.space4) {
+                    if let note = entry.sources.first?.noteId {
+                        Button("在笔记库查看") {
+                            dismiss()
+                            model.open("/library?note=\(note)")
+                        }
+                    }
+                    Button("在对话里查看") {
+                        dismiss()
+                        model.chatOpen = true
+                    }
                 }
                 .font(Web.bodyMedium).foregroundStyle(Web.accent).buttonStyle(.plain)
                 .frame(minHeight: Web.touch)

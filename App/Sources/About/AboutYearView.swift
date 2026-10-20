@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 你的一年（网页版 AboutYearPage.tsx，docs/prd-about-me-2.md 第 11 节）：记了多少天、每天一格的热力图、说得最多的几件事、
+/// 你的一年（docs/prd-about-me-2.md 第 11 节）：记了多少天、每天一格的热力图、说得最多的几件事、
 /// 最常提到的人、一年十二个月的心情、第一句和最近一句话。记得还不够多时只有热力图和一句「再记 N 天」
 struct AboutYearView: View {
     @Environment(AppModel.self) private var model
@@ -133,6 +133,8 @@ struct AboutYearView: View {
                                     ?? "\(month.name)没说过心情"))
                     }
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel(Text("一年每个月心情的平均"))
                 MeNote("一个月一格，颜色越深心情越好；没说过心情的月份不上色")
             }
         }
@@ -213,6 +215,8 @@ private struct YearHeat: View {
             }
             .scrollIndicators(.hidden)
             .padding(.vertical, -(Web.touch - Web.control) / 2)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text("按什么着色"))
             if let page {
                 ChartCard(spec: .heatmap(.init(title: "", unit: page.unit, days: page.days)))
                     .accessibilityLabel(Text("\(String(year)) 年\(page.label)的热力图"))

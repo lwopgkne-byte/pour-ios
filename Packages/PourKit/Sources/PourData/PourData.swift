@@ -2,7 +2,7 @@ public import Foundation
 internal import GRDB
 public import PourCore
 
-/// 数据层：表结构、迁移、仓储（读写接口），以及 PourCore 值类型和表之间的转换（docs/03 第 4、6 节）。
+/// 数据层：表结构、迁移、仓储（读写接口），以及 PourCore 值类型和表之间的转换（docs/归档/03 第 4、6 节）。
 /// 本机数据库是真正的数据库（ADR A05：SQLite + GRDB）；网关不存任何东西。同步（iCloud）以后再加
 public final class PourStore: Sendable {
     let writer: any DatabaseWriter
@@ -58,7 +58,7 @@ public final class PourStore: Sendable {
                 table.column("measure", .text).notNull()
                 table.column("synonyms", .jsonText).notNull()
                 table.column("order", .integer).notNull()
-                // 六个基础类别是所有统计的骨架，不许挂到别的类别下面（网页版第 18 版迁移的教训）
+                // 六个基础类别是所有统计的骨架，不许挂到别的类别下面（服务器第 18 版迁移的教训）
                 table.check(sql: "key NOT IN ('sleep','exercise','diet','study','work','other') OR parent IS NULL")
             }
             try db.create(table: "entry") { table in
@@ -126,7 +126,7 @@ public final class PourStore: Sendable {
             }
         }
         migrator.registerMigration("v6 网页版的颜色") { db in
-            // 产品主人 2026-10-19：界面照网页版，类别颜色也换回网页版的九种标签色
+            // 产品主人 2026-10-19：界面照原来的样子，类别颜色也换回那九种标签色
             let names = [
                 "stone": "gray", "clay": "brown", "apricot": "orange", "straw": "yellow", "moss": "green",
                 "lake": "blue", "wisteria": "purple", "sakura": "pink", "brick": "red",
@@ -134,7 +134,7 @@ public final class PourStore: Sendable {
             for (old, web) in names {
                 try db.execute(sql: "UPDATE category SET color = ? WHERE color = ?", arguments: [web, old])
             }
-            // 和网页版不一样的几个：学习蓝、工作棕、宠物橙
+            // 和服务器不一样的几个：学习蓝、工作棕、宠物橙
             let differ = [("study", "blue"), ("work", "brown")]
             for (key, color) in differ {
                 try db.execute(sql: "UPDATE category SET color = ? WHERE key = ?", arguments: [color, key])

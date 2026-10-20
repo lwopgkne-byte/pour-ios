@@ -2,7 +2,7 @@ public import Foundation
 public import PourData
 import UserNotifications
 
-/// 待办的提醒：手机自己排系统通知，到点不用连网、不靠服务器（docs/03 第 5.5 节「本地排好」）。
+/// 待办的提醒：手机自己排系统通知，到点不用连网、不靠服务器（docs/归档/03 第 5.5 节「本地排好」）。
 /// 每次记录变了就照数据库重排一遍：新的排上、改了时间的跟着改、做完和删掉的撤掉
 public enum Reminders {
     /// Pour 排的通知都用这个开头（不动别的通知）

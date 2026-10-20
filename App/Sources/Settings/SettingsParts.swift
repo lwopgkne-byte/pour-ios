@@ -2,8 +2,8 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 设置页的一行（网页版 SettingRow）：左边名称（下面可以有一句说明），右边现在的值和操作。
-/// 名称至少占 192 点；右边放不下就换到下一行靠右，不压住名称（网页版 flex-wrap）
+/// 设置页的一行：左边名称（下面可以有一句说明），右边现在的值和操作。
+/// 名称至少占 192 点；右边放不下就换到下一行靠右，不压住名称
 struct SettingRow<Content: View>: View {
     let label: String
     var hint: String?
@@ -81,7 +81,7 @@ private struct SettingRowLayout: Layout {
     }
 }
 
-/// 设置页一大块的标题（网页版 h2：18 号、半粗）
+/// 设置页一大块的标题（18 号、半粗）
 struct SettingsSection<Content: View>: View {
     let title: String
     @ViewBuilder let content: () -> Content
@@ -94,7 +94,7 @@ struct SettingsSection<Content: View>: View {
     }
 }
 
-/// 一块里面的小标题（网页版 h3：13 号、中粗、次要色）
+/// 一块里面的小标题（13 号、中粗、次要色）
 struct SettingsHeading: View {
     let title: String
 
@@ -105,7 +105,7 @@ struct SettingsHeading: View {
     }
 }
 
-/// 一行下面的小字说明（网页版 field-message）
+/// 一行下面的小字说明
 struct FieldMessage: View {
     let text: String
     var tone: Color = Web.fgTertiary
@@ -117,7 +117,7 @@ struct FieldMessage: View {
     }
 }
 
-/// 浅灰底的一块（网页版 setup-card）：整理建议、确认要不要导入、重新解析的估算
+/// 浅灰底的一块：整理建议、确认要不要导入、重新解析的估算
 struct SetupBox<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
@@ -129,7 +129,7 @@ struct SetupBox<Content: View>: View {
     }
 }
 
-/// 还在拿的时候：两条灰条（网页版每一块的 Skeleton）
+/// 还在拿的时候：两条灰条
 struct SettingsSkeleton: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Web.space3) {
@@ -141,13 +141,13 @@ struct SettingsSkeleton: View {
     }
 }
 
-/// 改时间（网页版 InlineEdit type="time"）：平时是一段能点的字「07:30」；点一下弹出系统的时间滚轮（手机网页上点时间框也是它），
+/// 改时间：平时是一段能点的字「07:30」；点一下弹出系统的时间滚轮，
 /// 滚完收起就保存
 struct TimeEdit: View {
     let label: String
     /// 「07:30」
     let value: String
-    /// 平时显示的字（网页版 display：「凌晨 04:00」）；不给就显示 value
+    /// 平时显示的字（「凌晨 04:00」）；不给就显示 value
     var display: String?
     /// 还没设过（显示的是「不检查」这种灰字）：滚轮动过就算设上（停在 00:00 也算）
     var unset = false
@@ -199,7 +199,7 @@ struct TimeEdit: View {
     }
 }
 
-/// 改日期（网页版 InlineEdit type="date"）：平时是一段能点的字「9月15日 周二」；点一下弹出系统的日历，选了就保存
+/// 改日期：平时是一段能点的字「9月15日 周二」；点一下弹出系统的日历，选了就保存
 struct DateEdit: View {
     let label: String
     /// 「2026-09-15」
@@ -271,7 +271,7 @@ struct Loaded<Value: Sendable, Content: View>: View {
                 SettingsSkeleton()
             }
         }
-        // 别处改了设置也重新拿（网页版 settings-changed）
+        // 别处改了设置也重新拿
         .task(id: [version, model.settingsVersion]) {
             do {
                 let fresh = try await load()
@@ -293,7 +293,7 @@ private enum LoadedCache {
 
 /// 设置页里的数字写法
 enum Numbers {
-    /// 1234567 →「1,234,567」（网页版 toLocaleString）
+    /// 1234567 →「1,234,567」
     static func grouped(_ value: Double) -> String {
         value.formatted(.number.grouping(.automatic).locale(Locale(identifier: "en_US")))
     }
@@ -307,7 +307,7 @@ enum Numbers {
     }
 }
 
-/// 一行里颜色不一样的几段字（网页版 <span className="text-fg">…</span>）；bold 是前几段用中粗
+/// 一行里颜色不一样的几段字；bold 是前几段用中粗
 func spans(_ parts: [(String, Color)], bold: Int = 0) -> AttributedString {
     parts.enumerated().reduce(into: AttributedString()) { text, item in
         var part = AttributedString(Show.spaced(item.element.0))
@@ -318,6 +318,6 @@ func spans(_ parts: [(String, Color)], bold: Int = 0) -> AttributedString {
 }
 
 extension Error {
-    /// 给人看的一句话：服务器说的，或者连不上（网页版 errorMessage）
+    /// 给人看的一句话：服务器说的，或者连不上
     var readable: String { (self as? APIError)?.message ?? APIError.unreachable.message }
 }

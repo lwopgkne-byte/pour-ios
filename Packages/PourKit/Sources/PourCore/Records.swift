@@ -168,12 +168,12 @@ extension RecordData: Codable {
     }
 }
 
-/// 类别（生活领域和它下面的小类）。预置的六个来自网页版（PourData 的 categories.json）
+/// 类别（生活领域和它下面的小类）。预置的六个来自服务器的基础类别（PourData 的 categories.json）
 public struct LifeCategory: Codable, Hashable, Sendable, Identifiable {
     public var key: String
     public var name: String
     public var emoji: String
-    /// 网页版九种标签色之一：gray、brown、orange、yellow、green、blue、purple、pink、red（以前存的 stone、moss……也认）
+    /// 九种标签色之一：gray、brown、orange、yellow、green、blue、purple、pink、red（以前存的 stone、moss……也认）
     public var color: String
     public var parent: String?
     /// duration 时长、count 次数，其他是数量的单位（公里、页）

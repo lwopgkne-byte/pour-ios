@@ -47,7 +47,7 @@ extension API {
 }
 
 extension APIClient {
-    /// 系统消息（网页版 useMessages）：since 是对话里已经拿到的最早那段话的时间，从那以后的都要；
+    /// 系统消息：since 是对话里已经拿到的最早那段话的时间，从那以后的都要；
     /// 对话的历史都拿完了就传 nil，服务器给最近 30 条
     public func messages(since: String?) async throws(APIError) -> [API.SystemMessage] {
         let query = since.map { "?since=\(Self.escape($0))" } ?? ""
@@ -61,7 +61,7 @@ extension APIClient {
 }
 
 extension Show {
-    /// 系统消息左边的那个图标（网页版 MessageCard 的 EMOJI）
+    /// 系统消息左边的那个图标
     public static func messageEmoji(_ kind: String) -> String {
         switch kind {
         case "morning": "☀️"

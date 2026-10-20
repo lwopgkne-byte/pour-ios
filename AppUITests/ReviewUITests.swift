@@ -1,7 +1,7 @@
 import XCTest
 
-/// 回顾（照网页版 1 比 1，2026-10-20）：列表、每日回顾、周报；跑系统的无障碍审计，截图留给自验收看。
-/// 用假服务器（-uiTest）：网页版演示数据里的回顾列表、10月18日的每日回顾、10月12日那一周的周报
+/// 回顾（2026-10-20）：列表、每日回顾、周报；跑系统的无障碍审计，截图留给自验收看。
+/// 用假服务器（-uiTest）：演示数据里的回顾列表、10月18日的每日回顾、10月12日那一周的周报
 final class ReviewUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
@@ -15,7 +15,7 @@ final class ReviewUITests: XCTestCase {
         XCTAssertTrue(menu.waitForExistence(timeout: 5), "画布没打开")
         menu.tap()
         app.buttons["回顾"].firstMatch.tap()
-        // 标题里中文和数字之间有网页版那种窄空格：按「周日」「周报」找
+        // 标题里中文和数字之间有窄空格：按「周日」「周报」找
         let daily = app.buttons.matching(NSPredicate(format: "label CONTAINS '周日'")).firstMatch
         XCTAssertTrue(daily.waitForExistence(timeout: 5), "回顾列表没出来")
         settle()

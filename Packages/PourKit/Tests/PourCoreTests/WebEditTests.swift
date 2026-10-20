@@ -1,7 +1,7 @@
 import PourCore
 import Testing
 
-/// 详情里改时间、最近 7 天（照网页版 applyUpdate、trend.ts）
+/// 详情里改时间、最近 7 天（服务器 services/trend.ts）
 @Suite("详情里改")
 struct WebEditTests {
     let run = RecordData.Event(

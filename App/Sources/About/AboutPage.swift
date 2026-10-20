@@ -2,15 +2,17 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 关于我（网页版 about/*.tsx，docs/prd-about-me-2.md）：主页和点进去的几页（心情、人、你说的话、你的一年、一块生活）
+/// 关于我（docs/prd-about-me-2.md）：主页和点进去的几页（心情、人、你说的话、你的一年、一块生活）
 struct AboutPage: View {
     @Environment(AppModel.self) private var model
     @State private var route = AboutRoute.home
+    /// 地址里带着的「Pour 认识的」那一条（?item=person:小王），或者只知道一个词（?find=老地方：对话里「记住了」的链接）
+    @State private var ask: KnownAsk?
 
     var body: some View {
         Group {
             switch route {
-            case .home: AboutHome(navigate: navigate)
+            case .home: AboutHome(navigate: navigate, ask: $ask)
             case .mood: AboutMoodView(navigate: navigate)
             case .people: AboutPeopleView(navigate: navigate)
             case .talk: AboutTalkView(navigate: navigate)
@@ -23,7 +25,7 @@ struct AboutPage: View {
         .onChange(of: model.pagePath) { _, path in follow(path) }
     }
 
-    /// 换到网页版的一个地址：关于我里的留在这儿，别的（钱、笔记库）交给外面
+    /// 换到一个页面地址：关于我里的留在这儿，别的（钱、笔记库）交给外面
     private func navigate(_ path: String) {
         guard let next = AboutRoute(path) else {
             model.open(path)
@@ -36,6 +38,10 @@ struct AboutPage: View {
         guard let path, path.hasPrefix("/about"), let next = AboutRoute(path) else { return }
         model.pagePath = nil
         route = next
+        let query = URLComponents(string: path)?.queryItems ?? []
+        let item = query.first { $0.name == "item" }?.value
+        let find = query.first { $0.name == "find" }?.value
+        if item != nil || find != nil { ask = KnownAsk(item: item, find: find) }
     }
 }
 
@@ -64,11 +70,12 @@ enum AboutRoute: Hashable {
     }
 }
 
-/// 「关于我」主页（网页版 AboutPage.tsx）：你的生活由什么组成、时间去向、这周的新发现、换个角度看你、好日子的配方、
+/// 「关于我」主页：你的生活由什么组成、时间去向、这周的新发现、换个角度看你、好日子的配方、
 /// 你没注意到的变化、说的和做的、还在攒的、你的一年。数字、句子都是服务器算好的
 private struct AboutHome: View {
     @Environment(AppModel.self) private var model
     let navigate: (String) -> Void
+    @Binding var ask: KnownAsk?
     @State private var page: API.MeHomePage?
     @State private var care: API.MeCare?
     @State private var known = KnownStore()
@@ -88,6 +95,12 @@ private struct AboutHome: View {
         .task(id: model.dataVersion) { await load() }
         .task(id: model.dataVersion) { await known.load(model.client) }
         .sheet(item: $known.opened) { KnownPeek(store: known, key: $0.id) }
+        // 地址里要打开的那一条：等「Pour 认识的」拿回来再打开；找不到就只停在主页
+        .onChange(of: "\(ask?.item ?? "")|\(ask?.find ?? "")|\(known.about != nil)", initial: true) {
+            guard let wanted = ask, known.about != nil else { return }
+            ask = nil
+            if let key = wanted.item ?? wanted.find.flatMap(known.find) { known.open(key) }
+        }
     }
 
     @ViewBuilder private func content(_ page: API.MeHomePage) -> some View {
@@ -205,4 +218,10 @@ private struct AboutHome: View {
             problem = error.readable
         }
     }
+}
+
+/// 地址里要打开的「Pour 认识的」那一条
+struct KnownAsk: Equatable {
+    var item: String?
+    var find: String?
 }

@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 「回顾」（网页版 review/ReviewPage.tsx，docs/prd-review.md）：Pour 写给你的东西——每天的回顾、周报月报、预警。
+/// 「回顾」（docs/prd-review.md）：Pour 写给你的东西——每天的回顾、周报月报、预警。
 /// 列表点一项打开那一篇；对话里的链接（/review/2026-10-18、/review/week/…、/review/month/…）直接打开那一篇
 struct ReviewPage: View {
     @Environment(AppModel.self) private var model
@@ -20,7 +20,7 @@ struct ReviewPage: View {
         .onChange(of: model.pagePath) { _, path in follow(path) }
     }
 
-    /// 换到网页版的一个地址（回顾里互相跳）
+    /// 换到一个页面地址（回顾里互相跳）
     private func navigate(_ path: String) {
         withAnimation(Web.panel) { route = ReviewRoute(path) }
     }

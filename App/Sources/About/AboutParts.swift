@@ -3,7 +3,7 @@ import PourDesign
 import SwiftUI
 
 /*
- * 「关于我」各页共用的几样（网页版 about/about-parts.tsx，docs/prd-about-me-2.md 8.3）：同一份数据全产品一种画法——
+ * 「关于我」各页共用的几样（docs/prd-about-me-2.md 8.3）：同一份数据全产品一种画法——
  * 比较两组用两根横条，有几天用圆点，随时间变用小曲线，每天一格用像素；颜色只表示意思
  */
 
@@ -56,7 +56,7 @@ struct MeHead<Sub: View>: View {
     }
 }
 
-/// 灰色的小字（网页版 .me-note）
+/// 灰色的小字
 struct MeNote: View {
     let text: String
 

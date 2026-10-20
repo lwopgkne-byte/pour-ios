@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 对话里的一条系统消息（网页版 MessageCard 1 比 1；规格 12.1：所有提醒同时也出现在对话里）：
+/// 对话里的一条系统消息（规格 12.1：所有提醒同时也出现在对话里）：
 /// 左边对齐，和 AI 的回复一样安静；每日回顾、周报月报只留一行链接，完整的在「回顾」里
 struct MessageCard: View {
     @Environment(AppModel.self) private var model
@@ -76,7 +76,7 @@ struct MessageCard: View {
 }
 
 extension View {
-    /// 网页版 .chat-system：白底、细边、卡片圆角，上下各空一点
+    /// 系统消息的样子：白底、细边、卡片圆角，上下各空一点
     fileprivate func card() -> some View {
         background(RoundedRectangle(cornerRadius: Web.radiusCard).fill(Web.bg))
             .overlay(RoundedRectangle(cornerRadius: Web.radiusCard).strokeBorder(Web.line, lineWidth: 1))

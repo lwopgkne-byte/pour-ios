@@ -1,8 +1,8 @@
 import Foundation
 import PourCore
 
-/// 网页版画布、对话里的那些写法（shared 的 format.ts、tidy.ts、receipt.ts、mood.ts、categories.ts，
-/// web 的 entry-display.ts 原样），用在网页版服务器给的数据上：和网页版一字不差
+/// 画布、对话里的那些写法（服务器 shared 的 format.ts、tidy.ts、receipt.ts、mood.ts、categories.ts 原样），
+/// 用在服务器给的数据上：和服务器说的一字不差
 public enum Show {
     // MARK: - 时间、日子、钱
 

@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 目标的状态色小圆点；还谈不上状态的是空心圈（网页版 goals/GoalBits.tsx 的 ToneDot）
+/// 目标的状态色小圆点；还谈不上状态的是空心圈
 struct ToneDot: View {
     let tone: String
 
@@ -19,7 +19,7 @@ struct ToneDot: View {
     }
 }
 
-/// 细进度条（网页版 GoalBar）：4 点高的浅灰底，状态色填到进度那么长
+/// 细进度条：4 点高的浅灰底，状态色填到进度那么长
 struct GoalBar: View {
     let pct: Double
     let tone: String
@@ -35,7 +35,7 @@ struct GoalBar: View {
     }
 }
 
-/// 年目标的一个月、月目标的一周：名称、进度条、「实际 / 目标」；有下一层的能展开（网页版 SubRow）
+/// 年目标的一个月、月目标的一周：名称、进度条、「实际 / 目标」；有下一层的能展开
 struct GoalSubRow: View {
     let row: API.SubPeriod
     let unit: String
@@ -75,7 +75,7 @@ struct GoalSubRow: View {
     }
 }
 
-/// 展开的月、周：往里缩一点，左边一条细线（网页版 .goal-subs）
+/// 展开的月、周：往里缩一点，左边一条细线
 struct GoalSubs<Content: View>: View {
     @ViewBuilder let content: () -> Content
 

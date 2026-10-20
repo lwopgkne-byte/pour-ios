@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 你说的话那一页（网页版 AboutTalkPage.tsx，docs/prd-about-me-2.md 5.4、6.2、6.5）：说话的时钟、这几周你在说什么、
+/// 你说的话那一页（docs/prd-about-me-2.md 5.4、6.2、6.5）：说话的时钟、这几周你在说什么、
 /// 主题的起落、小词里的你、连锁反应。用的是你说这句话的时间；小词只和你自己比，不做任何判断
 struct AboutTalkView: View {
     @Environment(AppModel.self) private var model

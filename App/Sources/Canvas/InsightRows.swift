@@ -48,7 +48,7 @@ struct InsightRows: View {
     }
 }
 
-/// 以前也说过类似的（网页版 RelatedNotes）
+/// 以前也说过类似的
 private struct RelatedNotes: View {
     @Environment(AppModel.self) private var model
     let related: [API.Related]

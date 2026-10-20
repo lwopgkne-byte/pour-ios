@@ -3,7 +3,7 @@ import PourDesign
 import SwiftUI
 
 /*
- * 「钱」几页共用的几样（网页版 money-parts.tsx、money.css）：一页的开头、能点的一行、一笔钱的一行、
+ * 「钱」几页共用的几样：一页的开头、能点的一行、一笔钱的一行、
  * 一列（上面一条细线、每行下面一条细线）、办完一件事（带撤销）
  */
 
@@ -111,7 +111,7 @@ struct MoneyRow: View {
                             MoneyTag(text: Show.maskYuan(Show.returnedNote(returned), hide: hide))
                         }
                     }
-                    // 给谁在名目下面一行（网页版这里的 .money-who 是一整行）
+                    // 给谁在名目下面一行
                     if !Show.whoLabel(item).isEmpty {
                         Text(Show.whoLabel(item)).font(Web.caption).foregroundStyle(Web.fgTertiary)
                             .padding(.top, -Web.space1)
@@ -170,7 +170,7 @@ struct Segment {
         self.color = color
     }
 
-    /// 半粗的一段（网页版 <b>）
+    /// 半粗的一段
     static func bold(_ text: String, color: Color = Web.fg) -> Segment {
         .init(text, font: Web.bodySemibold, color: color)
     }

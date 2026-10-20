@@ -1,6 +1,6 @@
 import XCTest
 
-/// 生活画布和说一句的流程（照网页版 1 比 1，2026-10-19）：用假网关（-uiTest，不连网、不花钱），
+/// 生活画布和说一句的流程（2026-10-19）：用假网关（-uiTest，不连网、不花钱），
 /// 跑系统的无障碍审计，截图留给自验收看
 final class TodayUITests: XCTestCase {
     override func setUp() {
@@ -80,7 +80,7 @@ final class TodayUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["今天"].waitForExistence(timeout: 3), "说完没回到今天")
     }
 
-    /// 连不上：原话先存在手机上，标「没有保存上 · 重试」，连上了自动发（网页版的发件箱）
+    /// 连不上：原话先存在手机上，标「没有保存上 · 重试」，连上了自动发
     @MainActor func testWaitsForNetwork() throws {
         let app = launch()
         say("断网了也要记下来", in: app)

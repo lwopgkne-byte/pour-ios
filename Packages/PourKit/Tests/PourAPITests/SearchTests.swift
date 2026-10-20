@@ -3,7 +3,7 @@ import Testing
 
 @testable import PourAPI
 
-/// 搜索和问答（Fixtures/search-run.json：网页版演示数据的 /api/search?q=跑步；answer.json：带来源、五种图表、报告的回答）
+/// 搜索和问答（Fixtures/search-run.json：演示数据的 /api/search?q=跑步；answer.json：带来源、五种图表、报告的回答）
 @Suite("搜索和问答")
 struct SearchTests {
     func fixture<T: Decodable>(_ name: String, as type: T.Type) throws -> T {

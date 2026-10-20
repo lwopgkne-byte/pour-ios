@@ -1,6 +1,6 @@
 public import SwiftUI
 
-/// 网页版能点的一行、一张卡片（链接、列表行）：按下去底色变深一点（网页版 hover / active 的 bg-hover、bg-pressed）
+/// 能点的一行、一张卡片（链接、列表行）：按下去底色变深一点
 public struct WebPressStyle: ButtonStyle {
     let radius: CGFloat
 
@@ -15,7 +15,7 @@ public struct WebPressStyle: ButtonStyle {
     }
 }
 
-/// 网页版的三个点（Dots）：正在整理、正在保存、加载中。三个小圆点轮流亮起，用文字的颜色；
+/// 三个点（Dots）：正在整理、正在保存、加载中。三个小圆点轮流亮起，用文字的颜色；
 /// 系统设了「减弱动态效果」就不动
 public struct Dots: View {
     let label: String?
@@ -45,7 +45,7 @@ public struct Dots: View {
     private static let period = 1.2
     private static let stagger = 0.15
 
-    /// 网页版 @keyframes dot：0%、80%、100% 是 0.25，40% 是 1，中间缓入缓出
+    /// 一个点的明暗：0%、80%、100% 是 0.25，40% 是 1，中间缓入缓出
     static func opacity(_ time: Double) -> Double {
         let phase = (time / period).truncatingRemainder(dividingBy: 1)
         let step = phase < 0 ? phase + 1 : phase
@@ -56,8 +56,8 @@ public struct Dots: View {
     }
 }
 
-/// 网页版的文字按钮（btn-text：「撤销」「重试」「修改」「查看」）：看起来只是一段强调色的字，
-/// 能点的范围撑到至少 44×44、不占地方（网页版在手机上用 ::after 撑开，样式表 pointer: coarse）
+/// 文字按钮（「撤销」「重试」「修改」「查看」）：看起来只是一段强调色的字，
+/// 能点的范围撑到至少 44×44、不占地方
 public struct WebTextButton: View {
     let title: String
     let font: Font

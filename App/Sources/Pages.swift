@@ -1,7 +1,7 @@
 import PourDesign
 import SwiftUI
 
-/// 左上角菜单里的页面（网页版 Layout 的 PAGES，顺序一样）
+/// 左上角菜单里的页面（顺序一样）
 enum Page: String, CaseIterable, Identifiable {
     case canvas, review, money, about, goals, library, settings
 
@@ -32,7 +32,7 @@ enum Page: String, CaseIterable, Identifiable {
     }
 }
 
-/// 每一页显示什么。照网页版搬好一页，就把这一页的 LaterPage 换成它（docs/复刻网页版-交接.md）
+/// 每一页显示什么
 struct PageView: View {
     let page: Page
 
@@ -45,22 +45,6 @@ struct PageView: View {
         case .goals: GoalsPage()
         case .library: LibraryPage()
         case .settings: SettingsPage()
-        }
-    }
-}
-
-/// 还没照网页版搬过来的页面：标题和一句说明
-struct LaterPage: View {
-    let page: Page
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Web.space4) {
-                Text(page.label).font(Web.title).foregroundStyle(Web.fg)
-                Text("这一页正在照网页版搬过来。").font(Web.body).foregroundStyle(Web.fgTertiary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(Web.space4)
         }
     }
 }

@@ -61,13 +61,17 @@ targets:
         UIRequiredDeviceCapabilities: [arm64]
         # 只用系统的 HTTPS，不用自己的加密（出口合规，07 第 7 节）
         ITSAppUsesNonExemptEncryption: false
-        # 网页版服务器的地址（Config/Base.xcconfig 的 POUR_SERVER_URL；产品主人 2026-10-19 选 B：用网页版的服务器）。
+        # Pour 服务器的地址（Config/Base.xcconfig 的 POUR_SERVER_URL；产品主人 2026-10-19 选 B：业务规则和 AI 都在服务器上）。
         # 开发阶段服务器跑在这台 Mac 上、走局域网的 http；搬到阿里云、换成 https 以后这里换成那个地址
         PourServerURL: $(POUR_SERVER_URL)
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         # 真机连这台 Mac 上的网关要用局域网：系统第一次会问，这句话写清楚为什么
         NSLocalNetworkUsageDescription: 记录和整理都在电脑上的 Pour 里，要连上同一个 Wi-Fi 里的那台电脑。
+        # pour:// 打开这个 App：服务器推到 Bark 的提醒，点一下回到 Pour；pour://open?path=/review/2026-10-18 打开那一页
+        CFBundleURLTypes:
+          - CFBundleURLName: $(POUR_BUNDLE_ID)
+            CFBundleURLSchemes: [pour]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(POUR_BUNDLE_ID)

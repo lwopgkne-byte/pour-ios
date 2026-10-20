@@ -33,7 +33,7 @@ struct MeComposition: View {
                 Text(boldWords(composition.sentence, top.map(\.name))).font(Web.body).foregroundStyle(Web.fg)
             }
         }
-        // 主页的第一块离标题近一点（网页版 .me > .review-section:first-of-type）
+        // 主页的第一块离标题近一点
         .padding(.top, -Web.space4)
     }
 

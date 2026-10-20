@@ -3,8 +3,8 @@ import PourDesign
 import PourPlatform
 import SwiftUI
 
-/// 设置（网页版 SettingsPage.tsx 1 比 1）：大模型、AI 准不准、提醒和推送、类别、个人词典、局域网访问、数据。
-/// 最后多一块「这台手机」：连哪台电脑（网页版在电脑上打开，不用这一块）
+/// 设置：大模型、AI 准不准、提醒和推送、类别、个人词典、局域网访问、数据。
+/// 最后一块「这台手机」：连哪台电脑上的 Pour
 struct SettingsPage: View {
     @Environment(AppModel.self) private var model
 

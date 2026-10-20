@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// App 的外壳（网页版 Layout 手机那一档 1 比 1）：顶栏左上角菜单、右上角搜索，中间是生活画布，
+/// App 的外壳：顶栏左上角菜单、右上角搜索，中间是生活画布，
 /// 底部是输入框；发出去就向上展开对话面板，后面的页面轻微压暗，点暗处收起
 struct RootView: View {
     @Environment(AppModel.self) private var model
@@ -10,7 +10,7 @@ struct RootView: View {
     @State private var navOpen = false
 
     var body: some View {
-        // 看得见的高度（键盘弹出时是键盘上面那一截）：对话面板占它的 55%（网页版 --viewport-height × 0.55）
+        // 看得见的高度（键盘弹出时是键盘上面那一截）：对话面板占它的 55%
         GeometryReader { proxy in
             if model.needsPin {
                 PinGate()
@@ -103,7 +103,7 @@ private struct AppHeader: View {
     }
 }
 
-/// 演示数据：页面顶上一条安静但清楚的横幅（网页版 demo-banner，规格第十三章）
+/// 演示数据：页面顶上一条安静但清楚的横幅（规格第十三章）
 private struct DemoBanner: View {
     @Environment(AppModel.self) private var model
 
@@ -120,7 +120,7 @@ private struct DemoBanner: View {
     }
 }
 
-/// 左侧导航（网页版 NavDrawer）：点哪一页换到哪一页
+/// 左侧导航：点哪一页换到哪一页
 private struct NavDrawer: View {
     @Environment(AppModel.self) private var model
     @Binding var open: Bool
@@ -184,7 +184,7 @@ enum UIScreenWidth {
     }
 }
 
-/// 轻提示（网页版 toast）：深底浅字，右边可以有一个操作
+/// 轻提示：深底浅字，右边可以有一个操作
 private struct Toast: View {
     let message: String
     let action: String?

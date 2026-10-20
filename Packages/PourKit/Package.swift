@@ -1,5 +1,5 @@
 // swift-tools-version: 6.2
-// Pour 的分层代码包（docs/03-架构与开发方案.md 第 6.1 节）。
+// Pour 的分层代码包（docs/归档/03-架构与开发方案.md 第 6.1 节）。
 // 每一层只能依赖下面「dependencies」里写明的层：没写的，import 了也编译不过——依赖方向靠编译器守住。
 // scripts/check-deps.py 再核对一遍这张表和 6.1 节一致（功能包之间不许互相依赖、不许有没写进 ADR 的第三方库）。
 
@@ -44,7 +44,7 @@ let package = Package(
         .target(name: "PourDesign", swiftSettings: swiftSettings),
         // 系统能力：通知、后台任务、钥匙串、Face ID（以后）
         .target(name: "PourPlatform", dependencies: ["PourCore", "PourData"], swiftSettings: swiftSettings),
-        // 网页版服务器的接口（产品主人 2026-10-19 选 B：业务规则和 AI 用网页版的服务器，手机只做界面）：只用系统框架
+        // 服务器的接口（产品主人 2026-10-19 选 B：业务规则和 AI 用 Pour 服务器，手机只做界面）：只用系统框架
         .target(name: "PourAPI", dependencies: ["PourCore"], swiftSettings: swiftSettings),
 
         .testTarget(name: "PourCoreTests", dependencies: ["PourCore"], swiftSettings: swiftSettings),

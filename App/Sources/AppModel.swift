@@ -6,7 +6,7 @@ import PourCore
 import PourData
 import PourPlatform
 
-/// App 的状态（产品主人 2026-10-19 选 B）：数据、业务规则和 AI 全在网页版的服务器上，手机读写它的接口。
+/// App 的状态（产品主人 2026-10-19 选 B）：数据、业务规则和 AI 全在 Pour 服务器上，手机读写它的接口。
 /// 说一句：原话先存在手机上（没网也不丢）→ 交给服务器 → 服务器整理完推过来「变了」→ 手机重新拿这一天
 @MainActor
 @Observable
@@ -31,19 +31,19 @@ final class AppModel {
     private(set) var categories: [API.Category] = []
     /// 没连上服务器时说一句（连上了是 nil）
     private(set) var offline: String?
-    /// 电脑上的 Pour 开了 PIN、这台手机还没输过：整个 App 先显示输入 PIN 的那一页（网页版 PinGate）
+    /// 电脑上的 Pour 开了 PIN、这台手机还没输过：整个 App 先显示输入 PIN 的那一页
     private(set) var needsPin = false
-    /// 还没交给服务器的话：没网时先存在手机上，连上了自动发（网页版 chat.tsx 的 outbox）
+    /// 还没交给服务器的话：没网时先存在手机上，连上了自动发
     private(set) var outbox: [Outbox] = []
 
     var draft = ""
     /// 正在看哪一页（左上角菜单换）
     var page: Page = .canvas
-    /// 这一页要先打开哪一篇：网页版的地址（对话里点「昨天的回顾好了」→「/review/2026-10-18」），那一页看完清掉
+    /// 这一页要先打开哪一篇：页面地址（对话里点「昨天的回顾好了」→「/review/2026-10-18」），那一页看完清掉
     var pagePath: String?
     /// 要搜什么（右上角的搜索、「/找 三体」）：不是 nil 就打开搜索
     var search: String?
-    /// 对话面板开着没有（网页版 Composer：发出去就向上展开）
+    /// 对话面板开着没有（发出去就向上展开）
     var chatOpen = false
     /// 打开详情的那条记录
     var detail: EntryRef?
@@ -51,15 +51,15 @@ final class AppModel {
     var goalDetail: GoalRef?
     /// 记录、目标变了（整理完一段话、改了记录、改了目标）就加一：目标页、钱、回顾这些页看到就重新拿
     private(set) var dataVersion = 0
-    /// 轻提示（网页版 toast：「已删除 · 撤销」「密钥已保存」），4 秒后自己消失
+    /// 轻提示（「已删除 · 撤销」「密钥已保存」），4 秒后自己消失
     private(set) var notice: Notice?
     /// 服务器是在用真实数据（real）还是演示数据（demo，页面顶上有一条横幅）
     private(set) var mode = "real"
-    /// 大模型的状态：没连大模型时画布上有「连接大模型」（网页版 SetupCard）
+    /// 大模型的状态：没连大模型时画布上有「连接大模型」
     private(set) var llm: API.LlmStatus?
     /// 「回顾」列表：早上画布上那一行「昨天的回顾好了 →」看昨天的看过没有
     private(set) var reviews: [API.ReviewItem] = []
-    /// 正在生成的回答：一边生成一边推过来，整理完之前在对话里逐字显示（网页版 answer-stream）
+    /// 正在生成的回答：一边生成一边推过来，整理完之前在对话里逐字显示
     private(set) var answers: [Int: String] = [:]
     /// 别处改了设置（电脑上、另一台手机）就加一：设置页看到就重新拿
     private(set) var settingsVersion = 0
@@ -86,7 +86,7 @@ final class AppModel {
         if arguments.contains("-uiTest") { UserDefaults.standard.removeObject(forKey: OutboxStore.key) }
         let model = AppModel(client: ServerConfiguration.client(arguments: arguments))
         model.start()
-        // 开发时对照网页版：-day 2026-10-15 直接打开那一天
+        // 开发时对照演示数据：-day 2026-10-15 直接打开那一天
         if let index = arguments.firstIndex(of: "-day"), index + 1 < arguments.count {
             model.show(arguments[index + 1])
         }
@@ -95,7 +95,7 @@ final class AppModel {
 
     private func start() {
         // 界面测试不排通知（会弹「允许通知」把界面挡住）
-        // 对照网页版演示数据时（-serverURL）也不排
+        // 对照演示数据时（-serverURL）也不排
         let arguments = ProcessInfo.processInfo.arguments
         remindersOn = !arguments.contains("-uiTest") && !arguments.contains("-serverURL")
         if remindersOn { Reminders.showWhileOpen() }
@@ -180,7 +180,7 @@ final class AppModel {
         await reloadMessages()
     }
 
-    /// 系统消息：从对话里已经拿到的最早那段话开始；对话的历史都拿完了就要最近的（网页版 ChatPanel 的 since）
+    /// 系统消息：从对话里已经拿到的最早那段话开始；对话的历史都拿完了就要最近的
     private func reloadMessages() async {
         let since = chatHasMore ? chat.first?.createdAt : nil
         // 拿不到就先留着上次的：系统消息不影响说话和看画布
@@ -197,7 +197,7 @@ final class AppModel {
         }
     }
 
-    /// 一直听着服务器的推送（网页版 useServerEvents）：变了什么就重新拿什么；断了等一会儿再接
+    /// 一直听着服务器的推送：变了什么就重新拿什么；断了等一会儿再接
     private func listen() {
         events?.cancel()
         let client = self.client
@@ -212,7 +212,7 @@ final class AppModel {
         }
     }
 
-    /// 每种推送要重新拿哪些（网页版 keysToRefresh）
+    /// 每种推送要重新拿哪些
     private func handle(_ event: ServerEvent) async {
         switch event.type {
         case "notes-changed":
@@ -271,7 +271,7 @@ final class AppModel {
         Task { await reloadDay() }
     }
 
-    /// 打开网页版的一个地址（对话里的回顾、周报月报链接）：换到那一页，收起对话
+    /// 打开一个页面地址（对话里的回顾、周报月报链接，pour://open?path=…）：换到那一页，收起对话
     func open(_ path: String) {
         if path.hasPrefix("/review") { page = .review }
         if path.hasPrefix("/money") { page = .money }
@@ -297,7 +297,7 @@ extension AppModel {
 
     func setDone(_ entryId: Int, _ done: Bool) { act { client in try await client.setDone(entry: entryId, done) } }
 
-    /// 详情里原地改（字段名照网页版：label、start、duration_min、metrics……）
+    /// 详情里原地改（字段名照服务器：label、start、duration_min、metrics……）
     func update(_ entryId: Int, _ fields: [String: JSONValue]) {
         act { client in try await client.update(entry: entryId, fields: fields) }
     }
@@ -317,7 +317,7 @@ extension AppModel {
     /// 「连接大模型」上的「跳过」：不再出现，以后在设置里填
     func dismissSetup() { act { client in try await client.dismissSetup() } }
 
-    /// 说一声（网页版 toast）：一句话，右边可以有一个操作；4 秒后自己消失，新的顶掉旧的
+    /// 说一声：一句话，右边可以有一个操作；4 秒后自己消失，新的顶掉旧的
     func toast(_ message: String, action: String? = nil, perform: (() -> Void)? = nil) {
         notice = Notice(message: message, action: action)
         noticeAction = perform

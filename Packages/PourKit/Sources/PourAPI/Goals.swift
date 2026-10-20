@@ -187,7 +187,7 @@ extension APIClient {
         let _: Empty = try await request("PATCH", "/api/goals/\(id)", json: .object(["done": .bool(done)]))
     }
 
-    /// 手动添加目标（网页版 GoalForm）
+    /// 手动添加目标
     public func createGoal(_ body: [String: JSONValue]) async throws(APIError) {
         let _: Empty = try await request("POST", "/api/goals", json: .object(body))
     }
@@ -201,7 +201,7 @@ extension APIClient {
     }
 }
 
-/// 目标的写法（网页版 goals/GoalBits.tsx、shared goals.ts 的 fmtNum、describeTarget、PERIOD_NAMES）
+/// 目标的写法
 extension Show {
     /// 保留一位小数，整数不带「.0」：612、6.8
     public static func fmtNum(_ value: Double) -> String {

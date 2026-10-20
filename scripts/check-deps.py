@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""依赖方向检查（docs/03-架构与开发方案.md 第 6.1 节、ADR A18）。
+"""依赖方向检查（docs/归档/03-架构与开发方案.md 第 6.1 节、ADR A18）。
 
 编译器已经保证「没声明的依赖用不了」；这里再保证「声明的依赖本身是对的」：
   - 每一层只依赖 6.1 节表里允许的层
@@ -22,7 +22,7 @@ ALLOWED = {
     "PourData": {"PourCore", "GRDB"},
     "PourAI": {"PourCore", "PourData"},
     "PourPlatform": {"PourCore", "PourData"},
-    # 网页版服务器的接口（产品主人 2026-10-19 选 B）：日期换算用 PourCore 的
+    # 服务器的接口（产品主人 2026-10-19 选 B）：日期换算用 PourCore 的
     "PourAPI": {"PourCore"},
 }
 LAYERS = set(ALLOWED)

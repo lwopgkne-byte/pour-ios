@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 设置页「类别」（网页版 TaxonomySettings.tsx 1 比 1）：整理建议（合并、重新归类、删除）、类别和子类别，
+/// 设置页「类别」：整理建议（合并、重新归类、删除）、类别和子类别，
 /// 点一个打开它的详情：改名、图标、上级、同义词、颜色、合并到另一个、删除
 struct CategorySettings: View {
     @Environment(AppModel.self) private var model
@@ -125,7 +125,7 @@ private struct CategoryList: View {
     }
 }
 
-/// 一个类别的详情（网页版 CategoryEditor，在 Peek 里）
+/// 一个类别的详情（在 Peek 里）
 private struct CategoryEditor: View {
     let category: API.Category
     let all: [API.Category]

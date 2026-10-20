@@ -1,6 +1,6 @@
 public import Foundation
 
-/// 对话里的收据（网页版 shared/src/receipt.ts 原样）：一行说完这段话做了什么——
+/// 对话里的收据：一行说完这段话做了什么——
 /// 「已记录：🏃 跑步 5 公里 · 💼 开会；已删除：💼 被老板骂」
 public enum WebReceipt {
     /// 一个类别的名称、图标、颜色
@@ -10,7 +10,7 @@ public enum WebReceipt {
         public let color: String
     }
 
-    /// 感悟、待办、心情各自就是一个类别（网页版 KIND_META）
+    /// 感悟、待办、心情各自就是一个类别
     public static let kindMeta: [String: Meta] = [
         "insight": Meta(name: "感悟", emoji: "💡", color: "yellow"),
         "todo": Meta(name: "待办", emoji: "📝", color: "gray"),

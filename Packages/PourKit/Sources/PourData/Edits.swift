@@ -2,7 +2,7 @@ public import Foundation
 internal import GRDB
 public import PourCore
 
-// 详情里直接改（照网页版 EntryPeek 的原地修改）：改完的样子由界面算好，这里整体写入、留着改之前的样子
+// 详情里直接改：改完的样子由界面算好，这里整体写入、留着改之前的样子
 
 extension PourStore {
     /// 详情里改了一条：哪天、内容换成新的；改过就不再待确认。改动历史记一笔「修改」（不算哪段话改的）

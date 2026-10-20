@@ -3,7 +3,7 @@ import Testing
 
 @testable import PourAPI
 
-/// 回顾（Fixtures/review-*.json：网页版演示数据的 /api/review、/api/review/daily/2026-10-18、
+/// 回顾（Fixtures/review-*.json：演示数据的 /api/review、/api/review/daily/2026-10-18、
 /// /api/review/period/weekly/2026-10-12、/api/review/period/monthly/2026-09-01）
 @Suite("回顾")
 struct ReviewTests {

@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 心情那一页（网页版 AboutMoodPage.tsx，docs/prd-about-me-2.md 5.4）：心情像素（每天一格）、一周七天、
+/// 心情那一页（docs/prd-about-me-2.md 5.4）：心情像素（每天一格）、一周七天、
 /// 一天里什么时候、好时刻多在做什么、你说出过的感受、发现、变化。心情只用说法不用分数：图上只画高低、深浅
 struct AboutMoodView: View {
     @Environment(AppModel.self) private var model
@@ -36,6 +36,9 @@ struct AboutMoodView: View {
             if let when = page.when {
                 ReviewSection(title: "一天里什么时候") {
                     MeWhenMoodView(when: when)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityLabel(
+                            Text("一天里什么时候的好时刻、不好的时刻：\(when.sentence.isEmpty ? "各段差不多" : when.sentence)"))
                     MeNote(
                         (when.sentence.isEmpty ? "" : "\(when.sentence) · ")
                             + "只算你说了几点的那 \(when.timed) 刻"

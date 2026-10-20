@@ -4,7 +4,7 @@
     import PourCore
     import Synchronization
 
-    /// 界面测试用的假服务器（只在 Debug 版里，启动参数 -uiTest）：不连网、不花钱，照网页版服务器的接口回话。
+    /// 界面测试用的假服务器（只在 Debug 版里，启动参数 -uiTest）：不连网、不花钱，照服务器的接口回话。
     /// 说的话里有「跑了五公里」记一条跑步，有「吃面三十二」记一条吃面 ¥32（拿不准，要确认）；
     /// 「断网」→ 连不上；「余额」→ 处理失败；别的 → 只回一句话
     final class StubServer: URLProtocol, @unchecked Sendable {
@@ -57,7 +57,7 @@
             var nextId = 1
             /// 对话里的系统消息：今天早上来的「昨天的回顾好了」
             var messages: [[String: Any]] = [Self.dailyReview]
-            /// 提醒和推送的设置：改了的那几项盖上去（网页版服务器 PUT /api/reminders）
+            /// 提醒和推送的设置：改了的那几项盖上去（服务器 PUT /api/reminders）
             var reminders = Self.defaultReminders
 
             var today: String { PourDate.logicalDay(Date(), in: .current) }
@@ -254,7 +254,7 @@
                 return ["ok": true]
             }
 
-            /// 网页版的基础类别
+            /// 服务器的基础类别
             static var categories: [[String: Any]] {
                 [
                     [

@@ -3,7 +3,7 @@ import Testing
 
 @testable import PourAPI
 
-/// Pour 认识的（Fixtures/about-known.json：网页版演示数据的 /api/about）
+/// Pour 认识的（Fixtures/about-known.json：演示数据的 /api/about）
 @Suite("Pour 认识的")
 struct KnownTests {
     @Test func decodes() throws {

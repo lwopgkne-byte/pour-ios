@@ -1,6 +1,6 @@
 public import Foundation
 
-/// 设置页用到的接口（网页版 pages/*Settings.tsx 里的 api.get / post / put / patch / del）
+/// 设置页用到的接口
 extension APIClient {
     // MARK: - 大模型
 

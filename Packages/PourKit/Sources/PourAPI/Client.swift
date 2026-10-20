@@ -1,6 +1,6 @@
 public import Foundation
 
-/// 网页版服务器出的问题（网页版 lib/api.ts 的 ApiError）
+/// 服务器出的问题
 public enum APIError: Error, Hashable, Sendable {
     /// 没连上：电脑没开、Pour 没在运行、不在同一个 WiFi
     case unreachable
@@ -9,7 +9,7 @@ public enum APIError: Error, Hashable, Sendable {
     /// 服务器说的错：code 给程序判断，message 是给人看的一句话
     case server(status: Int, code: String, message: String)
 
-    /// 给人看的一句话（网页版 errorMessage）
+    /// 给人看的一句话
     public var message: String {
         switch self {
         case .unreachable: "没连上电脑上的服务。请确认电脑开着、Pour 在运行，并且手机和电脑在同一个 WiFi。"
@@ -19,7 +19,7 @@ public enum APIError: Error, Hashable, Sendable {
     }
 }
 
-/// 网页版服务器的客户端：所有业务规则和 AI 都在服务器上，手机只读写它的接口（网页版 lib/api.ts、queries.ts）
+/// 服务器的客户端：所有业务规则和 AI 都在服务器上，手机只读写它的接口
 public actor APIClient {
     public let baseURL: URL
     /// 不是 private：下载文件（导出）也用它，带着登录 PIN 以后的 cookie
@@ -78,7 +78,7 @@ public actor APIClient {
         let _: Empty = try await request("POST", "/api/notes/\(id)/retry")
     }
 
-    /// 原地修改（字段名照网页版 update：start、duration_min、metrics……）
+    /// 原地修改（字段名照服务器 update：start、duration_min、metrics……）
     public func update(entry id: Int, fields: [String: JSONValue]) async throws(APIError) {
         let _: Empty = try await request("PATCH", "/api/entries/\(id)", json: .object(["fields": .object(fields)]))
     }

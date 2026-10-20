@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 全局搜索（网页版 app/SearchPalette.tsx，规格第九章）：右上角的放大镜、「/找 三体」打开。不经过 AI，即时显示结果：
+/// 全局搜索（规格第九章）：右上角的放大镜、「/找 三体」打开。不经过 AI，即时显示结果：
 /// 同时找原话、感悟（关键词 + 按意思）、目标和日期。浮在页面上面的一张卡片，后面压暗，点暗处收起
 struct SearchPalette: View {
     @Environment(AppModel.self) private var model
@@ -117,7 +117,7 @@ struct SearchPalette: View {
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: Web.space1))
                 : AnyLayout(HStackLayout(spacing: Web.space3))
             layout {
-                // 网页版一行放不下用省略号；字很大时折行，不截断
+                // 平时一行放不下用省略号；字很大时折行，不截断
                 Text(item.label).font(Web.body).foregroundStyle(Web.fg).lineLimit(typeSize > .large ? nil : 1)
                     .accessibilityIdentifier("webOneLine")
                     .frame(maxWidth: .infinity, alignment: .leading)

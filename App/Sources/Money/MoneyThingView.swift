@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 一样东西的那一页（网页版 MoneyThingPage.tsx，docs/prd-money.md 5.8）：每次多少钱（价钱 ÷ 之后说到用它的次数）、
+/// 一样东西的那一页（docs/prd-money.md 5.8）：每次多少钱（价钱 ÷ 之后说到用它的次数）、
 /// 你怎么说它（原话）、说到用它的那几次、买的那天。出去玩这类不除，只写之后又说起几次
 struct MoneyThingView: View {
     @Environment(AppModel.self) private var model

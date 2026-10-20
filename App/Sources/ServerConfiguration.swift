@@ -2,7 +2,7 @@ import Foundation
 import PourAPI
 import PourPlatform
 
-/// 服务器在哪：界面测试用假服务器（-uiTest）；启动参数 -serverURL 可以临时指定（对照网页版演示数据时用）；
+/// 服务器在哪：界面测试用假服务器（-uiTest）；启动参数 -serverURL 可以临时指定（对照演示数据时用）；
 /// 设置里改过的地址在钥匙串里；都没有就用 Info.plist 的 PourServerURL
 /// （Config/Base.xcconfig 的 POUR_SERVER_URL；装到手机时 install-device.sh 换成这台 Mac 在局域网里的名字）
 enum ServerConfiguration {

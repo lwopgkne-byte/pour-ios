@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 人情往来（网页版 MoneyRenqingPage.tsx，docs/prd-money.md 第 17 节）：随礼、红包、送礼、请客，你送出的、你收到的。
+/// 人情往来（docs/prd-money.md 第 17 节）：随礼、红包、送礼、请客，你送出的、你收到的。
 /// 和谁来往按最近一次排；点一个人看和他的每一次，带着你当时的原话。只摆事实：随多少你自己定
 struct RenqingView: View {
     @Environment(AppModel.self) private var model
@@ -70,7 +70,7 @@ struct RenqingView: View {
                 HStack(alignment: .firstTextBaseline, spacing: Web.space2) {
                     VStack(alignment: .leading, spacing: 0) {
                         Text(person.name).font(Web.body).foregroundStyle(Web.fg)
-                        // 关系在名字下面一行（网页版这里的 .money-who 是一整行）
+                        // 关系在名字下面一行
                         if let relation = person.relation {
                             Text(relation).font(Web.caption).foregroundStyle(Web.fgTertiary)
                         }

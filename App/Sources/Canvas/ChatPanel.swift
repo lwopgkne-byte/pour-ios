@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 对话面板（网页版 ChatPanel 1 比 1）：按天分隔的历史，每段原话下面是整理的结果；拖上面的小横条往下收起。
+/// 对话面板：按天分隔的历史，每段原话下面是整理的结果；拖上面的小横条往下收起。
 /// 还没交给服务器的话（没网时）排在最后，写「正在保存」或者「没有保存上 · 重试」
 struct ChatPanel: View {
     @Environment(AppModel.self) private var model
@@ -30,7 +30,7 @@ struct ChatPanel: View {
             ScrollViewReader { reader in
                 ScrollView {
                     LazyVStack(spacing: Web.space3) {
-                        // 翻到最上面自动拿更早的一页，拿完停在原来看的地方（网页版：看见「加载更早的记录」就拿）
+                        // 翻到最上面自动拿更早的一页，拿完停在原来看的地方（看见「加载更早的记录」就拿）
                         if model.chatHasMore {
                             Dots(label: "加载更早的记录").foregroundStyle(Web.fgTertiary).padding(.top, Web.space2)
                                 .onScrollVisibilityChange { visible in

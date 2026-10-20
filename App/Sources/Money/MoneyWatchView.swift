@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 留意的（网页版 MoneyWatchPage.tsx，docs/prd-money.md 5.5）：你顺口说过的、和钱有关的事——等你拿回来的、
+/// 留意的（docs/prd-money.md 5.5）：你顺口说过的、和钱有关的事——等你拿回来的、
 /// 每个月固定的、买了还没用完的、常买的、你说过的预算。办完了点一下就清掉（带撤销），或者说一声。不推送、不打红点
 struct MoneyWatchView: View {
     @Environment(AppModel.self) private var model

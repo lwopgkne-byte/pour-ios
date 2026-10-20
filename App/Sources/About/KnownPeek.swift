@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 「Pour 认识的」一条的详情（网页版 known.tsx 的 Peek）：作息、常做的事、人、地方、说法。
+/// 「Pour 认识的」一条的详情：作息、常做的事、人、地方、说法。
 /// 点一条依据：这一层收起，打开那条记录的详情
 struct KnownPeek: View {
     @Environment(AppModel.self) private var model

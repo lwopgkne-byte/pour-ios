@@ -3,7 +3,7 @@ import Testing
 
 @testable import PourAPI
 
-/// 钱（Fixtures/money-*.json：网页版演示数据的 /api/money/2026-10、/overview、/watch、/findings、/day/2026-10-18、
+/// 钱（Fixtures/money-*.json：演示数据的 /api/money/2026-10、/overview、/watch、/findings、/day/2026-10-18、
 /// /thing/22、/renqing、/renqing/小李）
 @Suite("钱")
 struct MoneyTests {
@@ -56,7 +56,7 @@ struct MoneyTests {
         #expect(person.rows.first { !$0.together.isEmpty }?.together == ["大姐", "老同学"])
     }
 
-    /// 钱怎么写：遮住、标签、给谁（网页版 money-parts.tsx）
+    /// 钱怎么写：遮住、标签、给谁
     @Test func words() throws {
         #expect(Show.yuan(3126, hide: false) == "¥3,126")
         #expect(Show.yuan(18500, hide: false, plus: true) == "+¥18,500")

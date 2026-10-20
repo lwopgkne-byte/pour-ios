@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 笔记库（网页版 LibraryPage.tsx，规格 11）：所有原话，新的在前；能搜、按时间、类别、人物筛；
+/// 笔记库（规格 11）：所有原话，新的在前；能搜、按时间、类别、人物筛；
 /// 每段原话下面是它整理出的记录和处理状态；能原地改（自动重新整理）、删。
 /// 「感悟」像一本会自己整理的随笔集；「好时刻」是你说过觉得好的那一刻
 struct LibraryPage: View {

@@ -1,8 +1,8 @@
 public import SwiftUI
 
-/// 网页版的设计令牌（web/src/design/tokens.ts 原样，手机那一档）。
-/// 产品主人 2026-10-19：UI 先只做生活画布，样式 1 比 1 照网页版，不另外设计——
-/// 照网页版搬的界面只用这里的值（「纸·墨·青」那套令牌留给还没换的界面）
+/// 现在用的设计令牌：颜色、字号、间距、圆角、动效。
+/// 产品主人 2026-10-19：界面 1 比 1 照原来网页版的样子，不另外设计——这些值就是从那里原样搬来的（手机那一档）。
+/// 界面只用这里的值（「纸·墨·青」那套 Pour* 令牌只剩设计画廊在用；下一阶段统一成一套）
 public enum Web {
     /// 主文字色的 RGB（暖调近黑）：次要文字、边框、悬停背景都从它派生
     private static func ink(_ alpha: Double) -> Color {
@@ -60,7 +60,7 @@ public enum Web {
         "red": Tag(bg: hex(0xFDEBEC), fg: hex(0x9E3834), solid: hex(0xD0605B)),
     ]
 
-    /// 以前按 iOS 规范存的颜色名（stone、moss……）也认：换成网页版对应的那一种
+    /// 以前按 iOS 规范存的颜色名（stone、moss……）也认：换成对应的那一种
     private static let legacy: [String: String] = [
         "stone": "gray", "clay": "brown", "apricot": "orange", "straw": "yellow", "moss": "green",
         "lake": "blue", "wisteria": "purple", "sakura": "pink", "brick": "red",
@@ -83,19 +83,19 @@ public enum Web {
 
     // MARK: - 字（手机那一档：标题 26、小节 18、正文 16、辅助 13）
 
-    /// 网页版在 iPhone 上的中文字体是苹方；默认字号下和网页版一样大，在设置里调大字号时跟着变大（动态字体）
+    /// 中文字体是苹方；默认字号下和原来一样大，在设置里调大字号时跟着变大（动态字体）
     private static func pingfang(_ size: CGFloat, _ style: Font.TextStyle, _ weight: Font.Weight = .regular) -> Font {
         Font.custom("PingFang SC", size: size, relativeTo: style).weight(weight)
     }
 
     public static let title = pingfang(26, .title, .bold)
-    /// 回顾里的关键数字：一页唯一的焦点（网页版 text-display，手机 28）
+    /// 回顾里的关键数字：一页唯一的焦点（手机 28）
     public static let displaySemibold = pingfang(28, .largeTitle, .semibold)
-    /// 「钱」那个大数（网页版 money-big：text-display、粗体）
+    /// 「钱」那个大数（text-display、粗体）
     public static let displayBold = pingfang(28, .largeTitle, .bold)
     /// 「花在哪」小方块里的钱
     public static let sectionBold = pingfang(18, .title3, .bold)
-    /// 你说的原话（值不值、借钱时怎么说的）：宋体，和网页版 --font-serif 一样
+    /// 你说的原话（值不值、借钱时怎么说的）：宋体
     public static let quote = Font.custom("Songti SC", size: 16, relativeTo: .body)
     /// 「你怎么说它」那句原话：宋体、小节那么大
     public static let quoteSection = Font.custom("Songti SC", size: 18, relativeTo: .title3)
@@ -152,7 +152,7 @@ public enum Web {
     public static let pulse = Animation.easeInOut(duration: 0.8).repeatForever(autoreverses: true)
     /// 浮在内容上方的东西的影子（开关上的圆点）：很淡
     public static let shadow = Color(red: 15 / 255, green: 15 / 255, blue: 15 / 255).opacity(0.08)
-    /// 九种类别色的名字，按网页版的顺序（TAG_COLORS）
+    /// 九种类别色的名字，按原来的顺序（TAG_COLORS）
     public static let tagNames = ["gray", "brown", "orange", "yellow", "green", "blue", "purple", "pink", "red"]
 }
 

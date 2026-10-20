@@ -2,20 +2,20 @@
     import Foundation
 
     extension StubServer.State {
-        /// 照网页版搬过来的几页（目标、回顾、钱、笔记库、搜索）各自的接口
+        /// 目标、回顾、钱、笔记库、搜索这几页各自的接口
         func pageReply(_ method: String, _ path: String) -> Any? {
             goalsReply(method, path) ?? reviewReply(method, path) ?? moneyReply(method, path)
                 ?? libraryReply(method, path) ?? searchReply(method, path)
                 ?? aboutReply(method, path)
         }
 
-        /// 搜索：不管搜什么都给网页版演示数据里搜「跑步」的结果（界面测试只看打得开、点得动）
+        /// 搜索：不管搜什么都给演示数据里搜「跑步」的结果（界面测试只看打得开、点得动）
         func searchReply(_ method: String, _ path: String) -> Any? {
             method == "GET" && path == "/api/search" ? SearchStub.json(SearchStub.run) : nil
         }
     }
 
-    /// 搜索和问答的演示数据：搜「跑步」的结果（网页版 5199 拿的），一段带来源、五种图表、报告的回答（「/问」开头的话都这样回答）
+    /// 搜索和问答的演示数据：搜「跑步」的结果（5199 演示服务器拿的），一段带来源、五种图表、报告的回答（「/问」开头的话都这样回答）
     enum SearchStub {
         static func json(_ text: String) -> Any {
             (try? JSONSerialization.jsonObject(with: Data(text.utf8))) ?? [String: Any]()

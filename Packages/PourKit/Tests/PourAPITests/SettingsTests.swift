@@ -3,7 +3,7 @@ import Testing
 
 @testable import PourAPI
 
-/// 设置页的数据（Fixtures/settings.json：网页版演示数据的 /api/llm/status、/api/reminders……；
+/// 设置页的数据（Fixtures/settings.json：演示数据的 /api/llm/status、/api/reminders……；
 /// 评测演示数据里没跑过，照服务器 evals.ts 的样子写了一份）
 @Suite("设置页的接口")
 struct SettingsTests {

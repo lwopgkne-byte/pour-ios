@@ -36,7 +36,7 @@ echo "${DEVICE_NAME} · iOS ${IOS_VERSION}"
 [[ "${PAIRING}" == "paired" ]] || fail "手机还没信任这台 Mac：看手机屏幕上的「要信任此电脑吗」，点「信任」并输入锁屏密码，再运行一次"
 
 BUILD="$(git rev-list --count HEAD)"
-# 手机在局域网里找这台 Mac 上的 Pour 服务器（网页版的服务器，产品主人 2026-10-19 选 B）：用 Mac 的局域网名字
+# 手机在局域网里找这台 Mac 上的 Pour 服务器（仓库 pour，产品主人 2026-10-19 选 B）：用 Mac 的局域网名字
 SERVER="http://$(scutil --get LocalHostName).local:5188"
 step "构建（版本 $(awk -F' = ' '/^MARKETING_VERSION/{print $2}' Config/Base.xcconfig) · 构建 ${BUILD}）"
 xcodegen generate --spec project.yml --quiet

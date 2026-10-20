@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 一条发现（网页版 components/finding/FindingCard.tsx：「钱和你的日子」「关于我」的新发现，全产品一种画法）：
+/// 一条发现（「钱和你的日子」「关于我」的新发现，全产品一种画法）：
 /// 一句话、两根横条、依据；整张卡能点，点开是那几天，再点进那天。
 /// 下面一排安静的文字按钮，点了的深一点，再点一次撤销；点「不对」问一句是不是哪天记错了，顺手把那几天打开
 struct FindingCard: View {

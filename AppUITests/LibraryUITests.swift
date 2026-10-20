@@ -1,7 +1,7 @@
 import XCTest
 
-/// 笔记库（照网页版 1 比 1，2026-10-20）：原话、感悟、好时刻；跑系统的无障碍审计，截图留给自验收看。
-/// 用假服务器（-uiTest）：网页版演示数据里最近几段原话、人物、感悟、好时刻
+/// 笔记库（2026-10-20）：原话、感悟、好时刻；跑系统的无障碍审计，截图留给自验收看。
+/// 用假服务器（-uiTest）：演示数据里最近几段原话、人物、感悟、好时刻
 final class LibraryUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false

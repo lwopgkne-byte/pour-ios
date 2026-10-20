@@ -1,9 +1,9 @@
-# 对拍的标准答案（冻结数据）
+# 对拍的标准答案
 
-网页版的规则在一批输入上的输出。Swift 版的同一条规则必须和它一模一样（`Packages/PourKit/Tests/PourCoreTests/GoldenTests.swift` 逐份比较）。
+服务器（仓库 [lwopgkne-byte/pour](https://github.com/lwopgkne-byte/pour)）的规则在一批输入上的输出。Swift 版的同一条规则必须和它一模一样（`Packages/PourKit/Tests/PourCoreTests/GoldenTests.swift` 逐份比较）。
 
-- **出处**：网页版仓库 [lwopgkne-byte/pour](https://github.com/lwopgkne-byte/pour) 的 `scripts/export-golden.ts`，2026-10-17 导出（M0，网页版提交 `0286834`）。网页版已经冻结，这些文件不会再变
-- **不要手改**。以后的模块要更多标准答案（M2 心情说法和时间推断、M7 目标计算……）：在网页版仓库加导出、跑一次 `npm run golden`，把新文件拷进来，在这里记一行出处和网页版的提交号
+- **出处**：服务器仓库的 `scripts/export-golden.ts`，2026-10-17 导出（提交 `0286834`）；2026-10-20 服务器 2.0.0 删掉网页时重新导出了一次，只有文件开头「说明」那一句变了，样例一份没变
+- **不要手改**。服务器改了这些函数（它的 `npm run check` 会说标准答案不是最新的），或者要更多标准答案：在服务器仓库跑 `npm run golden`，把新文件拷进来，在这里记一行出处和提交号
 
 | 文件 | 内容 | 样例 |
 |---|---|---|

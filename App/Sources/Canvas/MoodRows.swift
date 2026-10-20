@@ -4,7 +4,7 @@ import PourDesign
 import SwiftUI
 
 /// 心情：一条一行（五个小圆点 + 说法 + 情绪词 + 说到时的精力），下面一行是那一刻；按说的先后排；
-/// 一天有好几条、说的时间不一样时，每条前面写几点说的（网页版 MoodBody）
+/// 一天有好几条、说的时间不一样时，每条前面写几点说的
 struct MoodRows: View {
     let items: [API.Entry]
     let quotes: [String]

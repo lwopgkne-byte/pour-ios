@@ -39,7 +39,7 @@ extension Show {
         SlashCommand("/撤销", action: "undo", "撤销上一段话", "/撤销"),
     ]
 
-    /// 刚输入「/」还没写完命令时，可以用的命令（网页版 Composer：/^\/\S*$/）
+    /// 刚输入「/」还没写完命令时，可以用的命令（/^\/\S*$/）
     public static func slashMenu(_ text: String) -> [SlashCommand] {
         guard text.hasPrefix("/"), !text.contains(where: \.isWhitespace) else { return [] }
         return slashCommands.filter { $0.cmd.hasPrefix(text) && (!$0.alias || $0.cmd == text) }

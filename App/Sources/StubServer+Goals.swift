@@ -2,7 +2,7 @@
     import Foundation
 
     extension StubServer.State {
-        /// 目标页、目标详情：从网页版演示数据里挑的三个目标（今年跑 500 公里、每周运动 3 次、读完《三体》）；
+        /// 目标页、目标详情：从演示数据里挑的三个目标（今年跑 500 公里、每周运动 3 次、读完《三体》）；
         /// 改、删、确认都说「好」（不真的改：界面测试只看页面打得开、点得动）
         func goalsReply(_ method: String, _ path: String) -> Any? {
             guard path.hasPrefix("/api/goals") else { return nil }

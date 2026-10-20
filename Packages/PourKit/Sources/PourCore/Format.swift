@@ -74,7 +74,7 @@ public enum PourFormat {
 }
 
 extension Metric {
-    /// 网页版 tidy.ts 的 isMoney：单位是元、块钱……；「块」既是钱又是量词，名字也说的是钱才算
+    /// 服务器 shared tidy.ts 的 isMoney：单位是元、块钱……；「块」既是钱又是量词，名字也说的是钱才算
     public var isMoney: Bool {
         let unit = self.unit.trimmingCharacters(in: .whitespaces)
         if ["元", "块钱", "¥", "￥", "人民币", "rmb", "RMB"].contains(unit) { return true }

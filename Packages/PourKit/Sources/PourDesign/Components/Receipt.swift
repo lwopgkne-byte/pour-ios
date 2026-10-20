@@ -1,6 +1,6 @@
 public import SwiftUI
 
-// 收据和追问（docs/设计规范/08-组件.md「分子」）：一段话整理成了什么、AI 拿不准时问的一句
+// 收据和追问（docs/归档/设计规范/08-组件.md「分子」）：一段话整理成了什么、AI 拿不准时问的一句
 
 /// 收据里的一行记录
 public struct ReceiptLine: Identifiable, Sendable {

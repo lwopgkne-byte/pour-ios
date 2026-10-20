@@ -3,8 +3,8 @@ import Testing
 
 @testable import PourAPI
 
-/// 网页版服务器真的回来的样子（演示数据，Fixtures/ 是从网页版 /api 拿的）：手机都看得懂
-@Suite("网页版的接口")
+/// 服务器真的回来的样子（演示数据，Fixtures/ 是从演示服务器的 /api 拿的）：手机都看得懂
+@Suite("服务器的接口")
 struct DecodingTests {
     func fixture(_ name: String) throws -> Data {
         let url = try #require(Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures"))
@@ -45,7 +45,7 @@ struct DecodingTests {
     }
 }
 
-@Suite("网页版的写法（用在网页版服务器的数据上）")
+@Suite("写法（用在服务器的数据上）")
 struct ShowTests {
     @Test func linesOfADay() throws {
         let url = try #require(Bundle.module.url(forResource: "day", withExtension: "json", subdirectory: "Fixtures"))

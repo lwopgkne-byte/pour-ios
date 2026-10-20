@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 详情里一笔钱下面的几行（网页版 EntryPeek，docs/prd-money.md 5.13）：给谁、回来的钱、谁给的、报销了没 / 还了没、
+/// 详情里一笔钱下面的几行（docs/prd-money.md 5.13）：给谁、回来的钱、谁给的、报销了没 / 还了没、
 /// 固定的。事情办完了不是整理错了：不算「你改过的地方」
 struct MetricMoneyRows: View {
     @Environment(AppModel.self) private var model

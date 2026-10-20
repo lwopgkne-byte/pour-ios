@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 心情从哪来（网页版 charts/MoodSources.tsx，docs/prd-mood.md 5.11）：好时刻多出现在什么时候、醒着的时间和好时刻在哪些领域、
+/// 心情从哪来（docs/prd-mood.md 5.11）：好时刻多出现在什么时候、醒着的时间和好时刻在哪些领域、
 /// 和谁在一起、常见的心情。数据不够的那一列不画，换成一行灰字；只说同时出现。
 /// 「关于我」里点一行展开最多 3 条原话里的那一刻（interactive），月报里只看不点
 struct MoodSourcesView: View {

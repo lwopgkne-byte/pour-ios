@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 没答对的句子（网页版 EvalSettings.tsx 的 FailuresPeek）
+/// 没答对的句子
 struct FailuresPeek: View {
     let run: API.Evals.Run?
 
@@ -41,7 +41,7 @@ struct FailuresPeek: View {
     }
 }
 
-/// 你改过的地方（网页版 CandidatesPeek.tsx）：原话和改过之后的正确结果；收进检查清单、改通用 / 个人、忽略
+/// 你改过的地方：原话和改过之后的正确结果；收进检查清单、改通用 / 个人、忽略
 struct CandidatesPeek: View {
     @Environment(AppModel.self) private var model
     @State private var list: API.Candidates?
@@ -119,7 +119,7 @@ struct CandidatesPeek: View {
         }
     }
 
-    /// 正确结果写成一行给人看的字（网页版 describe）
+    /// 正确结果写成一行给人看的字
     private func expected(_ item: API.Candidate) -> String {
         guard !item.expected.isEmpty else { return "不应该有记录" }
         return item.expected.map { entry in
@@ -163,7 +163,7 @@ struct CandidatesPeek: View {
     }
 }
 
-/// 处理日志（网页版 RunLogPeek.tsx，规格 5.7）：每次整理的每一步发了什么、收到什么、用了多久和多少 token
+/// 处理日志（规格 5.7）：每次整理的每一步发了什么、收到什么、用了多久和多少 token
 struct RunLogPeek: View {
     @Environment(AppModel.self) private var model
     @State private var runs: [API.RunSummary]?
@@ -304,7 +304,7 @@ private struct StepItem: View {
     }
 }
 
-/// 原始内容（网页版 .log-pre）：浅灰底、等宽字、自动换行，最高 320 点，再长就在里面滚
+/// 原始内容：浅灰底、等宽字、自动换行，最高 320 点，再长就在里面滚
 private struct LogBlock: View {
     let text: String
     @State private var height: CGFloat = 0

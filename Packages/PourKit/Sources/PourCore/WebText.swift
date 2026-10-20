@@ -1,9 +1,9 @@
 public import Foundation
 
-/// 网页版画布和对话里的那些写法（shared/src/format.ts、tidy.ts、receipt.ts、mood.ts、web 的 entry-display.ts 原样）：
-/// 照网页版 1 比 1 做的界面用它，同一件事和网页版一字不差
+/// 画布和对话里的那些写法（服务器 shared/src/format.ts、tidy.ts、receipt.ts、mood.ts 原样）：
+/// 界面都用它，同一件事全产品一种说法
 public enum WebText {
-    /// 中文和数字、英文挨着时中间留一点空（浏览器的 text-autospace：网页版显示「10 月 15 日」「跑步 1 小时」）。
+    /// 中文和数字、英文挨着时中间留一点空（「10 月 15 日」「跑步 1 小时」）。
     /// 用六分之一个字宽的空格，已经有空格的不再加
     public static func spaced(_ text: String) -> String {
         var out = ""

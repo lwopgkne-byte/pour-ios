@@ -3,7 +3,7 @@ import PourDesign
 import SwiftUI
 
 /*
- * 每日回顾、周报、月报共用的几样（网页版 review/review-parts.tsx，docs/prd-report.md：同样的东西在所有地方一样）：
+ * 每日回顾、周报、月报共用的几样（docs/prd-report.md：同样的东西在所有地方一样）：
  * 一页的开头、关键数字、一个部分、目标一行、加载中的样子、左右滑翻上一页下一页
  */
 
@@ -19,7 +19,7 @@ struct ReviewHead: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Web.space2) {
             HStack(spacing: Web.space2) {
-                // 看起来是一行小字，能点的范围撑到 44 点（网页版是个链接）
+                // 看起来是一行小字，能点的范围撑到 44 点
                 Text(kicker).font(Web.caption).foregroundStyle(Web.fgTertiary).tracking(Web.kickerTracking)
                     .accessibilityHidden(true)
                     .overlay {
@@ -105,7 +105,7 @@ struct KeyNumbers: View {
     }
 }
 
-/// 一部分：大留白 + 一个安静的小标题（网页版 Section）
+/// 一部分：大留白 + 一个安静的小标题
 struct ReviewSection<Content: View>: View {
     let title: String
     @ViewBuilder let content: () -> Content
@@ -152,7 +152,7 @@ struct ReviewGoalRow: View {
     }
 }
 
-/// 能点的一行（网页版 .review-line、.review-mood、.review-quote）：按下去底色变深，往两边伸出 8 点
+/// 能点的一行：按下去底色变深，往两边伸出 8 点
 struct ReviewLine<Label: View>: View {
     let action: () -> Void
     @ViewBuilder let label: () -> Label

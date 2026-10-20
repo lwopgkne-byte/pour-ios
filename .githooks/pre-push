@@ -1,5 +1,5 @@
 #!/bin/sh
-# 推送前自动检查（docs/07-代码管理与发布.md）：iOS 日常检查都通过才推上去，坏了的代码不会到 GitHub。
+# 推送前自动检查（docs/归档/07-代码管理与发布.md）：iOS 日常检查都通过才推上去，坏了的代码不会到 GitHub。
 # 不要用 --no-verify 跳过。只改了文档（docs/ 和根目录的 .md）时只跑不开模拟器的那几项，省几分钟。
 # 日志写在 Git 自己的目录里：普通的克隆是 .git/；git worktree 里 .git 是个文件，要问 Git 真正的目录在哪
 GIT_DIR_REAL="$(git rev-parse --git-dir)"

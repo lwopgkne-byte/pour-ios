@@ -2,7 +2,7 @@
     import Foundation
 
     extension StubServer.State {
-        /// 关于我：从网页版演示数据里拿的主页、说的和做的、时间去向、心情、人、你说的话、你的一年、饮食那一页、看板的数
+        /// 关于我：从演示数据里拿的主页、说的和做的、时间去向、心情、人、你说的话、你的一年、饮食那一页、看板的数
         /// （日子是演示数据的日子，界面测试只看页面打得开、点得动）
         func aboutReply(_ method: String, _ path: String) -> Any? {
             if method != "GET", path.hasPrefix("/api/about/") || path.hasPrefix("/api/dictionary") {
@@ -15,7 +15,7 @@
         }
     }
 
-    /// 关于我的演示数据（网页版 5199 演示服务器拿的，原样）
+    /// 关于我的演示数据（5199 演示服务器拿的，原样）
     enum AboutStub {
         /// 地址 → 演示数据
         static let pages = [

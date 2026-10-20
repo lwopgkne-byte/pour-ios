@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 生活画布（网页版 CanvasPage 1 比 1）：回答「我今天过得怎么样」。
+/// 生活画布：回答「我今天过得怎么样」。
 /// 从上到下：日期、一句话总结、今天推进的目标、还在整理的那一行、时间轴、类别卡片；左右滑换日子
 struct CanvasView: View {
     @Environment(AppModel.self) private var model
@@ -130,8 +130,8 @@ private struct CanvasBody: View {
     }
 }
 
-/// 这一天推进的目标（网页版 goal-pills）：状态色小圆点、目标、推进了多少
-/// 这天推进的目标（网页版 .goal-pills，规格 7.1）：一排胶囊，点了打开目标详情
+/// 这一天推进的目标：状态色小圆点、目标、推进了多少
+/// 这天推进的目标（规格 7.1）：一排胶囊，点了打开目标详情
 private struct GoalPills: View {
     @Environment(AppModel.self) private var model
     let goals: [API.DayGoal]
@@ -166,7 +166,7 @@ private struct GoalPills: View {
         }
     }
 }
-/// 网页版的 quiet-link：小图标 + 次要文字，至少 44 点高
+/// 安静的链接：小图标 + 次要文字，至少 44 点高
 struct QuietLabel: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: Web.space1) {

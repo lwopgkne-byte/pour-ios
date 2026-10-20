@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 回答（网页版 app/AnswerView.tsx，规格第九章）：文字（加粗、短列表），[#12] 变成能点的来源编号；
+/// 回答（规格第九章）：文字（加粗、短列表），[#12] 变成能点的来源编号；
 /// 下面是图表、「查看完整报告」、来源（原话片段和日期，点一下在笔记库里看）
 struct AnswerView: View {
     @Environment(AppModel.self) private var model

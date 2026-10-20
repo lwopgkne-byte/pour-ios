@@ -47,7 +47,7 @@ enum OutboxStore {
     }
 }
 
-/// 每个月固定扣的一笔：每个月几日扣、记录里的第几个数（网页版 EntryPeek 的 FixedPay）
+/// 每个月固定扣的一笔：每个月几日扣、记录里的第几个数
 struct FixedPay: Hashable {
     let dayOfMonth: Int
     let index: Int

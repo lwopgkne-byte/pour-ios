@@ -2,7 +2,7 @@ import Foundation
 internal import GRDB
 import PourCore
 
-// 表和值类型之间的转换：表的样子只在这一层，别的层只认 PourCore 的值类型（docs/03 第 6 节）
+// 表和值类型之间的转换：表的样子只在这一层，别的层只认 PourCore 的值类型（docs/归档/03 第 6 节）
 
 struct NoteRow: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "note"

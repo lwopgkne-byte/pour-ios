@@ -1,7 +1,7 @@
 import Foundation
 import PourAPI
 
-/// 斜杠命令里不发给 AI、在手机上直接做的几件事（网页版 Composer 的 runAction）
+/// 斜杠命令里不发给 AI、在手机上直接做的几件事
 extension AppModel {
     func run(_ command: SlashCommand, _ rest: String) async {
         switch command.action {

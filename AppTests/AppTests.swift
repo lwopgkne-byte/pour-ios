@@ -9,7 +9,7 @@ import UIKit
 @MainActor
 struct AppTests {
     /// 启动画面的底色在资源目录里另写了一份（系统画启动画面时还没运行我们的代码），必须和页面底色一致：
-    /// 照网页版是白（Web.bg）；App 照网页版只用亮色，系统是暗色模式时也是白
+    /// 背景是白（Web.bg）；App 现在只用亮色，系统是暗色模式时也是白
     @Test(arguments: [UIUserInterfaceStyle.light, .dark])
     func launchScreenColorMatchesPageBackground(style: UIUserInterfaceStyle) throws {
         let asset = try #require(UIColor(named: "Canvas"))

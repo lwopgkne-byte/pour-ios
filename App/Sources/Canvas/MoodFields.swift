@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 心情（网页版 MoodFields）：要改的时候才有按钮，按钮上写的是字；点一下就改。
+/// 心情：要改的时候才有按钮，按钮上写的是字；点一下就改。
 /// 「依据」是 AI 听出这条心情的那几个字，加上它判断的「好 · 强」；你自己改过级别的写「你改的」
 struct MoodFields: View {
     @Environment(AppModel.self) private var model
@@ -58,7 +58,7 @@ struct MoodFields: View {
         return "\(said ?? "AI 听出来的")（\(tone) · \(Self.strengths[mood.strength ?? "medium"] ?? "中")）"
     }
 
-    /// 一排写着字的按钮；选中的边框深一点、字重一点（网页版 mood-choice）
+    /// 一排写着字的按钮；选中的边框深一点、字重一点
     private func choices(_ words: [String], selected: Int, pick: @escaping (Int) -> Void) -> some View {
         PourFlowLayout(spacing: Web.space1, lineSpacing: Web.space1) {
             ForEach(Array(words.enumerated()), id: \.offset) { index, word in
@@ -82,7 +82,7 @@ struct MoodFields: View {
     }
 }
 
-/// 放不下一行的那种（一排按钮）：名称在上面，按钮在下面靠右（网页版的一行放不下时就这样换行）
+/// 放不下一行的那种（一排按钮）：名称在上面，按钮在下面靠右
 private struct StackedRow<Content: View>: View {
     let label: String
     @ViewBuilder let content: () -> Content

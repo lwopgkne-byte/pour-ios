@@ -2,8 +2,8 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 设置页「AI 准不准」（网页版 EvalSettings.tsx 1 比 1）：越来越懂你（每周要你改几次、AI 追问几次、记住了多少说法）、
-/// 自动检查、最近一次检查的准确率、分开看、没答对的句子、你改过的地方。跑检查只能在电脑上点
+/// 设置页「AI 准不准」：越来越懂你（每周要你改几次、AI 追问几次、记住了多少说法）、
+/// 自动检查、最近一次检查的准确率、分开看、没答对的句子、你改过的地方。跑检查只能在电脑上点（「Pour 设置」）
 struct EvalSettings: View {
     @Environment(AppModel.self) private var model
 
@@ -118,7 +118,7 @@ private struct EvalRows: View {
                         Text(evals.progress.total.map { "\(evals.progress.done) / \($0)" } ?? "准备中")
                     }
                 } else {
-                    Text("只能在电脑上点").foregroundStyle(Web.fgTertiary)
+                    Text("在电脑上用「Pour 设置」跑").foregroundStyle(Web.fgTertiary)
                 }
             }
             if let error = evals.progress.error, !evals.progress.running {
@@ -127,7 +127,7 @@ private struct EvalRows: View {
         }
         .task { await countCandidates() }
         .task(id: evals.progress.running) {
-            // 跑检查时每 2 秒看一次进度（网页版 refetchInterval）
+            // 跑检查时每 2 秒看一次进度
             guard evals.progress.running else { return }
             try? await Task.sleep(for: .seconds(2))
             reload()
@@ -224,7 +224,7 @@ private struct GrowthRows: View {
         }
     }
 
-    /// 能点的一行：去「关于我」（网页版 setting-link）
+    /// 能点的一行：去「关于我」
     private func link<Content: View>(label: String, hint: String?, @ViewBuilder content: @escaping () -> Content)
         -> some View
     {

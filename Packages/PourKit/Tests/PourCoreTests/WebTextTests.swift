@@ -1,8 +1,8 @@
 import PourCore
 import Testing
 
-/// 照网页版搬的写法：和网页版一字不差（shared/src/format.ts、tidy.ts、receipt.ts）
-@Suite("网页版的写法")
+/// 画布和对话里的写法：和服务器 shared/src/format.ts、tidy.ts、receipt.ts 一字不差
+@Suite("画布和对话里的写法")
 struct WebTextTests {
     let run = RecordData.Event(
         category: "run", label: "跑步", start: "2026-10-19T07:00", durationMin: 40,

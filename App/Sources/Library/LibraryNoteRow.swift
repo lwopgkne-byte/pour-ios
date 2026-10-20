@@ -195,7 +195,7 @@ struct NoteRow: View {
     }
 }
 
-/// 原话的处理状态（网页版 StatusLabel）：整理中、已保存 · 待处理、待确认、处理失败（能重试）
+/// 原话的处理状态：整理中、已保存 · 待处理、待确认、处理失败（能重试）
 struct NoteStatusLabel: View {
     @Environment(AppModel.self) private var model
     let note: API.Note

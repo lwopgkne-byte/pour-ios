@@ -2,7 +2,7 @@
     import Foundation
 
     extension StubServer.State {
-        /// 钱：从网页版演示数据里拿的 10 月（每一笔只留几笔）、留意的、钱和你的日子、10月18日的钱、空气炸锅、人情往来
+        /// 钱：从演示数据里拿的 10 月（每一笔只留几笔）、留意的、钱和你的日子、10月18日的钱、空气炸锅、人情往来
         /// （日子是演示数据的日子，界面测试只看页面打得开、点得动）
         func moneyReply(_ method: String, _ path: String) -> Any? {
             guard path.hasPrefix("/api/money") else { return nil }
@@ -21,7 +21,7 @@
         }
     }
 
-    /// 钱的演示数据（网页版 5199 演示服务器拿的，原样）
+    /// 钱的演示数据（5199 演示服务器拿的，原样）
     enum MoneyStub {
         static func json(_ text: String) -> Any {
             (try? JSONSerialization.jsonObject(with: Data(text.utf8))) ?? [String: Any]()

@@ -1,8 +1,8 @@
 public import Foundation
 public import PourCore
 
-// AI 层：网关客户端、理解服务（M2 起）；问答、端侧语音和向量以后再加（docs/04-AI能力与程序适配方案.md）。
-// 接口契约 v2（docs/03 第 8 节）：手机发「背景包」，网关回「改动包」。格式和 gateway/src/contract.ts 一字不差，
+// AI 层：网关客户端、理解服务（M2 起）；问答、端侧语音和向量以后再加（docs/归档/04-AI能力与程序适配方案.md）。
+// 接口契约 v2（docs/归档/03 第 8 节）：手机发「背景包」，网关回「改动包」。格式和 gateway/src/contract.ts 一字不差，
 // PourAITests 拿网关导出的样例（gateway/contract/example-*.json）核对。v2：带上最近的对话；改、删、之前已记过。
 // v3：类别带颜色和顺序；改动包带上这段话新建的类别。
 // v4：问了要不要删的那几条（awaitingDelete）记在这段话上、下一句带回去：回答「对」时网关照着删

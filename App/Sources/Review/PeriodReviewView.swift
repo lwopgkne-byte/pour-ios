@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 周报 / 月报（网页版 review/PeriodReviewPage.tsx，docs/prd-report.md）：和每日回顾同一套样子——一页全部展开，
+/// 周报 / 月报（docs/prd-report.md）：和每日回顾同一套样子——一页全部展开，
 /// 一个焦点（四个大数字），靠留白分组，空的部分不出现。AI 只写一句话、几个观察、感悟里的主题和建议
 struct PeriodReviewView: View {
     @Environment(AppModel.self) private var model

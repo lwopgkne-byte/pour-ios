@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 目标详情（网页版 goals/GoalPeek.tsx，规格 8.5）：手机上从底部滑出。
+/// 目标详情（规格 8.5）：手机上从底部滑出。
 /// 应达 vs 实际曲线、预测、贡献这个目标的所有记录；名称、目标值、类别、每个月的目标都能原地改
 struct GoalPeek: View {
     @Environment(AppModel.self) private var model
@@ -170,7 +170,7 @@ private struct GoalDetailView: View {
                             HStack(spacing: Web.space3) {
                                 Text(Show.dayTitle(item.day, today: model.today)).foregroundStyle(Web.fgTertiary)
                                     .monospacedDigit()
-                                // 网页版一行、放不下用省略号；手机上长的换行，字号调大了也看得全
+                                // 长的换行，字号调大了也看得全
                                 Text(Show.spaced(item.text)).foregroundStyle(Web.fg)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 if goal.calc == "sum", item.value > 0 {
@@ -206,14 +206,14 @@ private struct GoalDetailView: View {
     }
 }
 
-/// 应达、实际、差值；平均型是剩下的天里每天要多少；连续型是最长连续（网页版 Numbers）
+/// 应达、实际、差值；平均型是剩下的天里每天要多少；连续型是最长连续
 private struct GoalNumbers: View {
     let goal: API.Goal
 
     var body: some View {
         let items = Self.items(goal)
         if !items.isEmpty {
-            // 一排放得下就一排，放不下换行（网页版 flex-wrap）
+            // 一排放得下就一排，放不下换行
             PourFlowLayout(spacing: Web.space6, lineSpacing: Web.space2) { cells(items) }
         }
     }

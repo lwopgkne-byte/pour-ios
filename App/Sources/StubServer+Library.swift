@@ -2,7 +2,7 @@
     import Foundation
 
     extension StubServer.State {
-        /// 笔记库：从网页版演示数据里拿的最近几段原话、人物、感悟、好时刻（日子是演示数据的日子）
+        /// 笔记库：从演示数据里拿的最近几段原话、人物、感悟、好时刻（日子是演示数据的日子）
         func libraryReply(_ method: String, _ path: String) -> Any? {
             switch (method, path) {
             case ("GET", "/api/library"): return LibraryStub.json(LibraryStub.notes)
@@ -18,7 +18,7 @@
         }
     }
 
-    /// 笔记库的演示数据（网页版 5199 演示服务器拿的，原样）
+    /// 笔记库的演示数据（5199 演示服务器拿的，原样）
     enum LibraryStub {
         static func json(_ text: String) -> Any {
             (try? JSONSerialization.jsonObject(with: Data(text.utf8))) ?? [String: Any]()

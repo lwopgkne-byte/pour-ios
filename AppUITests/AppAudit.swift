@@ -49,7 +49,7 @@ enum AppAudit {
         // 浮在底部的玻璃：倾倒栏（标签栏的底部附件）、撤销条；导航栏
         let glass = [app.buttons["pourbar"], app.descendants(matching: .any)["undoToast"]].filter(\.exists).map(\.frame)
         let navigation = app.navigationBars.allElementsBoundByIndex.filter(\.exists).map(\.frame)
-        // 底部的输入框（网页版 composer-dock）：页面在它后面滚，压在它下面、只露出一半的字量出来对比度不准、像被截断
+        // 底部的输入框：页面在它后面滚，压在它下面、只露出一半的字量出来对比度不准、像被截断
         let bar = ["pourbar.input", "pourbar.chat", "pourbar.send"]
             .map { app.descendants(matching: .any)[$0] }.filter(\.exists).map(\.frame.minY).min()
         // 顶栏（菜单、搜索）：页面往上滚到它后面去的字也只露出一截
@@ -105,10 +105,10 @@ enum AppAudit {
             guard let element = issue.element else { return unresolved(issue) }
             // 审计的时候页面还在动（数据刚拿回来、重新排了一遍），报出来的元素已经不在了：当成指不出元素的，拉回顶上再审
             guard element.exists else { return unresolved(issue) }
-            // 网页版的辅助文字（60% 的墨色，对比度约 3.6:1）：产品主人 2026-10-19 要界面 1 比 1 照网页版，
-            // 网页版这个值是定过的（tokens.ts「fg-tertiary」）；只放过「差一点」的，差得多的照样算
+            // 辅助文字（Web.fgTertiary，60% 的墨色，对比度约 3.6:1）：产品主人 2026-10-19 要界面 1 比 1 照原来的样子，
+            // 这个值是定过的；只放过「差一点」的，差得多的照样算（下一阶段统一设计系统时重新定）
             if issue.auditType == .contrast, issue.compactDescription.contains("nearly") {
-                print("放过（网页版的辅助文字）[\(name)] \(issue.compactDescription) ← \(element.label)")
+                print("放过（辅助文字）[\(name)] \(issue.compactDescription) ← \(element.label)")
                 return true
             }
             // 输入框自己的字和按钮照样审
@@ -148,7 +148,7 @@ enum AppAudit {
         var headerBottom: CGFloat?
         /// 对话面板里能滚的那一块的上沿（面板没开是 nil）
         var panelTop: CGFloat?
-        /// 这段字是网页版只占一行、放不下用省略号的（webOneLine）
+        /// 这段字本来就只占一行、放不下用省略号（webOneLine）
         var oneLine = false
 
         func inside(_ frames: [CGRect], _ frame: CGRect) -> Bool {
@@ -178,13 +178,13 @@ enum AppAudit {
         {
             return "表情不是字"
         }
-        // 对话里的「昨天的回顾好了 · …」「上周的周报好了 · …」：网页版这一行本来就只占一行、放不下用省略号（truncate），
+        // 对话里的「昨天的回顾好了 · …」「上周的周报好了 · …」：这一行本来就只占一行、放不下用省略号（truncate），
         // 完整的点开就是；读屏念的是整行
         if type == .textClipped, ["昨天的回顾好了 · ", "上周的周报好了 · ", "上个月的月报好了 · "].contains(where: label.hasPrefix) {
-            return "网页版就是一行"
+            return "本来就是一行"
         }
-        // 网页版这一行本来就只占一行、放不下用省略号（搜索结果）：字很大时会折行，读屏念的是整行
-        if type == .textClipped, place.oneLine { return "网页版就是一行" }
+        // 这一行本来就只占一行、放不下用省略号（搜索结果）：字很大时会折行，读屏念的是整行
+        if type == .textClipped, place.oneLine { return "本来就是一行" }
         // 会换行的字一律被报截断（testAuditProbeStillMisreportsWrappedText）
         if type == .textClipped && frame.height >= 30 { return "审计自己的毛病" }
         // 带全角括号的一行字一律被报截断（testAuditProbeParentheses）

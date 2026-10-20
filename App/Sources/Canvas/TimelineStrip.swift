@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 时间轴（网页版 Timeline 1 比 1）：一天从早到晚的一条细线，事件按时间排成类别色的色块，点一下看详情；
+/// 时间轴：一天从早到晚的一条细线，事件按时间排成类别色的色块，点一下看详情；
 /// 说不出具体时间的事件放在下面的「未定时间」里
 struct TimelineStrip: View {
     @Environment(AppModel.self) private var model
@@ -102,7 +102,7 @@ struct TimelineStrip: View {
         .padding(.top, Web.space3)
     }
 
-    /// 时间轴上的一块：看得见的是细细的色块；能点的范围撑到 44×44（手机上色块太细不好点，网页版同样撑高）
+    /// 时间轴上的一块：看得见的是细细的色块；能点的范围撑到 44×44（色块太细不好点）
     private func block(_ item: Item, left: CGFloat, span: CGFloat) -> some View {
         let shown = span > 0 ? span : Web.space2
         let tap = max(shown, Web.touch)

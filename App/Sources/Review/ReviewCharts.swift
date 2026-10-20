@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 一周的样子（网页版 WeekStrip）：七行，每行从前一晚 9 点画到半夜（最左边是那一觉），和画布同一种色块；
+/// 一周的样子：七行，每行从前一晚 9 点画到半夜（最左边是那一觉），和画布同一种色块；
 /// 共用一条刻度；点一行打开那天的回顾
 struct WeekStrip: View {
     @Environment(AppModel.self) private var model
@@ -149,7 +149,7 @@ struct WeekStrip: View {
     }
 }
 
-/// 一个月的样子（网页版 MonthGrid）：一张月历，每天一格按心情上色；点一格打开那天的回顾；下面一行打开每一周的周报
+/// 一个月的样子：一张月历，每天一格按心情上色；点一格打开那天的回顾；下面一行打开每一周的周报
 struct MonthGrid: View {
     @Environment(AppModel.self) private var model
     let days: [API.PeriodDay]

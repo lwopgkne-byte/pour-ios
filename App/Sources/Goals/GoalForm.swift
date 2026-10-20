@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 在目标页手动添加目标（网页版 goals/GoalForm.tsx，规格 8.1 的备用方式）：平时在输入框里说一句就行。
+/// 在目标页手动添加目标（规格 8.1 的备用方式）：平时在输入框里说一句就行。
 /// 名称可以不填，按选择自动生成
 struct GoalForm: View {
     @Environment(AppModel.self) private var model

@@ -1,6 +1,6 @@
 public import SwiftUI
 
-// 组织级组件（docs/设计规范/08-组件.md「组织」）
+// 组织级组件（docs/归档/设计规范/08-组件.md「组织」）
 
 /// 时间轴的一行：左边时间列（等宽、右对齐）、中间竖线和领域色点、右边内容
 public struct PourTimelineRow<Content: View>: View {

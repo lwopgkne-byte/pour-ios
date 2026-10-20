@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 每日回顾（网页版 review/DailyReviewPage.tsx，docs/prd-review.md）：把昨天整理成一页。
+/// 每日回顾（docs/prd-review.md）：把昨天整理成一页。
 /// 一页只有一个视觉焦点——关键数字；全部展开，靠留白分组，空的部分不出现。数字和列表是服务器现算的
 struct DailyReviewView: View {
     @Environment(AppModel.self) private var model

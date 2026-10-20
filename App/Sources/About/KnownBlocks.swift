@@ -3,7 +3,7 @@ import PourDesign
 import SwiftUI
 
 /*
- * 「Pour 认识的」（网页版 about/known.tsx，docs/prd-about-me.md、prd-about-me-2.md 第 9 节）：作息、常做的事、
+ * 「Pour 认识的」（docs/prd-about-me.md、prd-about-me-2.md 第 9 节）：作息、常做的事、
  * 常提到的人和关系、常去的地方、你的说法。全部由程序算，每条两行、整行能点；点开看依据，说得不对点一下它就不再这么说。
  * 每一页拿同一份数据（KnownStore），只摆和这一页有关的那几块
  */
@@ -31,6 +31,18 @@ final class KnownStore {
     }
 
     func open(_ key: String) { opened = KnownKey(id: key) }
+
+    /// 只知道一个词时是哪一条（shared findItem）：人、地方、说法；都不是就是 nil
+    func find(_ word: String) -> String? {
+        let word = word.trimmingCharacters(in: .whitespaces)
+        guard let about, !word.isEmpty else { return nil }
+        if let person = (about.people + about.former).first(where: { $0.name == word }) { return person.key }
+        if let place = about.places.first(where: { $0.name == word }) { return place.key }
+        let saying = about.sayings.first {
+            $0.phrase.trimmingCharacters(in: .whitespaces).lowercased() == word.lowercased()
+        }
+        return saying?.key
+    }
 }
 
 /// 一块：小标题、每条两行、块底一行灰字（根据什么，加上「你说不对的 1 条已经不显示 · 看看」）

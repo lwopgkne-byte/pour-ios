@@ -3,7 +3,7 @@
     import PourCore
 
     extension StubServer.State {
-        /// 设置页的接口；提醒改了的那几项盖上去（网页版服务器 PUT /api/reminders）
+        /// 设置页的接口；提醒改了的那几项盖上去（服务器 PUT /api/reminders）
         mutating func settingsReply(_ method: String, _ path: String, _ body: [String: Any]) -> Any? {
             switch (method, path) {
             case ("GET", "/api/reminders"): return reminders
@@ -14,7 +14,7 @@
             }
         }
 
-        /// 设置页的接口：都是刚装好、什么都还没设置过的样子（照网页版服务器回的样子）
+        /// 设置页的接口：都是刚装好、什么都还没设置过的样子（照服务器回的样子）
         static func settings(_ method: String, _ path: String) -> Any? {
             if method == "POST", ["/api/llm/consent", "/api/llm/dismiss-setup"].contains(path) { return ["ok": true] }
             return method == "GET" ? reads[path] : nil

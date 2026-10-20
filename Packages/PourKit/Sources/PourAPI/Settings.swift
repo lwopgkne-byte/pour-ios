@@ -1,7 +1,6 @@
 import Foundation
 
-// 设置页的数据（网页版 lib/queries.ts 的 LlmStatus、ReminderStatus、LanInfo、Growth、AuditStatus，
-// pages/EvalSettings.tsx、DataSettings.tsx 里的类型），字段名一字不差
+// 设置页的数据（LlmStatus、ReminderStatus、LanInfo、Growth、AuditStatus……：服务器 routes/ 回的样子），字段名一字不差
 extension API {
     /// 大模型：用哪个模型、密钥（只有打码的）、本月用量、排队
     public struct LlmStatus: Codable, Hashable, Sendable {
@@ -44,7 +43,7 @@ extension API {
         public var monthlyTokenLimit: Int
         public var usage: Usage
         public var queue: Queue
-        /// 在电脑上打开的（手机上永远是 false：密钥、PIN 只能在电脑上改）
+        /// 在电脑上打开的（手机上永远是 false：密钥、PIN 只能在电脑上用「Pour 设置」改）
         public var local: Bool
     }
 

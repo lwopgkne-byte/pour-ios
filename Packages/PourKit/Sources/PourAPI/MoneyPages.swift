@@ -1,7 +1,7 @@
 public import Foundation
 import PourCore
 
-// 钱的几页（「留意的」、一样东西、人情往来）和接口（web lib/queries.ts、money-parts.tsx 的 useMoneyActions）
+// 钱的几页（「留意的」、一样东西、人情往来）和接口
 extension API {
     public struct FixedRow: Codable, Hashable, Sendable {
         public struct Unused: Codable, Hashable, Sendable {
@@ -236,7 +236,7 @@ extension APIClient {
     }
 }
 
-/// 钱的写法（web money-parts.tsx、shared tidy.ts）
+/// 钱的写法（shared tidy.ts）
 extension Show {
     /// 一笔钱怎么写：「¥3,126」；遮住时「¥•••」；收入前面加「+」
     public static func yuan(_ value: Double, hide: Bool, plus: Bool = false) -> String {

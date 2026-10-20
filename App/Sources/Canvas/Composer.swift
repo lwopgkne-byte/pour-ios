@@ -3,14 +3,14 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 底部的输入框（网页版 Composer 手机那一档 1 比 1）：浅底色的圆角框贴着屏幕底部；
+/// 底部的输入框：浅底色的圆角框贴着屏幕底部；
 /// 发出去就向上展开成半屏的对话面板，右边的按钮收起、展开；键盘的换行键换行，右边的蓝按钮发送
 struct Composer: View {
     @Environment(AppModel.self) private var model
     @Environment(\.visibleHeight) private var visibleHeight
     @FocusState private var focused: Bool
     @State private var drag: CGFloat = 0
-    /// 斜杠命令列表有多高：对话面板让出这么多（网页版：输入框这一块往上长，对话被顶上去），
+    /// 斜杠命令列表有多高：对话面板让出这么多（输入框这一块往上长，对话被顶上去），
     /// 不然键盘弹着时输入框会被挤到键盘后面
     @State private var menuHeight: CGFloat = 0
 
@@ -99,7 +99,7 @@ struct Composer: View {
     }
 }
 
-/// 斜杠命令（网页版 slash-menu）：刚输入「/」时在输入框上方列出可以用的命令，点一下填进输入框；
+/// 斜杠命令：刚输入「/」时在输入框上方列出可以用的命令，点一下填进输入框；
 /// 第一个是选中的样子（电脑上按回车选它）
 private struct SlashMenu: View {
     let commands: [SlashCommand]

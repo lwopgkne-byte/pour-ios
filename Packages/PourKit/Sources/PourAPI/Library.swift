@@ -1,6 +1,6 @@
 public import Foundation
 
-// 笔记库（web pages/LibraryPage.tsx 的 LibraryNote、InsightItem、MomentItem，server routes/library.ts），字段名一字不差
+// 笔记库（LibraryNote、InsightItem、MomentItem，服务器 routes/library.ts），字段名一字不差
 extension API {
     /// 笔记库里的一段原话：它整理出的记录（一句话写好的）、是不是按意思找到的
     public struct LibraryNote: Codable, Hashable, Sendable, Identifiable {

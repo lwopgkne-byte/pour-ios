@@ -1,6 +1,6 @@
 import Foundation
 
-// 设置页里点开看的：你改过的地方（评测候选）、处理日志（网页版 lib/queries.ts 的 Candidate、RunSummary、StepDetail）
+// 设置页里点开看的：你改过的地方（评测候选）、处理日志
 extension API {
     /// 你改过的一处：原话、改过之后的正确结果、通用的还是你个人的
     public struct Candidate: Codable, Hashable, Sendable, Identifiable {

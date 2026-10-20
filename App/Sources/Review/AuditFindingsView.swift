@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 自动检查（网页版 review/AuditFindings.tsx，docs/prd-auto-improve.md 第 ① 步）：「还没收尾的」里的一行
+/// 自动检查（docs/prd-auto-improve.md 第 ① 步）：「还没收尾的」里的一行
 /// 「自动检查发现 2 处可能整理错了」，点开看每一处：原话（有问题的那一段标出来）、当时整理成什么、应该是什么、为什么。
 /// 「确实错了」按审核员的改法改好、记进「你改过的地方」；「没错」算审核员看错了。都能撤销。没查出来就不出现
 struct AuditFindingsView: View {

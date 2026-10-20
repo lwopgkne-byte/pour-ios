@@ -1,6 +1,6 @@
 public import Foundation
 
-// 搜索（web app/SearchPalette.tsx 的 SearchResult，server routes/search.ts）和回答（shared answer.ts），字段名一字不差
+// 搜索（服务器 routes/search.ts 的 SearchResult）和回答（shared answer.ts），字段名一字不差
 extension API {
     public struct SearchResult: Codable, Hashable, Sendable {
         public struct Hit: Codable, Hashable, Sendable {

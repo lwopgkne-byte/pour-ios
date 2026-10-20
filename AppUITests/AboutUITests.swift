@@ -1,7 +1,7 @@
 import XCTest
 
-/// 关于我（照网页版 1 比 1，2026-10-20）：主页和点进去的几页；跑系统的无障碍审计，截图留给自验收看。
-/// 用假服务器（-uiTest）：网页版演示数据里的关于我
+/// 关于我（2026-10-20）：主页和点进去的几页；跑系统的无障碍审计，截图留给自验收看。
+/// 用假服务器（-uiTest）：演示数据里的关于我
 final class AboutUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
@@ -78,6 +78,18 @@ final class AboutUITests: XCTestCase {
         settle()
         expandSheet(app)
         audit(app, "关于我-一个说法")
+    }
+
+    /// 链接打开（推送、对话里的链接点进来是 pour://open?path=…）：只知道一个词也能打开 Pour 认识的那一条
+    @MainActor func testDeepLink() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTest"]
+        app.launch()
+        XCTAssertTrue(app.descendants(matching: .any)["today.menu"].waitForExistence(timeout: 5), "画布没打开")
+        // path=/about?find=老地方
+        let link = try XCTUnwrap(URL(string: "pour://open?path=%2Fabout%3Ffind%3D%E8%80%81%E5%9C%B0%E6%96%B9"))
+        app.open(link)
+        XCTAssertTrue(app.staticTexts["从哪学来的"].waitForExistence(timeout: 8), "链接没打开「老地方」那个说法")
     }
 
     /// 底部弹出的详情拉到全屏再审：半屏的那一层系统画得略小一点（约 96%），审计量字的大小会以为字被截了

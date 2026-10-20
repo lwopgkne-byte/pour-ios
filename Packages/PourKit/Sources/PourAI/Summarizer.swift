@@ -3,7 +3,7 @@ public import Foundation
 public import PourCore
 public import PourData
 
-/// 「今天」日子头下面的一句话总结（照网页版 server/src/ai/summary.ts）：
+/// 「今天」日子头下面的一句话总结（照服务器 server/src/ai/summary.ts）：
 /// - 记录变了才重新生成：按这一天能说的记录（不算待办、待确认的）算一个指纹，指纹没变就用缓存
 /// - 防抖：连着说了好几句，等最后一次变化 15 秒后才生成一次；打开某一天时没有总结或者旧了，马上生成
 /// - 问不到（网关没开、AI 出错）就不显示，不打扰

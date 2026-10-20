@@ -1,7 +1,7 @@
 #if DEBUG
     import Foundation
 
-    /// 关于我的演示数据（续）：Pour 认识的（网页版 5199 演示服务器的 /api/about，每样只留几条）
+    /// 关于我的演示数据（续）：Pour 认识的（5199 演示服务器的 /api/about，每样只留几条）
     extension AboutStub {
         static let known = #"""
             {"sleep":{"key":"sleep","basis":"00:00|07:30","mark":null,"markedAt":null,"bed":

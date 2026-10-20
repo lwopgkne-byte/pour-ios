@@ -3,7 +3,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 心情和精力（看板并进「心情」那一页，网页版 about-board.tsx 的 MoodEnergy、charts/MoodChart.tsx）：
+/// 心情和精力（看板并进「心情」那一页）：
 /// 纵轴固定 1–5，写「很差 / 一般 / 很好」；没记的天断开、不连线；按天看时每一条心情一个浅色的点
 struct MoodEnergy: View {
     @Environment(AppModel.self) private var model

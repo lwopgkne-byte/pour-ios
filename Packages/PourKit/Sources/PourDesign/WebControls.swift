@@ -1,6 +1,6 @@
 public import SwiftUI
 
-/// 网页版的按钮（components/ui/Button.tsx）：primary 强调色底、secondary 白底细边、ghost 透明。
+/// 按钮：primary 强调色底、secondary 白底细边、ghost 透明。
 /// 手机上至少 44 点高；loading 时显示三个点、不能再点，宽度不跳
 public struct WebButton: View {
     public enum Variant: Sendable {
@@ -11,7 +11,7 @@ public struct WebButton: View {
     let variant: Variant
     let loading: Bool
     let disabled: Bool
-    /// 占满一整行（网页版 btn-block）
+    /// 占满一整行
     let block: Bool
     let action: () -> Void
 
@@ -75,7 +75,7 @@ private struct WebButtonStyle: ButtonStyle {
     }
 }
 
-/// 网页版的开关（components/ui/Switch.tsx）：点一下立即生效，没有「保存」。36×24 的胶囊，开是强调色；
+/// 开关：点一下立即生效，没有「保存」。36×24 的胶囊，开是强调色；
 /// 能点的范围撑到 44 点高
 public struct WebSwitch: View {
     let label: String
@@ -115,7 +115,7 @@ public struct WebSwitch: View {
     }
 }
 
-/// 网页版的分段选择（.segmented）：浅灰底上几个选项，选中的白底细边、字重一点
+/// 分段选择：浅灰底上几个选项，选中的白底细边、字重一点
 public struct WebSegmented: View {
     let label: String
     let options: [(key: String, label: String)]
@@ -169,7 +169,7 @@ public struct WebSegmented: View {
     }
 }
 
-/// 加载中的灰条（网页版 Skeleton）：和最后的样子差不多大，慢慢明暗
+/// 加载中的灰条：和最后的样子差不多大，慢慢明暗
 public struct WebSkeleton: View {
     let width: CGFloat?
     let height: CGFloat
@@ -194,7 +194,7 @@ public struct WebSkeleton: View {
     }
 }
 
-/// 出错了（网页版 ErrorState）：说清楚发生了什么，能重试
+/// 出错了：说清楚发生了什么，能重试
 public struct WebErrorState: View {
     let message: String
     let retry: (() -> Void)?
@@ -213,7 +213,7 @@ public struct WebErrorState: View {
     }
 }
 
-/// 网页版的小标签按钮（.chip：类别、筛选）：白底细边的胶囊，选中的边深一点、字深一点；手机上至少 32 点高、能点的 44 点
+/// 小标签按钮（类别、筛选）：白底细边的胶囊，选中的边深一点、字深一点；手机上至少 32 点高、能点的 44 点
 public struct WebChip<Label: View>: View {
     /// 系统的无障碍审计认它：类别小标签前面是彩色的表情（图，不是字），量对比度不准
     public static var identifier: String { "webChip" }
@@ -248,7 +248,7 @@ public struct WebChip<Label: View>: View {
     }
 }
 
-/// 网页版的输入框（components/ui/TextField.tsx）：上面一行小标题，白底细边的框，下面一句说明或者出错的话
+/// 输入框：上面一行小标题，白底细边的框，下面一句说明或者出错的话
 public struct WebTextField: View {
     let label: String?
     let placeholder: String
@@ -294,7 +294,7 @@ public struct WebTextField: View {
     }
 }
 
-/// 输入框用哪种键盘（网页版 inputMode）
+/// 输入框用哪种键盘
 public enum WebKeyboard: Sendable {
     case text, number, decimal
 }

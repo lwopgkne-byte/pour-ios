@@ -61,7 +61,7 @@ public struct RGB: Sendable, Hashable, CustomStringConvertible {
 }
 
 /// 一个颜色令牌：亮色、暗色各一个值，可以带透明度；「增强对比度」打开时可以换一个值。
-/// 界面代码只用令牌，不写色值（docs/设计规范/01-颜色.md）。
+/// 界面代码只用令牌，不写色值（docs/归档/设计规范/01-颜色.md）。
 public struct ColorToken: Sendable, Hashable {
     public struct Appearance: Sendable, Hashable {
         public let rgb: RGB

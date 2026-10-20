@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 详情的一行（网页版 setting-row）：左边名称，右边现在的值和操作，至少 44 点高
+/// 详情的一行：左边名称，右边现在的值和操作，至少 44 点高
 struct PeekRow<Content: View>: View {
     let label: String
     @ViewBuilder let content: () -> Content
@@ -19,7 +19,7 @@ struct PeekRow<Content: View>: View {
     }
 }
 
-/// 原地编辑（网页版 InlineEdit）：平时是一段能点的字；点一下变成输入框，按「完成」或者点别处就保存。不需要「编辑」「保存」按钮
+/// 原地编辑：平时是一段能点的字；点一下变成输入框，按「完成」或者点别处就保存。不需要「编辑」「保存」按钮
 struct InlineEdit: View {
     let label: String
     let value: String
@@ -60,7 +60,7 @@ struct InlineEdit: View {
             }
             .onAppear { focused = true }
         } else {
-            // 看起来是一段字；能点的范围至少 44×44（网页版 quiet-link 在手机上撑开），不另占地方
+            // 看起来是一段字；能点的范围至少 44×44，不另占地方
             Text(Show.spaced(display ?? (value.isEmpty ? placeholder : value)))
                 .foregroundStyle(value.isEmpty && display == nil ? Web.fgTertiary : Web.fgSecondary)
                 .frame(minHeight: Web.touch)
@@ -96,7 +96,7 @@ struct InlineEdit: View {
     }
 }
 
-/// 一小节：标题是灰色的小字（网页版 Section）
+/// 一小节：标题是灰色的小字
 struct PeekSection<Content: View>: View {
     let title: String
     @ViewBuilder let content: () -> Content
@@ -109,7 +109,7 @@ struct PeekSection<Content: View>: View {
     }
 }
 
-/// 最近 7 天（网页版 Sparkline / MoodDots）：7 根细柱，这一天深一些；心情每条一个点，越高越好
+/// 最近 7 天：7 根细柱，这一天深一些；心情每条一个点，越高越好
 struct Sparkline: View {
     let trend: API.Trend
     let color: Color

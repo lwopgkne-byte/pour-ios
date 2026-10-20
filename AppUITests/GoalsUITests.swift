@@ -1,7 +1,7 @@
 import XCTest
 
-/// 目标页（照网页版 1 比 1，2026-10-20）：列表、目标详情、添加目标；跑系统的无障碍审计，截图留给自验收看。
-/// 用假服务器（-uiTest）：从网页版演示数据里挑的三个目标
+/// 目标页（2026-10-20）：列表、目标详情、添加目标；跑系统的无障碍审计，截图留给自验收看。
+/// 用假服务器（-uiTest）：从演示数据里挑的三个目标
 final class GoalsUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false

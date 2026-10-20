@@ -3,7 +3,7 @@ import Testing
 
 @testable import PourAPI
 
-/// 对话里的系统消息（Fixtures/messages.json 是从网页版演示数据的 /api/messages 拿的）
+/// 对话里的系统消息（Fixtures/messages.json 是从演示数据的 /api/messages 拿的）
 @Suite("对话里的系统消息")
 struct MessagesTests {
     @Test func decodes() throws {

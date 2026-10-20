@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 详情里能改的字段（网页版 EntryPeek 的 Detail）：点哪一行改哪一行，改完交给网页版服务器（字段名照网页版）
+/// 详情里能改的字段：点哪一行改哪一行，改完交给服务器（字段名照服务器）
 struct PeekFields: View {
     let entry: API.Entry
 
@@ -17,7 +17,7 @@ struct PeekFields: View {
     }
 }
 
-/// 不像钟点：说一句怎么写（网页版 isClock）
+/// 不像钟点：说一句怎么写
 func notClock(_ text: String) -> String? {
     text.trimmingCharacters(in: .whitespaces).wholeMatch(of: /\d{1,2}:\d{2}/) == nil ? "时间写成 08:30 这样" : nil
 }
@@ -27,7 +27,7 @@ func notDay(_ text: String) -> String? {
     PourDate.isValid(text.trimmingCharacters(in: .whitespaces)) ? nil : "日期写成 2026-10-20 这样"
 }
 
-/// 不是一个数：说一句（网页版 isNumber）
+/// 不是一个数：说一句
 func notNumber(_ text: String) -> String? {
     Double(text.trimmingCharacters(in: .whitespaces)).map { $0 >= 0 } == true ? nil : "需要是一个数字"
 }
@@ -43,7 +43,7 @@ func splitWords(_ text: String) -> [JSONValue] {
 }
 
 extension API.Metric {
-    /// 改一笔钱、一个数时整笔发回去（网页版 { ...m, value }）
+    /// 改一笔钱、一个数时整笔发回去
     func json(value newValue: Double) -> JSONValue {
         var fields: [String: JSONValue] = ["name": .string(name), "value": .number(newValue), "unit": .string(unit)]
         if let item { fields["item"] = .string(item) }
@@ -143,7 +143,7 @@ struct MentionRows: View {
             }
         }
 
-        /// 网页版的字段名
+        /// 服务器的字段名
         var key: String {
             switch self {
             case .people: "people"

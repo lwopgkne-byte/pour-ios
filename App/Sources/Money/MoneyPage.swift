@@ -2,7 +2,7 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 「钱」（网页版 money/*.tsx，docs/prd-money.md）：这个月日常花了多少、每天花在哪、固定的和收入、留意、花在哪、
+/// 「钱」（docs/prd-money.md）：这个月日常花了多少、每天花在哪、固定的和收入、留意、花在哪、
 /// 花给了谁、值不值；点进去是一天的钱、每一笔、留意的、一样东西、人情往来。数字全部是服务器现算的
 struct MoneyPage: View {
     @Environment(AppModel.self) private var model
@@ -25,7 +25,7 @@ struct MoneyPage: View {
         .onChange(of: model.pagePath) { _, path in follow(path) }
     }
 
-    /// 换到网页版的一个地址（钱里互相跳）
+    /// 换到一个页面地址（钱里互相跳）
     private func navigate(_ path: String) {
         guard let next = MoneyRoute(path) else { return }
         withAnimation(Web.panel) { route = next }

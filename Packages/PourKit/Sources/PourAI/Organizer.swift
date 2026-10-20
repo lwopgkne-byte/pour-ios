@@ -2,7 +2,7 @@ public import Foundation
 public import PourCore
 public import PourData
 
-/// 理解服务：一段一段地整理原话（docs/03 第 5.1 节）。
+/// 理解服务：一段一段地整理原话（docs/归档/03 第 5.1 节）。
 /// 原话先存进本机数据库、马上出现在「今天」；这里按先后排队，拼背景包 → 问网关 → 改动包在一个事务里写回去。
 /// 连不上就等网络，AI 一时没回应就过一会儿再试；说不清的错误留给你点「再试一次」
 public actor Organizer {

@@ -1,6 +1,6 @@
 import Foundation
 
-/// 服务器推过来的「哪些东西变了」（网页版 useServerEvents：GET /api/events，text/event-stream）
+/// 服务器推过来的「哪些东西变了」（GET /api/events，text/event-stream）
 public struct ServerEvent: Hashable, Sendable {
     /// notes-changed、entries-changed、summary-changed、goals-changed、messages-changed、settings-changed……
     public var type: String

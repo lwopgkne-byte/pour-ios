@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 原话（网页版 NotesView）：搜索（按意思也能找到）、时间、类别、人物筛选；按天分组，每天一个清楚的标题，
+/// 原话：搜索（按意思也能找到）、时间、类别、人物筛选；按天分组，每天一个清楚的标题，
 /// 「看这一天」只出现一次；一页一页往前翻（「更早的」）
 struct NotesView: View {
     @Environment(AppModel.self) private var model
@@ -192,7 +192,7 @@ struct NotesView: View {
         }
     }
 
-    /// 按天分组：同一天永远只有一组；组按日期从新到旧，组里按说话的时间从新到旧（网页版 groupByDay）
+    /// 按天分组：同一天永远只有一组；组按日期从新到旧，组里按说话的时间从新到旧
     static func byDay(_ notes: [API.LibraryNote]) -> [(day: String, notes: [API.LibraryNote])] {
         Dictionary(grouping: notes, by: \.day).sorted { $0.key > $1.key }
             .map { (day: $0.key, notes: $0.value.sorted { $0.createdAt > $1.createdAt }) }

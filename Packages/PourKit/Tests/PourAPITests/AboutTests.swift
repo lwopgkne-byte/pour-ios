@@ -3,7 +3,7 @@ import Testing
 
 @testable import PourAPI
 
-/// 关于我（Fixtures/about-*.json：网页版演示数据的 /api/about/home、care、mood、people、talk、year/2026、domain/diet，
+/// 关于我（Fixtures/about-*.json：演示数据的 /api/about/home、care、mood、people、talk、year/2026、domain/diet，
 /// /api/board/time、metrics、trend、heatmap）
 @Suite("关于我")
 struct AboutTests {
