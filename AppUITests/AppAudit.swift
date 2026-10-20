@@ -85,6 +85,8 @@ enum AppAudit {
     ) throws {
         try app.performAccessibilityAudit(for: types) { issue in
             guard let element = issue.element else { return unresolved(issue) }
+            // 审计的时候页面还在动（数据刚拿回来、重新排了一遍），报出来的元素已经不在了：当成指不出元素的，拉回顶上再审
+            guard element.exists else { return unresolved(issue) }
             // 网页版的辅助文字（60% 的墨色，对比度约 3.6:1）：产品主人 2026-10-19 要界面 1 比 1 照网页版，
             // 网页版这个值是定过的（tokens.ts「fg-tertiary」）；只放过「差一点」的，差得多的照样算
             if issue.auditType == .contrast, issue.compactDescription.contains("nearly") {
