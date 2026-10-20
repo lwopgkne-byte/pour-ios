@@ -85,7 +85,9 @@
             /// 不带编号的接口：今天是哪天、类别表、说过的话、说一句
             private mutating func basic(_ method: String, _ url: URL, _ body: [String: Any]) -> Reply? {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
-                if let value = settingsReply(method, url.path, body) ?? goalsReply(method, url.path) {
+                if let value = settingsReply(method, url.path, body) ?? goalsReply(method, url.path)
+                    ?? reviewReply(method, url.path)
+                {
                     return ok(value)
                 }
                 switch (method, url.path) {

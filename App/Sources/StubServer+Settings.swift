@@ -44,7 +44,6 @@
                     "mode": "real", "backups": [Any](), "backupCount": 0, "dayBoundary": 240, "notes": 0,
                 ] as [String: Any],
                 "/api/llm/runs": ["runs": [Any]()],
-                "/api/review": ["items": [Any]()],
             ]
         }
 

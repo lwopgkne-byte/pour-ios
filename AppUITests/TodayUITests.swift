@@ -120,7 +120,7 @@ final class TodayUITests: XCTestCase {
         attach(app, "对话-每日回顾")
         try AppAudit.run(app, name: "对话-每日回顾")
         link.tap()
-        XCTAssertTrue(app.staticTexts["这一页正在照网页版搬过来。"].waitForExistence(timeout: 3), "没去回顾")
+        XCTAssertTrue(app.buttons["每日回顾"].waitForExistence(timeout: 5), "没打开那一天的回顾")
         XCTAssertEqual(app.buttons["pourbar.chat"].label, "展开对话", "对话没收起来")
     }
 

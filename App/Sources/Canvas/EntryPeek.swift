@@ -9,11 +9,15 @@ struct EntryPeek: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
     let entryId: Int
+    /// 记录是哪一天的；nil 是画布正在看的那一天（回顾里打开别的日子的记录时，详情自己去拿那一天）
+    var day: String?
+    @State private var otherDay: API.DayView?
 
     @State private var trend: API.Trend?
 
     /// 详情里显示的总是最新的数据：原地修改后跟着刷新
-    private var entry: API.Entry? { model.day?.entries.first { $0.id == entryId } }
+    private var source: API.DayView? { day == nil ? model.day : otherDay }
+    private var entry: API.Entry? { source?.entries.first { $0.id == entryId } }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -51,6 +55,9 @@ struct EntryPeek: View {
         .preferredColorScheme(.light)
         .tint(Web.accent)
         .task { trend = try? await model.client.trend(of: entryId) }
+        .task(id: "\(day ?? "")-\(model.dataVersion)") {
+            if let day { otherDay = try? await model.client.day(day) }
+        }
     }
 
     private var header: some View {
@@ -107,7 +114,7 @@ struct EntryPeek: View {
 
     /// 相关目标的完整进度（网页版「相关目标」）：圆点、目标、推进了多少、细进度条、进度说明
     @ViewBuilder private func relatedGoals(_ entry: API.Entry) -> some View {
-        let goals = (model.day?.goals ?? []).filter { goal in
+        let goals = (source?.goals ?? []).filter { goal in
             guard entry.kind == "event", let category = goal.category else { return false }
             return entry.category == category || Show.root(entry.category, model.categories) == category
         }

@@ -86,11 +86,49 @@ final class WebDemoShots: XCTestCase {
         shot(app, "对照-目标详情-2")
     }
 
+    /// 回顾：列表、10月18日的每日回顾、10月12日那一周的周报，和网页版的 /review、/review/2026-10-18、/review/week/2026-10-12 比
+    @MainActor
+    func testWebDemoReview() throws {
+        try XCTSkipUnless(ProcessInfo.processInfo.environment["POUR_SHOTS"] == "1", "对照截图：只在手动指定时跑")
+        let app = XCUIApplication()
+        app.launchArguments += ["-serverURL", "http://127.0.0.1:5199"]
+        app.launch()
+        XCTAssertTrue(app.descendants(matching: .any)["today.menu"].waitForExistence(timeout: 5))
+        app.descendants(matching: .any)["today.menu"].tap()
+        app.buttons["回顾"].firstMatch.tap()
+        // 标题里中文和数字之间有网页版那种窄空格：按「周日」找
+        let daily = app.buttons.matching(NSPredicate(format: "label CONTAINS '周日'")).firstMatch
+        XCTAssertTrue(daily.waitForExistence(timeout: 5))
+        RunLoop.current.run(until: Date().addingTimeInterval(1))
+        shot(app, "对照-回顾列表")
+        daily.tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        for index in 1...4 {
+            shot(app, "对照-每日回顾-\(index)")
+            app.swipeUp(velocity: .slow)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+        }
+        app.buttons["每日回顾"].firstMatch.tap()
+        let weekly = app.buttons.matching(NSPredicate(format: "label CONTAINS '周报'")).firstMatch
+        XCTAssertTrue(weekly.waitForExistence(timeout: 5))
+        weekly.tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        for index in 1...5 {
+            shot(app, "对照-周报-\(index)")
+            app.swipeUp(velocity: .slow)
+            RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+        }
+    }
+
     @MainActor
     private func shot(_ app: XCUIApplication, _ name: String) {
-        let shot = XCTAttachment(screenshot: app.screenshot())
+        let screenshot = app.screenshot()
+        let shot = XCTAttachment(screenshot: screenshot)
         shot.name = name
         shot.lifetime = .keepAlways
         add(shot)
+        if let folder = ProcessInfo.processInfo.environment["POUR_SHOT_DIR"] {
+            try? screenshot.pngRepresentation.write(to: URL(fileURLWithPath: folder).appending(path: "\(name).png"))
+        }
     }
 }

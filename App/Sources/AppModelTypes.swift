@@ -15,6 +15,8 @@ extension AppModel {
 
     struct EntryRef: Identifiable, Hashable {
         let id: Int
+        /// 这条记录是哪一天的（回顾里打开别的日子的记录）；nil 是画布正在看的那一天
+        var day: String?
     }
 
     struct GoalRef: Identifiable, Hashable {

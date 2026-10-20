@@ -85,8 +85,9 @@ struct TimelineStrip: View {
                         } else { 0 }
                     block(item, left: left, span: span)
                 }
-                ForEach(ticks, id: \.1) { place, label in
-                    Text(label).font(Web.caption).foregroundStyle(Web.fgTertiary).fixedSize()
+                // 按位置认：跨过半夜时开头和结尾都叫「0:00」，按名字认会丢掉一个
+                ForEach(ticks, id: \.0) { place, label in
+                    Text(label).font(Web.caption).foregroundStyle(Web.fgTertiary).fixedSize().accessibilityHidden(true)
                         .alignmentGuide(.leading) { size in
                             place < 0.05
                                 ? -place * width
@@ -108,7 +109,7 @@ struct TimelineStrip: View {
         let label =
             "\(Show.meta(item.category, categories).emoji) \(item.event.label) \(Show.eventMeta(item.event, day: day))"
         return Button {
-            model.detail = .init(id: item.id)
+            model.openEntry(item.id, day: day)
         } label: {
             Capsule().fill(color(item))
                 .frame(width: shown, height: Web.space2)
@@ -123,7 +124,7 @@ struct TimelineStrip: View {
 
     private func chip(_ item: Item) -> some View {
         Button {
-            model.detail = .init(id: item.id)
+            model.openEntry(item.id, day: day)
         } label: {
             HStack(spacing: Web.space1) {
                 Circle().fill(color(item)).frame(width: Web.space2, height: Web.space2)
@@ -142,5 +143,7 @@ struct TimelineStrip: View {
                     style: StrokeStyle(lineWidth: 1, dash: item.pending ? [Web.space1, Web.space1 / 2] : [])))
         }
         .buttonStyle(.plain)
+        // 读屏、审计都当成一个按钮（里面的名字和时长不再各算一个）
+        .accessibilityElement(children: .combine)
     }
 }

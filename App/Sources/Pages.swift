@@ -39,7 +39,7 @@ struct PageView: View {
     var body: some View {
         switch page {
         case .canvas: CanvasView()
-        case .review: LaterPage(page: page)
+        case .review: ReviewPage()
         case .money: LaterPage(page: page)
         case .about: LaterPage(page: page)
         case .goals: GoalsPage()

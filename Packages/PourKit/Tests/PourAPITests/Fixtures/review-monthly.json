@@ -1,0 +1,904 @@
+{
+    "review": {
+        "kind": "monthly",
+        "period": {
+            "from": "2026-09-01",
+            "to": "2026-09-30"
+        },
+        "title": "9月",
+        "overview": "这个月运动 9 小时 38 分，睡眠每晚平均 7 小时 27 分。",
+        "updated": false,
+        "sparse": false,
+        "daysRecorded": 30,
+        "totalDays": 30,
+        "notes": 180,
+        "numbers": [
+            {
+                "key": "sleep",
+                "label": "睡眠 · 每晚平均",
+                "parts": [
+                    {
+                        "n": "7",
+                        "u": "小时"
+                    },
+                    {
+                        "n": "27",
+                        "u": "分"
+                    }
+                ],
+                "text": "7 小时 27 分",
+                "compare": null,
+                "notable": false
+            },
+            {
+                "key": "exercise",
+                "label": "运动 · 13 次",
+                "parts": [
+                    {
+                        "n": "9",
+                        "u": "小时"
+                    },
+                    {
+                        "n": "38",
+                        "u": "分"
+                    }
+                ],
+                "text": "9 小时 38 分",
+                "compare": null,
+                "notable": false
+            },
+            {
+                "key": "focus",
+                "label": "专注 · 工作和学习",
+                "parts": [
+                    {
+                        "n": "232",
+                        "u": "小时"
+                    },
+                    {
+                        "n": "39",
+                        "u": "分"
+                    }
+                ],
+                "text": "232 小时 39 分",
+                "compare": null,
+                "notable": false
+            },
+            {
+                "key": "mood",
+                "label": "心情 · 31 条",
+                "parts": [
+                    {
+                        "n": "一般",
+                        "u": ""
+                    }
+                ],
+                "text": "一般",
+                "compare": null,
+                "notable": false
+            }
+        ],
+        "days": [
+            {
+                "day": "2026-09-01",
+                "recorded": true,
+                "mood": "很好",
+                "level": 5
+            },
+            {
+                "day": "2026-09-02",
+                "recorded": true,
+                "mood": "一般",
+                "level": 3
+            },
+            {
+                "day": "2026-09-03",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-04",
+                "recorded": true,
+                "mood": "不太好",
+                "level": 2
+            },
+            {
+                "day": "2026-09-05",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-06",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-07",
+                "recorded": true,
+                "mood": "不太好",
+                "level": 2
+            },
+            {
+                "day": "2026-09-08",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-09",
+                "recorded": true,
+                "mood": "一般",
+                "level": 3
+            },
+            {
+                "day": "2026-09-10",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-11",
+                "recorded": true,
+                "mood": "不太好",
+                "level": 2
+            },
+            {
+                "day": "2026-09-12",
+                "recorded": true,
+                "mood": "一般",
+                "level": 3
+            },
+            {
+                "day": "2026-09-13",
+                "recorded": true,
+                "mood": "一般",
+                "level": 3
+            },
+            {
+                "day": "2026-09-14",
+                "recorded": true,
+                "mood": "一般",
+                "level": 3
+            },
+            {
+                "day": "2026-09-15",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-16",
+                "recorded": true,
+                "mood": "不太好",
+                "level": 2
+            },
+            {
+                "day": "2026-09-17",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-18",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-19",
+                "recorded": true,
+                "mood": "很好",
+                "level": 5
+            },
+            {
+                "day": "2026-09-20",
+                "recorded": true,
+                "mood": "很好",
+                "level": 5
+            },
+            {
+                "day": "2026-09-21",
+                "recorded": true,
+                "mood": "一般",
+                "level": 3
+            },
+            {
+                "day": "2026-09-22",
+                "recorded": true,
+                "mood": "不太好",
+                "level": 2
+            },
+            {
+                "day": "2026-09-23",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-24",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-25",
+                "recorded": true,
+                "mood": "很好",
+                "level": 5
+            },
+            {
+                "day": "2026-09-26",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-27",
+                "recorded": true,
+                "mood": "挺好",
+                "level": 4
+            },
+            {
+                "day": "2026-09-28",
+                "recorded": true,
+                "mood": "很差",
+                "level": 1
+            },
+            {
+                "day": "2026-09-29",
+                "recorded": true,
+                "mood": "不太好",
+                "level": 2
+            },
+            {
+                "day": "2026-09-30",
+                "recorded": true,
+                "mood": "有起有落",
+                "level": 3
+            }
+        ],
+        "entries": [],
+        "weeklyReports": [
+            "2026-09-28",
+            "2026-09-21",
+            "2026-09-14",
+            "2026-09-07",
+            "2026-08-31"
+        ],
+        "groups": [
+            {
+                "key": "exercise",
+                "emoji": "🏃",
+                "name": "运动",
+                "text": "跑步 8 次、游泳 2 次、力量 2 次 等 4 样 · 9 小时 38 分钟 · 49.2 公里",
+                "compare": null
+            },
+            {
+                "key": "diet",
+                "emoji": "🍽",
+                "name": "饮食",
+                "text": "16:8 轻断食 15 次、外卖 黄焖鸡 5 次、食堂午饭 5 次 等 18 样 · 花了 ¥2,185",
+                "compare": null
+            },
+            {
+                "key": "study",
+                "emoji": "📚",
+                "name": "学习",
+                "text": "看书 13 次、背单词 4 次 · 12 小时 39 分钟 · 468 页",
+                "compare": null
+            },
+            {
+                "key": "work",
+                "emoji": "💼",
+                "name": "工作",
+                "text": "上班 22 次、写方案 4 次、和小王对方案 3 次 等 12 样 · 220 小时 · 花了 ¥128 · 收入 ¥18,500",
+                "compare": null
+            },
+            {
+                "key": "c-d141d79b",
+                "emoji": "🧘",
+                "name": "冥想",
+                "text": "3 次 · 50 分钟",
+                "compare": null
+            },
+            {
+                "key": "c-09897138",
+                "emoji": "🩺",
+                "name": "健康",
+                "text": "量血压 4 次、称体重 2 次、体检",
+                "compare": null
+            },
+            {
+                "key": "c-84f6a689",
+                "emoji": "🛒",
+                "name": "购物",
+                "text": "超市买菜 4 次、网购书 2 次、网购靠垫 等 12 样 · 花了 ¥2,872",
+                "compare": null
+            },
+            {
+                "key": "c-8dc516e6",
+                "emoji": "👨‍👩‍👧",
+                "name": "家人朋友",
+                "text": "接儿子放学 9 次、带儿子上篮球课 2 次、陪儿子踢球 等 13 样 · 花了 ¥2,880",
+                "compare": null
+            },
+            {
+                "key": "c-94fb6da3",
+                "emoji": "🚗",
+                "name": "出行",
+                "text": "打车 3 次 · 花了 ¥255",
+                "compare": null
+            },
+            {
+                "key": "c-b27062be",
+                "emoji": "📋",
+                "name": "办事",
+                "text": "话费、瑜伽月卡、房贷 · 花了 ¥7,127",
+                "compare": null
+            },
+            {
+                "key": "c-b7328bba",
+                "emoji": "🧹",
+                "name": "家务",
+                "text": "整理衣柜 2 次、铺地板、退瓷砖 等 16 样 · 5 小时 30 分钟 · 花了 ¥12,200",
+                "compare": null
+            },
+            {
+                "key": "c-c916946f",
+                "emoji": "🎬",
+                "name": "娱乐",
+                "text": "看电影 4 次、看纪录片 2 次、逛书店 等 6 样 · 14 小时 50 分钟 · 花了 ¥310",
+                "compare": null
+            },
+            {
+                "key": "c-f4b9b270",
+                "emoji": "🐕",
+                "name": "宠物",
+                "text": "买猫粮 2 次、猫半夜跑酷、换猫砂 等 6 样 · 花了 ¥229",
+                "compare": null
+            },
+            {
+                "key": "other",
+                "emoji": "📌",
+                "name": "其他",
+                "text": "穿红衣服 6 次",
+                "compare": null
+            }
+        ],
+        "money": [
+            {
+                "text": "日常花了 ¥20,907",
+                "compare": null
+            },
+            {
+                "text": "固定的 ¥7,024",
+                "compare": null
+            },
+            {
+                "text": "收入 ¥18,500",
+                "compare": null
+            },
+            {
+                "text": "最大的一笔：装修尾款 ¥8,000",
+                "compare": null
+            }
+        ],
+        "goals": [
+            {
+                "id": 1,
+                "title": "今年跑 500 公里",
+                "tone": "bad",
+                "pct": 0.09839999999999999,
+                "headline": "已完成 49.2 公里 · 落后 29%",
+                "delta": "+49.2 公里",
+                "category": "run"
+            },
+            {
+                "id": 2,
+                "title": "连续 30 天 16:8 轻断食",
+                "tone": "good",
+                "pct": 0.1,
+                "headline": "连续 3 天 · 最长 12 天",
+                "delta": "15 天",
+                "category": "diet"
+            },
+            {
+                "id": 3,
+                "title": "每周运动 3 次",
+                "tone": "good",
+                "pct": 0.6666666666666666,
+                "headline": "已完成 2 次 · 还差 1 次",
+                "delta": "+13 次",
+                "category": "exercise"
+            },
+            {
+                "id": 5,
+                "title": "平均睡眠 7.5 小时",
+                "tone": "good",
+                "pct": 1,
+                "headline": "实际 7.6 小时 · 已达到",
+                "delta": "平均 7.4 小时",
+                "category": "sleep"
+            },
+            {
+                "id": 7,
+                "title": "体重降到 69.5 公斤",
+                "tone": "warn",
+                "pct": 0.967966573816156,
+                "headline": "实际 71.8 公斤 · 多 2.3 公斤",
+                "delta": "平均 72 公斤",
+                "category": "c-09897138"
+            },
+            {
+                "id": 8,
+                "title": "每周外卖不超过 2 次",
+                "tone": "bad",
+                "pct": 1,
+                "headline": "已用 2 / 2 次",
+                "delta": "+8 次",
+                "category": "diet"
+            },
+            {
+                "id": 9,
+                "title": "每周背单词 4 次",
+                "tone": "good",
+                "pct": 0.75,
+                "headline": "已完成 3 次 · 超前 200%",
+                "delta": "+4 次",
+                "category": "study"
+            },
+            {
+                "id": 10,
+                "title": "每月外卖不超过 300 元",
+                "tone": "good",
+                "pct": 0.10666666666666667,
+                "headline": "已用 32 / 300 元",
+                "delta": "+274 元",
+                "category": "diet"
+            }
+        ],
+        "mood": {
+            "total": 31,
+            "good": 17,
+            "bad": 8,
+            "moments": [
+                {
+                    "entryId": 253,
+                    "day": "2026-09-19",
+                    "text": "下班路上看见一片晚霞"
+                },
+                {
+                    "entryId": 267,
+                    "day": "2026-09-20",
+                    "text": "晚上7点陪儿子在小区骑自行车 他第一次不用辅助轮"
+                },
+                {
+                    "entryId": 320,
+                    "day": "2026-09-25",
+                    "text": "给客户的提案一次就过了"
+                }
+            ]
+        },
+        "themes": [
+            {
+                "theme": "家安顿好了心才定",
+                "quotes": [
+                    {
+                        "noteId": 186,
+                        "day": "2026-09-18",
+                        "text": "装修这两个月一直悬着 今天看着收拾好的家 心才算落了地"
+                    }
+                ]
+            }
+        ],
+        "moodNote": "这个月的好时刻里，有 3 个和儿子有关",
+        "moodSources": {
+            "when": {
+                "good": {
+                    "purpose": 2,
+                    "daily": 4,
+                    "glimpse": 1
+                },
+                "bad": {
+                    "purpose": 4,
+                    "daily": 2,
+                    "glimpse": 1
+                }
+            },
+            "goodTotal": 7,
+            "badTotal": 7,
+            "noMoment": 17,
+            "mirror": [
+                {
+                    "key": "work",
+                    "domain": "工作",
+                    "emoji": "💼",
+                    "hasGoal": false,
+                    "timeShare": 81,
+                    "timeUnder1": false,
+                    "goodShare": 29
+                },
+                {
+                    "key": "c-c916946f",
+                    "domain": "娱乐",
+                    "emoji": "🎬",
+                    "hasGoal": false,
+                    "timeShare": 5,
+                    "timeUnder1": false,
+                    "goodShare": 14
+                },
+                {
+                    "key": "study",
+                    "domain": "学习",
+                    "emoji": "📚",
+                    "hasGoal": true,
+                    "timeShare": 5,
+                    "timeUnder1": false,
+                    "goodShare": 0
+                },
+                {
+                    "key": "exercise",
+                    "domain": "运动",
+                    "emoji": "🏃",
+                    "hasGoal": true,
+                    "timeShare": 4,
+                    "timeUnder1": false,
+                    "goodShare": 0
+                },
+                {
+                    "key": "c-8dc516e6",
+                    "domain": "家人朋友",
+                    "emoji": "👨‍👩‍👧",
+                    "hasGoal": false,
+                    "timeShare": 3,
+                    "timeUnder1": false,
+                    "goodShare": 43
+                },
+                {
+                    "key": "c-b7328bba",
+                    "domain": "家务",
+                    "emoji": "🧹",
+                    "hasGoal": false,
+                    "timeShare": 2,
+                    "timeUnder1": false,
+                    "goodShare": 0
+                },
+                {
+                    "key": "glimpse",
+                    "domain": "不算一件事",
+                    "emoji": "",
+                    "hasGoal": false,
+                    "timeShare": null,
+                    "timeUnder1": false,
+                    "goodShare": 14
+                }
+            ],
+            "people": [
+                {
+                    "name": "儿子",
+                    "good": 3,
+                    "bad": 0
+                },
+                {
+                    "name": "领导",
+                    "good": 0,
+                    "bad": 3
+                },
+                {
+                    "name": "客户",
+                    "good": 1,
+                    "bad": 1
+                },
+                {
+                    "name": "老婆",
+                    "good": 2,
+                    "bad": 0
+                },
+                {
+                    "name": "没提到别人",
+                    "good": 2,
+                    "bad": 2
+                }
+            ],
+            "emotions": {
+                "good": [
+                    {
+                        "word": "开心",
+                        "count": 4
+                    },
+                    {
+                        "word": "放松",
+                        "count": 2
+                    },
+                    {
+                        "word": "踏实",
+                        "count": 1
+                    }
+                ],
+                "bad": [
+                    {
+                        "word": "烦躁",
+                        "count": 3
+                    },
+                    {
+                        "word": "失落",
+                        "count": 2
+                    },
+                    {
+                        "word": "委屈",
+                        "count": 2
+                    }
+                ]
+            },
+            "enough": {
+                "good": false,
+                "bad": true,
+                "time": true
+            },
+            "short": {
+                "good": "这个月有 7 个好时刻，攒到 8 个再看"
+            },
+            "examples": {
+                "when:good:purpose": [
+                    {
+                        "entryId": 384,
+                        "day": "2026-09-30",
+                        "moment": "上午评审很顺利",
+                        "noteId": 262
+                    },
+                    {
+                        "entryId": 320,
+                        "day": "2026-09-25",
+                        "moment": "给客户的提案一次就过了",
+                        "noteId": 230
+                    }
+                ],
+                "domain:work": [
+                    {
+                        "entryId": 384,
+                        "day": "2026-09-30",
+                        "moment": "上午评审很顺利",
+                        "noteId": 262
+                    },
+                    {
+                        "entryId": 320,
+                        "day": "2026-09-25",
+                        "moment": "给客户的提案一次就过了",
+                        "noteId": 230
+                    }
+                ],
+                "person:没提到别人": [
+                    {
+                        "entryId": 384,
+                        "day": "2026-09-30",
+                        "moment": "上午评审很顺利",
+                        "noteId": 262
+                    },
+                    {
+                        "entryId": 253,
+                        "day": "2026-09-19",
+                        "moment": "下班路上看见一片晚霞",
+                        "noteId": 192
+                    },
+                    {
+                        "entryId": 181,
+                        "day": "2026-09-11",
+                        "moment": "楼上漏水 墙又得重刷",
+                        "noteId": 142
+                    }
+                ],
+                "when:bad:purpose": [
+                    {
+                        "entryId": 369,
+                        "day": "2026-09-29",
+                        "moment": "下午4点客户临时改需求 又要重做",
+                        "noteId": 256
+                    },
+                    {
+                        "entryId": 356,
+                        "day": "2026-09-28",
+                        "moment": "加班到十点 领导还是不满意",
+                        "noteId": 249
+                    },
+                    {
+                        "entryId": 287,
+                        "day": "2026-09-22",
+                        "moment": "上午10点开会被领导当众点名",
+                        "noteId": 213
+                    }
+                ],
+                "person:客户": [
+                    {
+                        "entryId": 369,
+                        "day": "2026-09-29",
+                        "moment": "下午4点客户临时改需求 又要重做",
+                        "noteId": 256
+                    },
+                    {
+                        "entryId": 320,
+                        "day": "2026-09-25",
+                        "moment": "给客户的提案一次就过了",
+                        "noteId": 230
+                    }
+                ],
+                "person:领导": [
+                    {
+                        "entryId": 356,
+                        "day": "2026-09-28",
+                        "moment": "加班到十点 领导还是不满意",
+                        "noteId": 249
+                    },
+                    {
+                        "entryId": 287,
+                        "day": "2026-09-22",
+                        "moment": "上午10点开会被领导当众点名",
+                        "noteId": 213
+                    },
+                    {
+                        "entryId": 151,
+                        "day": "2026-09-07",
+                        "moment": "开会又被领导点名",
+                        "noteId": 120
+                    }
+                ],
+                "when:good:daily": [
+                    {
+                        "entryId": 343,
+                        "day": "2026-09-27",
+                        "moment": "上午10点和老婆去花鸟市场逛了一圈",
+                        "noteId": 242
+                    },
+                    {
+                        "entryId": 309,
+                        "day": "2026-09-24",
+                        "moment": "晚上8点陪儿子拼完了一个乐高",
+                        "noteId": 224
+                    },
+                    {
+                        "entryId": 267,
+                        "day": "2026-09-20",
+                        "moment": "晚上7点陪儿子在小区骑自行车 他第一次不用辅助轮",
+                        "noteId": 198
+                    }
+                ],
+                "domain:c-c916946f": [
+                    {
+                        "entryId": 343,
+                        "day": "2026-09-27",
+                        "moment": "上午10点和老婆去花鸟市场逛了一圈",
+                        "noteId": 242
+                    }
+                ],
+                "person:老婆": [
+                    {
+                        "entryId": 343,
+                        "day": "2026-09-27",
+                        "moment": "上午10点和老婆去花鸟市场逛了一圈",
+                        "noteId": 242
+                    },
+                    {
+                        "entryId": 231,
+                        "day": "2026-09-17",
+                        "moment": "新家终于收拾好了 一家三口第一次在新家吃饭",
+                        "noteId": 179
+                    }
+                ],
+                "domain:c-8dc516e6": [
+                    {
+                        "entryId": 309,
+                        "day": "2026-09-24",
+                        "moment": "晚上8点陪儿子拼完了一个乐高",
+                        "noteId": 224
+                    },
+                    {
+                        "entryId": 267,
+                        "day": "2026-09-20",
+                        "moment": "晚上7点陪儿子在小区骑自行车 他第一次不用辅助轮",
+                        "noteId": 198
+                    },
+                    {
+                        "entryId": 231,
+                        "day": "2026-09-17",
+                        "moment": "新家终于收拾好了 一家三口第一次在新家吃饭",
+                        "noteId": 179
+                    }
+                ],
+                "person:儿子": [
+                    {
+                        "entryId": 309,
+                        "day": "2026-09-24",
+                        "moment": "晚上8点陪儿子拼完了一个乐高",
+                        "noteId": 224
+                    },
+                    {
+                        "entryId": 267,
+                        "day": "2026-09-20",
+                        "moment": "晚上7点陪儿子在小区骑自行车 他第一次不用辅助轮",
+                        "noteId": 198
+                    },
+                    {
+                        "entryId": 231,
+                        "day": "2026-09-17",
+                        "moment": "新家终于收拾好了 一家三口第一次在新家吃饭",
+                        "noteId": 179
+                    }
+                ],
+                "when:good:glimpse": [
+                    {
+                        "entryId": 253,
+                        "day": "2026-09-19",
+                        "moment": "下班路上看见一片晚霞",
+                        "noteId": 192
+                    }
+                ],
+                "domain:glimpse": [
+                    {
+                        "entryId": 253,
+                        "day": "2026-09-19",
+                        "moment": "下班路上看见一片晚霞",
+                        "noteId": 192
+                    }
+                ],
+                "when:bad:glimpse": [
+                    {
+                        "entryId": 219,
+                        "day": "2026-09-16",
+                        "moment": "跟小王对方案又对崩了",
+                        "noteId": 172
+                    }
+                ],
+                "person:小王": [
+                    {
+                        "entryId": 219,
+                        "day": "2026-09-16",
+                        "moment": "跟小王对方案又对崩了",
+                        "noteId": 172
+                    }
+                ],
+                "when:bad:daily": [
+                    {
+                        "entryId": 181,
+                        "day": "2026-09-11",
+                        "moment": "楼上漏水 墙又得重刷",
+                        "noteId": 142
+                    },
+                    {
+                        "entryId": 125,
+                        "day": "2026-09-04",
+                        "moment": "送来的瓷砖颜色不对 白跑一趟",
+                        "noteId": 101
+                    }
+                ]
+            },
+            "candidates": [
+                "这个月的好时刻里，有 3 个和儿子有关",
+                "这个月的不好的时刻里，有 3 个和领导有关"
+            ]
+        },
+        "highlights": [],
+        "concerns": [],
+        "next": {
+            "todos": [
+                "给客户回电话",
+                "交水费（本来是 10月17日 周六 要做的）"
+            ],
+            "goals": [
+                "「今年跑 500 公里」还差 398.1 公里，还剩 74 天，平均每天 5.4 公里（落后 35%）",
+                "「连续 30 天 16:8 轻断食」已经连续 8 天，今天做到就是第 9 天",
+                "「每周运动 3 次」这周还差 2 次，还剩 7 天",
+                "「平均睡眠 7.5 小时」这周平均 6.8 小时，剩下的天里平均每天要 7.6 小时"
+            ],
+            "suggestions": []
+        },
+        "categorySuggestions": [
+            "「📌 其他」里最近有 9 条记录，可以让 AI 按现在的规则重新归类（该有新类别的会自动建）"
+        ]
+    },
+    "messageId": 59,
+    "read": false,
+    "prev": "2026-08-01",
+    "next": null
+}

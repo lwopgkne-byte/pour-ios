@@ -89,6 +89,8 @@ public enum Web {
     }
 
     public static let title = pingfang(26, .title, .bold)
+    /// 回顾里的关键数字：一页唯一的焦点（网页版 text-display，手机 28）
+    public static let displaySemibold = pingfang(28, .largeTitle, .semibold)
     public static let section = pingfang(18, .title3)
     /// 小节标题（设置页的「大模型」「类别」，详情的标题）
     public static let sectionSemibold = pingfang(18, .title3, .semibold)
@@ -103,6 +105,10 @@ public enum Web {
     public static let bodyLineSpacing: CGFloat = 16 * 0.2
     /// 引用的原话行高 1.8
     public static let quoteLineSpacing: CGFloat = 16 * 0.4
+    /// 回顾一页开头那句话：18 号、行高 1.7
+    public static let overviewLineSpacing: CGFloat = 18 * 0.3
+    /// 回顾的小标题、「每日回顾」：字距 0.08em
+    public static let kickerTracking: CGFloat = 13 * 0.08
 
     // MARK: - 间距、尺寸、圆角、动效
 
