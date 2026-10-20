@@ -185,6 +185,8 @@ extension API {
         public var goals: [DayGoal]
         public var mood: PeriodMood?
         public var themes: [Theme]
+        /// 心情从哪来（月报里只看不点）
+        public var moodSources: MoodSources?
         public var moodNote: String?
         public var highlights: [String]
         public var concerns: [String]

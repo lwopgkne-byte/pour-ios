@@ -49,6 +49,25 @@ final class AboutUITests: XCTestCase {
         audit(app, "关于我-一年")
     }
 
+    /// 心情那一页下面：心情和精力的曲线、心情从哪来
+    @MainActor func testMoodBoard() throws {
+        let app = open()
+        let card = app.buttons["angle.mood"]
+        scroll(app, to: card)
+        card.tap()
+        XCTAssertTrue(app.buttons["‹ 关于我"].waitForExistence(timeout: 5), "心情那一页没打开")
+        let curve = app.staticTexts["心情和精力"]
+        scroll(app, to: curve)
+        XCTAssertTrue(curve.isHittable, "没有心情和精力的曲线")
+        settle()
+        audit(app, "关于我-心情和精力")
+        let sources = app.staticTexts["好时刻多出现在什么时候"]
+        scroll(app, to: sources)
+        XCTAssertTrue(sources.isHittable, "没有心情从哪来")
+        settle()
+        audit(app, "关于我-心情从哪来")
+    }
+
     /// Pour 认识的：点一个说法看从哪学来的；人那一页点一个认识的人
     @MainActor func testKnown() throws {
         let app = open()

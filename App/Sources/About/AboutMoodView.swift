@@ -54,6 +54,9 @@ struct AboutMoodView: View {
                     MeNote(feelings.sentence)
                 }
             }
+            // 看板并进来：心情和精力的曲线、心情从哪来
+            MoodEnergy()
+            MoodFrom()
             if !page.findings.isEmpty { ReviewSection(title: "发现") { MeFindings(findings: page.findings) } }
             if !page.changes.isEmpty {
                 ReviewSection(title: "变化") { MeChanges(changes: page.changes, navigate: navigate) }

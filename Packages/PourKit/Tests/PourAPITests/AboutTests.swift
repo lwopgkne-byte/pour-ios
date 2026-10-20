@@ -47,4 +47,17 @@ struct AboutTests {
         let heat = try fixture("about-heat", as: API.YearHeatPage.self)
         #expect(heat.unit == "条" && heat.label == "记录量")
     }
+
+    @Test func moodTrend() throws {
+        let trend = try fixture("about-trend-mood", as: API.BoardTrend.self)
+        #expect(trend.each?.first == [3] && trend.metric.category == nil)
+    }
+
+    @Test func moodSources() throws {
+        let sources = try fixture("about-sources", as: API.MoodSources.self)
+        #expect(sources.goodTotal == 12 && sources.when.good["glimpse"] == 4)
+        #expect(sources.mirror.last?.key == "glimpse" && sources.mirror.first { $0.timeUnder1 } != nil)
+        #expect(sources.people.last?.name == "没提到别人" && sources.enough.time)
+        #expect(sources.examples["when:good:glimpse"]?.isEmpty == false)
+    }
 }

@@ -284,6 +284,8 @@ extension API {
         public var yoy: Double?
         public var target: Double?
         public var summary: Summary
+        /// 心情按天看时：每一天每一条心情的级别
+        public var each: [[Double]]?
     }
 }
 

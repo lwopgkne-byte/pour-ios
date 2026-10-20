@@ -106,7 +106,9 @@ struct TimeGone: View {
     private static let ranges = [(key: "7", label: "7 天"), (key: "30", label: "30 天"), (key: "90", label: "90 天")]
 
     var body: some View {
-        Group {
+        // 先放一个看不见的：数据还没回来时这一块是空的，空的不会开始加载
+        VStack(alignment: .leading, spacing: 0) {
+            Color.clear.frame(height: 0)
             if items?.isEmpty != true {
                 ReviewSection(title: "时间去向") {
                     MeNote("说了时长的事，时间各去了哪 · 这和上面的方块图不是一回事（那个是说到多少）")

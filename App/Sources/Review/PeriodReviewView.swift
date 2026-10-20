@@ -67,7 +67,7 @@ struct PeriodReviewView: View {
                     }
                 }
             }
-            if review.mood != nil || !review.themes.isEmpty { mood(review, scope: scope) }
+            if review.mood != nil || !review.themes.isEmpty || review.moodSources != nil { mood(review, scope: scope) }
             rest(review, scope: scope, thin: thin)
         }
     }
@@ -162,6 +162,7 @@ struct PeriodReviewView: View {
             if let note = review.moodNote { Text(Show.spaced(note)).font(Web.body).foregroundStyle(Web.fg) }
             if let moments = review.mood?.moments, !moments.isEmpty { momentList(moments) }
             if !review.themes.isEmpty { themeList(review.themes) }
+            if let sources = review.moodSources { MoodSourcesView(data: sources).padding(.top, Web.space3) }
         }
     }
 

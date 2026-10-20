@@ -21,8 +21,9 @@
         static let pages = [
             "/api/about": known, "/api/about/home": home, "/api/about/care": care, "/api/about/mood": mood,
             "/api/about/people": people,
-            "/api/about/talk": talk, "/api/board/time": time, "/api/board/metrics": metrics, "/api/board/trend": trend,
-            "/api/board/heatmap": heat,
+            "/api/about/talk": talk, "/api/board/time": time, "/api/board/metrics": metrics,
+            "/api/board/trend": moodTrend,
+            "/api/board/heatmap": heat, "/api/board/mood-sources": sources,
         ]
 
         static func json(_ text: String) -> Any {

@@ -228,7 +228,9 @@ private struct DomainTrend: View {
     private var id: String? { picked ?? metrics.first?.id }
 
     var body: some View {
-        Group {
+        // 先放一个看不见的：数据还没回来时这一块是空的，空的不会开始加载
+        VStack(alignment: .leading, spacing: 0) {
+            Color.clear.frame(height: 0)
             if !metrics.isEmpty {
                 ReviewSection(title: metrics.count > 1 ? "这些数的变化" : "\(metrics[0].name)的变化") { content }
             }
