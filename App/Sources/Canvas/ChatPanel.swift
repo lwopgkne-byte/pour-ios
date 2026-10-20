@@ -282,7 +282,7 @@ private struct Reply: View {
                         })
             }
             if !result.reply.isEmpty { Text(Show.spaced(result.reply)).font(Web.body).foregroundStyle(Web.fg) }
-            if let answer = result.answer { Text(Show.spaced(answer.text)).font(Web.body).foregroundStyle(Web.fg) }
+            if let answer = result.answer { AnswerView(answer: answer) }
             ForEach(result.questions, id: \.self) { question in
                 Text(Show.spaced(question)).font(Web.bodyMedium).foregroundStyle(Web.fg)
             }

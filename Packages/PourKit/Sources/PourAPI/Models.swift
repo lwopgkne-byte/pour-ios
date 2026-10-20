@@ -236,6 +236,11 @@ extension API {
     /// 提问的回答（先只要文字；来源和图表以后搬）
     public struct Answer: Codable, Hashable, Sendable {
         public var text: String
+        /// 引用的原话（[#12] 指向它们）
+        public var sources: [AnswerSource]?
+        public var charts: [ChartSpec]?
+        /// 提到的周报、月报：回答下面放一个「查看完整报告」
+        public var reports: [ReportLink]?
     }
 
     public struct Awaiting: Codable, Hashable, Sendable {

@@ -55,8 +55,16 @@ enum AppAudit {
         // 顶栏（菜单、搜索）：页面往上滚到它后面去的字也只露出一截
         let header = app.descendants(matching: .any)["today.menu"]
         let headerBottom = header.exists ? header.frame.maxY + Self.headerPadding : nil
-        let place = Place(
+        // 对话面板开着：面板里的字往上滚到面板上沿后面，只露出一截
+        let chatOpen = app.buttons["pourbar.chat"].exists && app.buttons["pourbar.chat"].label == "收起对话"
+        let panelTop =
+            chatOpen
+            ? app.scrollViews.allElementsBoundByIndex.filter { $0.exists && $0.frame.height > 200 }
+                .map(\.frame.minY).max() : nil
+        var place = Place(
             glass: glass, navigation: navigation, barTop: bar.map { $0 - Self.barPadding }, headerBottom: headerBottom)
+        place.panelTop = panelTop
+        if chatOpen { print("对话面板上沿：\(panelTop.map { "\($0)" } ?? "没找到")") }
         // 审计自己偶尔超时（「Audit failed to complete in time」）：检查用的模拟器刚开机、电脑同时在忙别的时更常见
         // （设置页那么长的一页，推送前检查里连着超时三次）。等十秒再审，最多四次
         for attempt in 1...4 {
@@ -86,6 +94,7 @@ enum AppAudit {
             // 输入框自己的字和按钮照样审
             var place = place
             if element.identifier.hasPrefix("pourbar") { place.barTop = nil }
+            place.oneLine = element.identifier == "webOneLine"
             // 顶栏自己的菜单、搜索也照样审
             if element.identifier == "today.menu" || element.label == "搜索" { place.headerBottom = nil }
             // 类别小标签（WebChip）：字是令牌色、对比度够；前面的彩色表情让审计量不准（和「表情不是字」一样）
@@ -116,6 +125,10 @@ enum AppAudit {
         var barTop: CGFloat?
         /// 顶栏的下沿
         var headerBottom: CGFloat?
+        /// 对话面板里能滚的那一块的上沿（面板没开是 nil）
+        var panelTop: CGFloat?
+        /// 这段字是网页版只占一行、放不下用省略号的（webOneLine）
+        var oneLine = false
 
         func inside(_ frames: [CGRect], _ frame: CGRect) -> Bool {
             frames.contains { $0.insetBy(dx: -2, dy: -2).contains(frame) }
@@ -133,13 +146,7 @@ enum AppAudit {
         if place.inside(place.navigation, frame), [.dynamicType, .textClipped, .contrast].contains(type) {
             return "系统的栏"
         }
-        // 压在底部输入框下面的（页面滚到它后面了）：露出来的那一截量不准；滚上来以后照样审
-        if let top = place.barTop, frame.maxY > top, [.textClipped, .contrast].contains(type) {
-            return "在输入框后面"
-        }
-        if let bottom = place.headerBottom, frame.minY < bottom, [.textClipped, .contrast].contains(type) {
-            return "在顶栏后面"
-        }
+        if let reason = edge(type: type, frame: frame, place: place) { return reason }
         // 只有一个表情（卡片标题前的 🏃）：是彩色的图，不是字，量对比度、量截断都没有意义
         if [.contrast, .textClipped].contains(type), !label.isEmpty,
             label.unicodeScalars.allSatisfy({
@@ -153,10 +160,28 @@ enum AppAudit {
         if type == .textClipped, ["昨天的回顾好了 · ", "上周的周报好了 · ", "上个月的月报好了 · "].contains(where: label.hasPrefix) {
             return "网页版就是一行"
         }
+        // 网页版这一行本来就只占一行、放不下用省略号（搜索结果）：字很大时会折行，读屏念的是整行
+        if type == .textClipped, place.oneLine { return "网页版就是一行" }
         // 会换行的字一律被报截断（testAuditProbeStillMisreportsWrappedText）
         if type == .textClipped && frame.height >= 30 { return "审计自己的毛病" }
         // 带全角括号的一行字一律被报截断（testAuditProbeParentheses）
         if type == .textClipped && (label.contains("（") || label.contains("）")) { return "审计自己的毛病" }
+        return nil
+    }
+
+    /// 页面滚到输入框、顶栏、对话面板上沿后面，只露出一截：量出来的对比度、截断都不准；滚出来以后照样审
+    private static func edge(type: XCUIAccessibilityAuditType, frame: CGRect, place: Place) -> String? {
+        guard [.textClipped, .contrast].contains(type) else { return nil }
+        // 压在底部输入框下面的（页面滚到它后面了）：露出来的那一截量不准；滚上来以后照样审
+        if let top = place.barTop, frame.maxY > top {
+            return "在输入框后面"
+        }
+        if let bottom = place.headerBottom, frame.minY < bottom {
+            return "在顶栏后面"
+        }
+        if let top = place.panelTop, frame.minY < top + 2, frame.maxY > top {
+            return "在对话面板上沿后面"
+        }
         return nil
     }
 }

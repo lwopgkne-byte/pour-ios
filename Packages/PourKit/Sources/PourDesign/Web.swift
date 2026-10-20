@@ -117,6 +117,8 @@ public enum Web {
     public static let quoteLineSpacing: CGFloat = 16 * 0.4
     /// 回顾一页开头那句话：18 号、行高 1.7
     public static let overviewLineSpacing: CGFloat = 18 * 0.3
+    /// 笔记库的随笔（感悟、好时刻）：18 号、行高 1.9
+    public static let essayLineSpacing: CGFloat = 18 * 0.5
     /// 回顾的小标题、「每日回顾」：字距 0.08em
     public static let kickerTracking: CGFloat = 13 * 0.08
 

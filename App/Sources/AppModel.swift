@@ -275,6 +275,7 @@ final class AppModel {
     func open(_ path: String) {
         if path.hasPrefix("/review") { page = .review }
         if path.hasPrefix("/money") { page = .money }
+        if path.hasPrefix("/library") { page = .library }
         if path.hasPrefix("/about") { page = .about }
         if path.hasPrefix("/settings") { page = .settings }
         pagePath = path

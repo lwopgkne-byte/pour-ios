@@ -27,6 +27,8 @@ struct RootView: View {
             if model.mode == "demo" { DemoBanner() }
             PageView(page: model.page)
         }
+        // 搜索、对话面板开着：后面压暗、被盖住的页面读屏不读、不算进审计
+        .accessibilityHidden(model.search != nil || model.chatOpen)
         .background(Web.bg)
         .overlay {
             if model.chatOpen {
@@ -53,15 +55,13 @@ struct RootView: View {
         .animation(Web.panel, value: model.notice)
         .sheet(item: $model.detail) { ref in EntryPeek(entryId: ref.id, day: ref.day) }
         .sheet(item: $model.goalDetail) { ref in GoalPeek(goalId: ref.id) }
-        // 搜索和问答还在照网页版搬（docs/复刻网页版-交接.md）：搬好了换成搜索界面，要搜的字在 model.search
-        .alert(
-            "搜索还在做",
-            isPresented: .init(get: { model.search != nil }, set: { if !$0 { model.search = nil } })
-        ) {
-            Button("好") { model.search = nil }
-        } message: {
-            Text("页面正在一个一个照网页版搬过来。")
+        // 右上角的搜索、「/找 三体」：浮在页面上面，后面压暗
+        .overlay {
+            if let search = model.search {
+                SearchPalette(initial: search).transition(.opacity)
+            }
         }
+        .animation(Web.fast, value: model.search != nil)
         .preferredColorScheme(.light)
         .tint(Web.accent)
         .onChange(of: scenePhase) { _, phase in

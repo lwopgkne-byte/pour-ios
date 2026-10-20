@@ -85,9 +85,7 @@
             /// 不带编号的接口：今天是哪天、类别表、说过的话、说一句
             private mutating func basic(_ method: String, _ url: URL, _ body: [String: Any]) -> Reply? {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
-                if let value = settingsReply(method, url.path, body) ?? goalsReply(method, url.path)
-                    ?? reviewReply(method, url.path) ?? moneyReply(method, url.path)
-                {
+                if let value = settingsReply(method, url.path, body) ?? pageReply(method, url.path) {
                     return ok(value)
                 }
                 switch (method, url.path) {
@@ -146,6 +144,10 @@
                     note["error"] = "没整理成：大模型账户余额不足。"
                     notes.append(note)
                     return note
+                }
+                if let asked = SearchStub.asked(text, note) {
+                    notes.append(asked)
+                    return asked
                 }
                 var receipt: [[String: Any]] = []
                 if text.contains("跑了五公里") {
