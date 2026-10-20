@@ -117,7 +117,7 @@ struct EventMoneyRows: View {
         var out: [String] = []
         for raw in names {
             let name = raw.trimmingCharacters(in: .whitespaces)
-            guard !name.isEmpty, !Self.household(name), name.firstMatch(of: Self.org) == nil else {
+            guard !name.isEmpty, name.wholeMatch(of: Self.household) == nil, name.firstMatch(of: Self.org) == nil else {
                 continue
             }
             let person = name.wholeMatch(of: Self.relationName).map { String($0.output.2) } ?? name
@@ -127,18 +127,14 @@ struct EventMoneyRows: View {
     }
 
     private nonisolated(unsafe) static let org = /公司|单位|老板|平台|银行|商家|店家|群/
-    /// 家里人（自己、老婆老公、孩子、爸妈、公婆岳父母、爷爷奶奶外公外婆）：家里人之间的钱不算人情往来
-    private static func household(_ name: String) -> Bool {
-        let ourselves = ["我", "自己", "本人", "一家人", "全家", "家里", "家人", "我们", "我们家"]
-        let family = [
-            "老婆", "老公", "妻子", "丈夫", "爱人", "媳妇", "儿子", "女儿", "孩子", "宝宝", "大宝", "小宝", "老大", "老二",
-            "爸", "爸爸", "妈", "妈妈", "父亲", "母亲", "爸妈", "父母", "爷爷", "奶奶", "外公", "外婆", "姥姥", "姥爷",
-            "公公", "婆婆", "岳父", "岳母", "丈母娘", "老丈人",
-        ]
-        let bare =
-            name.hasPrefix("我的") ? String(name.dropFirst(2)) : name.hasPrefix("我") ? String(name.dropFirst()) : name
-        return ourselves.contains(name) || family.contains(name) || family.contains(bare)
-    }
+    /// 家里人（自己、老婆老公、孩子、爸妈、公婆岳父母、爷爷奶奶外公外婆）：家里人之间的钱不算人情往来（shared HOUSEHOLD）
+    private nonisolated(unsafe) static let household =
+        #/
+        我 | 自己 | 本人 | 一家人 | 全家 | 家里 | 家人 | 我们 | 我们家
+        | (?:我的?)? (?: 老婆 | 老公 | 妻子 | 丈夫 | 爱人 | 媳妇 | 儿子 | 女儿 | 孩子 | 宝宝 | 大宝 | 小宝 | 老大 | 老二
+          | 爸爸? | 妈妈? | 父亲 | 母亲 | 爸妈 | 父母 | 爷爷 | 奶奶 | 外公 | 外婆 | 姥姥 | 姥爷
+          | 公公 | 婆婆 | 岳父 | 岳母 | 丈母娘 | 老丈人 )
+        /#
 
     private nonisolated(unsafe) static let relationName =
         /(同事|朋友|老同学|同学|邻居|领导|客户|发小|闺蜜|哥们|兄弟)((?:小|老|大|阿).{1,2})/
