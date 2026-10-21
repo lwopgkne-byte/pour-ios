@@ -29,6 +29,16 @@ final class TodayUITests: XCTestCase {
         try AppAudit.run(app, name: "说一句-画布")
     }
 
+    /// 字号最大时说一句：对话里的气泡、收据小卡、回复（第 6 步逐屏过最大字号）
+    @MainActor func testChatLargestText() throws {
+        let app = launch(arguments: Self.largestText)
+        say("早上跑了五公里 中午和小王吃面三十二", in: app)
+        XCTAssertTrue(text(app, startingWith: "已记录：").waitForExistence(timeout: 5), "对话里没有收据")
+        settle()
+        attach(app, "对话-最大字号")
+        try AppAudit.run(app, name: "对话-最大字号")
+    }
+
     /// 卡片里点「对」：不再问
     @MainActor func testConfirm() throws {
         let app = launch()

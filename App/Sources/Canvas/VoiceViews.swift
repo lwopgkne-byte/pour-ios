@@ -77,7 +77,9 @@ struct VoiceCard: View {
         _ symbol: String, label: String, id: String, filled: Bool, action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
+            // 圆是固定大小：图标封顶，不出圆；字号很大的人长按看大图标
             Image(systemName: symbol).font(Theme.Typeface.bodySemibold)
+                .dynamicTypeSize(...DynamicTypeSize.xLarge)
                 .foregroundStyle(filled ? Theme.Palette.onAccent : Theme.Palette.label)
                 .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
                 .background(filled ? Theme.Palette.accentFill : Theme.Palette.fill, in: Circle())
@@ -86,6 +88,7 @@ struct VoiceCard: View {
         }
         .buttonStyle(PressScale())
         .accessibilityLabel(Text(label))
+        .accessibilityShowsLargeContentViewer { Label(label, systemImage: symbol) }
         .accessibilityIdentifier(id)
     }
 }
@@ -132,18 +135,25 @@ struct Waveform: View {
     }
 }
 
-/// 第一次点麦克风：先说清楚（只在手机上转字，录音不存不传），再请系统权限
+/// 第一次点麦克风：先说清楚（只在手机上转字，录音不存不传），再请系统权限。
+/// 字号很大时：说明放不下就能上下滑（两个按钮一直在下面），两个按钮上下排
 struct VoiceIntro: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     let start: () -> Void
     let later: () -> Void
 
     var body: some View {
+        let buttons =
+            typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.small))
+            : AnyLayout(HStackLayout(spacing: Theme.Space.small))
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            Label("用说的", systemImage: "mic").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
-            Text("说的话在这台手机上转成字，录音不存、不传。点「好，开始说」以后，系统会问能不能用麦克风。")
-                .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
-                .lineSpacing(Theme.Leading.body)
-            HStack(spacing: Theme.Space.small) {
+            ViewThatFits(in: .vertical) {
+                message
+                // 放不下：说明能上下滑，滚动条先闪一下告诉你下面还有
+                ScrollView { message }.scrollBounceBehavior(.basedOnSize).scrollIndicatorsFlash(onAppear: true)
+            }
+            buttons {
                 Button("好，开始说", action: start).buttonStyle(.borderedProminent).tint(Theme.Palette.accentFill)
                 Button("先不用", action: later).buttonStyle(.bordered).tint(Theme.Palette.accent)
             }
@@ -152,30 +162,38 @@ struct VoiceIntro: View {
         .padding(Theme.Space.regular)
         .themeGlass(radius: Theme.Corner.card)
     }
+
+    private var message: some View {
+        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+            Label("用说的", systemImage: "mic").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+            Text("说的话在这台手机上转成字，录音不存、不传。点「好，开始说」以后，系统会问能不能用麦克风。")
+                .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
+                .lineSpacing(Theme.Leading.body)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
 }
 
-/// 听不了、没听清：一行说清楚；要去设置里打开麦克风的带一个按钮
+/// 听不了、没听清：一行说清楚；要去设置里打开麦克风的带一个按钮（字号很大时放在下面一行，字用满一行）
 struct VoiceFailure: View {
     @Environment(VoiceSession.self) private var voice
     @Environment(\.openURL) private var openURL
+    @Environment(\.dynamicTypeSize) private var typeSize
     let message: String
     let settings: Bool
 
     var body: some View {
-        HStack(spacing: Theme.Space.small) {
-            Image(systemName: "mic.slash").foregroundStyle(Theme.Palette.bad)
-            Text(message).foregroundStyle(Theme.Palette.label)
-            Spacer(minLength: Theme.Space.tight)
-            if settings, let url = URL(string: UIApplication.openSettingsURLString) {
-                Button("去设置") { openURL(url) }.foregroundStyle(Theme.Palette.accent)
+        let below = typeSize.isAccessibilitySize
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: Theme.Space.small) {
+                Image(systemName: "mic.slash").foregroundStyle(Theme.Palette.bad)
+                Text(message).foregroundStyle(Theme.Palette.label)
+                Spacer(minLength: Theme.Space.tight)
+                if !below { settingsButton }
+                dismissButton
             }
-            Button {
-                voice.dismissFailure()
-            } label: {
-                Image(systemName: "xmark").foregroundStyle(Theme.Palette.secondaryLabel)
-                    .frame(width: Theme.Size.touch, height: Theme.Size.touch)
-            }
-            .accessibilityLabel(Text("知道了"))
+            if below { settingsButton.frame(minHeight: Theme.Size.touch) }
         }
         .font(Theme.Typeface.footnoteMedium)
         .buttonStyle(.plain)
@@ -183,5 +201,21 @@ struct VoiceFailure: View {
         .frame(minHeight: Theme.Size.touch)
         .themeGlass(radius: Theme.Corner.composer)
         .sensoryFeedback(Theme.Haptics.failed, trigger: message)
+    }
+
+    @ViewBuilder private var settingsButton: some View {
+        if settings, let url = URL(string: UIApplication.openSettingsURLString) {
+            Button("去设置") { openURL(url) }.foregroundStyle(Theme.Palette.accent)
+        }
+    }
+
+    private var dismissButton: some View {
+        Button {
+            voice.dismissFailure()
+        } label: {
+            Image(systemName: "xmark").foregroundStyle(Theme.Palette.secondaryLabel)
+                .frame(width: Theme.Size.touch, height: Theme.Size.touch)
+        }
+        .accessibilityLabel(Text("知道了"))
     }
 }

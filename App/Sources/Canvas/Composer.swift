@@ -146,14 +146,19 @@ private struct ComposerBar: View {
                     model.chatOpen.toggle()
                 }
             } label: {
+                // 输入框上的按钮和系统的栏一样：图标封顶，字号很大的人长按看大图标（输入的字照样跟着变大）
                 Image(systemName: open ? "chevron.down" : "bubble.left.and.bubble.right")
                     .font(Theme.Typeface.toolbarIcon).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .dynamicTypeSize(...DynamicTypeSize.xLarge)
                     .contentTransition(.symbolEffect(.replace))
                     .frame(width: Theme.Size.touch, height: Theme.Size.touch)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text(open ? "收起对话" : "展开对话"))
+            .accessibilityShowsLargeContentViewer {
+                Label(open ? "收起对话" : "展开对话", systemImage: open ? "chevron.down" : "bubble.left.and.bubble.right")
+            }
             .accessibilityIdentifier("pourbar.chat")
             TextField(Show.spaced(placeholder), text: $model.draft, axis: .vertical)
                 .font(Theme.Typeface.body)
@@ -197,6 +202,7 @@ private struct ComposerBar: View {
             withAnimation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion)) { model.send() }
         } label: {
             Image(systemName: "arrow.up").font(Theme.Typeface.bodySemibold)
+                .dynamicTypeSize(...DynamicTypeSize.xLarge)
                 .foregroundStyle(Theme.Palette.onAccent)
                 .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
                 .background(Theme.Palette.accentFill, in: Circle())
@@ -205,6 +211,7 @@ private struct ComposerBar: View {
         }
         .buttonStyle(PressScale())
         .accessibilityLabel(Text("发送"))
+        .accessibilityShowsLargeContentViewer { Label("发送", systemImage: "arrow.up") }
         .accessibilityIdentifier("pourbar.send")
     }
 

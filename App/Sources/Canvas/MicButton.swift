@@ -22,7 +22,9 @@ struct MicButton: View {
     static let cancelDistance: CGFloat = 60
 
     var body: some View {
+        // 图标封顶，不出圆（不加长按看大图标：长按是「按住说」）
         Image(systemName: "mic.fill").font(Theme.Typeface.bodySemibold)
+            .dynamicTypeSize(...DynamicTypeSize.xLarge)
             .foregroundStyle(holding ? Theme.Palette.onAccent : Theme.Palette.label)
             .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
             .background(holding ? Theme.Palette.accentFill : Theme.Palette.fill, in: Circle())
