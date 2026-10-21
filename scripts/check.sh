@@ -103,8 +103,10 @@ for MAJOR in ${IOS_MAJORS}; do
       grep -E "error:|✘|failed|^审计问题" "${LOG}" | grep -v "known issue" | head -20
       fail "${SCHEME} 在 iOS ${MAJOR} 上的测试没通过（完整输出：${LOG}，结果：${RESULT}）"
     fi
-    RETRIED=$(grep -E "^Test Case '.*' failed" "${LOG}" | sed -E "s/^Test Case '-\[[A-Za-z]+\.([A-Za-z]+) ([A-Za-z]+)\]'.*/\1.\2/" | sort -u | tr '\n' ' ')
-    [[ -n "${RETRIED}" ]] && echo "  （第一次没过、重跑后过了：${RETRIED}）"
+    # 一个都没重跑时 grep 找不到东西、返回 1：不能让 set -e 当成检查没过
+    RETRIED=$({ grep -E "^Test Case '.*' failed" "${LOG}" || true; } \
+      | sed -E "s/^Test Case '-\[[A-Za-z]+\.([A-Za-z]+) ([A-Za-z]+)\]'.*/\1.\2/" | sort -u | tr '\n' ' ')
+    if [[ -n "${RETRIED}" ]]; then echo "  （第一次没过、重跑后过了：${RETRIED}）"; fi
     echo "  ${SCHEME}：$(grep -E "Executed [0-9]+ tests|Test run with" "${LOG}" | tail -1 | sed -E 's/^[[:space:]]+//')"
   done
   xcrun simctl shutdown "${SIM_ID}" >/dev/null 2>&1 || true
