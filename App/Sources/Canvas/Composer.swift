@@ -3,11 +3,13 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 底部的输入框：浅底色的圆角框贴着屏幕底部；
-/// 发出去就向上展开成半屏的对话面板，右边的按钮收起、展开；键盘的换行键换行，右边的蓝按钮发送
+/// 底部的输入框（docs/模块/生活画布2.0.md 第 6 节）。收着对话时是浮在页面上的玻璃条（离两边 12、离底 8，56 高）：
+/// 左边「对话」、中间输入（最多长到 6 行）、右边发送；上面一条玻璃小条说刚才那段话整理到哪了（ComposerStatus）。
+/// 发出去就向上展开对话面板，输入框贴在面板底下（第 5 步换成系统的半屏面板）
 struct Composer: View {
     @Environment(AppModel.self) private var model
     @Environment(\.visibleHeight) private var visibleHeight
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var focused: Bool
     @State private var drag: CGFloat = 0
     /// 斜杠命令列表有多高：对话面板让出这么多（输入框这一块往上长，对话被顶上去），
@@ -17,20 +19,20 @@ struct Composer: View {
     var body: some View {
         @Bindable var model = model
         let open = model.chatOpen
-        VStack(spacing: 0) {
+        VStack(spacing: open ? 0 : Theme.Space.small) {
             let chatHeight = visibleHeight * 0.55 - menuHeight
-            if open, chatHeight >= Web.touch {
+            if open, chatHeight >= Theme.Size.touch {
                 ChatPanel(drag: $drag)
                     .frame(height: chatHeight)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
+            if !open { ComposerStatus() }
             let commands = Show.slashMenu(model.draft)
             if !commands.isEmpty {
-                SlashMenu(commands: commands) { command in
+                SlashMenu(commands: commands, open: open) { command in
                     model.draft = "\(command.cmd) "
                     focused = true
                 }
-                .background(open ? Web.bg : Web.bgSubtle)
                 .onGeometryChange(for: CGFloat.self) {
                     $0.size.height
                 } action: {
@@ -38,71 +40,113 @@ struct Composer: View {
                 }
                 .onDisappear { menuHeight = 0 }
             }
-            HStack(alignment: .bottom, spacing: Web.space2) {
-                TextField(Show.spaced(placeholder), text: $model.draft, axis: .vertical)
-                    .font(Web.body)
-                    .foregroundStyle(Web.fg)
-                    .lineLimit(1...6)
-                    .padding(.vertical, Web.space2)
-                    .focused($focused)
-                    .accessibilityLabel(Text("说说今天"))
-                    .accessibilityIdentifier("pourbar.input")
-                Button {
-                    withAnimation(Web.panel) { model.chatOpen.toggle() }
-                } label: {
-                    Image(systemName: open ? "chevron.down" : "bubble.left")
-                        .font(Web.section).foregroundStyle(Web.fgSecondary)
-                        .frame(width: Web.touch, height: Web.touch)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text(open ? "收起对话" : "展开对话"))
-                .accessibilityIdentifier("pourbar.chat")
-                let empty = model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                Button {
-                    withAnimation(Web.panel) { model.send() }
-                } label: {
-                    Image(systemName: "arrow.up").font(Web.section.weight(.semibold)).foregroundStyle(Web.onAccent)
-                        .frame(width: Web.touch, height: Web.touch)
-                        .background(RoundedRectangle(cornerRadius: Web.radiusControl).fill(Web.accent))
-                        .contentShape(Rectangle())
-                        .opacity(empty ? 0.4 : 1)
-                }
-                .buttonStyle(.plain)
-                .disabled(empty)
-                .accessibilityLabel(Text("发送"))
-                .accessibilityIdentifier("pourbar.send")
-            }
-            .padding(.leading, open ? Web.space4 : Web.space3)
-            .padding([.trailing, .vertical], open ? Web.space2 : Web.space1)
-            .background(open ? Web.bg : Web.bgSubtle)
-            .clipShape(RoundedRectangle(cornerRadius: open ? 0 : Web.radiusPanel))
+            ComposerBar(focused: $focused, open: open)
         }
-        .clipShape(UnevenRoundedRectangle(topLeadingRadius: Web.radiusPanel, topTrailingRadius: Web.radiusPanel))
+        .clipShape(
+            UnevenRoundedRectangle(
+                topLeadingRadius: open ? Theme.Corner.card : 0, topTrailingRadius: open ? Theme.Corner.card : 0,
+                style: .continuous)
+        )
         .offset(y: max(0, drag))
-        .padding(.horizontal, open ? 0 : Web.space3)
-        .padding(.top, open ? 0 : Web.space2)
-        .padding(.bottom, open ? 0 : Web.space2)
+        .padding(.horizontal, open ? 0 : Theme.Space.medium)
+        .padding(.bottom, open ? 0 : Theme.Space.small)
+        .background {
+            if open { Theme.Palette.card.ignoresSafeArea(edges: .bottom) }
+        }
         // 收起对话是要看画布：键盘一起收起来
         .onChange(of: model.chatOpen) { _, open in
             if !open { focused = false }
         }
-        .background {
-            Web.bg.ignoresSafeArea(edges: .bottom)
-                .overlay(alignment: .top) { if !open { Rectangle().fill(Web.line).frame(height: 1) } }
-        }
-    }
-
-    /// 白天问做了什么；晚上（6 点到日界线）换成「今天哪一刻觉得挺好？」
-    private var placeholder: String {
-        Show.isEvening(Date(), boundary: model.dayBoundary) ? "今天哪一刻觉得挺好？" : "今天做了什么？比如：跑步1小时"
+        .animation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion), value: open)
     }
 }
 
-/// 斜杠命令：刚输入「/」时在输入框上方列出可以用的命令，点一下填进输入框；
-/// 第一个是选中的样子（电脑上按回车选它）
+/// 输入的那一行：左边「对话」，中间输入，右边圆的发送按钮（有字时强调色实心，没字时浅灰）
+private struct ComposerBar: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var focused: FocusState<Bool>.Binding
+    let open: Bool
+
+    var body: some View {
+        @Bindable var model = model
+        let empty = model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        HStack(alignment: .bottom, spacing: Theme.Space.tight) {
+            Button {
+                withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
+                    model.chatOpen.toggle()
+                }
+            } label: {
+                Image(systemName: open ? "chevron.down" : "bubble.left.and.bubble.right")
+                    .font(Theme.Typeface.toolbarIcon).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .contentTransition(.symbolEffect(.replace))
+                    .frame(width: Theme.Size.touch, height: Theme.Size.touch)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(Text(open ? "收起对话" : "展开对话"))
+            .accessibilityIdentifier("pourbar.chat")
+            TextField(Show.spaced(placeholder), text: $model.draft, axis: .vertical)
+                .font(Theme.Typeface.body)
+                .foregroundStyle(Theme.Palette.label)
+                .lineLimit(1...6)
+                .padding(.vertical, Theme.Space.medium)
+                .focused(focused)
+                .accessibilityLabel(Text("说说今天"))
+                .accessibilityIdentifier("pourbar.input")
+            Button {
+                withAnimation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion)) { model.send() }
+            } label: {
+                Image(systemName: "arrow.up").font(Theme.Typeface.bodySemibold)
+                    .foregroundStyle(empty ? Theme.Palette.tertiaryLabel : Theme.Palette.onAccent)
+                    .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
+                    .background(empty ? Theme.Palette.fill : Theme.Palette.accentFill, in: Circle())
+                    .frame(width: Theme.Size.touch, height: Theme.Size.touch)
+                    .contentShape(Circle())
+            }
+            .buttonStyle(PressScale())
+            .disabled(empty)
+            .sensoryFeedback(Theme.Haptics.send, trigger: model.outbox.count) { old, new in new > old }
+            .accessibilityLabel(Text("发送"))
+            .accessibilityIdentifier("pourbar.send")
+        }
+        .padding(.horizontal, Theme.Space.tight)
+        .padding(.vertical, Theme.Space.hairline)
+        .frame(minHeight: Theme.Size.composer)
+        .background {
+            if open {
+                Theme.Palette.card.overlay(alignment: .top) { Theme.Palette.separator.frame(height: 0.5) }
+            }
+        }
+        .modifier(GlassWhenFloating(floating: !open))
+    }
+
+    /// 早上问吃了什么；白天问做了什么；晚上（6 点到日界线）问哪一刻觉得挺好
+    private var placeholder: String {
+        let now = Date()
+        if Show.isEvening(now, boundary: model.dayBoundary) { return "今天哪一刻觉得挺好？" }
+        let hour = Calendar.current.component(.hour, from: now)
+        return (5..<10).contains(hour) ? "早上吃了什么？" : "今天做了什么？比如：跑步1小时"
+    }
+}
+
+/// 收着对话时，输入框是浮着的玻璃
+private struct GlassWhenFloating: ViewModifier {
+    let floating: Bool
+
+    func body(content: Content) -> some View {
+        if floating {
+            content.themeGlass(radius: Theme.Corner.composer)
+        } else {
+            content
+        }
+    }
+}
+
+/// 斜杠命令：刚输入「/」时在输入框上方浮出一张卡，每个命令一行带例子，点一下填进输入框；第一个是选中的样子
 private struct SlashMenu: View {
     let commands: [SlashCommand]
+    let open: Bool
     let pick: (SlashCommand) -> Void
 
     var body: some View {
@@ -111,19 +155,16 @@ private struct SlashMenu: View {
                 Button {
                     pick(command)
                 } label: {
-                    HStack(spacing: Web.space3) {
-                        Text(command.cmd).font(Web.bodyMedium)
-                        Text(command.label)
+                    HStack(spacing: Theme.Space.medium) {
+                        Text(command.cmd).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                        Text(command.label).foregroundStyle(Theme.Palette.label)
                         Spacer(minLength: 0)
-                        Text(command.example).foregroundStyle(Web.fgTertiary).lineLimit(1)
+                        Text(command.example).foregroundStyle(Theme.Palette.secondaryLabel).lineLimit(1)
                     }
-                    .font(Web.body)
-                    .foregroundStyle(index == 0 ? Web.fg : Web.fgSecondary)
-                    .padding(.horizontal, Web.space3)
-                    .frame(minHeight: Web.touch)
-                    .background(
-                        RoundedRectangle(cornerRadius: Web.radiusControl).fill(index == 0 ? Web.bgHover : .clear)
-                    )
+                    .font(Theme.Typeface.subheadline)
+                    .padding(.horizontal, Theme.Space.medium)
+                    .frame(minHeight: Theme.Size.touch)
+                    .background(index == 0 ? Theme.Palette.fill : .clear, in: Theme.rounded(Theme.Corner.chip))
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -131,9 +172,25 @@ private struct SlashMenu: View {
                 .accessibilityHint(Text("比如：\(command.example)"))
             }
         }
-        .padding(Web.space1)
-        .overlay(alignment: .bottom) { Rectangle().fill(Web.line).frame(height: 1) }
+        .padding(Theme.Space.tight)
+        .background {
+            if open { Theme.Palette.card }
+        }
+        .modifier(GlassCardWhenFloating(floating: !open))
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("斜杠命令"))
+    }
+}
+
+/// 收着对话时，斜杠命令是一张浮着的玻璃卡
+private struct GlassCardWhenFloating: ViewModifier {
+    let floating: Bool
+
+    func body(content: Content) -> some View {
+        if floating {
+            content.themeGlass(radius: Theme.Corner.card)
+        } else {
+            content
+        }
     }
 }

@@ -36,7 +36,7 @@ struct CanvasView: View {
             // 顶上浮着的玻璃按钮那一截算安全区：滚到某张卡时停在按钮下面，不被盖住
             .safeAreaPadding(.top, Theme.Size.touch + Theme.Space.small)
             .scrollDismissesKeyboard(.interactively)
-            .scrollEdgeEffectStyle(.soft, for: .top)
+            .scrollEdgeEffectStyle(.soft, for: [.top, .bottom])
             .refreshable { await model.refreshAll() }
             // 大标题滑到顶上的玻璃按钮后面时，顶上中间出现日子的小胶囊
             .onScrollGeometryChange(for: Bool.self) { geometry in

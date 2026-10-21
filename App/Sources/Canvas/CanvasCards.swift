@@ -7,26 +7,42 @@ import SwiftUI
 struct CanvasCards: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let day: API.DayView
 
     var body: some View {
         let rows = CanvasPlan.rows(day.entries, model.categories)
         VStack(spacing: Theme.Space.cardGap) {
             ForEach(rows) { row in
-                switch row {
-                case .full(let card):
-                    CanvasCard(card: card, day: day, size: .full)
-                case .pair(let left, let right):
-                    if typeSize.isAccessibilitySize {
-                        CanvasCard(card: left, day: day, size: .full)
-                        CanvasCard(card: right, day: day, size: .full)
-                    } else {
-                        HStack(alignment: .top, spacing: Theme.Space.cardGap) {
-                            CanvasCard(card: left, day: day, size: .half).frame(maxHeight: .infinity, alignment: .top)
-                            CanvasCard(card: right, day: day, size: .half).frame(maxHeight: .infinity, alignment: .top)
-                        }
-                        .fixedSize(horizontal: false, vertical: true)
+                CanvasRow(row: row, day: day, accessibility: typeSize.isAccessibilitySize)
+                    .transition(reduceMotion ? .opacity : .scale(scale: 0.96).combined(with: .opacity))
+            }
+        }
+        .animation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion), value: rows.map(\.id))
+    }
+}
+
+/// 一行：一张整行，或者两张半宽一样高；字号调到辅助功能那几档时都是整行
+private struct CanvasRow: View {
+    let row: CanvasPlan.Row
+    let day: API.DayView
+    let accessibility: Bool
+
+    var body: some View {
+        Group {
+            switch row {
+            case .full(let card):
+                CanvasCard(card: card, day: day, size: .full)
+            case .pair(let left, let right):
+                if accessibility {
+                    CanvasCard(card: left, day: day, size: .full)
+                    CanvasCard(card: right, day: day, size: .full)
+                } else {
+                    HStack(alignment: .top, spacing: Theme.Space.cardGap) {
+                        CanvasCard(card: left, day: day, size: .half).frame(maxHeight: .infinity, alignment: .top)
+                        CanvasCard(card: right, day: day, size: .half).frame(maxHeight: .infinity, alignment: .top)
                     }
+                    .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }

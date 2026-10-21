@@ -125,6 +125,11 @@ enum AppAudit {
                 print("放过（表情不是字）[\(name)] \(issue.compactDescription) ← \(element.label)")
                 return true
             }
+            // 系统键盘上面的联想词条（TUIPredictionViewCell）：系统自己的，不是 App 的；有时审计时刚好冒出来
+            if issue.detailedDescription.contains("TUIPredictionViewCell") {
+                print("放过（键盘的联想词条，系统的）[\(name)] \(issue.compactDescription)")
+                return true
+            }
             if let reason = exemption(type: issue.auditType, frame: element.frame, label: element.label, place: place) {
                 print("放过（\(reason)）[\(name)] \(issue.compactDescription) ← \(element.label)")
                 return true
@@ -214,6 +219,10 @@ enum AppAudit {
         }
         if let bottom = place.headerBottom, frame.minY < bottom {
             return "在顶栏后面"
+        }
+        // 对话开着时，面板里往上滚出面板上沿的（整个在上沿上面，被面板裁掉、看不见）：后面的页面压暗了、读屏不读
+        if let top = place.panelTop, frame.maxY <= top + 2 {
+            return "滚到对话面板上沿外面了"
         }
         if let top = place.panelTop, frame.minY < top + 2, frame.maxY > top {
             return "在对话面板上沿后面"

@@ -43,8 +43,9 @@ struct RootView: View {
                     .transition(.opacity)
             }
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: Web.space3) {
+        // 底下的输入框是一条「栏」（safeAreaBar）：页面滑到它下面时自动柔化淡出，玻璃上的提示语不和后面的字叠在一起
+        .safeAreaBar(edge: .bottom, spacing: 0) {
+            VStack(spacing: Theme.Space.small) {
                 if let notice = model.notice {
                     Toast(message: notice.message, action: notice.action) { model.performNotice() }
                         .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -197,23 +198,23 @@ enum UIScreenWidth {
     }
 }
 
-/// 轻提示：深底浅字，右边可以有一个操作
+/// 轻提示（生活画布2.0.md 第 6 节）：输入框上面一条玻璃胶囊，右边可以有一个操作（「撤销」）
 private struct Toast: View {
     let message: String
     let action: String?
     let perform: () -> Void
 
     var body: some View {
-        HStack(spacing: Web.space3) {
-            Text(Show.spaced(message)).font(Web.body).foregroundStyle(Web.onAccent)
+        HStack(spacing: Theme.Space.medium) {
+            Text(Show.spaced(message)).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
             if let action {
-                Button(action, action: perform).font(Web.bodyMedium).foregroundStyle(Web.onAccent).buttonStyle(.plain)
+                Button(action, action: perform).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.accent)
+                    .buttonStyle(.plain).frame(minHeight: Theme.Size.touch)
                     .accessibilityIdentifier("undoToast")
             }
         }
-        .padding(.horizontal, Web.space4)
-        .padding(.vertical, Web.space2)
-        .frame(minHeight: Web.control)
-        .background(RoundedRectangle(cornerRadius: Web.radiusPanel).fill(Web.fg))
+        .padding(.horizontal, Theme.Space.regular)
+        .frame(minHeight: Theme.Size.touch)
+        .themeGlass(radius: Theme.Corner.composer)
     }
 }

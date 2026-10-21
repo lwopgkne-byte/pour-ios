@@ -53,6 +53,8 @@ public struct FigureText: View {
 
     public var body: some View {
         text.monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
+            .contentTransition(.numericText())
+            .animation(Theme.Motion.standard, value: parts.map { "\($0.number)\($0.unit)" })
     }
 
     private var text: Text {

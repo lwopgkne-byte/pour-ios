@@ -99,8 +99,9 @@ extension Theme {
         public static let miniRing: CGFloat = 18
         /// 数量卡右边的进度环
         public static let smallRing: CGFloat = 34
-        /// 输入框
+        /// 输入框；右边发送的圆
         public static let composer: CGFloat = 56
+        public static let sendButton: CGFloat = 36
         /// 一天的带子
         public static let ribbon: CGFloat = 36
         /// 细横条（睡眠、进食窗口、分段条）
