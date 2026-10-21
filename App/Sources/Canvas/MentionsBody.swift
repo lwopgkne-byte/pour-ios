@@ -27,8 +27,8 @@ struct MentionsBody: View {
                     ForEach(items, id: \.self) { item in chip(item, shown: prefix + item) }
                 }
             }
+            // 一类一组；组名就是前面那个字（不再给组起名，免得念两遍）
             .accessibilityElement(children: .contain)
-            .accessibilityLabel(Text(title))
         }
     }
 

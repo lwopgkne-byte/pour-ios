@@ -38,9 +38,12 @@ private struct CanvasRow: View {
                     CanvasCard(card: left, day: day, size: .full)
                     CanvasCard(card: right, day: day, size: .full)
                 } else {
+                    // 读屏一张念完再念另一张（不分组时两张卡是一行一行交错着念的）
                     HStack(alignment: .top, spacing: Theme.Space.cardGap) {
                         CanvasCard(card: left, day: day, size: .half).frame(maxHeight: .infinity, alignment: .top)
+                            .accessibilityElement(children: .contain)
                         CanvasCard(card: right, day: day, size: .half).frame(maxHeight: .infinity, alignment: .top)
+                            .accessibilityElement(children: .contain)
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }

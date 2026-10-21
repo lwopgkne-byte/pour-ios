@@ -165,6 +165,7 @@ struct EventLine: View {
                     if !line.isEmpty {
                         Text(Show.spaced(line)).font(Theme.Typeface.footnote)
                             .foregroundStyle(Theme.Palette.secondaryLabel)
+                            .accessibilityLabel(Text(Show.spoken(line)))
                     }
                 }
             }
@@ -207,7 +208,7 @@ struct MoneyLine: View {
             HStack(spacing: Theme.Space.small) {
                 if !text.isEmpty {
                     Text(text).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-                        .monospacedDigit()
+                        .monospacedDigit().accessibilityLabel(Text(Show.spoken(text)))
                 }
                 ForEach(notes.prefix(2), id: \.self) { note in
                     ThemeBadge(Show.spaced(note), tone: ["等报销", "借出去"].contains(note) ? .accent : .neutral)

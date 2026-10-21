@@ -17,13 +17,14 @@ struct SleepBody: View {
             let spans = events.compactMap(night)
             if !spans.isEmpty { SpanTrack(spans: spans, color: Theme.tag("purple").solid) }
             if size == .full || entries.count > 1 || entries.contains(where: \.pending) {
+                // 只有一段睡眠：时长上面的大字已经写了，这一行不再写一遍
                 ShowFirst(items: entries) { entry, index in
                     CardRow(entry: entry, quiet: repeatsQuestion(entries, index)) {
-                        SleepLine(event: CanvasPlan.event(entry))
+                        SleepLine(event: CanvasPlan.event(entry), minutes: entries.count > 1)
                     }
                 }
             } else if let only = entries.first {
-                CardRow(entry: only) { SleepLine(event: CanvasPlan.event(only)) }
+                CardRow(entry: only) { SleepLine(event: CanvasPlan.event(only), minutes: false) }
             }
         }
     }
@@ -37,17 +38,18 @@ struct SleepBody: View {
     }
 }
 
-/// 睡眠的一行：「23:30 → 7:00」和时长；没说几点的写它的名字
+/// 睡眠的一行：「23:30 → 7:00」和时长（只有一段时不写时长）；没说几点的写它的名字
 private struct SleepLine: View {
     let event: API.EventData?
+    let minutes: Bool
 
     var body: some View {
         if let event {
             HStack(alignment: .firstTextBaseline) {
                 Text(Show.spaced(title(event))).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
-                    .monospacedDigit()
+                    .monospacedDigit().accessibilityLabel(Text(Show.spoken(title(event))))
                 Spacer(minLength: Theme.Space.small)
-                let minutes = CanvasPlan.minutes(event)
+                let minutes = minutes ? CanvasPlan.minutes(event) : 0
                 if minutes > 0 {
                     Text(Show.spaced(Show.minutes(minutes))).font(Theme.Typeface.footnote)
                         .foregroundStyle(Theme.Palette.secondaryLabel)
@@ -78,8 +80,10 @@ struct DietBody: View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             if timed.count >= 2, let first = times.first, let last = times.last, first != last {
                 FigureText(CanvasPlan.durationParts(PourDate.minutesBetween(first, last)).map { ($0.number, $0.unit) })
-                Text("进食窗口 \(Show.clock(first))–\(Show.clock(last))\(spent > 0 ? " · \(Show.yuan(spent))" : "")")
-                    .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit()
+                let window = "进食窗口 \(Show.clock(first))–\(Show.clock(last))\(spent > 0 ? " · \(Show.yuan(spent))" : "")"
+                Text(window).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .monospacedDigit()
+                    .accessibilityLabel(Text(Show.spoken(window)))
                 SpanTrack(
                     spans: [
                         .init(start: DayFraction.fraction(first, day: day), end: DayFraction.fraction(last, day: day))

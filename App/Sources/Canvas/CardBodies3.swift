@@ -72,10 +72,12 @@ private struct MoodRow: View {
                             .frame(width: Theme.Size.dot, height: Theme.Size.dot)
                     }
                 }
-                .accessibilityElement()
-                .accessibilityLabel(Text("心情：\(Show.moodWords[level - 1])，五级里的第\(level)级"))
+                .accessibilityHidden(true)
+                // 读屏：「挺好，五级里的第 4 级」（圆点不单独念，免得「挺好」念两遍）
                 Text(Show.moodWords[level - 1]).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                    .accessibilityLabel(Text("\(Show.moodWords[level - 1])，五级里的第 \(level) 级"))
                 Text(details).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .accessibilityLabel(Text(Show.spoken(details)))
             }
             if let moment {
                 Text("「\(Show.spaced(moment))」").font(Theme.Typeface.quote).foregroundStyle(Theme.Palette.label)

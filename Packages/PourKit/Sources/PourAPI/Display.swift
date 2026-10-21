@@ -181,6 +181,12 @@ public enum Show {
         return parts.joined(separator: " · ")
     }
 
+    /// 给读屏念的：「8:00–9:00 · 60 分钟」念成「8:00 到 9:00，60 分钟」，「23:30 → 7:00」念成「23:30 到 7:00」
+    public static func spoken(_ text: String) -> String {
+        text.replacingOccurrences(of: " → ", with: " 到 ").replacingOccurrences(of: "→", with: " 到 ")
+            .replacingOccurrences(of: "–", with: " 到 ").replacingOccurrences(of: " · ", with: "，")
+    }
+
     /// 一行最多一个话题：和名称、类别、人、物、地方、数量名重复的不算（cleanTopics）
     public static func topic(_ event: API.EventData, category: String, _ categories: [API.Category]) -> String? {
         let squash = { (text: String) in

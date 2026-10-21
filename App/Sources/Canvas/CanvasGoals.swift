@@ -20,6 +20,12 @@ struct GoalRings: View {
                         }
                         .buttonStyle(PressScale())
                         .accessibilityElement(children: .combine)
+                        // 先念目标是什么，再念今天推进了多少、进度
+                        .accessibilityLabel(
+                            Text(
+                                Show.spoken(
+                                    [goal.title, goal.delta, goal.headline].compactMap(\.self).joined(separator: " · "))
+                            ))
                     }
                 }
                 .padding(.vertical, Theme.Space.small)
@@ -90,5 +96,6 @@ struct GoalFooter: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text(Show.spoken(compact ? goal.title : "\(goal.title) · \(goal.headline)")))
     }
 }

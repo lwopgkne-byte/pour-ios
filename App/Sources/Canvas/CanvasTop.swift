@@ -133,11 +133,17 @@ struct CanvasWeek: View {
                     WeekDay(day: day, today: model.today, selected: day == model.shownDay, circle: circle, slide: slide)
                 }
                 .buttonStyle(PressScale())
-                .accessibilityLabel(Text(Show.dayTitle(day, today: model.today)))
+                .accessibilityLabel(Text(spoken(day)))
                 .accessibilityAddTraits(day == model.shownDay ? .isSelected : [])
             }
         }
         .sensoryFeedback(Theme.Haptics.select, trigger: model.shownDay)
+    }
+
+    /// 读屏念的：今天前面加「今天」
+    private func spoken(_ day: String) -> String {
+        let title = Show.dayTitle(day, today: model.today)
+        return day == model.today ? "今天，\(title)" : title
     }
 
     /// 这一天所在的那一周（周一到周日）

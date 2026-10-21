@@ -94,7 +94,12 @@ private struct UntimedRow: View {
         }
         .buttonStyle(PressScale())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(Show.spaced("\(item.event.label) \(Show.eventMeta(item.event, day: day))")))
+        .accessibilityLabel(
+            Text(
+                Show.spoken(
+                    [item.event.label, Show.eventMeta(item.event, day: day)].filter { !$0.isEmpty }.joined(
+                        separator: " · ")))
+        )
         .accessibilityAddTraits(.isButton)
     }
 }
