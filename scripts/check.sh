@@ -92,13 +92,19 @@ for MAJOR in ${IOS_MAJORS}; do
       echo "  PourGallery：编译通过（跳过了界面测试）"
       continue
     fi
+    # 系统的无障碍审计偶尔自己超时（「Audit failed to complete in time」，是工具的毛病、不是界面的问题；
+    # 2026-10-21 推送前检查里设置页、关于我各超时过一次，审计自己已经重试了几轮）：没过的测试整个再跑一次，
+    # 两次都没过才算没过；重跑才过的写出来，不藏
     if ! xcodebuild test -project Pour.xcodeproj -scheme "${SCHEME}" \
       -destination "platform=iOS Simulator,id=${SIM_ID}" \
       -derivedDataPath build/DerivedData -resultBundlePath "${RESULT}" \
+      -retry-tests-on-failure -test-iterations 2 \
       ${EXTRA[@]+"${EXTRA[@]}"} ${ONLY[@]+"${ONLY[@]}"} >"${LOG}" 2>&1; then
       grep -E "error:|✘|failed|^审计问题" "${LOG}" | grep -v "known issue" | head -20
       fail "${SCHEME} 在 iOS ${MAJOR} 上的测试没通过（完整输出：${LOG}，结果：${RESULT}）"
     fi
+    RETRIED=$(grep -E "^Test Case '.*' failed" "${LOG}" | sed -E "s/^Test Case '-\[[A-Za-z]+\.([A-Za-z]+) ([A-Za-z]+)\]'.*/\1.\2/" | sort -u | tr '\n' ' ')
+    [[ -n "${RETRIED}" ]] && echo "  （第一次没过、重跑后过了：${RETRIED}）"
     echo "  ${SCHEME}：$(grep -E "Executed [0-9]+ tests|Test run with" "${LOG}" | tail -1 | sed -E 's/^[[:space:]]+//')"
   done
   xcrun simctl shutdown "${SIM_ID}" >/dev/null 2>&1 || true
