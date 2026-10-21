@@ -64,6 +64,9 @@ enum AppAudit {
         var place = Place(
             glass: glass, navigation: navigation, barTop: bar.map { $0 - Self.barPadding }, headerBottom: headerBottom)
         place.panelTop = panelTop
+        // 横着滑的一排（目标小卡、没说时间的小胶囊）：矮的那几个能滚的
+        place.strips = app.scrollViews.allElementsBoundByIndex.filter { $0.exists && $0.frame.height < 240 }.map(
+            \.frame)
         if chatOpen { print("对话面板上沿：\(panelTop.map { "\($0)" } ?? "没找到")") }
         // 审计自己偶尔超时（「Audit failed to complete in time」）：检查用的模拟器刚开机、电脑同时在忙别的时更常见
         // （设置页那么长的一页，推送前检查里连着超时三次）。等十秒再审，最多四次
@@ -126,6 +129,14 @@ enum AppAudit {
                 print("放过（\(reason)）[\(name)] \(issue.compactDescription) ← \(element.label)")
                 return true
             }
+            // 对比度：截下这一块实量最深、最浅的像素（AuditPixels），够了才放过，把量出来的数打出来
+            if issue.auditType == .contrast, let ratio = AuditPixels.contrast(of: element),
+                ratio >= AuditPixels.readable
+            {
+                let measured = String(format: "%.1f", ratio)
+                print("放过（截图实量 \(measured):1）[\(name)] \(issue.compactDescription) ← \(element.label)")
+                return true
+            }
             print("审计问题 [\(name)] \(issue.compactDescription) ← \(element.label) \(element.frame)")
             print("  详细：\(issue.detailedDescription)（编号：\(element.identifier)）")
             return false
@@ -150,6 +161,8 @@ enum AppAudit {
         var panelTop: CGFloat?
         /// 这段字本来就只占一行、放不下用省略号（webOneLine）
         var oneLine = false
+        /// 横着滑的一排
+        var strips: [CGRect] = []
 
         func inside(_ frames: [CGRect], _ frame: CGRect) -> Bool {
             frames.contains { $0.insetBy(dx: -2, dy: -2).contains(frame) }
@@ -204,6 +217,13 @@ enum AppAudit {
         }
         if let top = place.panelTop, frame.minY < top + 2, frame.maxY > top {
             return "在对话面板上沿后面"
+        }
+        // 横着滑的一排两头只露出一部分的（提示还能往旁边滑）：露出来的那一截量不准；滑出来以后照样审
+        let middle = CGPoint(x: frame.midX, y: frame.midY)
+        if let strip = place.strips.first(where: { $0.contains(middle) }),
+            !strip.insetBy(dx: -1, dy: -1).contains(frame)
+        {
+            return "横着滑的一排里只露出一部分"
         }
         return nil
     }

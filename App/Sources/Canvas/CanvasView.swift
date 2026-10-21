@@ -3,182 +3,100 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 生活画布：回答「我今天过得怎么样」。
-/// 从上到下：日期、一句话总结、今天推进的目标、还在整理的那一行、时间轴、类别卡片；左右滑换日子
+/// 生活画布 2.0（docs/模块/生活画布2.0.md 第 4 节）：回答「我今天过得怎么样」。画布由内容决定——
+/// 固定的只有顶部、一周条、输入框；今天的样子、推进的目标、一天的带子、卡片，当天有才出现。左右滑换日子
 struct CanvasView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// 左上角菜单（外壳给的）
+    let openMenu: () -> Void
     @State private var picking = false
+    @State private var collapsed = false
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                DayHeader(picking: $picking)
-                SetupCard()
-                if model.shownDay == model.today { ReviewHint() }
-                CanvasBody()
-                    .padding(.top, Web.space4)
+        ScrollViewReader { reader in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    CanvasTitle()
+                    CanvasWeek().padding(.top, Theme.Space.small)
+                    SetupCard()
+                    CanvasBody { target in
+                        withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
+                            reader.scrollTo(target, anchor: .top)
+                        }
+                    }
+                    .padding(.top, Theme.Space.medium)
                     .id(model.shownDay)
                     .transition(.opacity)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, Web.space4)
-            .padding(.top, Web.space4)
-            .padding(.bottom, Web.space12)
-        }
-        .scrollDismissesKeyboard(.interactively)
-        .refreshable { await model.refreshAll() }
-        // 手机：左右滑动切换日期（横着滑 60 点以上、比竖着多一倍才算）
-        .simultaneousGesture(
-            DragGesture(minimumDistance: Web.space6).onEnded { drag in
-                let across = drag.translation.width
-                guard abs(across) > Web.space12 + Web.space3, abs(across) > abs(drag.translation.height) * 2 else {
-                    return
                 }
-                withAnimation(Web.panel) { model.show(PourDate.addDays(model.shownDay, across > 0 ? -1 : 1)) }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, Theme.Space.screen)
+                .padding(.bottom, Theme.Space.section)
+            }
+            // 顶上浮着的玻璃按钮那一截算安全区：滚到某张卡时停在按钮下面，不被盖住
+            .safeAreaPadding(.top, Theme.Size.touch + Theme.Space.small)
+            .scrollDismissesKeyboard(.interactively)
+            .scrollEdgeEffectStyle(.soft, for: .top)
+            .refreshable { await model.refreshAll() }
+            // 大标题滑到顶上的玻璃按钮后面时，顶上中间出现日子的小胶囊
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentOffset.y + geometry.contentInsets.top > Theme.Size.touch + Theme.Space.regular
+            } action: { _, now in
+                collapsed = now
+            }
+        }
+        .background(Theme.Palette.background.ignoresSafeArea())
+        .overlay(alignment: .top) {
+            CanvasTopBar(collapsed: collapsed, openMenu: openMenu, pickDay: { picking = true })
+        }
+        // 左右滑动切换日期（横着滑 60 点以上、比竖着多一倍才算）
+        .simultaneousGesture(
+            DragGesture(minimumDistance: Theme.Space.xLarge).onEnded { drag in
+                let across = drag.translation.width
+                guard abs(across) > Theme.Size.touch + Theme.Space.regular,
+                    abs(across) > abs(drag.translation.height) * 2
+                else { return }
+                withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
+                    model.show(PourDate.addDays(model.shownDay, across > 0 ? -1 : 1))
+                }
             }
         )
         .sheet(isPresented: $picking) { DayPicker() }
     }
 }
 
-/// 日期标题：「10 月 19 日 周一」加上「今天」；不是今天、昨天就是「回到今天」。点日期选哪一天
-private struct DayHeader: View {
-    @Environment(AppModel.self) private var model
-    @Binding var picking: Bool
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Web.space3) {
-            Button {
-                picking = true
-            } label: {
-                Text(Show.spaced(Show.dayTitle(model.shownDay, today: model.today)))
-                    .font(Web.title).foregroundStyle(Web.fg).lineLimit(1).fixedSize()
-            }
-            .buttonStyle(.plain)
-            .accessibilityHint(Text("跳到某一天"))
-            .accessibilityIdentifier("today.header")
-            if let relative = Show.relative(model.shownDay, today: model.today) {
-                Text(relative).font(Web.section).foregroundStyle(Web.fgTertiary)
-            } else {
-                WebTextButton("回到今天") { withAnimation(Web.panel) { model.show(model.today) } }
-            }
-        }
-    }
-}
-
-/// 一天的内容：总结、目标胶囊、还在整理的、时间轴、卡片；什么都没有时一句话说明
+/// 一天的内容：今天的样子、推进的目标、一天的带子、卡片；连不上时说原因、能重试；还没拿到时是骨架
 private struct CanvasBody: View {
     @Environment(AppModel.self) private var model
+    let scrollTo: (String) -> Void
 
     var body: some View {
         if let day = model.day {
-            content(day)
+            VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
+                CanvasHero(day: day, scrollTo: scrollTo)
+                let goals = day.goals.filter { $0.delta != nil }
+                if !goals.isEmpty { GoalRings(goals: goals) }
+                DayRibbon(day: day.day, entries: day.entries)
+                if !day.entries.isEmpty { CanvasCards(day: day) }
+            }
         } else if let offline = model.offline {
-            VStack(alignment: .leading, spacing: Web.space2) {
-                Text(offline).font(Web.body).foregroundStyle(Web.fgSecondary)
-                WebTextButton("重试") { Task { await model.refreshAll() } }
+            VStack(alignment: .leading, spacing: Theme.Space.small) {
+                Text(Show.spaced(offline)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
+                Button("重试") { Task { await model.refreshAll() } }
+                    .font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.accent)
+                    .buttonStyle(.plain).frame(minHeight: Theme.Size.touch)
+            }
+            .themeCard()
+        } else {
+            VStack(spacing: Theme.Space.cardGap) {
+                SkeletonBlock(height: Theme.Size.goalCard, radius: Theme.Corner.hero)
+                SkeletonBlock(height: Theme.Size.goalCard * 0.7)
             }
         }
     }
-
-    @ViewBuilder private func content(_ day: API.DayView) -> some View {
-        let progress = progressLine(model.dayNotes)
-        VStack(alignment: .leading, spacing: 0) {
-            if day.entries.isEmpty && model.dayNotes.isEmpty {
-                Text(Show.spaced(emptyText)).font(Web.body).foregroundStyle(Web.fgTertiary)
-                    .lineSpacing(Web.bodyLineSpacing)
-            } else {
-                if let summary = day.summary {
-                    Text(Show.spaced(summary)).font(Web.body).foregroundStyle(Web.fgSecondary)
-                        .lineSpacing(Web.bodyLineSpacing)
-                        .accessibilityIdentifier("today.summary")
-                }
-                GoalPills(goals: day.goals.filter { $0.delta != nil })
-                if let progress {
-                    Button {
-                        withAnimation(Web.panel) { model.chatOpen = true }
-                    } label: {
-                        Label(progress, systemImage: "circle").labelStyle(QuietLabel())
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.top, Web.space1)
-                }
-                if day.entries.isEmpty && progress == nil {
-                    Text("说过的话里没有整理出记录。").font(Web.body).foregroundStyle(Web.fgTertiary)
-                }
-                TimelineStrip(day: day.day, entries: day.entries, categories: model.categories)
-                DayCards(entries: day.entries, categories: model.categories, goals: day.goals)
-            }
-        }
-    }
-
-    private var emptyText: String {
-        let offset = PourDate.diffDays(model.shownDay, model.today)
-        if offset == 0 { return "今天还是空白。说说你做了什么，这里会自己长出来。" }
-        return offset > 0 ? "这一天还没到。" : "这一天没有留下记录。"
-    }
-
-    /// 还在整理、等着、没整理成的话：一行安静的字，点一下打开对话
-    private func progressLine(_ notes: [API.Note]) -> String? {
-        let count = { (status: String) in notes.filter { $0.status == status }.count }
-        let parts = [
-            count("processing") > 0 ? "正在整理…" : nil,
-            count("pending") > 0 ? "\(count("pending")) 段等待整理" : nil,
-            count("failed") > 0 ? "\(count("failed")) 段处理失败" : nil,
-        ].compactMap { $0 }
-        return parts.isEmpty ? nil : parts.joined(separator: " · ")
-    }
 }
 
-/// 这一天推进的目标：状态色小圆点、目标、推进了多少
-/// 这天推进的目标（规格 7.1）：一排胶囊，点了打开目标详情
-private struct GoalPills: View {
-    @Environment(AppModel.self) private var model
-    let goals: [API.DayGoal]
-
-    var body: some View {
-        if !goals.isEmpty {
-            PourFlowLayout(spacing: Web.space2, lineSpacing: Web.space2) {
-                ForEach(goals) { goal in
-                    Button {
-                        model.openGoal(goal.id)
-                    } label: {
-                        HStack(spacing: Web.space2) {
-                            ToneDot(tone: goal.tone)
-                            Text(Show.spaced(goal.title)).foregroundStyle(Web.fgSecondary)
-                            if let delta = goal.delta {
-                                Text(Show.spaced(delta)).font(Web.captionMedium).foregroundStyle(Web.fg)
-                                    .monospacedDigit()
-                            }
-                        }
-                        .font(Web.caption)
-                        .padding(.horizontal, Web.space3)
-                        .frame(minHeight: Web.touch)
-                        .background(Capsule().fill(Web.bg))
-                        .overlay(Capsule().strokeBorder(Web.line, lineWidth: 1))
-                        .contentShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityElement(children: .combine)
-                }
-            }
-            .padding(.top, Web.space3)
-        }
-    }
-}
-/// 安静的链接：小图标 + 次要文字，至少 44 点高
-struct QuietLabel: LabelStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        HStack(spacing: Web.space1) {
-            configuration.icon.font(Web.caption)
-            configuration.title.font(Web.body)
-        }
-        .foregroundStyle(Web.fgSecondary)
-        .frame(minHeight: Web.touch)
-    }
-}
-
-/// 点日期：选一天看（不能选还没到的日子）
+/// 点日历：选一天看（不能选还没到的日子）
 private struct DayPicker: View {
     @Environment(AppModel.self) private var model
     @Environment(\.dismiss) private var dismiss
@@ -189,7 +107,7 @@ private struct DayPicker: View {
             DatePicker("哪一天", selection: $date, in: ...Date(), displayedComponents: .date)
                 .datePickerStyle(.graphical)
                 .environment(\.locale, Locale(identifier: "zh_CN"))
-                .padding(.horizontal, Web.space4)
+                .padding(.horizontal, Theme.Space.regular)
                 .navigationTitle("跳到某一天")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -202,6 +120,6 @@ private struct DayPicker: View {
                 }
         }
         .presentationDetents([.medium])
-        .tint(Web.accent)
+        .tint(Theme.Palette.accent)
     }
 }

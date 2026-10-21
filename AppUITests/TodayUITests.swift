@@ -29,13 +29,13 @@ final class TodayUITests: XCTestCase {
         try AppAudit.run(app, name: "说一句-画布")
     }
 
-    /// 卡片里点「确认」：不再问
+    /// 卡片里点「对」：不再问
     @MainActor func testConfirm() throws {
         let app = launch()
         say("中午和小王吃面三十二", in: app)
         closeChat(app)
         XCTAssertTrue(app.staticTexts["三十二是花了 32 块吗？"].waitForExistence(timeout: 5))
-        app.buttons["确认"].firstMatch.tap()
+        app.buttons["对"].firstMatch.tap()
         XCTAssertTrue(waitGone(app.staticTexts["三十二是花了 32 块吗？"]), "还在问")
     }
 

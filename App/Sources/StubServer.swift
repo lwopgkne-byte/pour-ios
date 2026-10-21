@@ -52,7 +52,8 @@
         /// 假服务器里的数据：说过的话、记录、删掉的记录
         struct State {
             var notes: [[String: Any]] = []
-            var entries: [[String: Any]] = []
+            /// 平时是空的；「-canvasSample 带孩子」时是那个人的今天（StubServer+Canvas）
+            var entries: [[String: Any]] = Self.sampleEntries(today: PourDate.logicalDay(Date(), in: .current))
             var trash: [[String: Any]] = []
             var nextId = 1
             /// 对话里的系统消息：今天早上来的「昨天的回顾好了」
@@ -70,7 +71,11 @@
                 let parts = url.path.split(separator: "/").map(String.init)
                 if parts.count == 3, parts[1] == "day" {
                     let entries = entries.filter { $0["day"] as? String == parts[2] }
-                    return ok(["day": parts[2], "entries": entries, "summary": NSNull(), "goals": [Any]()])
+                    let sample = parts[2] == today ? Self.sample : nil
+                    let summary: Any = sample?.summary ?? NSNull()
+                    return ok([
+                        "day": parts[2], "entries": entries, "summary": summary, "goals": sample?.goalList ?? [],
+                    ])
                 }
                 if parts.count == 4, parts[1] == "notes", let id = Int(parts[2]) {
                     if parts[3] == "undo" { return ok(undo(note: id)) }
@@ -90,7 +95,7 @@
                 }
                 switch (method, url.path) {
                 case ("GET", "/api/meta"): return ok(["today": today, "dayBoundary": 240, "mode": "real"])
-                case ("GET", "/api/categories"): return ok(["categories": Self.categories])
+                case ("GET", "/api/categories"): return ok(["categories": Self.categories + Self.sampleCategories])
                 case ("GET", "/api/messages"): return ok(["messages": messages])
                 case ("GET", "/api/notes"):
                     if let day = query.first(where: { $0.name == "day" })?.value {
@@ -252,40 +257,6 @@
                     entries.append(trash.remove(at: index))
                 }
                 return ["ok": true]
-            }
-
-            /// 服务器的基础类别
-            static var categories: [[String: Any]] {
-                [
-                    [
-                        "key": "sleep", "name": "睡眠", "emoji": "😴", "color": "purple", "parent": NSNull(),
-                        "measure": "duration",
-                    ],
-                    [
-                        "key": "exercise", "name": "运动", "emoji": "🏃", "color": "green", "parent": NSNull(),
-                        "measure": "duration",
-                    ],
-                    [
-                        "key": "run", "name": "跑步", "emoji": "🏃", "color": "green", "parent": "exercise",
-                        "measure": "公里",
-                    ],
-                    [
-                        "key": "diet", "name": "饮食", "emoji": "🍽", "color": "orange", "parent": NSNull(),
-                        "measure": "duration",
-                    ],
-                    [
-                        "key": "study", "name": "学习", "emoji": "📚", "color": "blue", "parent": NSNull(),
-                        "measure": "duration",
-                    ],
-                    [
-                        "key": "work", "name": "工作", "emoji": "💼", "color": "brown", "parent": NSNull(),
-                        "measure": "duration",
-                    ],
-                    [
-                        "key": "other", "name": "其他", "emoji": "📌", "color": "gray", "parent": NSNull(),
-                        "measure": "count",
-                    ],
-                ]
             }
         }
     }

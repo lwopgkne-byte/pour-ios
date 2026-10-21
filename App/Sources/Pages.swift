@@ -35,10 +35,12 @@ enum Page: String, CaseIterable, Identifiable {
 /// 每一页显示什么
 struct PageView: View {
     let page: Page
+    /// 打开左上角菜单（生活画布自己画顶上的按钮）
+    let openMenu: () -> Void
 
     var body: some View {
         switch page {
-        case .canvas: CanvasView()
+        case .canvas: CanvasView(openMenu: openMenu)
         case .review: ReviewPage()
         case .money: MoneyPage()
         case .about: AboutPage()

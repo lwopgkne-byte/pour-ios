@@ -23,9 +23,12 @@ struct RootView: View {
     private var shell: some View {
         @Bindable var model = model
         return VStack(spacing: 0) {
-            AppHeader(navOpen: $navOpen) { model.search = "" }
-            if model.mode == "demo" { DemoBanner() }
-            PageView(page: model.page)
+            // 生活画布 2.0 自己有浮着的玻璃按钮和「演示数据」小胶囊；别的页面还是原来的顶栏和横幅
+            if model.page != .canvas {
+                AppHeader(navOpen: $navOpen) { model.search = "" }
+                if model.mode == "demo" { DemoBanner() }
+            }
+            PageView(page: model.page) { withAnimation(Web.panel) { navOpen = true } }
         }
         // 搜索、对话面板开着：后面压暗、被盖住的页面读屏不读、不算进审计
         .accessibilityHidden(model.search != nil || model.chatOpen)
@@ -62,11 +65,21 @@ struct RootView: View {
             }
         }
         .animation(Web.fast, value: model.search != nil)
-        .preferredColorScheme(.light)
+        .preferredColorScheme(Self.scheme)
         .tint(Web.accent)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.becameActive() }
         }
+    }
+}
+
+extension RootView {
+    /// 深色先做好、先不打开（docs/模块/生活画布2.0.md 第 11 节）：界面测试用启动参数「-dark」看生活画布深色的样子
+    static var scheme: ColorScheme {
+        #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-dark") { return .dark }
+        #endif
+        return .light
     }
 }
 

@@ -44,31 +44,31 @@ custom_rules:
     name: 不许硬编码颜色
     regex: '(Color|UIColor|NSColor)\(\s*(red|white|hue|srgbRed|#)|#colorLiteral|Color\.(red|blue|green|yellow|orange|purple|pink|gray|black|white)\b'
     excluded: 'Packages/PourKit/Sources/PourDesign/'
-    message: '颜色只能用 PourDesign 的令牌（PourColor.xxx），见设计规范 01'
+    message: '颜色只能用 PourDesign 的令牌：改过的页面用 Theme.Palette.xxx（docs/模块/生活画布2.0.md 8.3），没改的页面暂时用 Web.xxx'
     severity: error
   no_hardcoded_font:
     name: 不许硬编码字号
     regex: '\.system\(\s*size:|Font\.custom\(|UIFont\.(systemFont|boldSystemFont)\(ofSize:'
     excluded: 'Packages/PourKit/Sources/PourDesign/'
-    message: '字只能用 PourDesign 的令牌（PourFont.xxx），见设计规范 02'
+    message: '字只能用 PourDesign 的令牌：Theme.Typeface.xxx（生活画布2.0.md 8.1），没改的页面暂时用 Web.xxx'
     severity: error
   no_hardcoded_spacing:
     name: 不许硬编码间距
     regex: '\.padding\(\s*(\.[a-z]+\s*,\s*)?[1-9][0-9]*\s*\)|spacing:\s*[1-9][0-9]*[,)]'
     excluded: 'Packages/PourKit/Sources/PourDesign/'
-    message: '间距只能用 PourSpace 的令牌，见设计规范 05'
+    message: '间距只能用令牌：Theme.Space.xxx / Theme.Size.xxx（生活画布2.0.md 8.2），没改的页面暂时用 Web.spaceN'
     severity: error
   no_hardcoded_radius:
     name: 不许硬编码圆角
     regex: 'cornerRadius:\s*[0-9]+|\.pour\(\s*[0-9]+'
     excluded: 'Packages/PourKit/Sources/PourDesign/'
-    message: '圆角只能用 PourRadius 的令牌，见设计规范 06'
+    message: '圆角只能用令牌：Theme.Corner.xxx 配 Theme.rounded(_:)（生活画布2.0.md 8.4），没改的页面暂时用 Web.radiusXxx'
     severity: error
   no_hardcoded_duration:
     name: 不许硬编码动画时长
     regex: '(duration|delay):\s*[0-9.]+'
     excluded: 'Packages/PourKit/Sources/PourDesign/'
-    message: '动画时长只能用 PourMotion 的令牌，见设计规范 07'
+    message: '动画只能用令牌：Theme.Motion.xxx（生活画布2.0.md 8.5），没改的页面暂时用 Web.panel / Web.fast'
     severity: error
   no_print:
     name: 不许用 print

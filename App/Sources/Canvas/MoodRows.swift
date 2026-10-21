@@ -3,40 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 心情：一条一行（五个小圆点 + 说法 + 情绪词 + 说到时的精力），下面一行是那一刻；按说的先后排；
-/// 一天有好几条、说的时间不一样时，每条前面写几点说的
-struct MoodRows: View {
-    let items: [API.Entry]
-    let quotes: [String]
-
-    var body: some View {
-        let moods = items.sorted { (said($0) ?? "", $0.id) < (said($1) ?? "", $1.id) }
-        let times = moods.map { said($0).map(Self.clock) }
-        let showTimes = Set(times.compactMap { $0 }).count > 1
-        ForEach(Array(moods.enumerated()), id: \.element.id) { index, entry in
-            if case .mood(let mood) = entry.data {
-                DayRow(entry: entry) {
-                    MoodLine(mood: mood, quotes: quotes, time: showTimes ? times[index] : nil)
-                }
-            }
-        }
-    }
-
-    /// 建这条心情的那段话是什么时候说的
-    private func said(_ entry: API.Entry) -> String? {
-        (entry.sources.first { $0.action == "created" } ?? entry.sources.first)?.createdAt
-    }
-
-    /// 「16:16」「9:05」：按这台手机的时区
-    static func clock(_ iso: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        guard let date = formatter.date(from: iso) ?? ISO8601DateFormatter().date(from: iso) else { return "" }
-        let parts = Calendar.current.dateComponents([.hour, .minute], from: date)
-        return String(format: "%d:%02d", parts.hour ?? 0, parts.minute ?? 0)
-    }
-}
-
+/// 一条心情（回顾页用；画布 2.0 的心情卡在 CardBodies3）：五个小圆点 + 说法 + 情绪词 + 说到时的精力，下面一行是那一刻
 struct MoodLine: View {
     let mood: API.MoodData
     let quotes: [String]
