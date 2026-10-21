@@ -41,6 +41,8 @@ struct GoalRings: View {
 /// 一个目标的小卡：进度环、右上角今天推进了多少、目标名、一行进度
 private struct GoalRingCard: View {
     @Environment(\.dynamicTypeSize) private var typeSize
+    /// 小卡的宽跟着字号变：字大了「连续第 4 天」也放得下一行
+    @ScaledMetric(relativeTo: .body) private var width = Theme.Size.goalCard
     let goal: API.DayGoal
 
     var body: some View {
@@ -63,9 +65,7 @@ private struct GoalRingCard: View {
                     .foregroundStyle(Theme.Palette.secondaryLabel).lineLimit(typeSize > .large ? nil : 2)
             }
         }
-        .frame(
-            width: typeSize.isAccessibilitySize ? Theme.Size.goalCard * 1.6 : Theme.Size.goalCard, alignment: .leading
-        )
+        .frame(width: width, alignment: .leading)
         .themeCard(radius: Theme.Corner.smallCard, padding: Theme.Space.inset)
     }
 }

@@ -25,25 +25,6 @@ final class VoiceUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["早上跑了五公里"].waitForExistence(timeout: 3), "没发出去")
     }
 
-    /// 字号最大时点一下说：说明、录音卡（第 6 步逐屏过最大字号）
-    @MainActor func testTapToTalkLargestText() throws {
-        let app = launch(arguments: [
-            "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
-        ])
-        app.buttons["pourbar.mic"].tap()
-        XCTAssertTrue(app.buttons["好，开始说"].waitForExistence(timeout: 3), "第一次没有说明")
-        settle()
-        attach(app, "语音-第一次的说明-最大字号")
-        try AppAudit.run(app, name: "语音-第一次的说明-最大字号")
-        app.buttons["好，开始说"].tap()
-        let words = app.descendants(matching: .any)["voice.words"]
-        let heard = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == '早上跑了五公里'"), object: words)
-        XCTAssertEqual(XCTWaiter().wait(for: [heard], timeout: 5), .completed, "字没出来")
-        settle()
-        attach(app, "语音-正在听-最大字号")
-        try AppAudit.run(app, name: "语音-正在听-最大字号")
-    }
-
     /// ✓ 转成字：留在输入框里再改，不发
     @MainActor func testToText() throws {
         let app = launch()
@@ -74,9 +55,9 @@ final class VoiceUITests: XCTestCase {
     // MARK: -
 
     @MainActor
-    private func launch(arguments: [String] = []) -> XCUIApplication {
+    private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments += ["-uiTest"] + arguments
+        app.launchArguments += ["-uiTest"]
         app.launch()
         XCTAssertTrue(app.buttons["pourbar.mic"].waitForExistence(timeout: 5), "没有麦克风")
         return app

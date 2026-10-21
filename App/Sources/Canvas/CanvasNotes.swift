@@ -77,21 +77,14 @@ enum CanvasEmpty {
 
 /// 区块标题：「今天推进的目标」「一天的时间」，右边一个小字
 struct SectionHeader: View {
-    @Environment(\.dynamicTypeSize) private var typeSize
     let title: String
     var trailing: String?
 
     var body: some View {
-        // 字号很大时右边的小字放到标题下面（不然两边都挤成几行）
-        let stacked = typeSize.isAccessibilitySize
-        let layout =
-            stacked
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.tight))
-            : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
-        layout {
+        HStack(alignment: .firstTextBaseline) {
             Text(title).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label)
                 .accessibilityAddTraits(.isHeader)
-            if !stacked { Spacer(minLength: Theme.Space.small) }
+            Spacer(minLength: Theme.Space.small)
             if let trailing {
                 Text(trailing).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
             }

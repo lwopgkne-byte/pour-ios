@@ -105,6 +105,12 @@ enum AppAudit {
         unresolved: @escaping (XCUIAccessibilityAuditIssue) -> Bool
     ) throws {
         try app.performAccessibilityAudit(for: types) { issue in
+            // 字号封顶在 xxxLarge（产品主人 2026-10-21：特别大的那几档不兼容）：审计开到辅助功能那几档时字不再变大，
+            // 报「部分不支持」，放过；完全不跟着字号变的照样算
+            if issue.auditType == .dynamicType, issue.compactDescription.contains("partially unsupported") {
+                print("放过（字号封顶）[\(name)] \(issue.compactDescription) ← \(issue.element?.label ?? "")")
+                return true
+            }
             guard let element = issue.element else { return unresolved(issue) }
             // 审计的时候页面还在动（数据刚拿回来、重新排了一遍），报出来的元素已经不在了：当成指不出元素的，拉回顶上再审
             guard element.exists else { return unresolved(issue) }

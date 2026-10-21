@@ -1,7 +1,7 @@
 import XCTest
 
 /// 生活画布 2.0 的样张（docs/模块/生活画布2.0.md 第 5 节）：假服务器里把今天换成几种人的一天（-canvasSample），
-/// 一屏一屏截图留给验收看。上班族那天平常字号、最大字号都一屏一屏审计；别的几种只截图（检查别太慢）
+/// 一屏一屏截图留给验收看。上班族那天平常字号、最大的字号（封顶那一档）都一屏一屏审计；别的几种只截图（检查别太慢）
 final class CanvasSampleUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
@@ -12,8 +12,9 @@ final class CanvasSampleUITests: XCTestCase {
         try walk(app, name: "画布2-上班族", pages: 4, audit: true)
     }
 
-    @MainActor func testOfficeDayLargestText() throws {
-        let app = launch("上班族", arguments: Self.largestText)
+    /// App 的字号封顶在 xxxLarge（产品主人 2026-10-21：特别大的那几档不兼容）：开到封顶那一档看
+    @MainActor func testOfficeDayBiggestText() throws {
+        let app = launch("上班族", arguments: Self.biggestText)
         try walk(app, name: "画布2-上班族-最大字号", pages: 3, audit: true)
     }
 
@@ -46,8 +47,8 @@ final class CanvasSampleUITests: XCTestCase {
 
     // MARK: -
 
-    private static let largestText = [
-        "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
+    private static let biggestText = [
+        "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryXXXL",
     ]
 
     @MainActor

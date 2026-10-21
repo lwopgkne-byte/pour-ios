@@ -60,15 +60,12 @@ struct OutboxMessage: View {
 /// 一段原话 + 它的整理结果：右边是你说的话，左边是收据小卡、回复、追问
 struct NoteMessage: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.dynamicTypeSize) private var typeSize
     let note: API.Note
 
     var body: some View {
         let result = note.result
         let receipt = result.flatMap { Show.receipt($0.receipt) }
         let hasReply = result.map { Self.hasReply($0, receipt: receipt) } ?? false
-        // 左边的回答右边空一点，和右边的气泡分开；字号很大时不空（一行本来就放不下几个字）
-        let gap = typeSize.isAccessibilitySize ? 0 : Theme.Space.section
         VStack(spacing: Theme.Space.medium) {
             Bubble(text: note.text, time: Show.formatClock(note.createdAt)) { NoteStatus(note: note, quiet: hasReply) }
             if note.status == "failed", let error = note.error {
@@ -79,12 +76,12 @@ struct NoteMessage: View {
             if note.status == "processing", let live = model.answers[note.id], !live.isEmpty {
                 Text(Show.spaced(live)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.trailing, gap)
+                    .padding(.trailing, Theme.Space.section)
             }
             if let result, hasReply {
                 Reply(note: note, result: result, receipt: receipt)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.trailing, gap)
+                    .padding(.trailing, Theme.Space.section)
             }
         }
     }
@@ -177,29 +174,23 @@ private struct Reply: View {
     }
 }
 
-/// 收据小卡：「✓ 已记录：🏃 跑步 32 分钟 5 公里、🍽 吃面 ¥32」+ 右边「撤销」；撤销了划掉，下面说一句原话还在。
-/// 字号很大时「撤销」放到字下面（不然字被挤成一两个字一行）
+/// 收据小卡：「✓ 已记录：🏃 跑步 32 分钟 5 公里、🍽 吃面 ¥32」+ 右边「撤销」；撤销了划掉，下面说一句原话还在
 private struct ReceiptCard: View {
-    @Environment(\.dynamicTypeSize) private var typeSize
     let text: String
     let undone: Bool
     let undo: () -> Void
 
     var body: some View {
-        let below = typeSize.isAccessibilitySize
         VStack(alignment: .leading, spacing: Theme.Space.tight) {
             HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
-                // 图标封顶：字号很大时把地方留给字
                 Image(systemName: undone ? "arrow.uturn.backward" : "checkmark.circle.fill")
                     .foregroundStyle(undone ? Theme.Palette.secondaryLabel : Theme.Palette.good)
-                    .dynamicTypeSize(...DynamicTypeSize.xLarge)
                 Text(Show.spaced(text)).font(Theme.Typeface.subheadline)
                     .foregroundStyle(undone ? Theme.Palette.secondaryLabel : Theme.Palette.label)
                     .strikethrough(undone).lineSpacing(Theme.Leading.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                if !undone, !below { undoButton }
+                if !undone { undoButton }
             }
-            if !undone, below { undoButton }
             if undone {
                 Text("已撤销，原话还在").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }

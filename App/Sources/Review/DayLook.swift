@@ -6,7 +6,6 @@ import SwiftUI
 /// 一句话总结 + 关键数字的小块（和平常比的那句写在下面），底色是这一天的心情（没记心情是平的暖灰，不猜）。
 /// 卡上的字只用主字色：心情的底色上次要色不稳（ThemeColorTests.moodWashText）
 struct DayLook: View {
-    @Environment(\.dynamicTypeSize) private var typeSize
     let overview: String
     let numbers: [API.KeyNumber]
     /// 这一天每条心情的五级
@@ -38,16 +37,15 @@ struct DayLook: View {
         .accessibilityElement(children: .contain)
     }
 
-    /// 关键数字：两列（字号很大时一列）
+    /// 关键数字：两列
     private var tiles: some View {
-        let columns = typeSize.isAccessibilitySize ? 1 : 2
-        return Grid(alignment: .topLeading, horizontalSpacing: Theme.Space.small, verticalSpacing: Theme.Space.small) {
-            ForEach(Array(stride(from: 0, to: numbers.count, by: columns)), id: \.self) { start in
+        Grid(alignment: .topLeading, horizontalSpacing: Theme.Space.small, verticalSpacing: Theme.Space.small) {
+            ForEach(Array(stride(from: 0, to: numbers.count, by: 2)), id: \.self) { start in
                 GridRow {
-                    ForEach(start..<min(start + columns, numbers.count), id: \.self) { index in
+                    ForEach(start..<min(start + 2, numbers.count), id: \.self) { index in
                         tile(numbers[index])
                     }
-                    if columns == 2, start + 1 >= numbers.count {
+                    if start + 1 >= numbers.count {
                         Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
                     }
                 }

@@ -6,7 +6,6 @@ import SwiftUI
 /// 画布顶上浮着的玻璃按钮：左边菜单，右边日历、搜索；往上滑以后中间出现「今天 · 10月21日」的玻璃胶囊
 struct CanvasTopBar: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.dynamicTypeSize) private var typeSize
     let collapsed: Bool
     let openMenu: () -> Void
     let pickDay: () -> Void
@@ -19,7 +18,7 @@ struct CanvasTopBar: View {
                 Spacer(minLength: 0)
                 if collapsed {
                     Button(action: pickDay) {
-                        Text(Self.short(model.shownDay, today: model.today, brief: typeSize.isAccessibilitySize))
+                        Text(Self.short(model.shownDay, today: model.today))
                             .font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.label).lineLimit(1)
                             .padding(.horizontal, Theme.Space.regular).frame(minHeight: Theme.Size.touch)
                             .contentShape(Capsule())
@@ -39,10 +38,9 @@ struct CanvasTopBar: View {
         .animation(Theme.Motion.standard, value: collapsed)
     }
 
-    /// 胶囊里的字：「今天 · 10月21日」；别的日子「10月18日 周六」。字号很大时（brief）只写「今天」「10月18日」
-    static func short(_ day: String, today: String, brief: Bool = false) -> String {
+    /// 胶囊里的字：「今天 · 10月21日」；别的日子「10月18日 周六」
+    static func short(_ day: String, today: String) -> String {
         let relative = Show.relative(day, today: today)
-        if brief { return relative ?? Show.monthDay(day) }
         if let relative { return "\(relative) · \(Show.monthDay(day))" }
         return "\(Show.monthDay(day)) \(Show.weekday(day))"
     }

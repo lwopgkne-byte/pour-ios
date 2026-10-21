@@ -7,10 +7,12 @@ final class TodayUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    @MainActor func testEmptyCanvas() throws { try emptyCanvas(name: "画布-空") }
-
-    @MainActor func testEmptyCanvasLargestText() throws {
-        try emptyCanvas(name: "画布-空-最大字号", arguments: Self.largestText)
+    @MainActor func testEmptyCanvas() throws {
+        let app = launch()
+        let empty = app.staticTexts["今天还是空白。说说你做了什么，这里会自己长出来。"]
+        XCTAssertTrue(empty.waitForExistence(timeout: 3), "没有空状态")
+        attach(app, "画布-空")
+        try AppAudit.run(app, name: "画布-空")
     }
 
     /// 打一句 → 对话展开、原话马上出现 → 收据「已记录：…」；收起对话，卡片里有跑步、吃面，吃面那条在问
@@ -27,16 +29,6 @@ final class TodayUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["三十二是花了 32 块吗？"].exists, "没问拿不准的那条")
         attach(app, "说一句-画布")
         try AppAudit.run(app, name: "说一句-画布")
-    }
-
-    /// 字号最大时说一句：对话里的气泡、收据小卡、回复（第 6 步逐屏过最大字号）
-    @MainActor func testChatLargestText() throws {
-        let app = launch(arguments: Self.largestText)
-        say("早上跑了五公里 中午和小王吃面三十二", in: app)
-        XCTAssertTrue(text(app, startingWith: "已记录：").waitForExistence(timeout: 5), "对话里没有收据")
-        settle()
-        attach(app, "对话-最大字号")
-        try AppAudit.run(app, name: "对话-最大字号")
     }
 
     /// 卡片里点「对」：不再问
@@ -157,26 +149,13 @@ final class TodayUITests: XCTestCase {
 
     // MARK: -
 
-    private static let largestText = [
-        "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL",
-    ]
-
     @MainActor
-    private func launch(arguments: [String] = []) -> XCUIApplication {
+    private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments += ["-uiTest"] + arguments
+        app.launchArguments += ["-uiTest"]
         app.launch()
         XCTAssertTrue(app.descendants(matching: .any)["today.header"].waitForExistence(timeout: 5), "画布没打开")
         return app
-    }
-
-    @MainActor
-    private func emptyCanvas(name: String, arguments: [String] = []) throws {
-        let app = launch(arguments: arguments)
-        let empty = app.staticTexts["今天还是空白。说说你做了什么，这里会自己长出来。"]
-        XCTAssertTrue(empty.waitForExistence(timeout: 3), "没有空状态")
-        attach(app, name)
-        try AppAudit.run(app, name: name)
     }
 
     @MainActor
