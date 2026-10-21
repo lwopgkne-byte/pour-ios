@@ -40,9 +40,13 @@ struct ReviewHead: View {
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
-            Text(Show.spaced(overview)).font(Web.section).foregroundStyle(Web.fg).lineSpacing(Web.overviewLineSpacing)
-                .padding(.top, Web.space2)
-                .fixedSize(horizontal: false, vertical: true)
+            // 每日回顾的总结写在下面「这一天的样子」里（传空的），周报月报照旧写在这里
+            if !overview.isEmpty {
+                Text(Show.spaced(overview)).font(Web.section).foregroundStyle(Web.fg)
+                    .lineSpacing(Web.overviewLineSpacing)
+                    .padding(.top, Web.space2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }

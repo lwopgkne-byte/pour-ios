@@ -10,7 +10,7 @@ struct CanvasPlanTests {
         let day = try fixture()
         let cards = CanvasPlan.cards(day.entries, Self.categories)
         // 有没做完的待办：待办最前，钱的汇总卡（几笔）跟在后面；感悟、心情放最后
-        #expect(cards.map(\.id).prefix(2) == ["todo", "money"])
+        #expect(cards.map(\.id).prefix(3) == ["todo", "money", "mentions"])
         #expect(cards.map(\.id).suffix(2) == ["insight", "mood"])
         let templates = Dictionary(uniqueKeysWithValues: cards.map { ($0.id, $0.template) })
         #expect(templates["sleep"] == .sleep)
@@ -25,6 +25,43 @@ struct CanvasPlanTests {
         #expect(highlights[0].parts == [CanvasPlan.Part(number: "9", unit: "小时")])
         #expect(highlights[1].parts.first?.number == "6,895")
         #expect(highlights[2].parts == [CanvasPlan.Part(number: "33", unit: "页")])
+    }
+
+    /// 待办和提醒永远最前：都做完了也不往后挪（产品主人 2026-10-21：做完的待办跑到下面去是毛病）
+    @Test func todosStayFirst() throws {
+        let entries = [
+            try event(1, "work", "上班", minutes: 480),
+            try todo(2, "交电费", done: true),
+            try event(3, "diet", "午饭"),
+        ]
+        #expect(CanvasPlan.cards(entries, Self.categories).first?.id == "todo")
+    }
+
+    /// 待办的先后：有提醒的按时间在前，其余按说的先后；勾掉不改变位置
+    @Test func todoOrderIsStable() throws {
+        let first = try todo(1, "买牛奶")
+        let reminded = try todo(2, "交作业", remind: "2026-10-21T23:00")
+        let early = try todo(3, "取快递", remind: "2026-10-21T09:00")
+        let last = try todo(4, "交电费")
+        let open = CanvasPlan.todoOrder([first, reminded, early, last]).map(\.id)
+        let done = CanvasPlan.todoOrder([try todo(1, "买牛奶", done: true), reminded, early, last]).map(\.id)
+        #expect(open == [3, 2, 1, 4])
+        #expect(done == open)
+    }
+
+    /// 说到的人、东西、地方、话题：按说的先后、不重复；两样以上才长出「说到的」那张卡，跟在待办、钱后面
+    @Test func mentionsGrowFromWhatWasSaid() throws {
+        let lunch = try event(
+            1, "diet", "和小李吃午饭", extra: ["people": ["小李"], "places": ["公司楼下"], "tags": ["同事"]])
+        let book = try event(2, "study", "看书", extra: ["things": ["《人类简史》"], "people": ["小李"]])
+        let mentions = CanvasPlan.mentions([lunch, book])
+        #expect(mentions.people == ["小李"])
+        #expect(mentions.things == ["《人类简史》"])
+        #expect(mentions.places == ["公司楼下"])
+        #expect(mentions.topics == ["同事"])
+        #expect(CanvasPlan.cards([lunch, book], Self.categories).first?.id == "mentions")
+        let alone = try event(3, "work", "上班", extra: ["people": ["老板"]])
+        #expect(!CanvasPlan.cards([alone], Self.categories).contains { $0.id == "mentions" })
     }
 
     /// 宝妈：喂奶是次数，睡眠断成三段，奶粉记在购物
@@ -207,11 +244,18 @@ struct CanvasPlanTests {
         try JSONDecoder().decode(API.Entry.self, from: JSONSerialization.data(withJSONObject: object))
     }
 
+    private func todo(_ id: Int, _ content: String, done: Bool = false, remind: String? = nil) throws -> API.Entry {
+        var data: [String: Any] = ["content": content, "done": done]
+        if let remind { data["remindAt"] = remind }
+        return try entry(["id": id, "day": "2026-10-21", "kind": "todo", "category": "todo", "data": data])
+    }
+
     private func event(
         _ id: Int, _ category: String, _ label: String, start: String? = nil, end: String? = nil,
-        minutes: Int? = nil, metrics: [Metric] = []
+        minutes: Int? = nil, metrics: [Metric] = [], extra: [String: Any] = [:]
     ) throws -> API.Entry {
         var data: [String: Any] = ["label": label]
+        data.merge(extra) { _, new in new }
         if let start { data["start"] = start }
         if let end { data["end"] = end }
         if let minutes { data["durationMin"] = minutes }

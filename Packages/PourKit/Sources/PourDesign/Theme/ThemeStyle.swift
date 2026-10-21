@@ -146,7 +146,7 @@ extension Theme {
 
 // MARK: - 卡片的样子
 
-/// 卡片：白底（深色是亮一档的灰）、连续圆角；亮色两层很淡的影子，深色边上 0.5 点的光，不画线
+/// 卡片：白底、连续圆角、两层很淡的影子，不画线
 public struct ThemeCard: ViewModifier {
     let radius: CGFloat
     let padding: CGFloat
@@ -160,20 +160,14 @@ public struct ThemeCard: ViewModifier {
     }
 }
 
-/// 卡片的边：亮色两层很淡的影子，深色边上 0.5 点的光
+/// 卡片的边：两层很淡的影子
 public struct ThemeEdge: ViewModifier {
-    @Environment(\.colorScheme) private var scheme
     let radius: CGFloat
 
     public func body(content: Content) -> some View {
         content
-            .overlay {
-                if scheme == .dark {
-                    Theme.rounded(radius).strokeBorder(Theme.Palette.cardEdge, lineWidth: 0.5)
-                }
-            }
-            .shadow(color: scheme == .dark ? .clear : Theme.Palette.shadowNear, radius: 1, y: 1)
-            .shadow(color: scheme == .dark ? .clear : Theme.Palette.shadowFar, radius: 10, y: 6)
+            .shadow(color: Theme.Palette.shadowNear, radius: 1, y: 1)
+            .shadow(color: Theme.Palette.shadowFar, radius: 10, y: 6)
     }
 }
 

@@ -65,19 +65,26 @@ struct CanvasView: View {
     }
 }
 
-/// 一天的内容：今天的样子、推进的目标、一天的带子、卡片；连不上时说原因、能重试；还没拿到时是骨架
+/// 一天的内容，从上到下：几行安静的字（空的一天、还在整理、要你确认）、待办和提醒（永远最前）、推进的目标、
+/// 一天的时间、别的卡片；连不上时说原因、能重试；还没拿到时是骨架
 private struct CanvasBody: View {
     @Environment(AppModel.self) private var model
     let scrollTo: (String) -> Void
 
     var body: some View {
         if let day = model.day {
+            let rows = CanvasPlan.rows(day.entries, model.categories)
+            let todos = rows.first.flatMap { row -> CanvasPlan.Row? in
+                if case .full(let card) = row, card.template == .todo { row } else { nil }
+            }
             VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
-                CanvasHero(day: day, scrollTo: scrollTo)
+                CanvasNotes(day: day, scrollTo: scrollTo)
+                if let todos { CanvasCards(day: day, rows: [todos]) }
                 let goals = day.goals.filter { $0.delta != nil }
                 if !goals.isEmpty { GoalRings(goals: goals) }
                 DayRibbon(day: day.day, entries: day.entries)
-                if !day.entries.isEmpty { CanvasCards(day: day) }
+                let rest = todos == nil ? rows : Array(rows.dropFirst())
+                if !rest.isEmpty { CanvasCards(day: day, rows: rest) }
             }
         } else if let offline = model.offline {
             VStack(alignment: .leading, spacing: Theme.Space.small) {
@@ -89,8 +96,8 @@ private struct CanvasBody: View {
             .themeCard()
         } else {
             VStack(spacing: Theme.Space.cardGap) {
-                SkeletonBlock(height: Theme.Size.goalCard, radius: Theme.Corner.hero)
                 SkeletonBlock(height: Theme.Size.goalCard * 0.7)
+                SkeletonBlock(height: Theme.Size.goalCard)
             }
         }
     }

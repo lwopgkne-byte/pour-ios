@@ -9,7 +9,7 @@ enum CategoryIcon {
     static let byKey: [String: String] = [
         "sleep": "moon.zzz", "exercise": "figure.run", "diet": "fork.knife", "study": "book",
         "work": "briefcase", "other": "pin", "insight": "lightbulb", "todo": "checklist", "mood": "heart",
-        CanvasPlan.moneyKey: "yensign.circle",
+        CanvasPlan.moneyKey: "yensign.circle", CanvasPlan.mentionsKey: "text.bubble",
     ]
 
     /// 按名称（十个生活领域和运动的子类别是程序按名字建的，key 每个人不一样）

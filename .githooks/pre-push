@@ -1,21 +1,21 @@
 #!/bin/sh
 # 推送前自动检查（docs/归档/07-代码管理与发布.md）：iOS 日常检查都通过才推上去，坏了的代码不会到 GitHub。
-# 不要用 --no-verify 跳过。只改了文档（docs/ 和根目录的 .md）时只跑不开模拟器的那几项，省几分钟。
+# 不要用 --no-verify 跳过。
+# 产品主人 2026-10-21：「不用每次要全面测，只测试你改动的地方……改得比较多时再测」——全部界面测试一次要半个多小时、
+# 又没查出问题。所以平时只跑快的几项（密钥、文案、格式、规范、依赖方向、单元测试、编译），改了哪一页就先手动跑那一页的
+# 界面测试；改得多、或者改了大家都用的（外壳、审计、设计规范）时跑全部：POUR_FULL_CHECK=1 git push
 # 日志写在 Git 自己的目录里：普通的克隆是 .git/；git worktree 里 .git 是个文件，要问 Git 真正的目录在哪
 GIT_DIR_REAL="$(git rev-parse --git-dir)"
 LOG="${GIT_DIR_REAL}/pre-push.log"
 
-MODE=""
-BASE="$(git merge-base HEAD origin/main 2>/dev/null || true)"
-if [ -n "${BASE}" ] && [ -z "$(git diff --name-only "${BASE}" HEAD | grep -vE '^docs/|^[^/]+\.md$')" ]; then
-  MODE="--no-ui"
-fi
+MODE="--no-ui"
+[ "${POUR_FULL_CHECK:-0}" = "1" ] && MODE=""
 
 echo ""
 if [ -n "${MODE}" ]; then
-  echo "  推送前检查：只改了文档，跑密钥、格式、规范、单元测试（约 1 分钟）……"
+  echo "  推送前检查：密钥、文案、格式、规范、依赖方向、单元测试、编译（几分钟；界面测试要跑全部时 POUR_FULL_CHECK=1 git push）……"
 else
-  echo "  推送前检查：密钥、格式、规范、依赖方向、单元、两个系统的界面测试和审计（约 5–8 分钟）……"
+  echo "  推送前检查（全部）：密钥、格式、规范、依赖方向、单元、界面测试和审计（半个多小时）……"
 fi
 if ! scripts/check.sh ${MODE} >"${LOG}" 2>&1; then
   echo ""

@@ -66,21 +66,12 @@ struct RootView: View {
             }
         }
         .animation(Web.fast, value: model.search != nil)
-        .preferredColorScheme(Self.scheme)
+        // 只有一种样子（亮色）：产品主人 2026-10-21「把黑色的风格去掉，只要一种」
+        .preferredColorScheme(.light)
         .tint(Web.accent)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.becameActive() }
         }
-    }
-}
-
-extension RootView {
-    /// 深色先做好、先不打开（docs/模块/生活画布2.0.md 第 11 节）：界面测试用启动参数「-dark」看生活画布深色的样子
-    static var scheme: ColorScheme {
-        #if DEBUG
-            if ProcessInfo.processInfo.arguments.contains("-dark") { return .dark }
-        #endif
-        return .light
     }
 }
 

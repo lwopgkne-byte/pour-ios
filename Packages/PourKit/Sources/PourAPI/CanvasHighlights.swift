@@ -122,7 +122,11 @@ extension CanvasPlan {
 
     /// 这一天的心情：既有好的又有不好的是「有起有落」，否则看平均
     public static func mood(_ entries: [API.Entry]) -> Mood {
-        let levels = entries.compactMap { if case .mood(let mood) = $0.data { mood.mood } else { nil } }
+        mood(levels: entries.compactMap { if case .mood(let mood) = $0.data { mood.mood } else { nil } })
+    }
+
+    /// 几条心情的五级合成这一天的心情（回顾里的「这一天的样子」也用）
+    public static func mood(levels: [Double]) -> Mood {
         guard !levels.isEmpty else { return .none }
         if levels.contains(where: { $0 >= 4 }) && levels.contains(where: { $0 <= 2 }) { return .mixed }
         let average = levels.reduce(0, +) / Double(levels.count)

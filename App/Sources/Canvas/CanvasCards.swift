@@ -9,9 +9,9 @@ struct CanvasCards: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let day: API.DayView
+    let rows: [CanvasPlan.Row]
 
     var body: some View {
-        let rows = CanvasPlan.rows(day.entries, model.categories)
         VStack(spacing: Theme.Space.cardGap) {
             ForEach(rows) { row in
                 CanvasRow(row: row, day: day, accessibility: typeSize.isAccessibilitySize)
@@ -82,12 +82,13 @@ struct CanvasCard: View {
         case .mood: MoodBody(entries: entries, quotes: quotes)
         case .insight: InsightBody(entries: entries)
         case .todo: TodoBody(entries: entries)
+        case .mentions: MentionsBody(entries: day.entries)
         }
     }
 
-    /// 和这张卡同一类的目标（钱的汇总卡、待办、感悟、心情没有）
+    /// 和这张卡同一类的目标（钱的汇总卡、待办、感悟、心情、说到的没有）
     private var goals: [API.DayGoal] {
-        guard ![.money, .todo, .insight, .mood].contains(card.template) else { return [] }
+        guard ![.money, .todo, .insight, .mood, .mentions].contains(card.template) else { return [] }
         return day.goals.filter { goal in goal.category.map { Show.root($0, model.categories) } == card.id }
     }
 

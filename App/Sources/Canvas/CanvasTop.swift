@@ -48,7 +48,7 @@ struct CanvasTopBar: View {
     }
 }
 
-/// 日子：大标题「今天 / 昨天」或日期，下面一行完整日期；看别的日子时有「回到今天」；
+/// 日子：大标题「今天 / 昨天」或日期（几号、星期几下面的一周条上有，不再另写一行）；看别的日子时右边「回到今天」；
 /// 下面一排小胶囊：演示数据、昨天的回顾好了
 struct CanvasTitle: View {
     @Environment(AppModel.self) private var model
@@ -57,15 +57,14 @@ struct CanvasTitle: View {
     var body: some View {
         let relative = Show.relative(model.shownDay, today: model.today)
         VStack(alignment: .leading, spacing: Theme.Space.tight) {
-            Text(relative ?? Show.monthDay(model.shownDay))
-                .font(Theme.Typeface.largeTitle).foregroundStyle(Theme.Palette.label)
-                .contentTransition(.opacity)
-                .accessibilityAddTraits(.isHeader)
-                .accessibilityIdentifier("today.header")
-            HStack(spacing: Theme.Space.small) {
-                Text(Show.dayTitle(model.shownDay, today: model.today))
-                    .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.medium) {
+                Text(relative ?? Show.monthDay(model.shownDay))
+                    .font(Theme.Typeface.largeTitle).foregroundStyle(Theme.Palette.label)
+                    .contentTransition(.opacity)
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier("today.header")
                 if relative == nil {
+                    Spacer(minLength: 0)
                     Button("回到今天") {
                         withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
                             model.show(model.today)

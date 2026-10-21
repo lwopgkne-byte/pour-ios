@@ -130,13 +130,14 @@ struct InsightBody: View {
     }
 }
 
-/// 待办：圆圈勾选（勾掉有动画和触感）、提醒时间、已提醒；没做完的在前（有提醒的按时间），做完的变淡放后面
+/// 待办和提醒：圆圈勾选（勾掉有动画和触感）、提醒时间、已提醒；有提醒的按时间在前，其余按说的先后。
+/// 做完的变淡划掉，但留在原地（产品主人 2026-10-21：勾掉以后跑到下面去是毛病）
 struct TodoBody: View {
     @Environment(AppModel.self) private var model
     let entries: [API.Entry]
 
     var body: some View {
-        let sorted = entries.sorted { Self.key($0) < Self.key($1) }
+        let sorted = CanvasPlan.todoOrder(entries)
         ShowFirst(items: sorted, first: 5) { entry, index in
             if case .todo(let todo) = entry.data {
                 HStack(alignment: .top, spacing: Theme.Space.tight) {
@@ -147,11 +148,6 @@ struct TodoBody: View {
         }
     }
 
-    static func key(_ entry: API.Entry) -> String {
-        guard case .todo(let todo) = entry.data else { return "9" }
-        if todo.done { return "2" }
-        return todo.remindAt.map { "0\($0)" } ?? "1"
-    }
 }
 
 /// 待办的字：做完的变淡划掉；没做完的有提醒时间（提醒过的写「已提醒」）
@@ -199,6 +195,7 @@ private struct TodoCheck: View {
         .sensoryFeedback(Theme.Haptics.check, trigger: done)
         .accessibilityLabel(Text(label))
         .accessibilityValue(Text(done ? "已完成" : "未完成"))
+        .accessibilityIdentifier("todo.check")
     }
 }
 

@@ -1,7 +1,7 @@
 import XCTest
 
 /// 生活画布 2.0 的样张（docs/模块/生活画布2.0.md 第 5 节）：假服务器里把今天换成几种人的一天（-canvasSample），
-/// 一屏一屏截图留给验收看。上班族那天亮色、深色、最大字号都一屏一屏审计；别的几种只截图（检查别太慢）
+/// 一屏一屏截图留给验收看。上班族那天平常字号、最大字号都一屏一屏审计；别的几种只截图（检查别太慢）
 final class CanvasSampleUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
@@ -10,11 +10,6 @@ final class CanvasSampleUITests: XCTestCase {
     @MainActor func testOfficeDay() throws {
         let app = launch("上班族")
         try walk(app, name: "画布2-上班族", pages: 4, audit: true)
-    }
-
-    @MainActor func testOfficeDayDark() throws {
-        let app = launch("上班族", arguments: ["-dark"])
-        try walk(app, name: "画布2-上班族-深色", pages: 4, audit: true)
     }
 
     @MainActor func testOfficeDayLargestText() throws {
@@ -31,21 +26,22 @@ final class CanvasSampleUITests: XCTestCase {
         }
     }
 
-    /// 点亮点滚到那张卡；点「要你确认」滚到第一条要确认的
-    @MainActor func testHighlightScrolls() throws {
+    /// 待办和提醒在最前；勾掉一条，它留在原地（产品主人 2026-10-21：勾掉以后跑到下面去是毛病）
+    @MainActor func testTodoStaysOnTop() throws {
         let app = launch("上班族")
-        // 今天的样子里的「看书 33 页」（学习那张卡里也有一行「看书」，按编号找亮点）
-        let study = app.descendants(matching: .any)["today.highlight.study"]
-        XCTAssertTrue(study.waitForExistence(timeout: 5), "没有「看书」这个亮点")
-        study.tap()
+        // 勾选的圆圈（做完以后那一行的字也叫「送车去保养」，按编号找圆圈）
+        let check = app.buttons.matching(NSPredicate(format: "identifier == 'todo.check' AND label == '送车去保养'"))
+            .firstMatch
+        XCTAssertTrue(check.waitForExistence(timeout: 5), "没有待办")
+        let goals = app.staticTexts["今天推进的目标"]
+        XCTAssertLessThan(check.frame.minY, goals.frame.minY, "待办不在最前面")
+        let before = check.frame.minY
+        check.tap()
+        let done = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '已完成'"), object: check)
+        XCTAssertEqual(XCTWaiter().wait(for: [done], timeout: 5), .completed, "没勾上")
         settle()
-        attach(app, "画布2-点亮点")
-        // 学习那张卡的标题滚到了顶上的玻璃按钮下面、屏幕里面
-        let header = app.descendants(matching: .any).matching(NSPredicate(format: "label == '学习'")).firstMatch
-        let menu = app.descendants(matching: .any)["today.menu"]
-        XCTAssertTrue(header.exists, "没有学习那张卡")
-        XCTAssertGreaterThanOrEqual(header.frame.minY, menu.frame.maxY - 1, "学习那张卡被顶上的按钮盖住了")
-        XCTAssertLessThan(header.frame.maxY, app.frame.maxY / 2, "没滚到学习那张卡")
+        XCTAssertEqual(check.frame.minY, before, accuracy: 1, "勾掉以后挪了位置")
+        attach(app, "画布2-勾掉待办")
     }
 
     // MARK: -
@@ -60,7 +56,6 @@ final class CanvasSampleUITests: XCTestCase {
         app.launchArguments += ["-uiTest", "-canvasSample", sample] + arguments
         app.launch()
         XCTAssertTrue(app.descendants(matching: .any)["today.header"].waitForExistence(timeout: 5), "画布没打开")
-        XCTAssertTrue(app.descendants(matching: .any)["today.hero"].waitForExistence(timeout: 5), "没有今天的样子")
         return app
     }
 

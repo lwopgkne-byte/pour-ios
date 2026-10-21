@@ -35,9 +35,11 @@ struct DailyReviewView: View {
         VStack(alignment: .leading, spacing: 0) {
             ReviewHead(
                 kicker: "每日回顾", updated: review.updated, title: Show.dayTitle(day, today: model.today),
-                relative: Show.relative(day, today: model.today), overview: review.overview
+                relative: Show.relative(day, today: model.today), overview: ""
             ) { navigate("/review") }
-            KeyNumbers(numbers: review.numbers)
+            // 这一天的总结和关键数字（以前在画布上的「今天的样子」，产品主人 2026-10-21 挪到回顾里）
+            DayLook(overview: review.overview, numbers: review.numbers, levels: review.moods.map(\.mood))
+                .padding(.top, Theme.Space.large)
             if review.entries.contains(where: { $0.kind == "event" }) {
                 ReviewSection(title: "一天的样子") {
                     TimelineStrip(day: day, entries: review.entries, categories: model.categories)
