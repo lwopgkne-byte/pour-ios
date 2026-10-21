@@ -10,6 +10,10 @@ final class CanvasSampleUITests: XCTestCase {
     @MainActor func testOfficeDay() throws {
         let app = launch("上班族")
         try walk(app, name: "画布2-上班族", pages: 4, audit: true)
+        // 说到的：胶囊旁边写以前说到过多少（服务器数的；只说过一次又不是第一次的不写）
+        XCTAssertTrue(app.buttons["小李，这周第 3 次"].exists, "说到的没写这周第几次")
+        XCTAssertTrue(app.buttons["牛奶，第一次"].exists, "说到的没写第一次")
+        XCTAssertTrue(app.buttons["老婆"].exists, "只说过一次的不该写")
     }
 
     /// App 的字号封顶在 xxxLarge（产品主人 2026-10-21：特别大的那几档不兼容）：开到封顶那一档看

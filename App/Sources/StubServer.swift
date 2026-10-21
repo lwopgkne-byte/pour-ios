@@ -75,6 +75,7 @@
                     let summary: Any = sample?.summary ?? NSNull()
                     return ok([
                         "day": parts[2], "entries": entries, "summary": summary, "goals": sample?.goalList ?? [],
+                        "mentions": sample?.mentionList ?? [],
                     ])
                 }
                 if parts.count == 4, parts[1] == "notes", let id = Int(parts[2]) {

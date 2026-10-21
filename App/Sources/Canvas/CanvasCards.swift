@@ -76,7 +76,7 @@ struct CanvasCard: View {
         case .mood: MoodBody(entries: entries, quotes: quotes)
         case .insight: InsightBody(entries: entries)
         case .todo: TodoBody(entries: entries)
-        case .mentions: MentionsBody(entries: day.entries)
+        case .mentions: MentionsBody(entries: day.entries, history: day.mentions)
         }
     }
 

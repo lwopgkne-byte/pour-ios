@@ -48,6 +48,18 @@
                   "delta":"+1 次","category":"exercise"},
                 {"id":4,"title":"每天读 30 页书","tone":"warn","pct":0.6,"headline":"这周 4 天读够了",
                   "delta":"+33 页","category":"study"}]
+                """#,
+            mentions: #"""
+                [{"kind":"place","name":"地铁","weekDays":3,"firstTime":false},
+                {"kind":"person","name":"小李","weekDays":3,"firstTime":false},
+                {"kind":"person","name":"儿子","weekDays":3,"firstTime":false},
+                {"kind":"place","name":"学校","weekDays":3,"firstTime":false},
+                {"kind":"place","name":"健身房","weekDays":2,"firstTime":false},
+                {"kind":"person","name":"老婆","weekDays":1,"firstTime":false},
+                {"kind":"thing","name":"《人类简史》","weekDays":2,"firstTime":false},
+                {"kind":"thing","name":"牛奶","weekDays":1,"firstTime":true},
+                {"kind":"tag","name":"专注","weekDays":1,"firstTime":true},
+                {"kind":"tag","name":"效率","weekDays":2,"firstTime":false}]
                 """#)
 
         static let mom = CanvasSample(

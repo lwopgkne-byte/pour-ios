@@ -222,6 +222,26 @@ extension API {
         public var entries: [Entry]
         public var summary: String?
         public var goals: [DayGoal]
+        /// 这一天说到的人、东西、地方、话题，以前说到过多少（服务器 2.1.0 起有，以前的服务器没有）
+        public var mentions: [MentionHistory]?
+    }
+
+    /// 画布「说到的」：一个名字以前说到过多少（服务器 shared/src/mentions.ts，全部由程序数）
+    public struct MentionHistory: Codable, Hashable, Sendable {
+        /// person / thing / place / tag（话题）
+        public var kind: String
+        public var name: String
+        /// 这一周（周一到这天）有几天说到，含这天
+        public var weekDays: Int
+        /// 这天第一次说到（以前记了不到 7 天的不算）
+        public var firstTime: Bool
+
+        public init(kind: String, name: String, weekDays: Int, firstTime: Bool) {
+            self.kind = kind
+            self.name = name
+            self.weekDays = weekDays
+            self.firstTime = firstTime
+        }
     }
 
     /// 收据里的一项

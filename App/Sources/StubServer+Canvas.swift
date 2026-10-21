@@ -84,11 +84,12 @@
         }
     }
 
-    /// 一个人的一天：记录、推进的目标（都是 JSON，{D} 是今天、{Y} 是昨天）、一句话总结
+    /// 一个人的一天：记录、推进的目标、说到的以前说到过多少（都是 JSON，{D} 是今天、{Y} 是昨天）、一句话总结
     struct CanvasSample: Sendable {
         let entries: String
         let summary: String?
         let goals: String
+        var mentions = "[]"
 
         static let all: [String: CanvasSample] = [
             "上班族": office, "带孩子": mom, "大学生": student, "退休老人": elder, "开店": shop, "感悟": quiet,
@@ -96,6 +97,9 @@
 
         /// 这一天推进的目标
         var goalList: [[String: Any]] { Self.parse(goals, today: "") }
+
+        /// 说到的人、东西、地方、话题以前说到过多少（服务器 2.1.0 的 mentions）
+        var mentionList: [[String: Any]] { Self.parse(mentions, today: "") }
 
         /// JSON 换上日子以后解出来
         static func parse(_ text: String, today: String) -> [[String: Any]] {

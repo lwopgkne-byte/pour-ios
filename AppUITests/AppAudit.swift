@@ -3,13 +3,14 @@ import XCTest
 /// App 的无障碍审计：系统的审计有几类误报，画廊的实验证明过（GalleryUITests 的 testAudit… 几个实验，
 /// 哪天苹果修好了它们会失败），这里照同样的规矩放过，别的一律算数。放过的也打出来，数得清
 enum AppAudit {
-    /// 「截断」「动态字体」单独审：和别的一起审时，倾倒栏里的字常常给不出是哪个元素（M2b 实测：单独审就给得出），
-    /// 豁免就对不上了。画廊也是分开审的
+    /// 「截断」单独审：和别的一起审时，倾倒栏里的字常常给不出是哪个元素（M2b 实测：单独审就给得出），
+    /// 豁免就对不上了。画廊也是分开审的。
+    /// 「动态字体」不审（2026-10-21）：App 的字号封顶在 xxxLarge（产品主人：特别大的那几档不兼容），这一项只会报
+    /// 「部分不支持」；它审的时候把字号调大调小，好几次把界面弄乱（输入框变高、后面的审计全部超时）。
+    /// 字跟着字号变由 Theme 的字和 SwiftLint（不许写死字号）管着
     @MainActor
     static func run(_ app: XCUIApplication, name: String) throws {
-        for types in [
-            XCUIAccessibilityAuditType.all.subtracting([.textClipped, .dynamicType]), .textClipped, .dynamicType,
-        ] {
+        for types in [XCUIAccessibilityAuditType.all.subtracting([.textClipped, .dynamicType]), .textClipped] {
             try run(app, name: name, types: types)
         }
     }
@@ -96,7 +97,7 @@ enum AppAudit {
 
     /// 审计的每一类（分开审时一类一类来）
     private static let singles: [XCUIAccessibilityAuditType] = [
-        .contrast, .elementDetection, .hitRegion, .sufficientElementDescription, .dynamicType, .textClipped, .trait,
+        .contrast, .elementDetection, .hitRegion, .sufficientElementDescription, .textClipped, .trait,
     ]
 
     @MainActor
@@ -105,12 +106,6 @@ enum AppAudit {
         unresolved: @escaping (XCUIAccessibilityAuditIssue) -> Bool
     ) throws {
         try app.performAccessibilityAudit(for: types) { issue in
-            // 字号封顶在 xxxLarge（产品主人 2026-10-21：特别大的那几档不兼容）：审计开到辅助功能那几档时字不再变大，
-            // 报「部分不支持」，放过；完全不跟着字号变的照样算
-            if issue.auditType == .dynamicType, issue.compactDescription.contains("partially unsupported") {
-                print("放过（字号封顶）[\(name)] \(issue.compactDescription) ← \(issue.element?.label ?? "")")
-                return true
-            }
             guard let element = issue.element else { return unresolved(issue) }
             // 审计的时候页面还在动（数据刚拿回来、重新排了一遍），报出来的元素已经不在了：当成指不出元素的，拉回顶上再审
             guard element.exists else { return unresolved(issue) }
