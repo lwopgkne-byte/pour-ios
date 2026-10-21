@@ -8,6 +8,8 @@ struct RootView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.scenePhase) private var scenePhase
     @State private var navOpen = false
+    /// 说话（输入框的麦克风）：手机上的听写；界面测试用假的
+    @State private var voice = VoiceSession(input: VoiceSession.makeInput())
 
     var body: some View {
         // 看得见的高度（键盘弹出时是键盘上面那一截）：对话面板占它的 55%
@@ -15,7 +17,7 @@ struct RootView: View {
             if model.needsPin {
                 PinGate()
             } else {
-                shell.environment(\.visibleHeight, proxy.size.height)
+                shell.environment(\.visibleHeight, proxy.size.height).environment(voice)
             }
         }
     }

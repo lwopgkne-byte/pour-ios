@@ -8,10 +8,15 @@ import SwiftUI
 /// 发出去就向上展开对话面板，输入框贴在面板底下（第 5 步换成系统的半屏面板）
 struct Composer: View {
     @Environment(AppModel.self) private var model
+    @Environment(VoiceSession.self) private var voice
     @Environment(\.visibleHeight) private var visibleHeight
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var focused: Bool
     @State private var drag: CGFloat = 0
+    /// 第一次点麦克风：先看一张说明
+    @State private var intro = false
+    /// 按住说的时候往上滑过了（松开就不要了）
+    @State private var cancelling = false
     /// 斜杠命令列表有多高：对话面板让出这么多（输入框这一块往上长，对话被顶上去），
     /// 不然键盘弹着时输入框会被挤到键盘后面
     @State private var menuHeight: CGFloat = 0
@@ -27,6 +32,7 @@ struct Composer: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
             if !open { ComposerStatus() }
+            voiceExtras
             let commands = Show.slashMenu(model.draft)
             if !commands.isEmpty {
                 SlashMenu(commands: commands, open: open) { command in
@@ -40,7 +46,14 @@ struct Composer: View {
                 }
                 .onDisappear { menuHeight = 0 }
             }
-            ComposerBar(focused: $focused, open: open)
+            if voice.active, voice.mode == .tap {
+                VoiceCard { words, send in use(words, send: send) }
+                    .transition(.scale(scale: 0.96, anchor: .bottom).combined(with: .opacity))
+            } else {
+                ComposerBar(
+                    focused: $focused, open: open, cancelling: $cancelling, tapMic: tapMic,
+                    sendWords: { use($0, send: true) })
+            }
         }
         .clipShape(
             UnevenRoundedRectangle(
@@ -58,6 +71,55 @@ struct Composer: View {
             if !open { focused = false }
         }
         .animation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion), value: open)
+        .animation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion), value: voice.active)
+        .onAppear { voice.onLimit = finishAtLimit }
+    }
+
+    /// 输入框上面跟说话有关的：第一次的说明、按住说的卡、听不了的那句话
+    @ViewBuilder private var voiceExtras: some View {
+        if intro {
+            VoiceIntro {
+                intro = false
+                voice.explained = true
+                voice.start(.tap)
+            } later: {
+                intro = false
+            }
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+        if voice.active, voice.mode == .hold {
+            HoldCard(cancelling: cancelling).transition(.scale(scale: 0.96, anchor: .bottom).combined(with: .opacity))
+        }
+        if case .failed(let message, let settings) = voice.phase {
+            VoiceFailure(message: message, settings: settings).transition(.opacity)
+        }
+    }
+
+    /// 点麦克风：第一次先看说明；键盘收起来
+    private func tapMic() {
+        focused = false
+        voice.dismissFailure()
+        if voice.explained {
+            voice.start(.tap)
+        } else {
+            intro = true
+        }
+    }
+
+    /// 说完的字：✓ 放进输入框再改，↑ 和松开就发出去
+    private func use(_ words: String, send: Bool) {
+        model.draft = model.draft.isEmpty ? words : model.draft + words
+        if send {
+            withAnimation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion)) { model.send() }
+        } else {
+            focused = true
+        }
+    }
+
+    /// 说到 2 分钟：点一下说的转成字留着再改，按住说的发出去
+    private func finishAtLimit() {
+        let send = voice.mode == .hold
+        Task { if let words = await voice.finish() { use(words, send: send) } }
     }
 }
 
@@ -67,6 +129,9 @@ private struct ComposerBar: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var focused: FocusState<Bool>.Binding
     let open: Bool
+    @Binding var cancelling: Bool
+    let tapMic: () -> Void
+    let sendWords: (String) -> Void
 
     var body: some View {
         @Bindable var model = model
@@ -94,31 +159,41 @@ private struct ComposerBar: View {
                 .focused(focused)
                 .accessibilityLabel(Text("说说今天"))
                 .accessibilityIdentifier("pourbar.input")
-            Button {
-                withAnimation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion)) { model.send() }
-            } label: {
-                Image(systemName: "arrow.up").font(Theme.Typeface.bodySemibold)
-                    .foregroundStyle(empty ? Theme.Palette.tertiaryLabel : Theme.Palette.onAccent)
-                    .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
-                    .background(empty ? Theme.Palette.fill : Theme.Palette.accentFill, in: Circle())
-                    .frame(width: Theme.Size.touch, height: Theme.Size.touch)
-                    .contentShape(Circle())
+            if empty {
+                MicButton(tap: tapMic, send: sendWords, cancelling: $cancelling)
+                    .transition(.scale.combined(with: .opacity))
+            } else {
+                sendButton.transition(.scale.combined(with: .opacity))
             }
-            .buttonStyle(PressScale())
-            .disabled(empty)
-            .sensoryFeedback(Theme.Haptics.send, trigger: model.outbox.count) { old, new in new > old }
-            .accessibilityLabel(Text("发送"))
-            .accessibilityIdentifier("pourbar.send")
         }
         .padding(.horizontal, Theme.Space.tight)
         .padding(.vertical, Theme.Space.hairline)
         .frame(minHeight: Theme.Size.composer)
+        .animation(Theme.Motion.quick, value: empty)
         .background {
             if open {
                 Theme.Palette.card.overlay(alignment: .top) { Theme.Palette.separator.frame(height: 0.5) }
             }
         }
         .modifier(GlassWhenFloating(floating: !open))
+    }
+
+    /// 发送（有字的时候）
+    private var sendButton: some View {
+        Button {
+            withAnimation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion)) { model.send() }
+        } label: {
+            Image(systemName: "arrow.up").font(Theme.Typeface.bodySemibold)
+                .foregroundStyle(Theme.Palette.onAccent)
+                .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
+                .background(Theme.Palette.accentFill, in: Circle())
+                .frame(width: Theme.Size.touch, height: Theme.Size.touch)
+                .contentShape(Circle())
+        }
+        .buttonStyle(PressScale())
+        .sensoryFeedback(Theme.Haptics.send, trigger: model.outbox.count) { old, new in new > old }
+        .accessibilityLabel(Text("发送"))
+        .accessibilityIdentifier("pourbar.send")
     }
 
     /// 早上问吃了什么；白天问做了什么；晚上（6 点到日界线）问哪一刻觉得挺好

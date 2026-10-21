@@ -68,6 +68,9 @@ targets:
           NSAllowsLocalNetworking: true
         # 真机连这台 Mac 上的网关要用局域网：系统第一次会问，这句话写清楚为什么
         NSLocalNetworkUsageDescription: 记录和整理都在电脑上的 Pour 里，要连上同一个 Wi-Fi 里的那台电脑。
+        # 说话记录（生活画布2.0.md 第 6 节）：在手机上转成字，录音不存不传
+        NSMicrophoneUsageDescription: 说话记录要用麦克风。说的话在这台手机上转成字，录音不存、不传。
+        NSSpeechRecognitionUsageDescription: 把你说的话在这台手机上转成字。
         # pour:// 打开这个 App：服务器推到 Bark 的提醒，点一下回到 Pour；pour://open?path=/review/2026-10-18 打开那一页
         CFBundleURLTypes:
           - CFBundleURLName: $(POUR_BUNDLE_ID)

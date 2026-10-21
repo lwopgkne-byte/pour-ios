@@ -102,6 +102,8 @@ extension Theme {
         /// 输入框；右边发送的圆
         public static let composer: CGFloat = 56
         public static let sendButton: CGFloat = 36
+        /// 说话时的声波
+        public static let waveform: CGFloat = 32
         /// 一天的带子
         public static let ribbon: CGFloat = 36
         /// 细横条（睡眠、进食窗口、分段条）
