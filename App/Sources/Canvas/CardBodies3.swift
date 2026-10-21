@@ -154,17 +154,25 @@ struct TodoBody: View {
 
 /// 待办的字：做完的变淡划掉；没做完的有提醒时间（提醒过的写「已提醒」）
 private struct TodoLine: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     let todo: API.TodoData
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
+        // 字号很大时提醒时间放到下一行；时间本身不折开（以前「19:00」会断成两行）
+        let stacked = typeSize.isAccessibilitySize
+        let layout =
+            stacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.hairline))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: Theme.Space.small))
+        layout {
             Text(Show.spaced(todo.content)).font(Theme.Typeface.body)
                 .foregroundStyle(todo.done ? Theme.Palette.secondaryLabel : Theme.Palette.label)
                 .strikethrough(todo.done, color: Theme.Palette.secondaryLabel)
-            Spacer(minLength: 0)
+            if !stacked { Spacer(minLength: 0) }
             if let remind = todo.remindAt, !todo.done {
                 Label("\(Show.clock(remind))\(todo.reminded == true ? " 已提醒" : "")", systemImage: "bell")
                     .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit()
+                    .fixedSize()
             }
         }
         .padding(.vertical, Theme.Space.tight)

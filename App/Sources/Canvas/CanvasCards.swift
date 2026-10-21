@@ -108,23 +108,38 @@ struct CanvasCard: View {
 /// 卡片标题：图标小方块 + 类别名 + 右边一个小数（「还有 1 件」「14 次」「4 笔」「AI 推测」）
 private struct CardHeader: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.dynamicTypeSize) private var typeSize
     let card: CanvasPlan.Card
 
     var body: some View {
         let meta = CanvasPlan.meta(card.id, model.categories)
-        HStack(spacing: Theme.Space.small) {
-            CategoryIcon.tile(card.id, model.categories)
-            Text(Show.spaced(meta.name)).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.label)
-            Spacer(minLength: Theme.Space.tight)
-            if card.template == .mood {
-                Label("AI 推测", systemImage: "sparkles").font(Theme.Typeface.caption)
-                    .foregroundStyle(Theme.Palette.secondaryLabel)
-            } else if let trailing {
-                Text(trailing).font(Theme.Typeface.footnoteMedium).foregroundStyle(Theme.Palette.secondaryLabel)
+        // 字号很大时右边的小数放到标题下面（不然「还有 1 件」被挤成两行）。只换排法、不换元素：
+        // 换元素（删了再建）审计会一直等那个旧的、超时
+        let stacked = typeSize.isAccessibilitySize
+        let layout =
+            stacked
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.tight))
+            : AnyLayout(HStackLayout(spacing: Theme.Space.small))
+        layout {
+            HStack(spacing: Theme.Space.small) {
+                CategoryIcon.tile(card.id, model.categories)
+                Text(Show.spaced(meta.name)).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.label)
             }
+            if !stacked { Spacer(minLength: Theme.Space.tight) }
+            side
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
+    }
+
+    /// 标题右边：心情卡写「AI 推测」，别的写一个小数
+    @ViewBuilder private var side: some View {
+        if card.template == .mood {
+            Label("AI 推测", systemImage: "sparkles").font(Theme.Typeface.caption)
+                .foregroundStyle(Theme.Palette.secondaryLabel)
+        } else if let trailing {
+            Text(trailing).font(Theme.Typeface.footnoteMedium).foregroundStyle(Theme.Palette.secondaryLabel)
+        }
     }
 
     /// 标题右边的小数
