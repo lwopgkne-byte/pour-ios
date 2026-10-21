@@ -38,8 +38,8 @@ struct RootView: View {
         .overlay {
             if model.chatOpen {
                 // 只压暗上面的页面，不盖住底下的输入框（不然点「收起」会同时点到压暗的那一层）
-                Web.overlay.ignoresSafeArea(edges: .top)
-                    .onTapGesture { withAnimation(Web.panel) { model.chatOpen = false } }
+                Theme.Palette.dim.ignoresSafeArea(edges: .top)
+                    .onTapGesture { withAnimation(Theme.Motion.standard) { model.chatOpen = false } }
                     .accessibilityLabel(Text("收起对话"))
                     .accessibilityAddTraits(.isButton)
                     .transition(.opacity)

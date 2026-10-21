@@ -44,8 +44,8 @@ final class TodayUITests: XCTestCase {
         let app = launch()
         say("早上跑了五公里", in: app)
         XCTAssertTrue(text(app, startingWith: "已记录：").waitForExistence(timeout: 5))
-        app.links["撤销"].firstMatch.tap()
-        XCTAssertTrue(waitGone(app.links["撤销"].firstMatch), "还能撤销")
+        app.buttons["撤销"].firstMatch.tap()
+        XCTAssertTrue(waitGone(app.buttons["撤销"].firstMatch), "还能撤销")
         XCTAssertTrue(app.staticTexts["早上跑了五公里"].exists, "原话没了")
         closeChat(app)
         XCTAssertTrue(app.staticTexts["说过的话里没有整理出记录。"].waitForExistence(timeout: 3), "撤销了卡片还在")
@@ -77,6 +77,8 @@ final class TodayUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["今天"].waitForExistence(timeout: 3), "没回到今天")
         app.swipeRight()
         say("早上跑了五公里", in: app)
+        // 说完对话会打开（画布读屏不读）：收起来看画布的大标题
+        closeChat(app)
         XCTAssertTrue(app.staticTexts["今天"].waitForExistence(timeout: 3), "说完没回到今天")
     }
 

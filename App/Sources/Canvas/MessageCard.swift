@@ -2,8 +2,8 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 对话里的一条系统消息（规格 12.1：所有提醒同时也出现在对话里）：
-/// 左边对齐，和 AI 的回复一样安静；每日回顾、周报月报只留一行链接，完整的在「回顾」里
+/// 对话里的一条系统消息（规格 12.1：所有提醒同时也出现在对话里）：左边一张小卡（图标、标题、一句话、几点）；
+/// 每日回顾、周报月报只留一行，点了去「回顾」看完整的
 struct MessageCard: View {
     @Environment(AppModel.self) private var model
     let message: API.SystemMessage
@@ -13,31 +13,36 @@ struct MessageCard: View {
             Button {
                 model.open(link.path)
             } label: {
-                HStack(spacing: Web.space2) {
+                HStack(spacing: Theme.Space.small) {
                     Text(Show.messageEmoji(message.kind)).accessibilityHidden(true)
                     Text(link.text).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
                     time
+                    Image(systemName: "chevron.right").font(Theme.Typeface.caption)
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
                 }
-                .padding(Web.space3)
-                .frame(minHeight: Web.touch)
+                .padding(.horizontal, Theme.Space.medium)
+                .frame(minHeight: Theme.Size.touch)
+                .card()
+                .contentShape(Rectangle())
             }
-            .buttonStyle(WebPressStyle())
-            .card()
+            .buttonStyle(PressScale())
         } else {
-            VStack(alignment: .leading, spacing: Web.space1) {
-                HStack(spacing: Web.space2) {
+            VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                HStack(spacing: Theme.Space.small) {
                     Text(Show.messageEmoji(message.kind)).accessibilityHidden(true)
-                    Text(Show.spaced(message.title)).font(Web.bodyMedium).foregroundStyle(Web.fg)
+                    Text(Show.spaced(message.title)).font(Theme.Typeface.bodySemibold).foregroundStyle(
+                        Theme.Palette.label)
                     Spacer(minLength: 0)
                     time
                 }
-                Text(Show.spaced(message.body)).font(Web.body).foregroundStyle(Web.fgSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(Show.spaced(message.body)).font(Theme.Typeface.subheadline)
+                    .foregroundStyle(Theme.Palette.secondaryLabel).fixedSize(horizontal: false, vertical: true)
                 if !failed.isEmpty {
-                    Text("推送没有发出去：\(failed.joined(separator: "；"))").font(Web.caption).foregroundStyle(Web.fgTertiary)
+                    Text("推送没有发出去：\(failed.joined(separator: "；"))").font(Theme.Typeface.footnote)
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
-            .padding(Web.space3)
+            .padding(Theme.Space.medium)
             .frame(maxWidth: .infinity, alignment: .leading)
             .card()
             .accessibilityElement(children: .combine)
@@ -45,7 +50,8 @@ struct MessageCard: View {
     }
 
     private var time: some View {
-        Text(Show.formatClock(message.createdAt)).font(Web.caption).foregroundStyle(Web.fgTertiary).fixedSize()
+        Text(Show.formatClock(message.createdAt)).font(Theme.Typeface.footnote)
+            .foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit().fixedSize()
     }
 
     private var failed: [String] {
@@ -66,20 +72,18 @@ struct MessageCard: View {
 
     private func line(_ title: String, _ detail: String) -> AttributedString {
         var head = AttributedString(title)
-        head.font = Web.bodyMedium
-        head.foregroundColor = Web.fg
+        head.font = Theme.Typeface.bodySemibold
+        head.foregroundColor = Theme.Palette.label
         var tail = AttributedString(Show.spaced(" · \(detail)"))
-        tail.font = Web.body
-        tail.foregroundColor = Web.fgSecondary
+        tail.font = Theme.Typeface.subheadline
+        tail.foregroundColor = Theme.Palette.secondaryLabel
         return head + tail
     }
 }
 
 extension View {
-    /// 系统消息的样子：白底、细边、卡片圆角，上下各空一点
+    /// 系统消息的样子：页面底色的一块（在白的对话面板上浅浅地分开），小卡的圆角
     fileprivate func card() -> some View {
-        background(RoundedRectangle(cornerRadius: Web.radiusCard).fill(Web.bg))
-            .overlay(RoundedRectangle(cornerRadius: Web.radiusCard).strokeBorder(Web.line, lineWidth: 1))
-            .padding(.vertical, Web.space2)
+        background(Theme.Palette.background, in: Theme.rounded(Theme.Corner.receipt))
     }
 }
