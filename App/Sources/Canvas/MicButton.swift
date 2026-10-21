@@ -5,6 +5,7 @@ import SwiftUI
 /// 读屏点两下是「点一下说」
 struct MicButton: View {
     @Environment(VoiceSession.self) private var voice
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// 点一下：要不要先看说明（第一次用）由外面决定
     let tap: () -> Void
     /// 按住说完松开：发出去
@@ -25,12 +26,11 @@ struct MicButton: View {
             .foregroundStyle(holding ? Theme.Palette.onAccent : Theme.Palette.label)
             .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
             .background(holding ? Theme.Palette.accentFill : Theme.Palette.fill, in: Circle())
-            .scaleEffect(holding ? 1.15 : 1)
+            .scaleEffect(holding && !reduceMotion ? 1.15 : 1)
             .frame(width: Theme.Size.touch, height: Theme.Size.touch)
             .contentShape(Circle())
             .gesture(press)
             .animation(Theme.Motion.quick, value: holding)
-            .sensoryFeedback(Theme.Haptics.voice, trigger: holding) { _, now in now }
             .accessibilityElement()
             .accessibilityLabel(Text("说话"))
             .accessibilityHint(Text("点一下说，说完了可以改；也可以按住说，松开就发"))

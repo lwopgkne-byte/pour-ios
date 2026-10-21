@@ -50,7 +50,7 @@ struct RootView: View {
             VStack(spacing: Theme.Space.small) {
                 if let notice = model.notice {
                     Toast(message: notice.message, action: notice.action) { model.performNotice() }
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .themeTransition(.move(edge: .bottom).combined(with: .opacity))
                         .id(notice.id)
                 }
                 Composer()
@@ -154,7 +154,7 @@ private struct NavDrawer: View {
                 .frame(width: min(Web.navWidth, UIScreenWidth.value * 0.85))
                 .frame(maxHeight: .infinity, alignment: .top)
                 .background(Web.bgSubtle.ignoresSafeArea())
-                .transition(.move(edge: .leading))
+                .themeTransition(.move(edge: .leading))
             }
         }
         .animation(Web.panel, value: open)

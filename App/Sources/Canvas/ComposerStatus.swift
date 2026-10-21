@@ -4,7 +4,8 @@ import PourDesign
 import SwiftUI
 
 /// 输入框上面的一条玻璃小条（docs/模块/生活画布2.0.md 第 6 节）：刚才那段话到哪了——没网先存在手机上、正在整理、
-/// 没整理成（能重试）。整理好了小条就收起来（画布上长出来了），轻轻一震。对话开着时不出现（对话里看得到）
+/// 没整理成（能重试）。整理好了小条就收起来（画布上长出来了）。对话开着时不出现（对话里看得到）。
+/// 整理好了、没整理成的触感在 ComposerHaptics（对话开着也要震）
 struct ComposerStatus: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -23,14 +24,10 @@ struct ComposerStatus: View {
                     .padding(.horizontal, Theme.Space.inset)
                     .frame(minHeight: Theme.Size.touch)
                     .themeGlass(radius: Theme.Corner.composer)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .themeTransition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         .animation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion), value: state)
-        .sensoryFeedback(Theme.Haptics.done, trigger: doneCount) { old, new in new > old }
-        .sensoryFeedback(Theme.Haptics.failed, trigger: state) { _, new in
-            if case .failed = new { true } else { false }
-        }
     }
 
     @ViewBuilder private func content(_ state: Stage) -> some View {
@@ -86,9 +83,34 @@ struct ComposerStatus: View {
             return nil
         }
     }
+}
 
-    /// 今天整理好了几段：多了一段就轻轻一震
-    private var doneCount: Int {
-        model.chat.filter { $0.day == model.today && $0.status == "done" }.count
+/// 输入框这一块的触感（docs/模块/生活画布2.0.md 8.6）。挂在一直都在的输入框上：对话开着、用说的发出去也震
+struct ComposerHaptics: ViewModifier {
+    @Environment(AppModel.self) private var model
+    @Environment(VoiceSession.self) private var voice
+
+    /// 最后一段话：哪一段、整理到哪了
+    struct LastNote: Equatable {
+        let id: Int
+        let status: String
+    }
+
+    func body(content: Content) -> some View {
+        content
+            .sensoryFeedback(Theme.Haptics.send, trigger: model.outbox.count) { old, new in new > old }
+            .sensoryFeedback(trigger: model.chat.last.map { LastNote(id: $0.id, status: $0.status) }, Self.feedback)
+            // 开始、停下说话（没听成的另有一震，在 VoiceFailure）
+            .sensoryFeedback(Theme.Haptics.voice, trigger: voice.active) { _, now in now || voice.phase == .idle }
+    }
+
+    /// 看着的那一段整理好了、没整理成才震。只认同一段话的变化：刚打开 App、拿到以前的记录时不震
+    static func feedback(_ old: LastNote?, _ new: LastNote?) -> SensoryFeedback? {
+        guard let old, let new, old.id == new.id, old.status != new.status else { return nil }
+        switch new.status {
+        case "done": return Theme.Haptics.done
+        case "failed": return Theme.Haptics.failed
+        default: return nil
+        }
     }
 }

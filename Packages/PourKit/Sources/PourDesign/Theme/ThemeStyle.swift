@@ -193,6 +193,20 @@ extension View {
     public func themeGlassCapsule() -> some View {
         glassEffect(.regular.interactive(), in: Capsule())
     }
+
+    /// 出现、消失的样子；「减弱动态效果」时只渐变，不缩放不位移（docs/模块/生活画布2.0.md 8.5）
+    public func themeTransition(_ transition: AnyTransition) -> some View {
+        modifier(ThemeTransition(transition: transition))
+    }
+}
+
+private struct ThemeTransition: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    let transition: AnyTransition
+
+    func body(content: Content) -> some View {
+        content.transition(reduceMotion ? .opacity : transition)
+    }
 }
 
 // MARK: - 动效和触感

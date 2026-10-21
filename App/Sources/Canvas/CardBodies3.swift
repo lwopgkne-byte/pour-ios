@@ -182,7 +182,7 @@ private struct TodoCheck: View {
                 if done {
                     Circle().fill(Theme.Palette.accentFill)
                     Image(systemName: "checkmark").font(Theme.Typeface.glyph).foregroundStyle(Theme.Palette.onAccent)
-                        .transition(.scale.combined(with: .opacity))
+                        .themeTransition(.scale.combined(with: .opacity))
                 }
             }
             .frame(width: Theme.Size.check, height: Theme.Size.check)

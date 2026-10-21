@@ -29,7 +29,7 @@ struct Composer: View {
             if open, chatHeight >= Theme.Size.touch {
                 ChatPanel(drag: $drag)
                     .frame(height: chatHeight)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .themeTransition(.move(edge: .bottom).combined(with: .opacity))
             }
             if !open { ComposerStatus() }
             voiceExtras
@@ -48,7 +48,7 @@ struct Composer: View {
             }
             if voice.active, voice.mode == .tap {
                 VoiceCard { words, send in use(words, send: send) }
-                    .transition(.scale(scale: 0.96, anchor: .bottom).combined(with: .opacity))
+                    .themeTransition(.scale(scale: 0.96, anchor: .bottom).combined(with: .opacity))
             } else {
                 ComposerBar(
                     focused: $focused, open: open, cancelling: $cancelling, tapMic: tapMic,
@@ -70,6 +70,7 @@ struct Composer: View {
         .animation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion), value: open)
         .animation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion), value: voice.active)
         .onAppear { voice.onLimit = finishAtLimit }
+        .modifier(ComposerHaptics())
     }
 
     /// 输入框上面跟说话有关的：第一次的说明、按住说的卡、听不了的那句话
@@ -82,10 +83,11 @@ struct Composer: View {
             } later: {
                 intro = false
             }
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .themeTransition(.move(edge: .bottom).combined(with: .opacity))
         }
         if voice.active, voice.mode == .hold {
-            HoldCard(cancelling: cancelling).transition(.scale(scale: 0.96, anchor: .bottom).combined(with: .opacity))
+            HoldCard(cancelling: cancelling)
+                .themeTransition(.scale(scale: 0.96, anchor: .bottom).combined(with: .opacity))
         }
         if case .failed(let message, let settings) = voice.phase {
             VoiceFailure(message: message, settings: settings).transition(.opacity)
@@ -172,9 +174,9 @@ private struct ComposerBar: View {
                 }
             if empty {
                 MicButton(tap: tapMic, send: sendWords, cancelling: $cancelling)
-                    .transition(.scale.combined(with: .opacity))
+                    .themeTransition(.scale.combined(with: .opacity))
             } else {
-                sendButton.transition(.scale.combined(with: .opacity))
+                sendButton.themeTransition(.scale.combined(with: .opacity))
             }
         }
         .padding(.horizontal, Theme.Space.tight)
@@ -202,7 +204,6 @@ private struct ComposerBar: View {
                 .contentShape(Circle())
         }
         .buttonStyle(PressScale())
-        .sensoryFeedback(Theme.Haptics.send, trigger: model.outbox.count) { old, new in new > old }
         .accessibilityLabel(Text("发送"))
         .accessibilityIdentifier("pourbar.send")
     }

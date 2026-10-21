@@ -67,7 +67,7 @@ struct ChatPanel: View {
                             }
                         }
                         .padding(Theme.Space.medium)
-                        .transition(.scale(scale: 0.8).combined(with: .opacity))
+                        .themeTransition(.scale(scale: 0.8).combined(with: .opacity))
                     }
                 }
                 .animation(Theme.Motion.pick(Theme.Motion.quick, reduceMotion: reduceMotion), value: atBottom)

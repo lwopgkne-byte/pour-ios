@@ -15,7 +15,7 @@ struct CanvasCards: View {
         VStack(spacing: Theme.Space.cardGap) {
             ForEach(rows) { row in
                 CanvasRow(row: row, day: day, accessibility: typeSize.isAccessibilitySize)
-                    .transition(reduceMotion ? .opacity : .scale(scale: 0.96).combined(with: .opacity))
+                    .themeTransition(.scale(scale: 0.96).combined(with: .opacity))
             }
         }
         .animation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion), value: rows.map(\.id))

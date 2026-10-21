@@ -27,7 +27,7 @@ struct CanvasTopBar: View {
                     .buttonStyle(.plain)
                     .themeGlassCapsule()
                     .accessibilityHint(Text("跳到某一天"))
-                    .transition(.opacity.combined(with: .scale(scale: 0.92)))
+                    .themeTransition(.opacity.combined(with: .scale(scale: 0.92)))
                 }
                 Spacer(minLength: 0)
                 GlassCircleButton("calendar", label: "跳到某一天", action: pickDay)
@@ -117,16 +117,20 @@ private struct CanvasCapsules: View {
 struct CanvasWeek: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var circle
 
     var body: some View {
+        let week = Self.week(of: model.shownDay)
         HStack(spacing: 0) {
-            ForEach(Self.week(of: model.shownDay), id: \.self) { day in
+            ForEach(week, id: \.self) { day in
                 Button {
                     withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
                         model.show(day)
                     }
                 } label: {
-                    WeekDay(day: day, today: model.today, selected: day == model.shownDay)
+                    // 同一周里换一天：选中的圆滑过去。换了一周不滑（不然往前一天时圆往右跑过整条）；减弱动态效果时也不滑
+                    let slide = reduceMotion ? day : week[0]
+                    WeekDay(day: day, today: model.today, selected: day == model.shownDay, circle: circle, slide: slide)
                 }
                 .buttonStyle(PressScale())
                 .accessibilityLabel(Text(Show.dayTitle(day, today: model.today)))
@@ -148,6 +152,9 @@ private struct WeekDay: View {
     let day: String
     let today: String
     let selected: Bool
+    let circle: Namespace.ID
+    /// 选中的圆跟着谁滑：同一个值的圆之间滑过去
+    let slide: String
 
     var body: some View {
         let isToday = day == today
@@ -162,6 +169,7 @@ private struct WeekDay: View {
                 .background {
                     if selected {
                         Circle().fill(isToday ? Theme.Palette.accentFill : Theme.Palette.fill)
+                            .matchedGeometryEffect(id: "selected-\(slide)", in: circle)
                     } else if isToday {
                         Circle().strokeBorder(Theme.Palette.accent, lineWidth: 1.5)
                     }

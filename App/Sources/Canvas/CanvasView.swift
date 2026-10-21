@@ -12,6 +12,8 @@ struct CanvasView: View {
     let openMenu: () -> Void
     @State private var picking = false
     @State private var collapsed = false
+    /// 刚才看的是哪天：换一天时新的一天从哪边进来（往后的日子从右边，往前的从左边）
+    @State private var lastDay = ""
 
     var body: some View {
         ScrollViewReader { reader in
@@ -20,6 +22,8 @@ struct CanvasView: View {
                     CanvasTitle()
                     CanvasWeek().padding(.top, Theme.Space.small)
                     SetupCard()
+                    // 换一天：新的一天从那一边推进来，刚才那天原地淡出（淡出的不再占位置，两天叠在一起换）。
+                    // 不包 ZStack：包了以后审计说卡片里的字「字号大了可能被截」（对照实验，2026-10-21）
                     CanvasBody { target in
                         withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
                             reader.scrollTo(target, anchor: .top)
@@ -27,7 +31,13 @@ struct CanvasView: View {
                     }
                     .padding(.top, Theme.Space.medium)
                     .id(model.shownDay)
-                    .transition(.opacity)
+                    .themeTransition(
+                        .asymmetric(
+                            insertion: .move(edge: model.shownDay > lastDay ? .trailing : .leading)
+                                .combined(with: .opacity),
+                            removal: .opacity.animation(Theme.Motion.quick))
+                    )
+                    .onChange(of: model.shownDay, initial: true) { _, day in lastDay = day }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, Theme.Space.screen)
