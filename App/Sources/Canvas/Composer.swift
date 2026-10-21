@@ -55,11 +55,8 @@ struct Composer: View {
                     sendWords: { use($0, send: true) })
             }
         }
-        .clipShape(
-            UnevenRoundedRectangle(
-                topLeadingRadius: open ? Theme.Corner.card : 0, topTrailingRadius: open ? Theme.Corner.card : 0,
-                style: .continuous)
-        )
+        // 对话开着：面板上面两个圆角。收着时不裁——裁了玻璃边上那圈柔光会被切成一个方块
+        .modifier(PanelTop(open: open))
         .offset(y: max(0, drag))
         .padding(.horizontal, open ? 0 : Theme.Space.medium)
         .padding(.bottom, open ? 0 : Theme.Space.small)
@@ -127,6 +124,11 @@ struct Composer: View {
 private struct ComposerBar: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.scenePhase) private var scenePhase
+    /// 输入框换过几次；字号变过、还没换
+    @State private var fieldID = 0
+    @State private var resized = false
     var focused: FocusState<Bool>.Binding
     let open: Bool
     @Binding var cancelling: Bool
@@ -159,6 +161,15 @@ private struct ComposerBar: View {
                 .focused(focused)
                 .accessibilityLabel(Text("说说今天"))
                 .accessibilityIdentifier("pourbar.input")
+                // 字号调小以后（控制中心、设置里调），多行的输入框不会自己缩回去：回到 App 时换一个新的。
+                // 不在字号一变就换：审计正看着它时换掉，后面的审计会一直等那个旧的、超时
+                .id(fieldID)
+                .onChange(of: typeSize) { resized = true }
+                .onChange(of: scenePhase) { _, phase in
+                    guard phase == .active, resized else { return }
+                    resized = false
+                    fieldID += 1
+                }
             if empty {
                 MicButton(tap: tapMic, send: sendWords, cancelling: $cancelling)
                     .transition(.scale.combined(with: .opacity))
@@ -202,6 +213,21 @@ private struct ComposerBar: View {
         if Show.isEvening(now, boundary: model.dayBoundary) { return "今天哪一刻觉得挺好？" }
         let hour = Calendar.current.component(.hour, from: now)
         return (5..<10).contains(hour) ? "早上吃了什么？" : "今天做了什么？比如：跑步1小时"
+    }
+}
+
+/// 对话开着时，面板（连着输入框）上面两个圆角
+private struct PanelTop: ViewModifier {
+    let open: Bool
+
+    func body(content: Content) -> some View {
+        if open {
+            content.clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: Theme.Corner.card, topTrailingRadius: Theme.Corner.card, style: .continuous))
+        } else {
+            content
+        }
     }
 }
 

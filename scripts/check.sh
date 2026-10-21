@@ -94,11 +94,12 @@ for MAJOR in ${IOS_MAJORS}; do
     fi
     # 系统的无障碍审计偶尔自己超时（「Audit failed to complete in time」，是工具的毛病、不是界面的问题；
     # 2026-10-21 推送前检查里设置页、关于我各超时过一次，审计自己已经重试了几轮）：没过的测试整个再跑一次，
-    # 两次都没过才算没过；重跑才过的写出来，不藏
+    # 两次都没过才算没过；重跑才过的写出来，不藏。
+    # 测试没过时 xcodebuild 默认收集模拟器的诊断（simctl diagnose，最多等 10 分钟），看着像卡住了：不收集
     if ! xcodebuild test -project Pour.xcodeproj -scheme "${SCHEME}" \
       -destination "platform=iOS Simulator,id=${SIM_ID}" \
       -derivedDataPath build/DerivedData -resultBundlePath "${RESULT}" \
-      -retry-tests-on-failure -test-iterations 2 \
+      -retry-tests-on-failure -test-iterations 2 -collect-test-diagnostics never \
       ${EXTRA[@]+"${EXTRA[@]}"} ${ONLY[@]+"${ONLY[@]}"} >"${LOG}" 2>&1; then
       grep -E "error:|✘|failed|^审计问题" "${LOG}" | grep -v "known issue" | head -20
       fail "${SCHEME} 在 iOS ${MAJOR} 上的测试没通过（完整输出：${LOG}，结果：${RESULT}）"
