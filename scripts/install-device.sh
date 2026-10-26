@@ -39,11 +39,20 @@ BUILD="$(git rev-list --count HEAD)"
 # 手机在局域网里找这台 Mac 上的 Pour 服务器（仓库 pour，产品主人 2026-10-19 选 B）：用 Mac 的局域网名字
 SERVER="http://$(scutil --get LocalHostName).local:5188"
 step "构建（版本 $(awk -F' = ' '/^MARKETING_VERSION/{print $2}' Config/Base.xcconfig) · 构建 ${BUILD}）"
+# 刚检出的一份（比如专门用来装手机的那份）还没有 build/：先建上，不然日志写不进去、构建没开始就停了
+mkdir -p build
 xcodegen generate --spec project.yml --quiet
 xcodebuild build -project Pour.xcodeproj -scheme Pour -configuration Debug \
   -destination "id=${UDID}" -derivedDataPath build/DeviceData -allowProvisioningUpdates \
   CURRENT_PROJECT_VERSION="${BUILD}" POUR_SERVER_URL="${SERVER}" >build/install-device.log 2>&1 \
-  || { grep -E "error:" build/install-device.log | head -10; fail "构建没成功（完整输出：build/install-device.log）"; }
+  || {
+    grep -E "error:" build/install-device.log | head -10
+    # 免费签名要 Xcode 里登录着 Apple ID：登录过期（密码改过、太久没用）时 Apple 拒绝，签名文件也做不出来
+    if grep -qE "login details for account .* were rejected|Unable to log in with account" build/install-device.log; then
+      fail "Xcode 里的 Apple ID 登录过期了：打开 Xcode → 设置 → Accounts（账户），选中你的 Apple ID 重新登录，再运行一次"
+    fi
+    fail "构建没成功（完整输出：build/install-device.log）"
+  }
 
 step "装到手机上"
 APP="build/DeviceData/Build/Products/Debug-iphoneos/Pour.app"
