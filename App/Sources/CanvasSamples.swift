@@ -25,7 +25,11 @@ enum CanvasSamples {
     static func readArguments(_ arguments: [String]) {
         guard !argumentsRead else { return }
         argumentsRead = true
-        guard let index = arguments.firstIndex(of: "-canvasSamples"), index + 1 < arguments.count else { return }
-        set(arguments[index + 1] == "on")
+        if let index = arguments.firstIndex(of: "-canvasSamples"), index + 1 < arguments.count {
+            set(arguments[index + 1] == "on")
+        } else if arguments.contains("-uiTest") {
+            // 界面测试一个一个独立：上一个测试没走完、留下的样张开关不算（不然后面的测试都在样张里跑）
+            set(false)
+        }
     }
 }

@@ -138,7 +138,11 @@ struct ChatPanel: View {
             lastDay = value
             out.append(.day(value, Self.separator(value, today: model.today)))
         }
-        let notes = model.chat.map { (at: $0.createdAt, day: $0.day, row: Row.note($0)) }
+        // 补记的按说的那天分（它的 day 是补记到的那天，气泡下面写着）
+        let notes = model.chat.map { note in
+            let said = note.backfill == true ? Show.logicalDay(note.createdAt, boundary: model.dayBoundary) : nil
+            return (at: note.createdAt, day: said ?? note.day, row: Row.note(note))
+        }
         let messages = model.messages.map { message in
             let day = Show.logicalDay(message.createdAt, boundary: model.dayBoundary) ?? model.today
             return (at: message.createdAt, day: day, row: Row.message(message))

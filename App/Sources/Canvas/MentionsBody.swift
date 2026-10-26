@@ -9,9 +9,18 @@ struct MentionsBody: View {
     @Environment(AppModel.self) private var model
     let entries: [API.Entry]
     let history: [API.MentionHistory]?
+    /// 长按「改名字…」的那一个（docs/模块/产品优化.md R2）
+    @State private var renaming: Renaming?
+    @State private var newName = ""
+
+    struct Renaming: Identifiable {
+        let kind: String
+        let name: String
+        var id: String { "\(kind)|\(name)" }
+    }
 
     var body: some View {
-        let mentions = CanvasPlan.mentions(entries)
+        let mentions = CanvasPlan.mentions(entries, history: history)
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             row("人", mentions.people, kind: "person")
             row("东西", mentions.things, kind: "thing")
@@ -21,6 +30,16 @@ struct MentionsBody: View {
             let counted = (history ?? []).contains { !$0.firstTime && $0.weekDays >= 2 }
             Text(counted ? "「这周 N 天」从周一算起，数的是说到的天数；点一下看说到它的原话" : "点一下看说到它的原话")
                 .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+        }
+        .alert(
+            "改名字", isPresented: Binding(get: { renaming != nil }, set: { if !$0 { renaming = nil } }),
+            presenting: renaming
+        ) { item in
+            TextField("对的名字", text: $newName)
+            Button("改") { model.renameMention(kind: item.kind, name: item.name, to: newName) }
+            Button("取消", role: .cancel) {}
+        } message: { item in
+            Text("「\(item.name)」以后都按对的名字算，原话不改。改成已经有的名字，就合成一个")
         }
     }
 
@@ -33,7 +52,16 @@ struct MentionsBody: View {
                     ForEach(items, id: \.self) { item in
                         chip(
                             item, shown: prefix + item,
-                            note: CanvasPlan.mentionNote(CanvasPlan.history(history, kind: kind, name: item)))
+                            note: CanvasPlan.mentionNote(CanvasPlan.history(history, kind: kind, name: item))
+                        )
+                        // 认错了、写法不一样、不想看到：长按改（原话不改；关于我 →「改过的名字」能恢复）
+                        .contextMenu {
+                            Button("改名字…", systemImage: "pencil") {
+                                newName = item
+                                renaming = Renaming(kind: kind, name: item)
+                            }
+                            Button("不再显示", systemImage: "eye.slash") { model.hideMention(kind: kind, name: item) }
+                        }
                     }
                 }
             }
@@ -57,6 +85,6 @@ struct MentionsBody: View {
         }
         .buttonStyle(PressScale())
         .accessibilityLabel(Text(note.map { "\(shown)，\($0)" } ?? shown))
-        .accessibilityHint(Text("搜一搜以前也说到的"))
+        .accessibilityHint(Text("搜一搜以前也说到的；长按能改名字、不再显示"))
     }
 }

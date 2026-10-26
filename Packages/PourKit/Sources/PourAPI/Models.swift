@@ -294,10 +294,38 @@ extension API {
         public var id: Int
         public var text: String
         public var createdAt: String
+        /// 归到哪一天；补记的是补记的那一天
         public var day: String
+        /// 补记（docs/模块/产品优化.md R1.1）：看以前的某一天时说的，记到那一天；createdAt 还是真的说话时刻
+        public var backfill: Bool?
         public var status: String
         public var result: NoteResult?
         public var error: String?
+    }
+
+    /// 名字表的一条（docs/模块/产品优化.md R2）：「说到的」里改过的名字、不再显示的
+    public struct NameRule: Codable, Hashable, Sendable, Identifiable {
+        /// person · thing · place · tag
+        public var kind: String
+        public var name: String
+        /// 改成的名字；只藏不改是 nil
+        public var canonical: String?
+        public var hidden: Bool
+        public var updatedAt: String
+
+        public var id: String { "\(kind)|\(name)" }
+
+        public init(kind: String, name: String, canonical: String?, hidden: Bool, updatedAt: String) {
+            self.kind = kind
+            self.name = name
+            self.canonical = canonical
+            self.hidden = hidden
+            self.updatedAt = updatedAt
+        }
+    }
+
+    public struct NameRules: Codable, Hashable, Sendable {
+        public var rules: [NameRule]
     }
 
     public struct NotesPage: Codable, Hashable, Sendable {

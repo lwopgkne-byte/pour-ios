@@ -8,6 +8,8 @@ import UIKit
 struct Bubble<Status: View>: View {
     let text: String
     let time: String
+    /// 时间前面的一小段：「补记到 10月24日」
+    var tag: String?
     @ViewBuilder let status: () -> Status
 
     var body: some View {
@@ -26,6 +28,7 @@ struct Bubble<Status: View>: View {
                     Button("复制", systemImage: "doc.on.doc") { UIPasteboard.general.string = text }
                 }
             HStack(spacing: Theme.Space.snug) {
+                if let tag { Text("\(tag) ·") }
                 Text(time).monospacedDigit()
                 status()
             }
@@ -42,7 +45,10 @@ struct OutboxMessage: View {
     let item: AppModel.Outbox
 
     var body: some View {
-        Bubble(text: item.text, time: Show.formatClock(ISO8601DateFormatter().string(from: item.createdAt))) {
+        Bubble(
+            text: item.text, time: Show.formatClock(ISO8601DateFormatter().string(from: item.createdAt)),
+            tag: item.day.map { "补记到 \(Show.monthDay($0))" }
+        ) {
             if item.failed == nil {
                 Label("正在保存", systemImage: "arrow.up.circle").labelStyle(ChatStatusStyle())
             } else {
@@ -67,7 +73,10 @@ struct NoteMessage: View {
         let receipt = result.flatMap { Show.receipt($0.receipt) }
         let hasReply = result.map { Self.hasReply($0, receipt: receipt) } ?? false
         VStack(spacing: Theme.Space.medium) {
-            Bubble(text: note.text, time: Show.formatClock(note.createdAt)) { NoteStatus(note: note, quiet: hasReply) }
+            Bubble(
+                text: note.text, time: Show.formatClock(note.createdAt),
+                tag: note.backfill == true ? "补记到 \(Show.monthDay(note.day))" : nil
+            ) { NoteStatus(note: note, quiet: hasReply) }
             if note.status == "failed", let error = note.error {
                 Text(Show.spaced(error)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                     .frame(maxWidth: .infinity, alignment: .leading)

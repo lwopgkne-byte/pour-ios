@@ -60,6 +60,8 @@
             var messages: [[String: Any]] = [Self.dailyReview]
             /// 提醒和推送的设置：改了的那几项盖上去（服务器 PUT /api/reminders）
             var reminders = Self.defaultReminders
+            /// 名字表：「说到的」里改了名字、不再显示的（StubServer+Names）
+            var names: [[String: Any]] = []
 
             var today: String { PourDate.logicalDay(Date(), in: .current) }
 
@@ -75,7 +77,7 @@
                     let summary: Any = sample?.summary ?? NSNull()
                     return ok([
                         "day": parts[2], "entries": entries, "summary": summary, "goals": sample?.goalList ?? [],
-                        "mentions": sample?.mentionList ?? [],
+                        "mentions": mentionsOfDay(parts[2], sample: sample?.mentionList),
                     ])
                 }
                 if parts.count == 4, parts[1] == "notes", let id = Int(parts[2]) {
@@ -91,7 +93,9 @@
             /// 不带编号的接口：今天是哪天、类别表、说过的话、说一句
             private mutating func basic(_ method: String, _ url: URL, _ body: [String: Any]) -> Reply? {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
-                if let value = settingsReply(method, url.path, body) ?? pageReply(method, url.path) {
+                if let value = settingsReply(method, url.path, body) ?? namesReply(method, url.path, body)
+                    ?? pageReply(method, url.path)
+                {
                     return ok(value)
                 }
                 switch (method, url.path) {
@@ -106,7 +110,9 @@
                 case ("POST", "/api/notes"):
                     let text = body["text"] as? String ?? ""
                     if text.contains("断网") { return Reply(offline: true) }
-                    return ok(say(text))
+                    // 补记：记到以前的那一天（docs/模块/产品优化.md R1.1）
+                    let backfill = (body["day"] as? String).flatMap { $0 < today ? $0 : nil }
+                    return ok(say(text, day: backfill))
                 default:
                     return nil
                 }
@@ -139,12 +145,13 @@
             }
 
             /// 说一句：马上整理完（假服务器不排队）
-            private mutating func say(_ text: String) -> [String: Any] {
+            private mutating func say(_ text: String, day backfill: String? = nil) -> [String: Any] {
                 let noteId = take()
                 let now = ISO8601DateFormatter().string(from: Date())
                 var note: [String: Any] = [
-                    "id": noteId, "text": text, "createdAt": now, "day": today, "status": "done",
+                    "id": noteId, "text": text, "createdAt": now, "day": backfill ?? today, "status": "done",
                 ]
+                if backfill != nil { note["backfill"] = true }
                 if text.contains("余额") {
                     note["status"] = "failed"
                     note["error"] = "没整理成：大模型账户余额不足。"

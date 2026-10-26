@@ -84,7 +84,7 @@ final class TodayUITests: XCTestCase {
         XCTAssertTrue(waitGone(today), "再点没收起")
     }
 
-    /// 往右滑看昨天，往左滑回来；说一句自动回到今天
+    /// 往右滑看昨天，往左滑回来；看昨天时说的话补记到昨天，说完留在昨天（docs/模块/产品优化.md R1.1）
     @MainActor func testSwitchDays() throws {
         let app = launch()
         app.swipeRight()
@@ -93,10 +93,15 @@ final class TodayUITests: XCTestCase {
         app.swipeLeft()
         XCTAssertTrue(showing("今天", in: app), "没回到今天")
         app.swipeRight()
-        say("早上跑了五公里", in: app)
+        let input = app.descendants(matching: .any)["pourbar.input"]
+        XCTAssertTrue(input.waitForExistence(timeout: 3))
+        XCTAssertTrue(input.label.hasPrefix("补记"), "看昨天时输入框没写补记：\(input.label)")
+        say("晚上吃了火锅", in: app)
+        XCTAssertTrue(text(app, startingWith: "补记到").waitForExistence(timeout: 3), "对话里没写补记到哪天")
+        attach(app, "补记-对话")
         // 说完对话会打开（画布读屏不读）：收起来看画布的大标题
         closeChat(app)
-        XCTAssertTrue(showing("今天", in: app), "说完没回到今天")
+        XCTAssertTrue(showing("昨天", in: app), "补记完跳走了")
     }
 
     /// 连不上：原话先存在手机上，标「没有保存上 · 重试」，连上了自动发

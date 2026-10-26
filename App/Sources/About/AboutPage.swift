@@ -138,21 +138,27 @@ private struct AboutHome: View {
                 ReviewSection(title: "你没注意到的变化") { MeChanges(changes: page.changes, navigate: navigate) }
             }
             if let care { MeCareView(care: care) { await load() } }
-            if let about = known.about,
-                !about.sayings.isEmpty || !about.places.isEmpty
-                    || about.people.contains(where: { $0.relation != nil && !$0.titled })
-            {
-                ReviewSection(title: "Pour 认识的") {
-                    VStack(alignment: .leading, spacing: Web.space6) {
-                        KnownPeople(store: known, onlyRelations: true)
-                        KnownPlaces(store: known)
-                        KnownSayings(store: known)
-                    }
-                }
-            }
+            knownSection
+            KnownNames()
             if !page.waiting.isEmpty { waiting(page.waiting) }
             yearLink
             MeFoot()
+        }
+    }
+
+    /// Pour 认识的：说过是谁的人、常去的地方、你的说法（有一样才出现）
+    @ViewBuilder private var knownSection: some View {
+        if let about = known.about,
+            !about.sayings.isEmpty || !about.places.isEmpty
+                || about.people.contains(where: { $0.relation != nil && !$0.titled })
+        {
+            ReviewSection(title: "Pour 认识的") {
+                VStack(alignment: .leading, spacing: Web.space6) {
+                    KnownPeople(store: known, onlyRelations: true)
+                    KnownPlaces(store: known)
+                    KnownSayings(store: known)
+                }
+            }
         }
     }
 

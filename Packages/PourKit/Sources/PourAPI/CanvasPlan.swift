@@ -53,13 +53,18 @@ public enum CanvasPlan {
     static let builtInMeasure: [String: String] = ["exercise": "duration", "study": "duration", "work": "duration"]
 
     /// 这一天的卡片，按行排好
-    public static func rows(_ entries: [API.Entry], _ categories: [API.Category]) -> [Row] {
-        pair(cards(entries, categories))
+    /// history：服务器给的「说到的」（改过名字的已经换成一个、不再显示的已经去掉）；没有时从记录里收
+    public static func rows(
+        _ entries: [API.Entry], _ categories: [API.Category], mentions history: [API.MentionHistory]? = nil
+    ) -> [Row] {
+        pair(cards(entries, categories, mentions: history))
     }
 
     /// 这一天的卡片（还没配对）。待办和提醒永远最前（做完了也不往后挪：产品主人 2026-10-21 说跑到下面是毛病）；
     /// 然后钱的汇总卡、说到的人和东西，其余按类别表的顺序，感悟、心情放最后
-    public static func cards(_ entries: [API.Entry], _ categories: [API.Category]) -> [Card] {
+    public static func cards(
+        _ entries: [API.Entry], _ categories: [API.Category], mentions history: [API.MentionHistory]? = nil
+    ) -> [Card] {
         let keys = entries.map { Show.group($0, categories) }
         let ordered = Show.sortGroups(Array(Set(keys)), categories, openTodos: true)
         var out = ordered.map { key in card(key, entries.filter { Show.group($0, categories) == key }, categories) }
@@ -68,7 +73,7 @@ public enum CanvasPlan {
             out.insert(money, at: min(index, out.count))
             index += 1
         }
-        if mentions(entries).count >= 2 {
+        if mentions(entries, history: history).count >= 2 {
             let card = Card(id: mentionsKey, template: .mentions, size: .full, entries: [], withBody: false)
             out.insert(card, at: min(index, out.count))
         }
@@ -97,6 +102,23 @@ public enum CanvasPlan {
         public var topics: [String] = []
 
         public var count: Int { people.count + things.count + places.count + topics.count }
+    }
+
+    /// 说到的：有服务器给的就照它（名字表换好、藏好了的，docs/模块/产品优化.md R2），按说的先后分到四类；
+    /// 没有（旧服务器）从记录里收
+    public static func mentions(_ entries: [API.Entry], history: [API.MentionHistory]?) -> Mentions {
+        guard let history else { return mentions(entries) }
+        var out = Mentions()
+        for item in history {
+            switch item.kind {
+            case "person": out.people.append(item.name)
+            case "thing": out.things.append(item.name)
+            case "place": out.places.append(item.name)
+            case "tag": out.topics.append(item.name)
+            default: break
+            }
+        }
+        return out
     }
 
     /// 从事件、待办、感悟里收：和谁、什么东西、在哪、话题（事件和感悟的标签）

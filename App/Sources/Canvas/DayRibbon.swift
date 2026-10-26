@@ -116,10 +116,15 @@ struct RibbonTrack: View {
         let range = Self.range(day, items)
         let lanes = Self.lanes(items)
         let twoLanes = lanes.values.contains(1)
+        let gaps = CanvasPlan.ribbonGaps(items.compactMap(\.span), day: day, today: model.today, now: Self.nowStamp())
         VStack(alignment: .leading, spacing: Theme.Space.snug) {
             GeometryReader { proxy in
                 ZStack(alignment: .topLeading) {
                     Theme.rounded(Theme.Corner.ribbon).fill(Theme.Palette.fill)
+                    // 没记的空当点一下补记（在色块下面：色块的点按范围撑到 44 宽时盖住空当的边）
+                    ForEach(gaps, id: \.self) { gap in
+                        RibbonGap(rect: place(gap, range, proxy.size)) { model.compose(gap.prompt) }
+                    }
                     ForEach(items) { item in
                         RibbonBlock(
                             item: item, day: day,
@@ -138,6 +143,12 @@ struct RibbonTrack: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(Self.spoken(items)))
+        .accessibilityIdentifier("ribbon.track")
+        .accessibilityActions {
+            ForEach(gaps, id: \.self) { gap in
+                Button(gap.spoken) { model.compose(gap.prompt) }
+            }
+        }
     }
 
     /// 读屏读的那一句：「0:10 到 7:10 睡觉；8:20 到 8:55 坐地铁；17:30 接儿子放学」
@@ -161,6 +172,13 @@ struct RibbonTrack: View {
         let height = twoLanes ? (size.height - Theme.Space.hairline) / 2 : size.height
         let top = CGFloat(lane) * (height + Theme.Space.hairline)
         return CGRect(x: from, y: top, width: max(0, until - from), height: height)
+    }
+
+    /// 空当在带子上的位置：整条带子那么高
+    private func place(_ gap: CanvasPlan.Gap, _ range: (start: String, minutes: Int), _ size: CGSize) -> CGRect {
+        let from = (position(gap.start, range) ?? 0) * size.width
+        let until = (position(gap.end, range) ?? 0) * size.width
+        return CGRect(x: from, y: 0, width: max(0, until - from), height: size.height)
     }
 
     private func position(_ time: String, _ range: (start: String, minutes: Int)) -> Double? {
@@ -246,6 +264,34 @@ private struct RibbonBlock: View {
         }
         .buttonStyle(.plain)
         .offset(x: rect.minX + rect.width / 2 - tap / 2, y: rect.minY)
+    }
+}
+
+/// 没记的空当：点一下输入框先填好这段时间（docs/模块/产品优化.md R1.2）；够宽的画一个淡淡的「+」，按下时浅浅一层底色
+private struct RibbonGap: View {
+    let rect: CGRect
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                if rect.width >= Theme.Size.touch {
+                    Image(systemName: "plus").font(Theme.Typeface.tick).foregroundStyle(Theme.Palette.tertiaryLabel)
+                }
+            }
+            .frame(width: rect.width, height: rect.height)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(GapPress())
+        .offset(x: rect.minX, y: rect.minY)
+    }
+}
+
+private struct GapPress: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.background {
+            if configuration.isPressed { Theme.rounded(Theme.Corner.ribbon).fill(Theme.Palette.accent.opacity(0.12)) }
+        }
     }
 }
 

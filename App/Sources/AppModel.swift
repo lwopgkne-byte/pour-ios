@@ -37,6 +37,8 @@ final class AppModel {
     private(set) var outbox: [Outbox] = []
 
     var draft = ""
+    /// 别处要输入框弹出键盘（时间轴上点空当补记）：加一就弹
+    private(set) var composeFocus = 0
     /// 正在看哪一页（左上角菜单换）
     var page: Page = .canvas
     /// 这一页要先打开哪一篇：页面地址（对话里点「昨天的回顾好了」→「/review/2026-10-18」），那一页看完清掉
@@ -266,6 +268,12 @@ final class AppModel {
         Task { await reloadDay() }
     }
 
+    /// 输入框里先填好一段（「14:00 到 15:30，」），弹出键盘接着说
+    func compose(_ text: String) {
+        draft = text
+        composeFocus += 1
+    }
+
     /// 打开一个页面地址（对话里的回顾、周报月报链接，pour://open?path=…）：换到那一页，收起对话
     func open(_ path: String) {
         if path.hasPrefix("/review") { page = .review }
@@ -282,36 +290,6 @@ final class AppModel {
 // MARK: - 改
 
 extension AppModel {
-    /// 对话里收据后面的「撤销」：这段话整理出的记录都撤掉，原话留着
-    func undo(note id: Int) { act { client in try await client.undo(note: id) } }
-
-    /// 没整理成的，点「重试」
-    func retry(note id: Int) { act { client in try await client.retry(note: id) } }
-
-    func confirm(_ entryId: Int) { act { client in try await client.confirm(entry: entryId) } }
-
-    func setDone(_ entryId: Int, _ done: Bool) { act { client in try await client.setDone(entry: entryId, done) } }
-
-    /// 详情里原地改（字段名照服务器：label、start、duration_min、metrics……）
-    func update(_ entryId: Int, _ fields: [String: JSONValue]) {
-        act { client in try await client.update(entry: entryId, fields: fields) }
-    }
-
-    func delete(_ entryId: Int) {
-        detail = nil
-        act { client in try await client.delete(entry: entryId) }
-        // 轻提示上的「撤销」：删掉的放回来
-        toast("已删除", action: "撤销") { [weak self] in
-            self?.act { client in try await client.restore(entry: entryId) }
-        }
-    }
-
-    /// 「连接大模型」上的「知道了，开始整理」：同意把原话发给大模型整理
-    func acceptConsent() { act { client in try await client.acceptConsent() } }
-
-    /// 「连接大模型」上的「跳过」：不再出现，以后在设置里填
-    func dismissSetup() { act { client in try await client.dismissSetup() } }
-
     /// 说一声：一句话，右边可以有一个操作；4 秒后自己消失，新的顶掉旧的
     func toast(_ message: String, action: String? = nil, perform: (() -> Void)? = nil) {
         notice = Notice(message: message, action: action)
@@ -334,7 +312,7 @@ extension AppModel {
     }
 
     /// 做一件事，做完重新拿这一天（服务器的推送也会来，这里不等它）
-    private func act(_ work: @escaping @Sendable (APIClient) async throws -> Void) {
+    func act(_ work: @escaping @Sendable (APIClient) async throws -> Void) {
         let client = self.client
         Task {
             do {
@@ -371,10 +349,12 @@ extension AppModel {
             showSamples(false)
             return
         }
-        outbox.append(Outbox(clientId: UUID().uuidString, text: text, createdAt: Date()))
+        // 看以前的某一天时说的：补记到那一天，留在那一天（docs/模块/产品优化.md R1.1）；看以后的日子照旧回到今天
+        let backfill = shownDay < today ? shownDay : nil
+        outbox.append(Outbox(clientId: UUID().uuidString, text: text, createdAt: Date(), day: backfill))
         OutboxStore.save(outbox)
         chatOpen = true
-        if shownDay != today { show(today) }
+        if backfill == nil, shownDay != today { show(today) }
         Task { await flushOutbox() }
     }
 
@@ -382,7 +362,7 @@ extension AppModel {
     func flushOutbox() async {
         for item in outbox {
             do {
-                try await client.send(item.text, clientId: item.clientId)
+                try await client.send(item.text, clientId: item.clientId, day: item.day)
                 outbox.removeAll { $0.clientId == item.clientId }
                 offline = nil
             } catch {

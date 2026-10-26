@@ -64,10 +64,13 @@ public actor APIClient {
 
     // MARK: - 说一句、改
 
-    /// 说一句：原话交给服务器排队整理；clientId 防重复（同一段话重发不记两遍）
+    /// 说一句：原话交给服务器排队整理；clientId 防重复（同一段话重发不记两遍）。
+    /// day：补记——看以前的某一天时说的，记到那一天（docs/模块/产品优化.md R1.1）
     @discardableResult
-    public func send(_ text: String, clientId: String) async throws(APIError) -> API.Note {
-        try await request("POST", "/api/notes", body: ["text": text, "clientId": clientId])
+    public func send(_ text: String, clientId: String, day: String? = nil) async throws(APIError) -> API.Note {
+        var body = ["text": text, "clientId": clientId]
+        if let day { body["day"] = day }
+        return try await request("POST", "/api/notes", body: body)
     }
 
     public func undo(note id: Int) async throws(APIError) {

@@ -7,6 +7,8 @@ extension AppModel {
         let clientId: String
         let text: String
         let createdAt: Date
+        /// 补记到哪一天（看以前的某一天时说的，docs/模块/产品优化.md R1.1）；平常是 nil
+        var day: String?
         /// 连不上、服务器拒了：说清楚，自动重试
         var failed: String?
 

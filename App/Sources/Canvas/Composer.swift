@@ -68,6 +68,8 @@ struct Composer: View {
         .onChange(of: model.chatOpen) { _, open in
             if !open { focused = false }
         }
+        // 别处先填好了一段（时间轴上点空当补记）：弹出键盘接着说
+        .onChange(of: model.composeFocus) { focused = true }
         .animation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion), value: open)
         .animation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion), value: voice.active)
         .onAppear {
@@ -183,7 +185,7 @@ private struct ComposerBar: View {
                 .lineLimit(1...6)
                 .padding(.vertical, Theme.Space.medium)
                 .focused(focused)
-                .accessibilityLabel(Text("说说今天"))
+                .accessibilityLabel(Text(model.shownDay < model.today ? "补记 \(Show.monthDay(model.shownDay))" : "说说今天"))
                 .accessibilityIdentifier("pourbar.input")
                 // 字号调小以后（控制中心、设置里调），多行的输入框不会自己缩回去：回到 App 时换一个新的。
                 // 不在字号一变就换：审计正看着它时换掉，后面的审计会一直等那个旧的、超时
@@ -232,8 +234,10 @@ private struct ComposerBar: View {
         .accessibilityIdentifier("pourbar.send")
     }
 
-    /// 早上问吃了什么；白天问做了什么；晚上（6 点到日界线）问哪一刻觉得挺好
+    /// 早上问吃了什么；白天问做了什么；晚上（6 点到日界线）问哪一刻觉得挺好。
+    /// 看以前的某一天：说的话补记到那一天（docs/模块/产品优化.md R1.1）
     private var placeholder: String {
+        if model.shownDay < model.today { return "补记 \(Show.monthDay(model.shownDay))：那天做了什么？" }
         let now = Date()
         if Show.isEvening(now, boundary: model.dayBoundary) { return "今天哪一刻觉得挺好？" }
         let hour = Calendar.current.component(.hour, from: now)
