@@ -11,7 +11,8 @@ struct CanvasView: View {
     /// 左上角菜单（外壳给的）
     let openMenu: () -> Void
     @State private var picking = false
-    @State private var collapsed = false
+    /// 一周条展开着（默认收起：设计评审 2026-10-23，日期不长期占着首页；点顶上的日子展开）
+    @State private var weekOpen = false
     /// 刚才看的是哪天：换一天时新的一天从哪边进来（往后的日子从右边，往前的从左边）
     @State private var lastDay = ""
 
@@ -19,8 +20,11 @@ struct CanvasView: View {
         ScrollViewReader { reader in
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    CanvasTitle()
-                    CanvasWeek().padding(.top, Theme.Space.small)
+                    if weekOpen {
+                        CanvasWeek().padding(.bottom, Theme.Space.small)
+                            .themeTransition(.move(edge: .top).combined(with: .opacity))
+                    }
+                    CanvasDayHints()
                     SetupCard()
                     // 换一天：新的一天从那一边推进来，刚才那天原地淡出（淡出的不再占位置，两天叠在一起换）。
                     // 不包 ZStack：包了以后审计说卡片里的字「字号大了可能被截」（对照实验，2026-10-21）
@@ -48,16 +52,17 @@ struct CanvasView: View {
             .scrollDismissesKeyboard(.interactively)
             .scrollEdgeEffectStyle(.soft, for: [.top, .bottom])
             .refreshable { await model.refreshAll() }
-            // 大标题滑到顶上的玻璃按钮后面时，顶上中间出现日子的小胶囊
+            // 往下翻看内容时一周条自动收起（只收不展，免得来回闪）
             .onScrollGeometryChange(for: Bool.self) { geometry in
                 geometry.contentOffset.y + geometry.contentInsets.top > Theme.Size.touch + Theme.Space.regular
-            } action: { _, now in
-                collapsed = now
+            } action: { _, scrolled in
+                guard scrolled, weekOpen else { return }
+                withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) { weekOpen = false }
             }
         }
         .background(Theme.Palette.background.ignoresSafeArea())
         .overlay(alignment: .top) {
-            CanvasTopBar(collapsed: collapsed, openMenu: openMenu, pickDay: { picking = true })
+            CanvasTopBar(weekOpen: $weekOpen, openMenu: openMenu, pickDay: { picking = true })
         }
         // 左右滑动切换日期（横着滑 60 点以上、比竖着多一倍才算）
         .simultaneousGesture(

@@ -55,7 +55,7 @@ private struct GoalRingCard: View {
                     Text(Show.spaced(delta)).font(Theme.Typeface.rowNumber).foregroundStyle(color)
                         .lineLimit(typeSize > .large ? nil : 1)
                         .padding(.horizontal, Theme.Space.small).frame(minHeight: Theme.Size.badge + Theme.Space.tight)
-                        .background(color.opacity(0.1), in: Capsule())
+                        .background(color.opacity(0.1), in: Theme.rounded(Theme.Corner.tile))
                 }
             }
             VStack(alignment: .leading, spacing: Theme.Space.hairline) {

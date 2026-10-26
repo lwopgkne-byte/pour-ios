@@ -69,19 +69,34 @@ final class TodayUITests: XCTestCase {
         XCTAssertTrue(text(app, startingWith: "吃面").waitForExistence(timeout: 3), "没放回来")
     }
 
+    /// 日期默认收起（设计评审 2026-10-23）：点顶上的日子展开这一周，再点收起
+    @MainActor func testWeekOpens() throws {
+        let app = launch()
+        let header = app.descendants(matching: .any)["today.header"]
+        let today = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '今天，'")).firstMatch
+        XCTAssertFalse(today.exists, "一周条应该默认收起")
+        header.tap()
+        XCTAssertTrue(today.waitForExistence(timeout: 3), "点了没展开这一周")
+        settle()
+        attach(app, "画布-展开一周")
+        try AppAudit.run(app, name: "画布-展开一周")
+        header.tap()
+        XCTAssertTrue(waitGone(today), "再点没收起")
+    }
+
     /// 往右滑看昨天，往左滑回来；说一句自动回到今天
     @MainActor func testSwitchDays() throws {
         let app = launch()
         app.swipeRight()
-        XCTAssertTrue(app.staticTexts["昨天"].waitForExistence(timeout: 3), "没换到昨天")
+        XCTAssertTrue(showing("昨天", in: app), "没换到昨天")
         XCTAssertTrue(app.staticTexts["这一天没有留下记录。"].exists)
         app.swipeLeft()
-        XCTAssertTrue(app.staticTexts["今天"].waitForExistence(timeout: 3), "没回到今天")
+        XCTAssertTrue(showing("今天", in: app), "没回到今天")
         app.swipeRight()
         say("早上跑了五公里", in: app)
         // 说完对话会打开（画布读屏不读）：收起来看画布的大标题
         closeChat(app)
-        XCTAssertTrue(app.staticTexts["今天"].waitForExistence(timeout: 3), "说完没回到今天")
+        XCTAssertTrue(showing("今天", in: app), "说完没回到今天")
     }
 
     /// 连不上：原话先存在手机上，标「没有保存上 · 重试」，连上了自动发
@@ -165,6 +180,15 @@ final class TodayUITests: XCTestCase {
         field.tap()
         field.typeText(text)
         app.buttons["pourbar.send"].tap()
+    }
+
+    /// 顶上的日子胶囊写的是这一天（「今天 · 10月21日」「昨天 · 10月20日」）
+    @MainActor
+    private func showing(_ day: String, in app: XCUIApplication) -> Bool {
+        let header = app.descendants(matching: .any)["today.header"]
+        let shown = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label BEGINSWITH %@", day), object: header)
+        return XCTWaiter().wait(for: [shown], timeout: 3) == .completed
     }
 
     /// 收起对话，看画布

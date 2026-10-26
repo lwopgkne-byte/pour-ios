@@ -91,7 +91,8 @@ public struct ThemeBadge: View {
     public var body: some View {
         Text(text).font(Theme.Typeface.caption).foregroundStyle(foreground)
             .padding(.horizontal, Theme.Space.small).frame(minHeight: Theme.Size.badge)
-            .background(background, in: Capsule())
+            // 不能点的小标签用小圆角；胶囊留给能点的（设计评审 2026-10-23：不要什么都做成胶囊）
+            .background(background, in: Theme.rounded(Theme.Corner.tile))
     }
 
     private var foreground: Color {

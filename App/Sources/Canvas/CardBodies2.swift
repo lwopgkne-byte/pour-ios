@@ -107,10 +107,11 @@ struct MoneyBody: View {
             model.open("/money/day/\(day)")
         } label: {
             VStack(alignment: .leading, spacing: Theme.Space.small) {
+                // 大数字前面写明是花的还是收入（设计评审 2026-10-23：「¥95」说不清是花的、收入还是相抵以后的）
                 let income = summary.earned > summary.spent
                 FigureText(
                     [CanvasPlan.yuan(income ? summary.earned : summary.spent)].map { ($0.number, $0.unit) },
-                    prefix: income ? "收入 ¥" : "¥")
+                    prefix: income ? "收入 ¥" : "花了 ¥")
                 let other =
                     income
                     ? (summary.spent > 0 ? "花了 \(Show.yuan(summary.spent))" : nil)
@@ -118,7 +119,11 @@ struct MoneyBody: View {
                 if let other {
                     Text(other).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                 }
-                if summary.segments.count > 1 { SegmentBar(summary.segments) }
+                // 花在哪几类：写出来，不画分段条（几类常是同一个颜色，又没有图例，条看不出意思）
+                if summary.parts.count > 1 {
+                    Text(Show.spaced(MoneySummary.breakdown(summary.parts))).font(Theme.Typeface.footnote)
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                }
                 ForEach(summary.notes, id: \.self) { note in ThemeBadge(note, tone: .accent) }
                 HStack(spacing: Theme.Space.tight) {
                     Text("看这一天的钱")
@@ -138,7 +143,8 @@ struct MoneyBody: View {
 struct MoneySummary {
     let spent: Double
     let earned: Double
-    let segments: [SegmentBar.Segment]
+    /// 花在哪几类：类别名和花了多少，多的在前
+    let parts: [(name: String, value: Double)]
     let notes: [String]
 
     init(_ entries: [API.Entry], _ categories: [API.Category]) {
@@ -153,8 +159,8 @@ struct MoneySummary {
             let spend = Show.money([event]).spent
             if spend > 0 { byCategory[category, default: 0] += spend }
         }
-        segments = byCategory.sorted { $0.value > $1.value }.map { key, value in
-            SegmentBar.Segment(value: value, color: Theme.tag(Show.meta(key, categories).color).solid)
+        parts = byCategory.sorted { $0.value > $1.value }.map { key, value in
+            (Show.meta(key, categories).name, value)
         }
         let metrics = entries.compactMap(CanvasPlan.event).flatMap { $0.metrics ?? [] }
         let reimburse = metrics.filter { $0.flag == "reimburse" && $0.settled != true }.count
@@ -164,6 +170,14 @@ struct MoneySummary {
             reimburse > 0 ? "\(reimburse) 笔等报销" : nil, lent > 0 ? "\(lent) 笔借出去" : nil,
             fixed > 0 ? "每月固定 \(Show.yuan(fixed))" : nil,
         ].compactMap(\.self)
+    }
+
+    /// 「饮食 ¥26 · 购物 ¥69」：最多写三类，再多的合成「其他」
+    static func breakdown(_ parts: [(name: String, value: Double)]) -> String {
+        let shown = parts.count > 3 ? Array(parts.prefix(2)) : parts
+        let rest = parts.dropFirst(shown.count).reduce(0) { $0 + $1.value }
+        let lines = shown.map { "\($0.name) \(Show.yuan($0.value))" } + (rest > 0 ? ["其他 \(Show.yuan(rest))"] : [])
+        return lines.joined(separator: " · ")
     }
 }
 

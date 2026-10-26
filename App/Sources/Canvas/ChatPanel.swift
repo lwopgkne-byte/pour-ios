@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 对话面板（docs/模块/生活画布2.0.md 第 7 节）：按天分隔的历史（居中的小胶囊），你的话在右边浅蓝的气泡里，
+/// 对话面板（docs/模块/生活画布2.0.md 第 7 节）：按天分隔的历史（居中的小标签），你的话在右边浅蓝的气泡里，
 /// 整理的结果在左边（收据小卡、回复、追问；ChatMessages）；拖上面的小横条往下收起；往上翻自动拿更早的，
 /// 离开底部时右下角「回到最新」。还没交给服务器的话（没网时）排在最后，写「正在保存」或者「没有保存上 · 重试」
 struct ChatPanel: View {
@@ -167,14 +167,14 @@ struct ChatPanel: View {
     private var bottomKey: String { "\(rows.last?.id ?? "")-\(model.chat.last?.status ?? "")" }
 }
 
-/// 按天分隔：居中的小胶囊
+/// 按天分隔：居中的小标签（小圆角：不能点的不用胶囊）
 private struct DayCapsule: View {
     let label: String
 
     var body: some View {
         Text(label).font(Theme.Typeface.caption).foregroundStyle(Theme.Palette.secondaryLabel)
             .padding(.horizontal, Theme.Space.medium).frame(minHeight: Theme.Size.badge + Theme.Space.tight)
-            .background(Theme.Palette.fill, in: Capsule())
+            .background(Theme.Palette.fill, in: Theme.rounded(Theme.Corner.tile))
             .frame(maxWidth: .infinity)
             .padding(.top, Theme.Space.small)
             .accessibilityAddTraits(.isHeader)

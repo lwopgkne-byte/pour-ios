@@ -16,7 +16,7 @@ struct DayLook: View {
             Label("这一天的样子", systemImage: "sparkles").font(Theme.Typeface.footnoteSemibold)
                 .foregroundStyle(Theme.Palette.label)
                 .padding(.horizontal, Theme.Space.small).frame(minHeight: Theme.Size.badge + Theme.Space.tight)
-                .background(Theme.Palette.statFill, in: Capsule())
+                .background(Theme.Palette.statFill, in: Theme.rounded(Theme.Corner.tile))
                 .accessibilityAddTraits(.isHeader)
             if !overview.isEmpty {
                 Text(Show.spaced(overview)).font(Theme.Typeface.summary).foregroundStyle(Theme.Palette.label)

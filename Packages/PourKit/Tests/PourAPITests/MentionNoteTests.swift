@@ -13,7 +13,7 @@ struct MentionNoteTests {
     }
 
     @Test func severalDaysThisWeek() {
-        #expect(CanvasPlan.mentionNote(History(kind: "person", name: "小李", weekDays: 3, firstTime: false)) == "这周第 3 次")
+        #expect(CanvasPlan.mentionNote(History(kind: "person", name: "小李", weekDays: 3, firstTime: false)) == "这周 3 天")
     }
 
     @Test func onceAndNotNewSaysNothing() {

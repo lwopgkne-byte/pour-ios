@@ -4,7 +4,7 @@ import SwiftUI
 
 /// 说到的（产品主人 2026-10-21：画布跟着说的话长——人、事、物、话题）：这一天说到的人、东西、地方、话题，
 /// 一类一行小胶囊，按说的先后；点一个就搜它（以前哪天也说到过）。两样以上才长出来。
-/// 胶囊旁边写以前说到过多少（服务器数的）：「第一次」「这周第 3 次」
+/// 胶囊旁边写以前说到过多少（服务器数的）：「第一次」「这周 3 天」；下面一行说清楚怎么数的、点了看什么
 struct MentionsBody: View {
     @Environment(AppModel.self) private var model
     let entries: [API.Entry]
@@ -17,6 +17,10 @@ struct MentionsBody: View {
             row("东西", mentions.things, kind: "thing")
             row("地方", mentions.places, kind: "place")
             row("话题", mentions.topics, kind: "tag", prefix: "#")
+            // 数字的意思写明白（自然周、数的是天数），和点了会看到什么
+            let counted = (history ?? []).contains { !$0.firstTime && $0.weekDays >= 2 }
+            Text(counted ? "「这周 N 天」从周一算起，数的是说到的天数；点一下看说到它的原话" : "点一下看说到它的原话")
+                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
     }
 

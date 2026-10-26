@@ -11,7 +11,7 @@ final class CanvasSampleUITests: XCTestCase {
         let app = launch("上班族")
         try walk(app, name: "画布2-上班族", pages: 4, audit: true)
         // 说到的：胶囊旁边写以前说到过多少（服务器数的；只说过一次又不是第一次的不写）
-        XCTAssertTrue(app.buttons["小李，这周第 3 次"].exists, "说到的没写这周第几次")
+        XCTAssertTrue(app.buttons["小李，这周 3 天"].exists, "说到的没写这周几天")
         XCTAssertTrue(app.buttons["牛奶，第一次"].exists, "说到的没写第一次")
         XCTAssertTrue(app.buttons["老婆"].exists, "只说过一次的不该写")
     }
