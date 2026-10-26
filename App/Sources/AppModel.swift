@@ -364,6 +364,13 @@ extension AppModel {
             Task { await run(slash.command, slash.rest) }
             return
         }
+        // 画布样张只用来看：说的话交给真的服务器——回到服务器的数据，新的 AppModel 起来就发出去、打开对话
+        if CanvasSamples.isOn {
+            OutboxStore.queueForServer(text)
+            Self.openChatOnLaunch = true
+            showSamples(false)
+            return
+        }
         outbox.append(Outbox(clientId: UUID().uuidString, text: text, createdAt: Date()))
         OutboxStore.save(outbox)
         chatOpen = true

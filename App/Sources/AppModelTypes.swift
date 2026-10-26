@@ -41,13 +41,24 @@ enum OutboxStore {
         return stub ? "pour.outbox.uiTest" : "pour.outbox"
     }
 
-    static func load() -> [AppModel.Outbox] {
+    /// 真的服务器的那一份
+    static let serverKey = "pour.outbox"
+
+    static func load(from key: String = key) -> [AppModel.Outbox] {
         guard let data = UserDefaults.standard.data(forKey: key) else { return [] }
         return (try? JSONDecoder().decode([AppModel.Outbox].self, from: data)) ?? []
     }
 
-    static func save(_ items: [AppModel.Outbox]) {
+    static func save(_ items: [AppModel.Outbox], to key: String = key) {
         UserDefaults.standard.set(try? JSONEncoder().encode(items), forKey: key)
+    }
+
+    /// 画布样张里说的话：放进真的服务器的那一份，回到服务器的数据时发出去（产品主人 2026-10-26：
+    /// 用语音说了今天做了什么，样张里的假服务器只回「好的，听到了」，没交给后台）
+    static func queueForServer(_ text: String) {
+        var items = load(from: serverKey)
+        items.append(AppModel.Outbox(clientId: UUID().uuidString, text: text, createdAt: Date()))
+        save(items, to: serverKey)
     }
 }
 

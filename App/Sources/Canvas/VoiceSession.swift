@@ -47,10 +47,11 @@ final class VoiceSession {
         self.input = input
     }
 
-    /// 手机上的听写；界面测试（-uiTest）用假的，不开麦克风
+    /// 手机上的听写；界面测试（-uiTest）、连真服务器联调（-fakeVoice）用假的，不开麦克风
     static func makeInput() -> any VoiceInput {
         #if DEBUG
-            if ProcessInfo.processInfo.arguments.contains("-uiTest") { return FakeVoice() }
+            let arguments = ProcessInfo.processInfo.arguments
+            if arguments.contains("-uiTest") || arguments.contains("-fakeVoice") { return FakeVoice() }
         #endif
         return OnDeviceVoice()
     }
