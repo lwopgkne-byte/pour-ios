@@ -131,6 +131,7 @@ final class AppModel {
             categories = try await client.categories()
             offline = nil
             needsPin = false
+            await ensureDeviceKey()
         } catch {
             offline = error.message
             needsPin = error == .needPin

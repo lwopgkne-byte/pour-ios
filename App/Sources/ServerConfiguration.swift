@@ -8,6 +8,8 @@ import PourPlatform
 enum ServerConfiguration {
     static let fallback = "http://127.0.0.1:5188"
     static let addressKey = "server.address"
+    /// 这台设备的钥匙（配对时服务器给的，docs/模块/产品优化.md R8）：换了服务器地址就作废
+    static let deviceKeyKey = "server.deviceKey"
 
     static var builtIn: URL {
         let configured = Bundle.main.object(forInfoDictionaryKey: "PourServerURL") as? String ?? ""
@@ -26,11 +28,18 @@ enum ServerConfiguration {
         {
             return APIClient(baseURL: url)
         }
-        return APIClient(baseURL: address)
+        return APIClient(baseURL: address) { Keychain.read(deviceKeyKey) }
     }
 
-    /// 设置里改了地址
+    /// 设置里改了地址：上一台服务器给的钥匙不再用（到新的那台要重新输 PIN）
     static func remember(address: URL) {
         Keychain.save(address.absoluteString, for: addressKey)
+        Keychain.delete(deviceKeyKey)
+    }
+
+    /// 配对成功：把这台设备的钥匙存进钥匙串（只在这台手机上，不跟 iCloud 同步）
+    static func remember(deviceKey: String?) {
+        guard let deviceKey, !deviceKey.isEmpty else { return }
+        Keychain.save(deviceKey, for: deviceKeyKey)
     }
 }

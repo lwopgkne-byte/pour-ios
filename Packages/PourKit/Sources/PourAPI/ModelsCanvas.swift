@@ -1,6 +1,18 @@
 // 产品优化（docs/模块/产品优化.md）加的几样：我的卡片、我的语录、名字表
 
 extension API {
+    /// 输入 PIN 配对的回复（设备登录，docs/模块/产品优化.md R8）：新服务器给这台设备一把钥匙；旧服务器只有 ok
+    public struct Pairing: Codable, Hashable, Sendable {
+        public struct Device: Codable, Hashable, Sendable {
+            public var id: Int
+            public var name: String
+        }
+
+        public var ok: Bool
+        public var token: String?
+        public var device: Device?
+    }
+
     /// 画布上的一张「我的卡片」（docs/模块/产品优化.md R3）：服务器按查询条件现算，手机只管画
     public struct CardView: Codable, Hashable, Sendable, Identifiable {
         public struct Item: Codable, Hashable, Sendable {

@@ -102,8 +102,10 @@ extension APIClient {
         guard let url = URL(string: path, relativeTo: baseURL) else { throw .unreachable }
         let saved: URL
         let response: URLResponse
+        var request = URLRequest(url: url)
+        authorize(&request)
         do {
-            (saved, response) = try await session.download(from: url)
+            (saved, response) = try await session.download(for: request)
         } catch {
             throw .unreachable
         }

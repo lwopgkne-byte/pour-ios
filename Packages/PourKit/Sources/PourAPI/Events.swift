@@ -26,6 +26,7 @@ extension APIClient {
             let task = Task {
                 do {
                     var request = URLRequest(url: url)
+                    self.authorize(&request)
                     request.timeoutInterval = Self.eventsSilence
                     request.setValue("text/event-stream", forHTTPHeaderField: "accept")
                     let (bytes, response) = try await listener.bytes(for: request)

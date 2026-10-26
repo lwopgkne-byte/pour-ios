@@ -54,7 +54,9 @@ struct PinGate: View {
         Task {
             defer { busy = false }
             do {
-                try await client.login(pin: code)
+                let pairing = try await client.login(pin: code)
+                // 设备登录：新服务器给这台设备一把钥匙，以后每个请求带上（旧服务器没有，照旧靠 cookie）
+                ServerConfiguration.remember(deviceKey: pairing.token)
                 pin = ""
                 await model.refreshAll()
                 await model.flushOutbox()

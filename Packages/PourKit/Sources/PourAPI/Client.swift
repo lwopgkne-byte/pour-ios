@@ -24,9 +24,12 @@ public actor APIClient {
     public let baseURL: URL
     /// 不是 private：下载文件（导出）也用它，带着登录 PIN 以后的 cookie
     let session: URLSession
+    /// 这台设备的钥匙（设备登录，docs/模块/产品优化.md R8）：配对时服务器给的，每个请求带上；没有就只靠 cookie
+    nonisolated let deviceKey: @Sendable () -> String?
 
-    public init(baseURL: URL, session: URLSession? = nil) {
+    public init(baseURL: URL, session: URLSession? = nil, deviceKey: @escaping @Sendable () -> String? = { nil }) {
         self.baseURL = baseURL
+        self.deviceKey = deviceKey
         if let session {
             self.session = session
         } else {
@@ -103,8 +106,15 @@ public actor APIClient {
     }
 
     /// 输入 PIN（局域网访问开了 PIN 时）：成功以后令牌在 cookie 里
-    public func login(pin: String) async throws(APIError) {
-        let _: Empty = try await request("POST", "/api/auth/login", body: ["pin": pin])
+    /// 已经进来了（以前输过 PIN、带着 cookie）：换一把这台设备自己的钥匙，不用再输 PIN（小组件、分享要用）
+    public func pairDevice(name: String = "iPhone") async throws(APIError) -> API.Pairing {
+        try await request("POST", "/api/auth/device", body: ["device": name])
+    }
+
+    /// 输入 PIN 配对：服务器照旧发 cookie，再给这台设备一把自己的钥匙（新服务器才有；只给这一次，App 存进钥匙串）
+    @discardableResult
+    public func login(pin: String, device: String = "iPhone") async throws(APIError) -> API.Pairing {
+        try await request("POST", "/api/auth/login", body: ["pin": pin, "device": device])
     }
 
     // MARK: -
@@ -127,6 +137,7 @@ public actor APIClient {
         guard let url = URL(string: path, relativeTo: baseURL) else { throw .unreachable }
         var request = URLRequest(url: url)
         request.httpMethod = method
+        authorize(&request)
         if let json {
             request.setValue("application/json", forHTTPHeaderField: "content-type")
             request.httpBody = try? JSONEncoder().encode(json)
@@ -150,6 +161,13 @@ public actor APIClient {
             return try JSONDecoder().decode(T.self, from: data.isEmpty ? Data("{}".utf8) : data)
         } catch {
             throw .server(status: status, code: "decode", message: "看不懂服务器的回复：\(error.localizedDescription)")
+        }
+    }
+
+    /// 带上这台设备的钥匙（有的话）
+    nonisolated func authorize(_ request: inout URLRequest) {
+        if let key = deviceKey(), !key.isEmpty {
+            request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         }
     }
 
