@@ -2,6 +2,9 @@
 # 色值和字号只允许出现在 PourDesign 里（令牌定义的地方）。
 included:
   - App
+  - Widgets
+  - Share
+  - Extensions
   - AppTests
   - AppUITests
   - Gallery/Sources

@@ -18,6 +18,9 @@ extension APIClient {
         let _: Empty = try await request("POST", "/api/cards/\(id)/restore")
     }
 
+    /// 一眼：桌面小组件、锁屏要的那一小份（R7）
+    public func glance() async throws(APIError) -> API.Glance { try await get("/api/glance") }
+
     /// 全部语录：新的在前
     public func quotes() async throws(APIError) -> [API.MyQuote] {
         let page: API.MyQuotes = try await get("/api/quotes")

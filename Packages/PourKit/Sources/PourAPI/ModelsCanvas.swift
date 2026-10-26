@@ -1,6 +1,53 @@
 // 产品优化（docs/模块/产品优化.md）加的几样：我的卡片、我的语录、名字表
 
 extension API {
+    /// 一眼（桌面小组件、锁屏，docs/模块/产品优化.md R7）：服务器挑好的今天还没做的待办、下一件提醒、今天那句「你说过」
+    public struct Glance: Codable, Hashable, Sendable {
+        public struct Todo: Codable, Hashable, Sendable, Identifiable {
+            public var id: Int
+            public var content: String
+            /// 几点提醒（「19:00」）
+            public var remindAt: String?
+            /// 以前该做、还没做的
+            public var overdue: Bool
+
+            public init(id: Int, content: String, remindAt: String?, overdue: Bool) {
+                self.id = id
+                self.content = content
+                self.remindAt = remindAt
+                self.overdue = overdue
+            }
+        }
+
+        public struct Quote: Codable, Hashable, Sendable {
+            public var text: String
+            public var day: String
+            public var asked: Bool
+
+            public init(text: String, day: String, asked: Bool) {
+                self.text = text
+                self.day = day
+                self.asked = asked
+            }
+        }
+
+        public var today: String
+        public var open: [Todo]
+        public var done: Int
+        public var total: Int
+        public var next: Todo?
+        public var quote: Quote?
+
+        public init(today: String, open: [Todo], done: Int, total: Int, next: Todo?, quote: Quote?) {
+            self.today = today
+            self.open = open
+            self.done = done
+            self.total = total
+            self.next = next
+            self.quote = quote
+        }
+    }
+
     /// 输入 PIN 配对的回复（设备登录，docs/模块/产品优化.md R8）：新服务器给这台设备一把钥匙；旧服务器只有 ok
     public struct Pairing: Codable, Hashable, Sendable {
         public struct Device: Codable, Hashable, Sendable {

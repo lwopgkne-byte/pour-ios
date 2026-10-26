@@ -39,6 +39,8 @@ final class AppModel {
     var draft = ""
     /// 别处要输入框弹出键盘（时间轴上点空当补记）：加一就弹
     private(set) var composeFocus = 0
+    /// 小组件、控制中心的「说一句」（pour://voice）：输入框看到就开始听，听了就清掉
+    var voicePending = false
     /// 正在看哪一页（左上角菜单换）
     var page: Page = .canvas
     /// 这一页要先打开哪一篇：页面地址（对话里点「昨天的回顾好了」→「/review/2026-10-18」），那一页看完清掉
@@ -82,6 +84,11 @@ final class AppModel {
         self.today = today
         shownDay = today
         outbox = OutboxStore.load()
+        // 分享扩展、Siri 连不上电脑时存在 App 组里的话：放进待发，连上了一起发（docs/模块/产品优化.md R7）
+        for text in SharedStore.takePendingShares() {
+            outbox.append(Outbox(clientId: UUID().uuidString, text: text, createdAt: Date()))
+        }
+        OutboxStore.save(outbox)
     }
 
     /// 开始连服务器（AppModel+Launch）
@@ -216,6 +223,7 @@ final class AppModel {
         case "notes-changed":
             await notesChanged(statusOnly: event.statusOnly)
         case "entries-changed":
+            refreshWidgets()
             dataVersion += 1
             if let fresh = try? await client.categories() { categories = fresh }
             await reloadDay()

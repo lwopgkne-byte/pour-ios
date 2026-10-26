@@ -14,13 +14,20 @@ struct RootView: View {
     var body: some View {
         // 看得见的高度（键盘弹出时是键盘上面那一截）：对话面板占它的 55%
         GeometryReader { proxy in
-            if model.needsPin {
+            if Self.widgetSamples {
+                #if DEBUG
+                    WidgetSamplesView()
+                #endif
+            } else if model.needsPin {
                 PinGate()
             } else {
                 shell.environment(\.visibleHeight, proxy.size.height).environment(voice)
             }
         }
     }
+
+    /// 开发版的「小组件样张」（启动参数 -widgetSamples）
+    private static let widgetSamples = ProcessInfo.processInfo.arguments.contains("-widgetSamples")
 
     private var shell: some View {
         @Bindable var model = model

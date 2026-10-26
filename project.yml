@@ -33,7 +33,17 @@ targets:
     sources:
       - App/Sources
       - App/Resources
+      # 小组件画的样子、勾待办、连服务器：App 也编译（开发版的「小组件样张」、Siri 的「记一句」用）
+      - Extensions/WidgetViews
+    entitlements:
+      path: App/Pour.entitlements
+      properties:
+        # 和小组件、分享扩展共用：服务器地址放 App 组，设备钥匙放钥匙串共享组（docs/模块/产品优化.md R7）
+        com.apple.security.application-groups: [group.$(POUR_BUNDLE_ID)]
+        keychain-access-groups: [$(AppIdentifierPrefix)$(POUR_BUNDLE_ID).shared]
     dependencies:
+      - target: PourWidgets
+      - target: PourShare
       - package: PourKit
         product: PourCore
       - package: PourKit
@@ -64,6 +74,9 @@ targets:
         # Pour 服务器的地址（Config/Base.xcconfig 的 POUR_SERVER_URL；产品主人 2026-10-19 选 B：业务规则和 AI 都在服务器上）。
         # 开发阶段服务器跑在这台 Mac 上、走局域网的 http；搬到阿里云、换成 https 以后这里换成那个地址
         PourServerURL: $(POUR_SERVER_URL)
+        # 和扩展共用的两个组（PourPlatform 的 SharedStore 读）
+        PourAppGroup: group.$(POUR_BUNDLE_ID)
+        PourKeychainGroup: $(AppIdentifierPrefix)$(POUR_BUNDLE_ID).shared
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
         # 真机连这台 Mac 上的网关要用局域网：系统第一次会问，这句话写清楚为什么
@@ -82,6 +95,91 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_STYLE: Automatic
+
+  # 桌面小组件、锁屏组件、控制中心按钮（docs/模块/产品优化.md R7）
+  PourWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Widgets/Sources
+      - Extensions/WidgetViews
+    dependencies:
+      - package: PourKit
+        product: PourAPI
+      - package: PourKit
+        product: PourDesign
+      - package: PourKit
+        product: PourPlatform
+    entitlements:
+      path: Widgets/Widgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.$(POUR_BUNDLE_ID)]
+        keychain-access-groups: [$(AppIdentifierPrefix)$(POUR_BUNDLE_ID).shared]
+    info:
+      path: Widgets/Info.plist
+      properties:
+        CFBundleDisplayName: Pour
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: zh-Hans
+        PourAppGroup: group.$(POUR_BUNDLE_ID)
+        PourKeychainGroup: $(AppIdentifierPrefix)$(POUR_BUNDLE_ID).shared
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(POUR_BUNDLE_ID).widgets
+        PRODUCT_NAME: PourWidgets
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+
+  # 从别的 App 分享文字、链接进来（docs/模块/产品优化.md R7）
+  PourShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Share/Sources
+      - path: Extensions/WidgetViews/SharedClient.swift
+    dependencies:
+      - package: PourKit
+        product: PourAPI
+      - package: PourKit
+        product: PourDesign
+      - package: PourKit
+        product: PourPlatform
+    entitlements:
+      path: Share/Share.entitlements
+      properties:
+        com.apple.security.application-groups: [group.$(POUR_BUNDLE_ID)]
+        keychain-access-groups: [$(AppIdentifierPrefix)$(POUR_BUNDLE_ID).shared]
+    info:
+      path: Share/Info.plist
+      properties:
+        CFBundleDisplayName: Pour
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleDevelopmentRegion: zh-Hans
+        PourAppGroup: group.$(POUR_BUNDLE_ID)
+        PourKeychainGroup: $(AppIdentifierPrefix)$(POUR_BUNDLE_ID).shared
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(POUR_BUNDLE_ID).share
+        PRODUCT_NAME: PourShare
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
 
   PourTests:
     type: bundle.unit-test

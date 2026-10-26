@@ -70,6 +70,9 @@ struct Composer: View {
         }
         // 别处先填好了一段（时间轴上点空当补记）：弹出键盘接着说
         .onChange(of: model.composeFocus) { focused = true }
+        // 小组件、控制中心的「说一句」（pour://voice）：打开就开始听
+        .onAppear(perform: startPendingVoice)
+        .onChange(of: model.voicePending) { startPendingVoice() }
         .animation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion), value: open)
         .animation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion), value: voice.active)
         .onAppear {
@@ -105,6 +108,12 @@ struct Composer: View {
     }
 
     /// 点麦克风：第一次先看说明；键盘收起来
+    private func startPendingVoice() {
+        guard model.voicePending, !voice.active else { return }
+        model.voicePending = false
+        tapMic()
+    }
+
     private func tapMic() {
         focused = false
         voice.dismissFailure()

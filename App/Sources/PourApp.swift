@@ -19,6 +19,11 @@ struct PourApp: App {
                 .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                 // pour://open?path=/review/2026-10-18：打开那一页；只是 pour:// 就回到 App（推送点进来）
                 .onOpenURL { url in
+                    // pour://voice：小组件、控制中心的「说一句」——打开就开始听
+                    if url.scheme == "pour", url.host() == "voice" {
+                        model.requestVoice()
+                        return
+                    }
                     guard url.scheme == "pour", url.host() == "open",
                         let path = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
                             .first(where: { $0.name == "path" })?.value, path.hasPrefix("/")

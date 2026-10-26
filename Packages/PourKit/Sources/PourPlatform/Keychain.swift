@@ -6,8 +6,9 @@ import Security
 public enum Keychain {
     private static let service = "com.lwopgkne.pour"
 
-    public static func read(_ key: String) -> String? {
-        var query = base(key)
+    /// group：钥匙串共享组（App 和小组件、分享扩展一起用，SharedStore.keychainGroup）；nil 是只有这个 App 自己
+    public static func read(_ key: String, group: String? = nil) -> String? {
+        var query = base(key, group: group)
         query[kSecReturnData as String] = true
         query[kSecMatchLimit as String] = kSecMatchLimitOne
         var item: CFTypeRef?
@@ -18,24 +19,26 @@ public enum Keychain {
     }
 
     @discardableResult
-    public static func save(_ value: String, for key: String) -> Bool {
-        delete(key)
-        var query = base(key)
+    public static func save(_ value: String, for key: String, group: String? = nil) -> Bool {
+        delete(key, group: group)
+        var query = base(key, group: group)
         query[kSecValueData as String] = Data(value.utf8)
         query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         return SecItemAdd(query as CFDictionary, nil) == errSecSuccess
     }
 
     @discardableResult
-    public static func delete(_ key: String) -> Bool {
-        let status = SecItemDelete(base(key) as CFDictionary)
+    public static func delete(_ key: String, group: String? = nil) -> Bool {
+        let status = SecItemDelete(base(key, group: group) as CFDictionary)
         return status == errSecSuccess || status == errSecItemNotFound
     }
 
-    private static func base(_ key: String) -> [String: Any] {
-        [
+    private static func base(_ key: String, group: String?) -> [String: Any] {
+        var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
             kSecAttrAccount as String: key,
         ]
+        if let group { query[kSecAttrAccessGroup as String] = group }
+        return query
     }
 }

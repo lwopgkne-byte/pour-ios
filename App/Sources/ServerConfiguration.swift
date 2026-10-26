@@ -28,18 +28,33 @@ enum ServerConfiguration {
         {
             return APIClient(baseURL: url)
         }
-        return APIClient(baseURL: address) { Keychain.read(deviceKeyKey) }
+        // 小组件、分享扩展连同一台服务器：地址写进 App 组（docs/模块/产品优化.md R7）
+        SharedStore.publish(address: address)
+        return APIClient(baseURL: address) { deviceKey }
+    }
+
+    /// 这台设备的钥匙：放在钥匙串的共享组里，小组件、分享扩展也读得到。
+    /// 以前存在 App 自己那一份的（第 4 步装的那一版）：第一次读到时挪过去
+    static var deviceKey: String? {
+        let group = SharedStore.keychainGroup
+        if let key = Keychain.read(deviceKeyKey, group: group) { return key }
+        guard group != nil, let old = Keychain.read(deviceKeyKey) else { return nil }
+        Keychain.save(old, for: deviceKeyKey, group: group)
+        Keychain.delete(deviceKeyKey)
+        return old
     }
 
     /// 设置里改了地址：上一台服务器给的钥匙不再用（到新的那台要重新输 PIN）
     static func remember(address: URL) {
         Keychain.save(address.absoluteString, for: addressKey)
+        Keychain.delete(deviceKeyKey, group: SharedStore.keychainGroup)
         Keychain.delete(deviceKeyKey)
+        SharedStore.publish(address: address)
     }
 
-    /// 配对成功：把这台设备的钥匙存进钥匙串（只在这台手机上，不跟 iCloud 同步）
+    /// 配对成功：把这台设备的钥匙存进钥匙串的共享组（只在这台手机上，不跟 iCloud 同步）
     static func remember(deviceKey: String?) {
         guard let deviceKey, !deviceKey.isEmpty else { return }
-        Keychain.save(deviceKey, for: deviceKeyKey)
+        Keychain.save(deviceKey, for: deviceKeyKey, group: SharedStore.keychainGroup)
     }
 }

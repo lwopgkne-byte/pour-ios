@@ -2,6 +2,12 @@
 /*.xcodeproj/
 /App/Info.plist
 /Gallery/Info.plist
+/Widgets/Info.plist
+/Share/Info.plist
+# 权限文件也由 project.yml 的 entitlements.properties 生成
+/App/Pour.entitlements
+/Widgets/Widgets.entitlements
+/Share/Share.entitlements
 
 # 构建产物
 /build/
