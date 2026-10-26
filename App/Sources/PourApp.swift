@@ -7,6 +7,13 @@ struct PourApp: App {
     var body: some Scene {
         WindowGroup {
             RootView().environment(model)
+                // 换了一个 AppModel（画布样张开、关）：整个界面从头来
+                .id(ObjectIdentifier(model))
+                .onChange(of: model.replaced) { _, now in
+                    guard now else { return }
+                    model.stop()
+                    model = AppModel.launch()
+                }
                 // 字号最大到 xxxLarge（系统「更大字体」打开之前的最后一档），辅助功能那几档也按这一档显示：
                 // 产品主人 2026-10-21「那种的不要兼容，因为很少人会字体放那么大」
                 .dynamicTypeSize(...DynamicTypeSize.xxxLarge)

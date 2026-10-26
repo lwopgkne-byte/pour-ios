@@ -35,7 +35,11 @@ extension AppModel {
 
 /// 还没交给服务器的话存在手机上（UserDefaults）；界面测试（假服务器）的单独放：测试留下的话不会在平时打开时发给真的服务器
 enum OutboxStore {
-    static let key = ProcessInfo.processInfo.arguments.contains("-uiTest") ? "pour.outbox.uiTest" : "pour.outbox"
+    /// 界面测试、画布样张（都是 App 里的假服务器）另存一份：它们说的话不能发到真的服务器上
+    static var key: String {
+        let stub = ProcessInfo.processInfo.arguments.contains("-uiTest") || CanvasSamples.isOn
+        return stub ? "pour.outbox.uiTest" : "pour.outbox"
+    }
 
     static func load() -> [AppModel.Outbox] {
         guard let data = UserDefaults.standard.data(forKey: key) else { return [] }

@@ -65,6 +65,8 @@ final class AppModel {
     private(set) var settingsVersion = 0
 
     private var events: Task<Void, Never>?
+    /// 换了数据来源（画布样张开、关）：PourApp 看到它就换一个新的 AppModel
+    var replaced = false
     private var noticeTimer: Task<Void, Never>?
     private var noticeAction: (() -> Void)?
     private let network = NWPathMonitor()
@@ -80,24 +82,11 @@ final class AppModel {
         outbox = OutboxStore.load()
     }
 
-    static func launch() -> AppModel {
+    /// 开始连服务器（AppModel+Launch）
+    func start() {
+        // 界面测试不排通知（会弹「允许通知」把界面挡住）；对照演示数据时（-serverURL）、看画布样张时也不排
         let arguments = ProcessInfo.processInfo.arguments
-        // 界面测试每次从头开始：上一个测试没发出去的话不留到这一个
-        if arguments.contains("-uiTest") { UserDefaults.standard.removeObject(forKey: OutboxStore.key) }
-        let model = AppModel(client: ServerConfiguration.client(arguments: arguments))
-        model.start()
-        // 开发时对照演示数据：-day 2026-10-15 直接打开那一天
-        if let index = arguments.firstIndex(of: "-day"), index + 1 < arguments.count {
-            model.show(arguments[index + 1])
-        }
-        return model
-    }
-
-    private func start() {
-        // 界面测试不排通知（会弹「允许通知」把界面挡住）
-        // 对照演示数据时（-serverURL）也不排
-        let arguments = ProcessInfo.processInfo.arguments
-        remindersOn = !arguments.contains("-uiTest") && !arguments.contains("-serverURL")
+        remindersOn = !arguments.contains("-uiTest") && !arguments.contains("-serverURL") && !CanvasSamples.isOn
         if remindersOn { Reminders.showWhileOpen() }
         network.pathUpdateHandler = { [weak self] path in
             guard path.status == .satisfied else { return }
@@ -106,6 +95,12 @@ final class AppModel {
         network.start(queue: DispatchQueue(label: "pour.network"))
         listen()
         Task { await refreshAll() }
+    }
+
+    /// 停掉连接：换数据来源前（PourApp 换 AppModel 时）
+    func stop() {
+        events?.cancel()
+        network.cancel()
     }
 
     /// 回到前台：重新拿一遍（过了日界线就换成新的一天），没发出去的接着发

@@ -49,7 +49,32 @@ final class CanvasSampleUITests: XCTestCase {
         attach(app, "画布2-勾掉待办")
     }
 
+    /// 画布样张（产品主人 2026-10-26：在手机的画布上看到所有功能）：不连服务器，这一周每天一种人的一天；
+    /// 最上面的胶囊点一下回到服务器的数据
+    @MainActor func testSampleWeek() throws {
+        let app = XCUIApplication()
+        // 不用 -uiTest：样张自己就用 App 里的假服务器。退出以后连一个不存在的地址，不碰电脑上真的服务器
+        app.launchArguments += ["-canvasSamples", "on", "-serverURL", "http://127.0.0.1:9"]
+        app.launch()
+        let samples = app.buttons["canvas.samples"]
+        XCTAssertTrue(samples.waitForExistence(timeout: 5), "没有样张的胶囊")
+        XCTAssertTrue(todo("送车去保养", in: app).waitForExistence(timeout: 5), "今天不是上班族")
+        attach(app, "样张-今天")
+        app.swipeRight()
+        XCTAssertTrue(todo("预约儿保", in: app).waitForExistence(timeout: 5), "昨天不是带孩子")
+        attach(app, "样张-昨天")
+        samples.tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: samples)
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "没退出样张")
+    }
+
     // MARK: -
+
+    /// 待办的勾选圆圈（做完以后那一行的字也叫这个名字，按编号找圆圈）
+    @MainActor
+    private func todo(_ name: String, in app: XCUIApplication) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "identifier == 'todo.check' AND label == %@", name)).firstMatch
+    }
 
     private static let biggestText = [
         "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryXXXL",

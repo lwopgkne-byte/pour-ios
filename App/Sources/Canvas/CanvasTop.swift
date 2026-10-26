@@ -59,8 +59,8 @@ struct CanvasTopBar: View {
     }
 }
 
-/// 画布最上面一行（日子写在顶上的玻璃胶囊里，这里不再写大标题）：左边小胶囊（演示数据、昨天的回顾好了），
-/// 看别的日子时右边「回到今天」；都没有时这一行不占地方
+/// 画布最上面一行（日子写在顶上的玻璃胶囊里，这里不再写大标题）：小胶囊（画布样张、演示数据、昨天的回顾好了），
+/// 看别的日子时「回到今天」；放不下就折到下一行；都没有时这一行不占地方
 struct CanvasDayHints: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -68,9 +68,8 @@ struct CanvasDayHints: View {
     var body: some View {
         let other = model.shownDay != model.today
         if other || CanvasCapsules.any(model) {
-            HStack(spacing: Theme.Space.small) {
+            PourFlowLayout(spacing: Theme.Space.small, lineSpacing: 0) {
                 CanvasCapsules()
-                Spacer(minLength: 0)
                 if other {
                     Button("回到今天") {
                         withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
@@ -90,20 +89,22 @@ private struct CanvasCapsules: View {
     @Environment(AppModel.self) private var model
 
     /// 有没有要出的小胶囊
-    static func any(_ model: AppModel) -> Bool { model.mode == "demo" || ReviewHint.path(model) != nil }
+    static func any(_ model: AppModel) -> Bool {
+        CanvasSamples.isOn || model.mode == "demo" || ReviewHint.path(model) != nil
+    }
 
+    /// 一个个胶囊（外面的 PourFlowLayout 放不下就折行）
     var body: some View {
-        let review = ReviewHint.path(model)
-        if model.mode == "demo" || review != nil {
-            HStack(spacing: Theme.Space.small) {
-                if model.mode == "demo" {
-                    capsule("演示数据 · 回到真实数据", symbol: "sparkles") { model.open("/settings#data") }
-                        .accessibilityHint(Text("现在看的是演示数据，你的真实数据没有变化"))
-                }
-                if let review {
-                    capsule("昨天的回顾好了", symbol: "doc.text") { model.open(review) }
-                }
-            }
+        if CanvasSamples.isOn {
+            capsule("画布样张 · 回到服务器的数据", symbol: "square.grid.2x2") { model.showSamples(false) }
+                .accessibilityHint(Text("现在看的是 App 里的样张，一周每天一种人的一天，不连服务器"))
+                .accessibilityIdentifier("canvas.samples")
+        } else if model.mode == "demo" {
+            capsule("演示数据 · 回到真实数据", symbol: "sparkles") { model.open("/settings#data") }
+                .accessibilityHint(Text("现在看的是演示数据，你的真实数据没有变化"))
+        }
+        if let review = ReviewHint.path(model) {
+            capsule("昨天的回顾好了", symbol: "doc.text") { model.open(review) }
         }
     }
 

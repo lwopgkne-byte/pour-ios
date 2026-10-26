@@ -45,17 +45,26 @@
             return CanvasSample.all[arguments[index + 1]]
         }()
 
-        /// 样张那一天的记录：日子换成今天，几点说的心情按这台手机的时区
+        /// 哪天是哪种人的一天：「-canvasSample 带孩子」只换今天；画布样张开着时，这一周每天一种（CanvasSample.week）
+        static func samplePlan(today: String) -> [String: CanvasSample] {
+            if let sample { return [today: sample] }
+            guard CanvasSamples.isOn else { return [:] }
+            return Dictionary(
+                uniqueKeysWithValues: CanvasSample.week.map { (PourDate.addDays(today, $0.offset), $0.sample) })
+        }
+
+        /// 样张那几天的记录：日子换成那一天，几点说的心情按这台手机的时区
         static func sampleEntries(today: String) -> [[String: Any]] {
-            guard let sample else { return [] }
-            return CanvasSample.parse(sample.entries, today: today).enumerated().map { index, item in
-                entry(item, id: 1000 + index, today: today)
+            samplePlan(today: today).sorted { $0.key < $1.key }.enumerated().flatMap { dayIndex, plan in
+                CanvasSample.parse(plan.value.entries, today: plan.key).enumerated().map { index, item in
+                    entry(item, id: 1000 + dayIndex * 100 + index, today: plan.key)
+                }
             }
         }
 
         /// 样张的类别：十个生活领域和运动的子类别「力量」（真的服务器是按名字建的，key 每个人不一样）
         static var sampleCategories: [[String: Any]] {
-            sample == nil ? [] : CanvasSample.parse(CanvasSample.domains, today: "")
+            sample == nil && !CanvasSamples.isOn ? [] : CanvasSample.parse(CanvasSample.domains, today: "")
         }
 
         /// 补齐一条记录：编号、日子、状态（有 "question" 的是待确认）、从哪段话来（心情的 "at" 是几点说的）
@@ -84,7 +93,7 @@
         }
     }
 
-    /// 一个人的一天：记录、推进的目标、说到的以前说到过多少（都是 JSON，{D} 是今天、{Y} 是昨天）、一句话总结
+    /// 一个人的一天：记录、推进的目标、说到的以前说到过多少（都是 JSON，{D} 是这一天、{Y} 是前一天）、一句话总结
     struct CanvasSample: Sendable {
         let entries: String
         let summary: String?
@@ -93,6 +102,11 @@
 
         static let all: [String: CanvasSample] = [
             "上班族": office, "带孩子": mom, "大学生": student, "退休老人": elder, "开店": shop, "感悟": quiet,
+        ]
+
+        /// 画布样张的一周：今天最全（上班族），往前每天一种，六天前什么都没记（空的一天），明天只有待办
+        static let week: [(offset: Int, sample: CanvasSample)] = [
+            (0, office), (-1, mom), (-2, student), (-3, elder), (-4, shop), (-5, quiet), (1, tomorrow),
         ]
 
         /// 这一天推进的目标

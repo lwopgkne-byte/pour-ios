@@ -112,6 +112,11 @@
             goals: #"""
                 [{"id":5,"title":"每周跑 10 公里","tone":"warn","pct":0.5,"headline":"已跑 5 公里 · 稍微落后",
                   "delta":"+3 公里","category":"exercise"}]
+                """#,
+            mentions: #"""
+                [{"kind":"place","name":"图书馆","weekDays":2,"firstTime":false},
+                {"kind":"place","name":"操场","weekDays":3,"firstTime":false},
+                {"kind":"tag","name":"学习","weekDays":1,"firstTime":true}]
                 """#)
 
         static let elder = CanvasSample(
@@ -135,6 +140,11 @@
             goals: #"""
                 [{"id":6,"title":"每天走 30 分钟","tone":"good","pct":1,"headline":"连续 12 天",
                   "delta":"+40 分钟","category":"exercise"}]
+                """#,
+            mentions: #"""
+                [{"kind":"thing","name":"降压药","weekDays":4,"firstTime":false},
+                {"kind":"place","name":"公园","weekDays":4,"firstTime":false},
+                {"kind":"person","name":"孙子","weekDays":2,"firstTime":false}]
                 """#)
 
         static let shop = CanvasSample(
@@ -156,6 +166,11 @@
             goals: #"""
                 [{"id":7,"title":"这个月营业额 8 万","tone":"warn","pct":0.35,"headline":"已完成 2.8 万 · 稍微落后",
                   "delta":"+¥3,200","category":"work"}]
+                """#,
+            mentions: #"""
+                [{"kind":"person","name":"老张","weekDays":2,"firstTime":false},
+                {"kind":"person","name":"王姐","weekDays":1,"firstTime":true},
+                {"kind":"person","name":"小刘","weekDays":1,"firstTime":false}]
                 """#)
 
         static let quiet = CanvasSample(
@@ -165,6 +180,28 @@
                   "related":[{"day":"{Y}","text":"完成比完美更重要"}]}]
                 """#,
             summary: "今天想明白了一件事：先做完，再慢慢改。",
-            goals: "[]")
+            goals: "[]",
+            mentions: #"""
+                [{"kind":"tag","name":"工作","weekDays":3,"firstTime":false},
+                {"kind":"tag","name":"心态","weekDays":1,"firstTime":true}]
+                """#)
+
+        /// 明天：以后的日子只出待办（有提醒的、和谁、在哪）
+        static let tomorrow = CanvasSample(
+            entries: #"""
+                [{"kind":"todo","category":"todo",
+                  "data":{"content":"交季度报告","done":false,"due":"{D}","remindAt":"{D}T10:00"}},
+                {"kind":"todo","category":"todo",
+                  "data":{"content":"带孩子打疫苗","done":false,"due":"{D}","remindAt":"{D}T15:30",
+                  "people":["孩子"],"places":["社区医院"]}},
+                {"kind":"todo","category":"todo","data":{"content":"买生日礼物","done":false,"due":"{D}","things":["生日礼物"]}}]
+                """#,
+            summary: nil,
+            goals: "[]",
+            mentions: #"""
+                [{"kind":"person","name":"孩子","weekDays":2,"firstTime":false},
+                {"kind":"place","name":"社区医院","weekDays":1,"firstTime":true},
+                {"kind":"thing","name":"生日礼物","weekDays":1,"firstTime":true}]
+                """#)
     }
 #endif

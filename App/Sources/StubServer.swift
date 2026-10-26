@@ -71,7 +71,7 @@
                 let parts = url.path.split(separator: "/").map(String.init)
                 if parts.count == 3, parts[1] == "day" {
                     let entries = entries.filter { $0["day"] as? String == parts[2] }
-                    let sample = parts[2] == today ? Self.sample : nil
+                    let sample = Self.samplePlan(today: today)[parts[2]]
                     let summary: Any = sample?.summary ?? NSNull()
                     return ok([
                         "day": parts[2], "entries": entries, "summary": summary, "goals": sample?.goalList ?? [],

@@ -18,7 +18,8 @@ enum ServerConfiguration {
 
     static func client(arguments: [String]) -> APIClient {
         #if DEBUG
-            if arguments.contains("-uiTest") { return StubServer.client() }
+            // 界面测试、画布样张：App 里的假服务器
+            if arguments.contains("-uiTest") || CanvasSamples.isOn { return StubServer.client() }
         #endif
         if let index = arguments.firstIndex(of: "-serverURL"), index + 1 < arguments.count,
             let url = URL(string: arguments[index + 1])

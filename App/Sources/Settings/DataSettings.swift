@@ -91,6 +91,12 @@ private struct DataRows: View {
                 }
             }
             FieldMessage(text: "演示数据放在单独的数据库里，你的真实数据不会被改动；演示时不发提醒和推送。")
+            #if DEBUG
+                SettingRow(label: "画布样张", hint: "看生活画布的每一种卡片：这一周每天是一种人的一天，左右滑着看") {
+                    WebTextButton(CanvasSamples.isOn ? "关掉样张" : "打开样张") { model.showSamples(!CanvasSamples.isOn) }
+                }
+                FieldMessage(text: "样张在 App 里，不连服务器；在样张里说的话也不会发出去。")
+            #endif
         }
         .sheet(item: $exported) { file in ShareSheet(items: [file.url]) }
     }
