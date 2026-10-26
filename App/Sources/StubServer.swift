@@ -49,6 +49,11 @@
 
         private static let state = Mutex(State())
 
+        /// 最近一个请求带的这个请求头
+        static func seenHeader(_ name: String) -> String? {
+            state.withLock { $0.seenHeaders.first { $0.key.lowercased() == name.lowercased() }?.value }
+        }
+
         /// 假服务器里的数据：说过的话、记录、删掉的记录
         struct State {
             var notes: [[String: Any]] = []
@@ -68,11 +73,14 @@
             var quotes: [[String: Any]] = Self.sampleQuotes
             /// 健康 App 送来的（StubServer+Health）
             var health: [String: Any]?
+            /// 最近一个请求带的请求头（单元测试看 App 有没有说自己照哪一版接口写的）
+            var seenHeaders: [String: String] = [:]
 
             var today: String { PourDate.logicalDay(Date(), in: .current) }
 
             mutating func answer(_ request: URLRequest) -> Reply {
                 guard let url = request.url else { return Reply(offline: true) }
+                seenHeaders = request.allHTTPHeaderFields ?? [:]
                 let method = request.httpMethod ?? "GET"
                 let body = Self.body(request)
                 if let reply = basic(method, url, body) { return reply }
@@ -109,7 +117,11 @@
                     return ok(value)
                 }
                 switch (method, url.path) {
-                case ("GET", "/api/meta"): return ok(["today": today, "dayBoundary": 240, "mode": "real"])
+                case ("GET", "/api/meta"):
+                    return ok([
+                        "today": today, "dayBoundary": 240, "mode": "real",
+                        "api": ["version": APIClient.apiVersion, "minClient": 1], "server": "2.7.0",
+                    ])
                 case ("GET", "/api/categories"): return ok(["categories": Self.categories + Self.sampleCategories])
                 case ("GET", "/api/messages"): return ok(["messages": messages])
                 case ("GET", "/api/notes"):

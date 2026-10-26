@@ -82,6 +82,8 @@ private struct PhoneSettings: View {
                 }
             }
             SettingRow(label: "版本") { Text(AppVersion.current.displayText) }
+            // 电脑上的 Pour 是哪个版本（docs/模块/产品优化.md R8）
+            if let server = model.serverVersionText { SettingRow(label: "电脑上的 Pour") { Text(server) } }
         }
     }
 

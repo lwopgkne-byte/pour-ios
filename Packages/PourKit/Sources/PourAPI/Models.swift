@@ -10,6 +10,16 @@ extension API {
         public var today: String
         public var dayBoundary: Int
         public var mode: String?
+        /// 接口的版本（docs/模块/产品优化.md R8，服务器 2.7.0 起有；以前的服务器没有）
+        public var api: APIInfo?
+        /// 服务器自己的版本号（「2.7.0」）
+        public var server: String?
+    }
+
+    /// 接口的版本：服务器现在是第几版、还认的最旧的 App
+    public struct APIInfo: Codable, Hashable, Sendable {
+        public var version: Int
+        public var minClient: Int
     }
 
     /// 一个数：钱、距离、页数……

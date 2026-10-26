@@ -63,6 +63,8 @@ final class AppModel {
     private(set) var notice: Notice?
     /// 服务器是在用真实数据（real）还是演示数据（demo，页面顶上有一条横幅）
     private(set) var mode = "real"
+    /// 电脑上的 Pour 是哪个版本（设置里「这台手机」写着；docs/模块/产品优化.md R8）
+    var serverVersion: API.Meta?
     /// 大模型的状态：没连大模型时画布上有「连接大模型」
     private(set) var llm: API.LlmStatus?
     /// 「回顾」列表：早上画布上那一行「昨天的回顾好了 →」看昨天的看过没有
@@ -134,6 +136,10 @@ final class AppModel {
     func refreshAll() async {
         do {
             let meta = try await client.meta()
+            if let problem = serverProblem(meta) {
+                offline = problem
+                return
+            }
             dayBoundary = meta.dayBoundary
             mode = meta.mode ?? "real"
             if meta.today != today {
@@ -300,7 +306,6 @@ final class AppModel {
         pagePath = path
         chatOpen = false
     }
-
 }
 
 // MARK: - 改
@@ -391,5 +396,4 @@ extension AppModel {
         await reloadChat()
         await reloadDay()
     }
-
 }

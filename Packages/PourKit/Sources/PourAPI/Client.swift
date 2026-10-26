@@ -175,11 +175,24 @@ public actor APIClient {
         }
     }
 
-    /// 带上这台设备的钥匙（有的话）
+    /// 这个 App 照哪一版接口写的（服务器的 docs/接口说明书.md 最上面那个数；docs/模块/产品优化.md R8）
+    public static let apiVersion = 1
+
+    /// App 自己的版本（「Pour iOS 0.1.0 (80)」）：「Pour 设置 → 设备」里看得到每台设备用的哪一版
+    public static let appVersion: String = {
+        let info = Bundle.main.infoDictionary ?? [:]
+        let short = info["CFBundleShortVersionString"] as? String ?? "0"
+        let build = info["CFBundleVersion"] as? String ?? "0"
+        return "Pour iOS \(short) (\(build))"
+    }()
+
+    /// 带上这台设备的钥匙（有的话），和这个 App 照哪一版接口写的、自己是哪个版本
     nonisolated func authorize(_ request: inout URLRequest) {
         if let key = deviceKey(), !key.isEmpty {
             request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
         }
+        request.setValue(String(Self.apiVersion), forHTTPHeaderField: "X-Pour-Api")
+        request.setValue(Self.appVersion, forHTTPHeaderField: "X-Pour-App")
     }
 
     private struct ErrorBody: Decodable {
