@@ -139,6 +139,7 @@ private struct AboutHome: View {
             }
             if let care { MeCareView(care: care) { await load() } }
             knownSection
+            KnownQuotes()
             KnownNames()
             if !page.waiting.isEmpty { waiting(page.waiting) }
             yearLink

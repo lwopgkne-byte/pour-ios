@@ -97,6 +97,8 @@ private struct CanvasBody: View {
                 if let todos { CanvasCards(day: day, rows: [todos]) }
                 let goals = day.goals.filter { $0.delta != nil }
                 if !goals.isEmpty { GoalRings(goals: goals) }
+                // 我的卡片：说一句建的（docs/模块/产品优化.md R3），在推进的目标后面
+                if let cards = day.cards, !cards.isEmpty { MyCards(day: day.day, cards: cards) }
                 DayRibbon(day: day.day, entries: day.entries)
                 let rest = todos == nil ? rows : Array(rows.dropFirst())
                 if !rest.isEmpty { CanvasCards(day: day, rows: rest) }

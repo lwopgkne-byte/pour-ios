@@ -89,7 +89,8 @@
             "「连续 30 天 16:8 轻断食」已经连续 8 天，今天做到就是第 9 天","「每周运动 3 次」这周还差 2 次，还剩 7 天",
             "「平均睡眠 7.5 小时」这周平均 6.8 小时，剩下的天里平均每天要 7.6 小时"]},"notes":5,"overview":"睡了 8 小时 20 分，16:8 轻断食，看书 42 页，背单词。",
             "observation":"专注 2 小时 24 分，比平常的周末多 1 小时 30 分钟。","updated":false},"messageId":83,"read":false,
-            "prev":"2026-10-17","next":null,"weekly":"2026-10-12"}
+            "prev":"2026-10-17","next":null,"weekly":"2026-10-12",
+            "quote":{"entryId":3301,"text":"付出不亚于任何人的努力","day":"2026-10-12","noteId":3301,"asked":true}}
             """#
 
         private static let weekly = #"""

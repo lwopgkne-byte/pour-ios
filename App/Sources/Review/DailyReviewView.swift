@@ -88,6 +88,7 @@ struct DailyReviewView: View {
                     .font(Web.body)
                 }
             }
+            if let quote = page.quote { saidSection(quote) }
             ReviewFoot {
                 Text("来自这一天的 \(review.notes) 段话 · ")
                 WebTextButton("看这一天的画布", font: Web.caption, color: Web.fgSecondary) {
@@ -101,6 +102,19 @@ struct DailyReviewView: View {
                     }
                 }
             }
+        }
+    }
+
+    /// 最后一句「你说过」：自己说过的一句话，服务器按日子轮着挑（docs/模块/产品优化.md R4）
+    private func saidSection(_ quote: API.MyQuote) -> some View {
+        ReviewSection(title: "你说过") {
+            VStack(alignment: .leading, spacing: Web.space1) {
+                Text(Show.spaced("「\(quote.text)」")).font(Web.body).foregroundStyle(Web.fg)
+                    .lineSpacing(Web.quoteLineSpacing)
+                Text("\(Show.dayTitle(quote.day, today: model.today))\(quote.asked ? "让记下的" : "说的")")
+                    .font(Web.caption).foregroundStyle(Web.fgTertiary)
+            }
+            .accessibilityElement(children: .combine)
         }
     }
 

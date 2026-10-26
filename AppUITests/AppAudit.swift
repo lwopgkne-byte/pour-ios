@@ -126,6 +126,12 @@ enum AppAudit {
                 print("放过（表情不是字）[\(name)] \(issue.compactDescription) ← \(element.label)")
                 return true
             }
+            // 能折行的字（canWrap：没有 lineLimit，放不下就换行，不会出现「…」）：书名号「《》」排版时被挤窄，
+            // 审计按没挤的宽度量、以为字被截了（截图核实是完整的，2026-10-26 我的卡片）。只放过「被截」，对比度照样审
+            if issue.auditType == .textClipped, element.identifier == "canWrap" {
+                print("放过（能折行，书名号量不准）[\(name)] \(issue.compactDescription) ← \(element.label)")
+                return true
+            }
             // 系统键盘上面的联想词条（TUIPredictionViewCell）：系统自己的，不是 App 的；有时审计时刚好冒出来
             if issue.detailedDescription.contains("TUIPredictionViewCell") {
                 print("放过（键盘的联想词条，系统的）[\(name)] \(issue.compactDescription)")

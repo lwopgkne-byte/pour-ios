@@ -91,6 +91,8 @@ extension API {
         public var title: String
         public var quote: String
         public var tags: [String]
+        /// 语录（docs/模块/产品优化.md R4）：用户说「记一句」让记的，quote 就是那句话
+        public var saying: Bool?
     }
 
     public struct TodoData: Codable, Hashable, Sendable {
@@ -224,6 +226,8 @@ extension API {
         public var goals: [DayGoal]
         /// 这一天说到的人、东西、地方、话题，以前说到过多少（服务器 2.1.0 起有，以前的服务器没有）
         public var mentions: [MentionHistory]?
+        /// 我的卡片（docs/模块/产品优化.md R3）：说一句建的，服务器按这一天现算
+        public var cards: [CardView]?
     }
 
     /// 画布「说到的」：一个名字以前说到过多少（服务器 shared/src/mentions.ts，全部由程序数）
@@ -284,6 +288,8 @@ extension API {
         public var created: [String]?
         public var learned: [String]?
         public var goals: [String]?
+        /// 画布上的卡片和名字变了（docs/模块/产品优化.md R3、R2）：「🗂 新卡片：今年读的书」
+        public var cards: [String]?
         public var advanced: [String]?
         public var answer: Answer?
         public var awaiting: Awaiting?
@@ -301,31 +307,6 @@ extension API {
         public var status: String
         public var result: NoteResult?
         public var error: String?
-    }
-
-    /// 名字表的一条（docs/模块/产品优化.md R2）：「说到的」里改过的名字、不再显示的
-    public struct NameRule: Codable, Hashable, Sendable, Identifiable {
-        /// person · thing · place · tag
-        public var kind: String
-        public var name: String
-        /// 改成的名字；只藏不改是 nil
-        public var canonical: String?
-        public var hidden: Bool
-        public var updatedAt: String
-
-        public var id: String { "\(kind)|\(name)" }
-
-        public init(kind: String, name: String, canonical: String?, hidden: Bool, updatedAt: String) {
-            self.kind = kind
-            self.name = name
-            self.canonical = canonical
-            self.hidden = hidden
-            self.updatedAt = updatedAt
-        }
-    }
-
-    public struct NameRules: Codable, Hashable, Sendable {
-        public var rules: [NameRule]
     }
 
     public struct NotesPage: Codable, Hashable, Sendable {

@@ -98,7 +98,8 @@ struct NoteMessage: View {
     static func hasReply(_ result: API.NoteResult, receipt: String?) -> Bool {
         receipt != nil || !result.reply.isEmpty || !result.questions.isEmpty || !result.notices.isEmpty
             || !(result.created ?? []).isEmpty || !(result.learned ?? []).isEmpty
-            || !(result.goals ?? []).isEmpty || !(result.advanced ?? []).isEmpty || result.answer != nil
+            || !(result.goals ?? []).isEmpty || !(result.cards ?? []).isEmpty || !(result.advanced ?? []).isEmpty
+            || result.answer != nil
     }
 }
 
@@ -148,11 +149,12 @@ private struct Reply: View {
         let undone = result.undone == true
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             if let receipt { ReceiptCard(text: receipt, undone: undone) { model.undo(note: note.id) } }
-            ForEach(result.goals ?? [], id: \.self) { line in
+            // 目标的变化、画布的变化（新卡片、改名字、不再显示，docs/模块/产品优化.md R3、R2）：一样一行，撤销了划掉
+            ForEach((result.goals ?? []) + (result.cards ?? []), id: \.self) { line in
                 Text(Show.spaced(line)).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
                     .strikethrough(undone)
             }
-            if receipt == nil, !(result.goals ?? []).isEmpty {
+            if receipt == nil, !(result.goals ?? []).isEmpty || !(result.cards ?? []).isEmpty {
                 if undone {
                     muted("已撤销，原话还在")
                 } else {

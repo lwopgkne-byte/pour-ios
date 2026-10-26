@@ -62,6 +62,10 @@
             var reminders = Self.defaultReminders
             /// 名字表：「说到的」里改了名字、不再显示的（StubServer+Names）
             var names: [[String: Any]] = []
+            /// 我的卡片、不要了的卡片、我的语录（StubServer+Cards）
+            var cards: [[String: Any]] = Self.sampleCards()
+            var trashCards: [[String: Any]] = []
+            var quotes: [[String: Any]] = Self.sampleQuotes
 
             var today: String { PourDate.logicalDay(Date(), in: .current) }
 
@@ -77,7 +81,7 @@
                     let summary: Any = sample?.summary ?? NSNull()
                     return ok([
                         "day": parts[2], "entries": entries, "summary": summary, "goals": sample?.goalList ?? [],
-                        "mentions": mentionsOfDay(parts[2], sample: sample?.mentionList),
+                        "mentions": mentionsOfDay(parts[2], sample: sample?.mentionList), "cards": cards,
                     ])
                 }
                 if parts.count == 4, parts[1] == "notes", let id = Int(parts[2]) {
@@ -94,7 +98,7 @@
             private mutating func basic(_ method: String, _ url: URL, _ body: [String: Any]) -> Reply? {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
                 if let value = settingsReply(method, url.path, body) ?? namesReply(method, url.path, body)
-                    ?? pageReply(method, url.path)
+                    ?? cardsReply(method, url.path, body) ?? pageReply(method, url.path)
                 {
                     return ok(value)
                 }

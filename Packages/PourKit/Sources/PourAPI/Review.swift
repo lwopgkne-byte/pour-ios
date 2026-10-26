@@ -113,6 +113,8 @@ extension API {
         public var next: String?
         /// 这一周有周报：那一周的周一
         public var weekly: String?
+        /// 最后一句「你说过」：自己说过的一句话，服务器按日子轮着挑（docs/模块/产品优化.md R4）
+        public var quote: MyQuote?
     }
 
     /// 周报的一行、月报的一格
