@@ -20,11 +20,14 @@ struct SleepBody: View {
                 // 只有一段睡眠：时长上面的大字已经写了，这一行不再写一遍
                 ShowFirst(items: entries) { entry, index in
                     CardRow(entry: entry, quiet: repeatsQuestion(entries, index)) {
-                        SleepLine(event: CanvasPlan.event(entry), minutes: entries.count > 1)
+                        SleepLine(
+                            event: CanvasPlan.event(entry), minutes: entries.count > 1, tag: HealthTag.text(entry))
                     }
                 }
             } else if let only = entries.first {
-                CardRow(entry: only) { SleepLine(event: CanvasPlan.event(only), minutes: false) }
+                CardRow(entry: only) {
+                    SleepLine(event: CanvasPlan.event(only), minutes: false, tag: HealthTag.text(only))
+                }
             }
         }
     }
@@ -42,12 +45,16 @@ struct SleepBody: View {
 private struct SleepLine: View {
     let event: API.EventData?
     let minutes: Bool
+    /// 健康 App 记的写「来自健康」（docs/模块/产品优化.md R5）
+    var tag: String?
 
     var body: some View {
         if let event {
             HStack(alignment: .firstTextBaseline) {
-                Text(Show.spaced(title(event))).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
-                    .monospacedDigit().accessibilityLabel(Text(Show.spoken(title(event))))
+                TaggedLabel(tag: tag) {
+                    Text(Show.spaced(title(event))).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                        .monospacedDigit().accessibilityLabel(Text(Show.spoken(title(event))))
+                }
                 Spacer(minLength: Theme.Space.small)
                 let minutes = minutes ? CanvasPlan.minutes(event) : 0
                 if minutes > 0 {

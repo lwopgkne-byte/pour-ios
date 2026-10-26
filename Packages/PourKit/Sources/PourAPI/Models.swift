@@ -153,8 +153,14 @@ extension API {
         public var data: Payload
         public var sources: [Source]
         public var related: [Related]?
+        /// 健康 App 来的（docs/模块/产品优化.md R5）：你没说、手表或手机记的，只能看（编号是负数）；服务器 2.6.0 起有
+        public var origin: String?
+        /// 你说的这条里，哪几样是健康 App 补上的（「时间」「时长」「距离」）
+        public var fromHealth: [String]?
 
         public var pending: Bool { status == "confirm" }
+        /// 健康 App 记的这一条（改、删在健康 App 里）
+        public var fromHealthApp: Bool { origin == "health" }
         public var kind: String {
             switch data {
             case .event: "event"
@@ -165,7 +171,7 @@ extension API {
         }
 
         enum CodingKeys: String, CodingKey {
-            case id, day, confidence, status, question, category, kind, data, sources, related
+            case id, day, confidence, status, question, category, kind, data, sources, related, origin, fromHealth
         }
 
         public init(from decoder: any Decoder) throws {
@@ -178,6 +184,8 @@ extension API {
             category = try box.decode(String.self, forKey: .category)
             sources = try box.decodeIfPresent([Source].self, forKey: .sources) ?? []
             related = try box.decodeIfPresent([Related].self, forKey: .related)
+            origin = try box.decodeIfPresent(String.self, forKey: .origin)
+            fromHealth = try box.decodeIfPresent([String].self, forKey: .fromHealth)
             switch try box.decode(String.self, forKey: .kind) {
             case "event": data = .event(try box.decode(EventData.self, forKey: .data))
             case "insight": data = .insight(try box.decode(InsightData.self, forKey: .data))
@@ -197,6 +205,8 @@ extension API {
             try box.encode(kind, forKey: .kind)
             try box.encode(sources, forKey: .sources)
             try box.encodeIfPresent(related, forKey: .related)
+            try box.encodeIfPresent(origin, forKey: .origin)
+            try box.encodeIfPresent(fromHealth, forKey: .fromHealth)
             switch data {
             case .event(let value): try box.encode(value, forKey: .data)
             case .insight(let value): try box.encode(value, forKey: .data)
@@ -228,6 +238,8 @@ extension API {
         public var mentions: [MentionHistory]?
         /// 我的卡片（docs/模块/产品优化.md R3）：说一句建的，服务器按这一天现算
         public var cards: [CardView]?
+        /// 健康 App 的步数（R5，服务器 2.6.0 起有；没接健康、没有数据时没有）
+        public var health: DayHealth?
     }
 
     /// 画布「说到的」：一个名字以前说到过多少（服务器 shared/src/mentions.ts，全部由程序数）

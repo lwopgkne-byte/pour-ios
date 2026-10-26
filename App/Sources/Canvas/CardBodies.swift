@@ -154,8 +154,11 @@ struct EventLine: View {
     var body: some View {
         if let event = CanvasPlan.event(entry) {
             VStack(alignment: .leading, spacing: Theme.Space.hairline) {
-                Text(Show.spaced(event.label)).font(compact ? Theme.Typeface.bodyMedium : Theme.Typeface.body)
-                    .foregroundStyle(Theme.Palette.label)
+                // 健康 App 记的、补上了手表时间距离的写一个小标签（docs/模块/产品优化.md R5）
+                TaggedLabel(tag: HealthTag.text(entry)) {
+                    Text(Show.spaced(event.label)).font(compact ? Theme.Typeface.bodyMedium : Theme.Typeface.body)
+                        .foregroundStyle(Theme.Palette.label)
+                }
                 if compact {
                     MoneyLine(event: event, day: day)
                 } else {

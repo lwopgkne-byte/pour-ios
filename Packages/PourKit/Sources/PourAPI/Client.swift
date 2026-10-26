@@ -134,13 +134,24 @@ public actor APIClient {
     }
 
     func request<T: Decodable>(_ method: String, _ path: String, json: JSONValue?) async throws(APIError) -> T {
+        try await request(method, path, data: json.flatMap { try? JSONEncoder().encode($0) })
+    }
+
+    /// 发一份整理好的数据（健康的一段时间这种大块的）
+    func request<T: Decodable, Body: Encodable>(
+        _ method: String, _ path: String, encoding body: Body
+    ) async throws(APIError) -> T {
+        try await request(method, path, data: try? JSONEncoder().encode(body))
+    }
+
+    private func request<T: Decodable>(_ method: String, _ path: String, data body: Data?) async throws(APIError) -> T {
         guard let url = URL(string: path, relativeTo: baseURL) else { throw .unreachable }
         var request = URLRequest(url: url)
         request.httpMethod = method
         authorize(&request)
-        if let json {
+        if let body {
             request.setValue("application/json", forHTTPHeaderField: "content-type")
-            request.httpBody = try? JSONEncoder().encode(json)
+            request.httpBody = body
         }
         let data: Data
         let response: URLResponse

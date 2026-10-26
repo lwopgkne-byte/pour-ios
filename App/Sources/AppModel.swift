@@ -12,6 +12,8 @@ import PourPlatform
 @Observable
 final class AppModel {
     let client: APIClient
+    /// 健康 App（docs/模块/产品优化.md R5）：接上没有、读了送到电脑上的 Pour
+    let health: HealthLink
 
     /// 服务器按日界线算的今天
     private(set) var today: String
@@ -78,8 +80,9 @@ final class AppModel {
     /// 看过的日子里要提醒的待办（按日子存，换着看也不丢）
     var reminders: [String: [Reminder]] = [:]
 
-    init(client: APIClient) {
+    init(client: APIClient, health: HealthLink) {
         self.client = client
+        self.health = health
         let today = PourDate.logicalDay(Date(), in: .current)
         self.today = today
         shownDay = today
@@ -139,6 +142,7 @@ final class AppModel {
             offline = nil
             needsPin = false
             await ensureDeviceKey()
+            syncHealth()
         } catch {
             offline = error.message
             needsPin = error == .needPin

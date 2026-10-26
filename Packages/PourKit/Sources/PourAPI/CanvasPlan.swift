@@ -52,21 +52,28 @@ public enum CanvasPlan {
     /// 类别表里没有时，预置类别的计量方式
     static let builtInMeasure: [String: String] = ["exercise": "duration", "study": "duration", "work": "duration"]
 
+    /// 运动卡的 id：健康 App 的步数写在这张卡上（docs/模块/产品优化.md R5）
+    public static let exerciseKey = "exercise"
+
     /// 这一天的卡片，按行排好
-    /// history：服务器给的「说到的」（改过名字的已经换成一个、不再显示的已经去掉）；没有时从记录里收
+    /// history：服务器给的「说到的」（改过名字的已经换成一个、不再显示的已经去掉）；没有时从记录里收。
+    /// steps：健康 App 的步数——有步数、这天又没有运动的记录时，也要有运动卡
     public static func rows(
-        _ entries: [API.Entry], _ categories: [API.Category], mentions history: [API.MentionHistory]? = nil
+        _ entries: [API.Entry], _ categories: [API.Category], mentions history: [API.MentionHistory]? = nil,
+        steps: Int? = nil
     ) -> [Row] {
-        pair(cards(entries, categories, mentions: history))
+        pair(cards(entries, categories, mentions: history, steps: steps))
     }
 
     /// 这一天的卡片（还没配对）。待办和提醒永远最前（做完了也不往后挪：产品主人 2026-10-21 说跑到下面是毛病）；
     /// 然后钱的汇总卡、说到的人和东西，其余按类别表的顺序，感悟、心情放最后
     public static func cards(
-        _ entries: [API.Entry], _ categories: [API.Category], mentions history: [API.MentionHistory]? = nil
+        _ entries: [API.Entry], _ categories: [API.Category], mentions history: [API.MentionHistory]? = nil,
+        steps: Int? = nil
     ) -> [Card] {
-        let keys = entries.map { Show.group($0, categories) }
-        let ordered = Show.sortGroups(Array(Set(keys)), categories, openTodos: true)
+        var keys = Set(entries.map { Show.group($0, categories) })
+        if steps != nil { keys.insert(exerciseKey) }
+        let ordered = Show.sortGroups(Array(keys), categories, openTodos: true)
         var out = ordered.map { key in card(key, entries.filter { Show.group($0, categories) == key }, categories) }
         var index = out.first?.id == "todo" ? 1 : 0
         if let money = moneySummary(entries) {

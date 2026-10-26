@@ -23,10 +23,17 @@ struct EntryPeek: View {
         VStack(spacing: 0) {
             header
             ScrollView {
-                if let entry {
+                if let entry, entry.fromHealthApp {
+                    // 健康 App 记的：只能看（docs/模块/产品优化.md R5）
+                    HealthPeek(entry: entry).padding(.horizontal, Web.space4).padding(.bottom, Web.space6)
+                } else if let entry {
                     VStack(alignment: .leading, spacing: Web.space6) {
                         if entry.pending { confirmCard(entry) }
                         PeekFields(entry: entry)
+                        if let filled = entry.fromHealth, !filled.isEmpty {
+                            Text(Show.spaced("\(filled.joined(separator: "、"))是健康 App 补上的（你没说）。改了就用你改的。"))
+                                .font(Web.caption).foregroundStyle(Web.fgTertiary)
+                        }
                         if let trend, trend.points.contains(where: { $0.value != nil }) {
                             PeekSection(title: "最近 7 天") {
                                 Sparkline(trend: trend, color: color(entry), today: entry.day)
@@ -54,7 +61,8 @@ struct EntryPeek: View {
         .presentationDragIndicator(.visible)
         .preferredColorScheme(.light)
         .tint(Web.accent)
-        .task { trend = try? await model.client.trend(of: entryId) }
+        // 健康 App 记的编号是负数，服务器上没有这条：不去拿最近 7 天
+        .task { if entryId > 0 { trend = try? await model.client.trend(of: entryId) } }
         .task(id: "\(day ?? "")-\(model.dataVersion)") {
             if let day { otherDay = try? await model.client.day(day) }
         }

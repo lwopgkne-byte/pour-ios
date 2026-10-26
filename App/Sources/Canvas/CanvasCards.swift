@@ -53,6 +53,10 @@ struct CanvasCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
             CardHeader(card: card)
+            // 健康 App 的步数写在运动卡上（docs/模块/产品优化.md R5）：只有步数时写大字
+            if card.id == CanvasPlan.exerciseKey, let steps = day.health?.steps {
+                StepsLine(steps: steps, alone: card.entries.isEmpty)
+            }
             if card.withBody { BodyBlock(entries: card.entries.filter(Self.isBody), day: day.day) }
             content
             ForEach(goals) { goal in GoalFooter(goal: goal, compact: size == .half) }
@@ -154,9 +158,14 @@ struct CardRow<Content: View>: View {
                     .contentShape(Rectangle())
                     .onTapGesture { model.detail = .init(id: entry.id) }
                     .contextMenu {
-                        Button("修改", systemImage: "pencil") { model.detail = .init(id: entry.id) }
-                        Button("查看来源", systemImage: "text.quote") { model.detail = .init(id: entry.id) }
-                        Button("删除", systemImage: "trash", role: .destructive) { model.delete(entry.id) }
+                        // 健康 App 记的只能看（改、删在健康 App 里）
+                        if entry.fromHealthApp {
+                            Button("查看", systemImage: "heart.text.square") { model.detail = .init(id: entry.id) }
+                        } else {
+                            Button("修改", systemImage: "pencil") { model.detail = .init(id: entry.id) }
+                            Button("查看来源", systemImage: "text.quote") { model.detail = .init(id: entry.id) }
+                            Button("删除", systemImage: "trash", role: .destructive) { model.delete(entry.id) }
+                        }
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityAddTraits(.isButton)

@@ -66,6 +66,8 @@
             var cards: [[String: Any]] = Self.sampleCards()
             var trashCards: [[String: Any]] = []
             var quotes: [[String: Any]] = Self.sampleQuotes
+            /// 健康 App 送来的（StubServer+Health）
+            var health: [String: Any]?
 
             var today: String { PourDate.logicalDay(Date(), in: .current) }
 
@@ -76,13 +78,16 @@
                 if let reply = basic(method, url, body) { return reply }
                 let parts = url.path.split(separator: "/").map(String.init)
                 if parts.count == 3, parts[1] == "day" {
-                    let entries = entries.filter { $0["day"] as? String == parts[2] }
+                    let health = healthOf(parts[2])
+                    let entries = entries.filter { $0["day"] as? String == parts[2] } + health.entries
                     let sample = Self.samplePlan(today: today)[parts[2]]
                     let summary: Any = sample?.summary ?? NSNull()
-                    return ok([
+                    var view: [String: Any] = [
                         "day": parts[2], "entries": entries, "summary": summary, "goals": sample?.goalList ?? [],
                         "mentions": mentionsOfDay(parts[2], sample: sample?.mentionList), "cards": cards,
-                    ])
+                    ]
+                    if let steps = health.steps { view["health"] = ["steps": steps] }
+                    return ok(view)
                 }
                 if parts.count == 4, parts[1] == "notes", let id = Int(parts[2]) {
                     if parts[3] == "undo" { return ok(undo(note: id)) }
@@ -98,7 +103,8 @@
             private mutating func basic(_ method: String, _ url: URL, _ body: [String: Any]) -> Reply? {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
                 if let value = settingsReply(method, url.path, body) ?? namesReply(method, url.path, body)
-                    ?? cardsReply(method, url.path, body) ?? pageReply(method, url.path)
+                    ?? cardsReply(method, url.path, body) ?? healthReply(method, url.path, body)
+                    ?? pageReply(method, url.path)
                 {
                     return ok(value)
                 }

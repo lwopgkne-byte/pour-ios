@@ -41,6 +41,9 @@ targets:
         # 和小组件、分享扩展共用：服务器地址放 App 组，设备钥匙放钥匙串共享组（docs/模块/产品优化.md R7）
         com.apple.security.application-groups: [group.$(POUR_BUNDLE_ID)]
         keychain-access-groups: [$(AppIdentifierPrefix)$(POUR_BUNDLE_ID).shared]
+        # 读健康 App 的步数、睡眠、锻炼（docs/模块/产品优化.md R5）：只读，不写
+        com.apple.developer.healthkit: true
+        com.apple.developer.healthkit.access: []
     dependencies:
       - target: PourWidgets
       - target: PourShare
@@ -84,6 +87,8 @@ targets:
         # 说话记录（生活画布2.0.md 第 6 节）：在手机上转成字，录音不存不传
         NSMicrophoneUsageDescription: 说话记录要用麦克风。说的话在这台手机上转成字，录音不存、不传。
         NSSpeechRecognitionUsageDescription: 把你说的话在这台手机上转成字。
+        # 健康（docs/模块/产品优化.md R5）：系统的权限页上写的那句
+        NSHealthShareUsageDescription: Pour 读你的步数、睡眠和锻炼，放在画布上，算进目标和回顾。只读，不往健康里写。
         # pour:// 打开这个 App：服务器推到 Bark 的提醒，点一下回到 Pour；pour://open?path=/review/2026-10-18 打开那一页
         CFBundleURLTypes:
           - CFBundleURLName: $(POUR_BUNDLE_ID)

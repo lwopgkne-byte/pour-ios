@@ -88,7 +88,7 @@ private struct CanvasBody: View {
 
     var body: some View {
         if let day = model.day {
-            let rows = CanvasPlan.rows(day.entries, model.categories)
+            let rows = CanvasPlan.rows(day.entries, model.categories, steps: day.health?.steps)
             let todos = rows.first.flatMap { row -> CanvasPlan.Row? in
                 if case .full(let card) = row, card.template == .todo { row } else { nil }
             }
@@ -102,6 +102,8 @@ private struct CanvasBody: View {
                 DayRibbon(day: day.day, entries: day.entries)
                 let rest = todos == nil ? rows : Array(rows.dropFirst())
                 if !rest.isEmpty { CanvasCards(day: day, rows: rest) }
+                // 接上健康的那张安静的小卡（docs/模块/产品优化.md R5）：只在今天、还没接、没点掉时
+                HealthHint()
             }
         } else if let offline = model.offline {
             VStack(alignment: .leading, spacing: Theme.Space.small) {

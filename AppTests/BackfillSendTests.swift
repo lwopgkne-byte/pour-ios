@@ -14,7 +14,7 @@ struct BackfillSendTests {
         let keys = [OutboxStore.serverKey, "pour.outbox.uiTest"]
         let saved = keys.map { UserDefaults.standard.object(forKey: $0) }
         defer { for (key, value) in zip(keys, saved) { UserDefaults.standard.set(value, forKey: key) } }
-        let model = AppModel(client: StubServer.client())
+        let model = AppModel(client: StubServer.client(), health: .forTests())
         let yesterday = PourDate.addDays(model.today, -1)
         model.show(yesterday)
         model.draft = "晚上吃了火锅"
