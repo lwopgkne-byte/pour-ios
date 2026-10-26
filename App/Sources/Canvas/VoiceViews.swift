@@ -51,20 +51,28 @@ struct VoiceCard: View {
         .font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.label)
     }
 
-    /// 说的字：定下来的主字色，还没定下来的次要色；还没说时一句提示
+    /// 说的字：定下来的主字色，还没定下来的次要色；还没说时一句提示。
+    /// 一直没听到声音、说完停了一会儿：下面一行小字提示（VoiceSession.hint）
     private var words: some View {
-        Group {
-            if voice.text.isEmpty {
-                Text("说吧，我在听").foregroundStyle(Theme.Palette.secondaryLabel)
-            } else {
-                let settled = Text(voice.settled).foregroundStyle(Theme.Palette.label)
-                let pending = Text(voice.pending).foregroundStyle(Theme.Palette.secondaryLabel)
-                Text("\(settled)\(pending)")
+        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+            Group {
+                if voice.text.isEmpty {
+                    Text(voice.hint ?? "说吧，我在听").foregroundStyle(Theme.Palette.secondaryLabel)
+                } else {
+                    let settled = Text(voice.settled).foregroundStyle(Theme.Palette.label)
+                    let pending = Text(voice.pending).foregroundStyle(Theme.Palette.secondaryLabel)
+                    Text("\(settled)\(pending)")
+                }
+            }
+            .font(Theme.Typeface.body).lineSpacing(Theme.Leading.body)
+            .accessibilityIdentifier("voice.words")
+            if !voice.text.isEmpty, let hint = voice.hint {
+                Text(hint).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .transition(.opacity)
             }
         }
-        .font(Theme.Typeface.body).lineSpacing(Theme.Leading.body)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityIdentifier("voice.words")
+        .animation(Theme.Motion.quick, value: voice.hint)
     }
 
     private func finish(send: Bool) {
@@ -101,7 +109,7 @@ struct HoldCard: View {
     var body: some View {
         VStack(spacing: Theme.Space.small) {
             Waveform(levels: voice.levels).frame(height: Theme.Size.waveform)
-            Text(voice.text.isEmpty ? "说吧，我在听" : voice.text).font(Theme.Typeface.body)
+            Text(voice.text.isEmpty ? (voice.hint ?? "说吧，我在听") : voice.text).font(Theme.Typeface.body)
                 .foregroundStyle(voice.text.isEmpty ? Theme.Palette.secondaryLabel : Theme.Palette.label)
                 .lineLimit(3)
             Text(cancelling ? "松开取消" : "松开发送 · 手指往上滑，取消").font(Theme.Typeface.footnoteSemibold)
@@ -115,7 +123,8 @@ struct HoldCard: View {
     }
 }
 
-/// 声波：一排竖条，越新的越靠右；不说话时是平的
+/// 声波：一排竖条，越新的越靠右（最近大约 3 秒）。不说话时是一排淡淡的圆点，开口说话就立起来，
+/// 声音越大越高、越实（音量扣掉了底噪：LevelMeter）；小声也看得出来（高度按音量的 0.8 次方）
 struct Waveform: View {
     let levels: [Double]
 
@@ -125,10 +134,11 @@ struct Waveform: View {
             let gap: CGFloat = 2
             let width = max(1, (size.width - gap * (count - 1)) / count)
             for (index, level) in levels.enumerated() {
-                let height = max(width, size.height * min(1, max(0.06, level)))
+                let shown = pow(min(1, max(0, level)), 0.8)
+                let height = width + (size.height - width) * shown
                 let rect = CGRect(
                     x: CGFloat(index) * (width + gap), y: (size.height - height) / 2, width: width, height: height)
-                context.fill(Capsule().path(in: rect), with: .color(Theme.Palette.accent.opacity(0.35 + level * 0.65)))
+                context.fill(Capsule().path(in: rect), with: .color(Theme.Palette.accent.opacity(0.3 + shown * 0.7)))
             }
         }
         .accessibilityHidden(true)

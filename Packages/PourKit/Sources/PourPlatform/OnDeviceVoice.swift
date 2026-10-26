@@ -12,10 +12,10 @@
         private var feed: AsyncStream<AnalyzerInput>.Continuation?
         private var events: AsyncStream<VoiceEvent>.Continuation?
         private var reading: Task<Void, Never>?
-        /// 已经定下来的字
-        private var settled = ""
-        /// 还没定下来的字（一边说一边会改）
-        private var pending = ""
+        /// 说到现在的字（按录音时间拼，同一段识别两遍不会重复）
+        private var transcript = VoiceTranscript()
+        /// 来电话、换耳机这些打断：听着的时候才盯着
+        private var observers: [NSObjectProtocol] = []
 
         public init(locale: Locale = Locale(identifier: "zh_CN")) {
             self.locale = locale
@@ -40,10 +40,11 @@
             try await analyzer.start(inputSequence: inputs)
             self.analyzer = analyzer
             self.feed = feed
-            settled = ""
-            pending = ""
+            transcript = VoiceTranscript()
             reading = Task { await self.read(transcriber) }
-            engine = try Self.listen(into: feed, format: format, events: events)
+            let engine = try Self.listen(into: feed, format: format, events: events)
+            self.engine = engine
+            watchInterruptions(engine)
             events.yield(.listening)
             return stream
         }
@@ -56,7 +57,7 @@
             reading = nil
             events?.finish()
             events = nil
-            return (settled + pending).trimmingCharacters(in: .whitespacesAndNewlines)
+            return transcript.text
         }
 
         public func cancel() async {
@@ -67,12 +68,13 @@
             reading = nil
             events?.finish()
             events = nil
-            settled = ""
-            pending = ""
+            transcript = VoiceTranscript()
         }
 
         /// 关麦克风、不再送声音进去
         private func closeMicrophone() {
+            for observer in observers { NotificationCenter.default.removeObserver(observer) }
+            observers = []
             engine?.inputNode.removeTap(onBus: 0)
             engine?.stop()
             engine = nil
@@ -81,22 +83,42 @@
             try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
         }
 
-        /// 收字：定下来的接在后面，还没定下来的单独放
+        /// 收字：按录音时间拼（同一段声音识别两遍、定两次稿，后来的换掉先来的）
         private func read(_ transcriber: SpeechTranscriber) async {
             do {
                 for try await result in transcriber.results {
-                    let text = String(result.text.characters)
-                    if result.isFinal {
-                        settled += text
-                        pending = ""
-                    } else {
-                        pending = text
-                    }
-                    events?.yield(.text(final: settled, volatile: pending))
+                    let piece = VoiceTranscript.Piece(
+                        start: result.range.start.seconds, end: result.range.end.seconds,
+                        text: String(result.text.characters))
+                    transcript.add(piece, isFinal: result.isFinal)
+                    events?.yield(.text(final: transcript.settled, volatile: transcript.volatile))
                 }
             } catch {
                 events?.yield(.failed(.other(error.localizedDescription)))
             }
+        }
+
+        /// 来电话、闹钟、Siri（系统打断录音），插拔耳机（录音的设备换了，引擎停了）：关麦克风，告诉界面
+        private func watchInterruptions(_ engine: AVAudioEngine) {
+            let began: @Sendable (Notification) -> Void = { [weak self] note in
+                let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
+                guard raw.flatMap(AVAudioSession.InterruptionType.init) == .began else { return }
+                Task { await self?.interrupted() }
+            }
+            let changed: @Sendable (Notification) -> Void = { [weak self] _ in Task { await self?.interrupted() } }
+            let center = NotificationCenter.default
+            observers = [
+                center.addObserver(
+                    forName: AVAudioSession.interruptionNotification, object: nil, queue: nil, using: began),
+                center.addObserver(
+                    forName: .AVAudioEngineConfigurationChange, object: engine, queue: nil, using: changed),
+            ]
+        }
+
+        private func interrupted() {
+            guard engine != nil else { return }
+            closeMicrophone()
+            events?.yield(.interrupted)
         }
 
         /// 第一次用：下载中文的听写模型，一边下一边报进度
@@ -121,26 +143,38 @@
             }
         }
 
-        /// 打开麦克风：每一小段声音换成听写要的格式送进去，顺便算音量（画声波）
+        /// 打开麦克风：每一小段声音换成听写要的格式送进去，顺便算音量（画声波）。
+        /// 一小段 1024 个采样（大约 0.02 秒）：声波一秒动四十多次，跟得上说话
         private static func listen(
             into feed: AsyncStream<AnalyzerInput>.Continuation, format: AVAudioFormat,
             events: AsyncStream<VoiceEvent>.Continuation
         ) throws -> AVAudioEngine {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.record, mode: .measurement, options: .duckOthers)
-            try session.setActive(true, options: .notifyOthersOnDeactivation)
+            do {
+                try session.setCategory(.record, mode: .measurement, options: .duckOthers)
+                try session.setActive(true, options: .notifyOthersOnDeactivation)
+            } catch {
+                // 打着电话、别的 App 在录音：系统不给麦克风
+                throw VoiceError.micBusy
+            }
             let engine = AVAudioEngine()
             let input = engine.inputNode
             let natural = input.outputFormat(forBus: 0)
             guard let converter = SoundConverter(from: natural, to: format) else { throw VoiceError.unsupported }
+            let meter = Meter()
             // iOS 27 起带出错信息的那个版本（旧的不推荐用了）：Swift 里苹果还没包好，名字前面带两个下划线；
             // 出错参数在中间，导进来变成了一个空的 `()` 占位，出错时直接抛出来
-            try input.__installTap(onBus: 0, bufferSize: 4096, format: natural, error: ()) { buffer, _ in
-                events.yield(.level(SoundConverter.level(buffer)))
+            try input.__installTap(onBus: 0, bufferSize: 1024, format: natural, error: ()) { buffer, _ in
+                events.yield(.level(meter.next(buffer)))
                 if let converted = converter.convert(buffer) { feed.yield(AnalyzerInput(buffer: converted)) }
             }
             engine.prepare()
-            try engine.start()
+            do {
+                try engine.start()
+            } catch {
+                input.removeTap(onBus: 0)
+                throw VoiceError.micBusy
+            }
             return engine
         }
     }
@@ -173,14 +207,17 @@
             return failure == nil ? output : nil
         }
 
-        /// 一段声音的音量（0–1）：均方根换成分贝，-50 分贝以下算 0
-        static func level(_ buffer: AVAudioPCMBuffer) -> Double {
+    }
+
+    /// 声波的高低：每一小段声音的均方根交给 LevelMeter（扣掉底噪、起得快落得慢）。只在录音的那个线程上用
+    private final class Meter: @unchecked Sendable {
+        private var meter = LevelMeter()
+
+        func next(_ buffer: AVAudioPCMBuffer) -> Double {
             guard let samples = buffer.floatChannelData?[0], buffer.frameLength > 0 else { return 0 }
             var sum: Float = 0
             for index in 0..<Int(buffer.frameLength) { sum += samples[index] * samples[index] }
-            let rms = (sum / Float(buffer.frameLength)).squareRoot()
-            let decibels = 20 * log10(max(rms, 0.000_01))
-            return Double(min(1, max(0, (decibels + 50) / 50)))
+            return meter.next(rms: Double((sum / Float(buffer.frameLength)).squareRoot()))
         }
     }
 

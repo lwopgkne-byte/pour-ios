@@ -16,10 +16,12 @@ public enum VoiceEvent: Sendable, Equatable {
     case preparing(Double)
     /// 开始听了
     case listening
-    /// 音量 0–1（画声波，一秒三十次）
+    /// 音量 0–1（扣掉了底噪、起得快落得慢，LevelMeter；画声波，一秒四十多次）
     case level(Double)
-    /// 已经定下来的字、还没定下来的字（一边说一边会改）
+    /// 已经定下来的字、还没定下来的字（一边说一边会改；VoiceTranscript 按录音时间拼）
     case text(final: String, volatile: String)
+    /// 被打断了（来电话、闹钟、Siri、插拔耳机）：麦克风已经关了，说到的字还在，怎么收尾交给界面
+    case interrupted
     /// 中途出错了
     case failed(VoiceError)
 }
@@ -32,6 +34,8 @@ public enum VoiceError: Error, Sendable, Equatable {
     case unsupported
     /// 下载中文模型没成（多半是没网）
     case downloadFailed
+    /// 麦克风正被别的程序用着（打电话、别的 App 在录音）
+    case micBusy
     /// 别的（系统给的原话）
     case other(String)
 
@@ -41,6 +45,7 @@ public enum VoiceError: Error, Sendable, Equatable {
         case .noPermission: "要用语音，去设置里打开麦克风"
         case .unsupported: "这台手机还不支持中文的听写"
         case .downloadFailed: "中文的听写模型没下载下来，连上网再试一次"
+        case .micBusy: "麦克风正被别的程序用着（比如在打电话），等一下再试"
         case .other(let reason): "没听成：\(reason)"
         }
     }

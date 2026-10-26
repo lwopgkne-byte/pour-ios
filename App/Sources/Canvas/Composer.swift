@@ -11,6 +11,7 @@ struct Composer: View {
     @Environment(VoiceSession.self) private var voice
     @Environment(\.visibleHeight) private var visibleHeight
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     @FocusState private var focused: Bool
     @State private var drag: CGFloat = 0
     /// 第一次点麦克风：先看一张说明
@@ -69,7 +70,14 @@ struct Composer: View {
         }
         .animation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion), value: open)
         .animation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion), value: voice.active)
-        .onAppear { voice.onLimit = finishAtLimit }
+        .onAppear {
+            voice.onLimit = finishAtLimit
+            voice.onInterrupted = keepWords
+        }
+        // 说着话切到别的 App、锁屏：系统会关掉麦克风——说到的字放进输入框
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background, voice.active { keepWords() }
+        }
         .modifier(ComposerHaptics())
     }
 
@@ -112,6 +120,15 @@ struct Composer: View {
             withAnimation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion)) { model.send() }
         } else {
             focused = true
+        }
+    }
+
+    /// 被打断了（来电话、闹钟、换耳机、锁屏）：说到的字放进输入框，不发；什么都没说就安静地收起
+    private func keepWords() {
+        Task {
+            guard let words = await voice.finish(quiet: true) else { return }
+            model.draft = model.draft.isEmpty ? words : model.draft + words
+            model.toast("被打断了，说到的字放在输入框里")
         }
     }
 

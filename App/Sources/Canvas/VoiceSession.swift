@@ -23,6 +23,10 @@ final class VoiceSession {
 
     /// 声波有几根竖条
     static let bars = 46
+    /// 声波每多少秒往左挪一根（46 根大约是最近 2.8 秒的声音）
+    static let step: TimeInterval = 0.06
+    /// 音量到多少算「在说话」（LevelMeter 已经扣掉了底噪）
+    static let voiced = 0.25
     /// 最长说多久
     static let limit: TimeInterval = 120
     /// 快到时提醒
@@ -38,6 +42,12 @@ final class VoiceSession {
     private(set) var nearLimit = false
     /// 到 2 分钟了：外面决定怎么收尾（点一下的转成字，按住的发出去）
     var onLimit: (() -> Void)?
+    /// 被打断了（来电话、闹钟、换耳机）：外面把说到的字放进输入框，不发
+    var onInterrupted: (() -> Void)?
+    /// 说话时的一句提示：一直没听到声音、说完停了一会儿
+    private(set) var hint: String?
+    @ObservationIgnored private var lastShift = Date.distantPast
+    @ObservationIgnored private var lastVoice: Date?
 
     private let input: any VoiceInput
     private var listening: Task<Void, Never>?
@@ -96,15 +106,15 @@ final class VoiceSession {
         }
     }
 
-    /// 说完了：整段话（空的说「没听清」，返回 nil）
-    func finish() async -> String? {
+    /// 说完了：整段话（空的说「没听清」，返回 nil；被打断时 quiet，什么都没说就安静地收起）
+    func finish(quiet: Bool = false) async -> String? {
         guard active else { return nil }
         clock?.cancel()
         let words = await input.stop()
         listening?.cancel()
         clear()
         guard !words.isEmpty else {
-            phase = .failed("没听清，再说一次", settings: false)
+            phase = quiet ? .idle : .failed("没听清，再说一次", settings: false)
             return nil
         }
         phase = .idle
@@ -134,14 +144,37 @@ final class VoiceSession {
             startedAt = Date()
             startClock()
         case .level(let value):
-            levels.removeFirst()
-            levels.append(value)
+            meter(value)
         case .text(let final, let volatile):
             settled = final
             pending = volatile
+        case .interrupted:
+            onInterrupted?()
         case .failed(let error):
             fail(error)
         }
+    }
+
+    /// 声波：最右边那根是这一小会儿里最响的，每 0.06 秒往左挪一根；顺便看有没有在说话、要不要提示
+    private func meter(_ value: Double) {
+        let now = Date()
+        if now.timeIntervalSince(lastShift) >= Self.step {
+            levels.removeFirst()
+            levels.append(value)
+            lastShift = now
+        } else if let last = levels.indices.last {
+            levels[last] = max(levels[last], value)
+        }
+        if value >= Self.voiced { lastVoice = now }
+        let next = Self.hint(startedAt: startedAt, lastVoice: lastVoice, now: now, mode: mode)
+        if next != hint { hint = next }
+    }
+
+    /// 开始 4 秒还没听到声音：靠近一点说；说过话以后停了 5 秒（点一下说的）：可以发了
+    static func hint(startedAt: Date?, lastVoice: Date?, now: Date, mode: Mode) -> String? {
+        guard let startedAt else { return nil }
+        guard let lastVoice else { return now.timeIntervalSince(startedAt) > 4 ? "没听到声音，靠近手机说" : nil }
+        return mode == .tap && now.timeIntervalSince(lastVoice) > 5 ? "说完了就点 ↑ 发出去，点 ✓ 可以先改一改" : nil
     }
 
     private func fail(_ error: VoiceError) {
@@ -156,6 +189,9 @@ final class VoiceSession {
         levels = [Double](repeating: 0, count: Self.bars)
         startedAt = nil
         nearLimit = false
+        hint = nil
+        lastVoice = nil
+        lastShift = .distantPast
     }
 
     /// 1 分 50 秒提醒一下，2 分钟到了交给外面收尾
