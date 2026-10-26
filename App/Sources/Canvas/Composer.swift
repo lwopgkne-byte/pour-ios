@@ -128,7 +128,7 @@ struct Composer: View {
         Task {
             guard let words = await voice.finish(quiet: true) else { return }
             model.draft = model.draft.isEmpty ? words : model.draft + words
-            model.toast("被打断了，说到的字放在输入框里")
+            model.toast("录音停了，说到的字放在输入框里")
         }
     }
 
