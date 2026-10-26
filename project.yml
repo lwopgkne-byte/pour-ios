@@ -89,6 +89,8 @@ targets:
         NSSpeechRecognitionUsageDescription: 把你说的话在这台手机上转成字。
         # 健康（docs/模块/产品优化.md R5）：系统的权限页上写的那句
         NSHealthShareUsageDescription: Pour 读你的步数、睡眠和锻炼，放在画布上，算进目标和回顾。只读，不往健康里写。
+        # 日历（docs/模块/产品优化.md R6）：只读，日程只在手机上
+        NSCalendarsFullAccessUsageDescription: Pour 读今天的日程，放进待办那张卡里。只读，不改日历，不送到电脑上。
         # pour:// 打开这个 App：服务器推到 Bark 的提醒，点一下回到 Pour；pour://open?path=/review/2026-10-18 打开那一页
         CFBundleURLTypes:
           - CFBundleURLName: $(POUR_BUNDLE_ID)

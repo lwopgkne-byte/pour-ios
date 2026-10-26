@@ -37,6 +37,15 @@
         }
     }
 
+    extension CalendarLink {
+        /// 单元测试用：读假的日历，「接上没有」记在单独的一份设置里
+        static func forTests(_ name: String = "pour.tests.calendar") -> CalendarLink {
+            let defaults = UserDefaults(suiteName: name) ?? .standard
+            defaults.removePersistentDomain(forName: name)
+            return CalendarLink(source: FakeCalendar(), defaults: defaults)
+        }
+    }
+
     extension HealthLink {
         /// 单元测试用：读假的，「接上没有」记在单独的一份设置里（不碰这台手机上真的）
         static func forTests(_ name: String = "pour.tests.health") -> HealthLink {

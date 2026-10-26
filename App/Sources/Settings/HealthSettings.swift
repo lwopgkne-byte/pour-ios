@@ -22,3 +22,23 @@ struct HealthSettings: View {
         }
     }
 }
+
+/// 设置里的「日历」（docs/模块/产品优化.md R6）：接上、断开。只读，日程只在这台手机上
+struct CalendarSettings: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SettingRow(label: "日历", hint: "今天的日程出现在待办里；只读，不改日历，不送到电脑上的 Pour") {
+                if model.calendar.connected {
+                    WebTextButton("断开") { model.calendar.disconnect() }
+                } else {
+                    WebButton("接上", variant: .primary) { model.connectCalendar() }
+                }
+            }
+            if model.calendar.connected {
+                FieldMessage(text: "断开以后不再读。系统给 Pour 的读取权限在 iPhone 的「设置 → 隐私与安全性 → 日历」里关。")
+            }
+        }
+    }
+}

@@ -14,6 +14,8 @@ final class AppModel {
     let client: APIClient
     /// 健康 App（docs/模块/产品优化.md R5）：接上没有、读了送到电脑上的 Pour
     let health: HealthLink
+    /// 日历（R6）：接上没有、看的那天有哪些日程（只在手机上）
+    let calendar: CalendarLink
 
     /// 服务器按日界线算的今天
     private(set) var today: String
@@ -80,9 +82,10 @@ final class AppModel {
     /// 看过的日子里要提醒的待办（按日子存，换着看也不丢）
     var reminders: [String: [Reminder]] = [:]
 
-    init(client: APIClient, health: HealthLink) {
+    init(client: APIClient, health: HealthLink, calendar: CalendarLink) {
         self.client = client
         self.health = health
+        self.calendar = calendar
         let today = PourDate.logicalDay(Date(), in: .current)
         self.today = today
         shownDay = today

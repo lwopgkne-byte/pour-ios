@@ -17,7 +17,7 @@ struct SamplesSendTests {
             AppModel.openChatOnLaunch = false
         }
         CanvasSamples.set(true)
-        let model = AppModel(client: StubServer.client(), health: .forTests())
+        let model = AppModel(client: StubServer.client(), health: .forTests(), calendar: .forTests())
         let waiting = model.outbox.count
         model.draft = "今天早上跑了五公里 中午和同事吃火锅"
         model.send()

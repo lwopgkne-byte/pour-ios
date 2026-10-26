@@ -59,7 +59,11 @@ enum CanvasEmpty {
     @MainActor static func text(_ model: AppModel) -> String {
         if !model.dayNotes.isEmpty { return "说过的话里没有整理出记录。" }
         let offset = PourDate.diffDays(model.shownDay, model.today)
-        if offset == 0 { return "今天还是空白。说说你做了什么，这里会自己长出来。" }
+        if offset == 0 {
+            // 画布上已经有日历的日程、健康的步数（docs/模块/产品优化.md R5、R6）：就不说「还是空白」了
+            let shown = !model.shownEvents.isEmpty || model.day?.health?.steps != nil
+            return shown ? "说说你做了什么，这里会自己长出来。" : "今天还是空白。说说你做了什么，这里会自己长出来。"
+        }
         return offset > 0 ? "这一天还没到。" : "这一天没有留下记录。"
     }
 

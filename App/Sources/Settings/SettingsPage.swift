@@ -45,6 +45,7 @@ struct SettingsPage: View {
                 SettingsSection(title: "局域网访问") { LanSettings() }
                 SettingsSection(title: "数据") { DataSettings() }.id("data")
                 SettingsSection(title: "健康") { HealthSettings() }
+                SettingsSection(title: "日历") { CalendarSettings() }
                 SettingsSection(title: "这台手机") { PhoneSettings() }
             }
             .padding(.horizontal, Web.space4)

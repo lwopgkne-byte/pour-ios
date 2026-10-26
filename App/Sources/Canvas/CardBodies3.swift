@@ -137,19 +137,33 @@ struct InsightBody: View {
 struct TodoBody: View {
     @Environment(AppModel.self) private var model
     let entries: [API.Entry]
+    /// 日历里这一天的日程（docs/模块/产品优化.md R6；没接日历是空的）：全天的放最上面一行，别的和待办按时间排
+    var events: [CalendarItem] = []
 
     var body: some View {
-        let sorted = CanvasPlan.todoOrder(entries)
-        ShowFirst(items: sorted, first: 5) { entry, index in
-            if case .todo(let todo) = entry.data {
-                HStack(alignment: .top, spacing: Theme.Space.tight) {
-                    TodoCheck(done: todo.done, label: todo.content) { model.setDone(entry.id, !todo.done) }
-                    CardRow(entry: entry, quiet: repeatsQuestion(sorted, index)) { TodoLine(todo: todo) }
+        let agenda = AgendaPlan.rows(todos: entries, events: events)
+        let todos = agenda.rows.compactMap { row -> API.Entry? in
+            if case .todo(let entry) = row { entry } else { nil }
+        }
+        VStack(alignment: .leading, spacing: 0) {
+            if !agenda.allDay.isEmpty { AllDayLine(items: agenda.allDay) }
+            ShowFirst(items: agenda.rows, first: 5) { row, _ in
+                switch row {
+                case .todo(let entry):
+                    if case .todo(let todo) = entry.data {
+                        HStack(alignment: .top, spacing: Theme.Space.tight) {
+                            TodoCheck(done: todo.done, label: todo.content) { model.setDone(entry.id, !todo.done) }
+                            CardRow(entry: entry, quiet: repeatsQuestion(todos, todos.firstIndex(of: entry) ?? 0)) {
+                                TodoLine(todo: todo)
+                            }
+                        }
+                    }
+                case .event(let item):
+                    AgendaEventRow(item: item)
                 }
             }
         }
     }
-
 }
 
 /// 待办的字：做完的变淡划掉；没做完的有提醒时间（提醒过的写「已提醒」）

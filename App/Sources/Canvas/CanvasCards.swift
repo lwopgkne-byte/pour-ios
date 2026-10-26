@@ -79,7 +79,7 @@ struct CanvasCard: View {
         case .money: MoneyBody(entries: entries, day: day.day)
         case .mood: MoodBody(entries: entries, quotes: quotes)
         case .insight: InsightBody(entries: entries)
-        case .todo: TodoBody(entries: entries)
+        case .todo: TodoBody(entries: entries, events: model.calendar.items[day.day] ?? [])
         case .mentions: MentionsBody(entries: day.entries, history: day.mentions)
         }
     }
@@ -132,6 +132,8 @@ private struct CardHeader: View {
         let count = card.entries.count
         switch card.template {
         case .todo:
+            // 只有日历里的日程、没有待办时不写（docs/模块/产品优化.md R6）
+            guard count > 0 else { return nil }
             let left = card.entries.filter { if case .todo(let todo) = $0.data { !todo.done } else { false } }.count
             return left > 0 ? "还有 \(left) 件" : "都做完了"
         case .money: return "\(count) 笔"

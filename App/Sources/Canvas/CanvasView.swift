@@ -8,6 +8,7 @@ import SwiftUI
 struct CanvasView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     /// 左上角菜单（外壳给的）
     let openMenu: () -> Void
     @State private var picking = false
@@ -52,6 +53,9 @@ struct CanvasView: View {
             .scrollDismissesKeyboard(.interactively)
             .scrollEdgeEffectStyle(.soft, for: [.top, .bottom])
             .refreshable { await model.refreshAll() }
+            // 日历的日程只在手机上（R6）：换一天、回到前台时读一次
+            .task(id: model.shownDay) { model.loadCalendar() }
+            .onChange(of: scenePhase) { _, phase in if phase == .active { model.loadCalendar() } }
             // 往下翻看内容时一周条自动收起（只收不展，免得来回闪）
             .onScrollGeometryChange(for: Bool.self) { geometry in
                 geometry.contentOffset.y + geometry.contentInsets.top > Theme.Size.touch + Theme.Space.regular
@@ -88,7 +92,8 @@ private struct CanvasBody: View {
 
     var body: some View {
         if let day = model.day {
-            let rows = CanvasPlan.rows(day.entries, model.categories, steps: day.health?.steps)
+            let rows = CanvasPlan.rows(
+                day.entries, model.categories, steps: day.health?.steps, agenda: !model.shownEvents.isEmpty)
             let todos = rows.first.flatMap { row -> CanvasPlan.Row? in
                 if case .full(let card) = row, card.template == .todo { row } else { nil }
             }
@@ -102,8 +107,9 @@ private struct CanvasBody: View {
                 DayRibbon(day: day.day, entries: day.entries)
                 let rest = todos == nil ? rows : Array(rows.dropFirst())
                 if !rest.isEmpty { CanvasCards(day: day, rows: rest) }
-                // 接上健康的那张安静的小卡（docs/模块/产品优化.md R5）：只在今天、还没接、没点掉时
+                // 接上健康、日历的安静的小卡（docs/模块/产品优化.md R5、R6）：只在今天、还没接、没点掉时
                 HealthHint()
+                CalendarHint()
             }
         } else if let offline = model.offline {
             VStack(alignment: .leading, spacing: Theme.Space.small) {
