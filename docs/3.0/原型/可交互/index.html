@@ -1,0 +1,1366 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Pour 3.0 交互原型</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0&icon_names=add,alarm,arrow_forward,auto_awesome,backspace,bedtime,bookmark,calendar_month,check,checklist,chevron_left,chevron_right,close,content_copy,currency_yuan,delete,description,directions_run,diversity_3,done_all,edit,emoji_objects,event,event_repeat,expand_more,favorite,feedback,flag,format_quote,forum,grid_view,group,history,home,info,insights,inventory_2,ios_share,keyboard_voice,lightbulb,local_cafe,local_fire_department,local_taxi,lunch_dining,menu_book,mic,monitor_heart,more_horiz,movie,notifications,person,pets,photo_library,pie_chart,psychology,push_pin,receipt_long,record_voice_over,redeem,refresh,repeat,restaurant,savings,schedule,school,search,sell,send,sentiment_dissatisfied,sentiment_neutral,sentiment_satisfied,sentiment_very_dissatisfied,sentiment_very_satisfied,settings,shopping_bag,shopping_cart,snooze,star,swap_horiz,thumb_up,timeline,today,trending_down,trending_up,tune,undo,visibility,visibility_off,wallet,warning,wb_sunny,work&display=block">
+<style>
+/* Pour 3.0 交互原型：一台 iPhone 15（390×844）里的 App。电脑上居中一台手机，手机上铺满屏幕。
+   只有一种亮色（产品主人 2026-10-21 定的），颜色、字体都从下面这组令牌来，和 App 里生活画布 2.0 的 Theme 一致 */
+:root{
+  --bg:#F2F1EE; --card:#FFFFFF; --ink:#1C1B19; --ink2:#55524C; --ink3:#6B675F; --line:rgba(28,27,25,.10); --fill:rgba(28,27,25,.055); --fill2:rgba(28,27,25,.09);
+  --accent:#1B5BC6; --accent-soft:rgba(27,91,198,.10);
+  --good:#1E7A49; --good-soft:rgba(30,122,73,.11); --warn:#946000; --warn-soft:rgba(176,116,0,.12); --bad:#C0412F; --bad-soft:rgba(192,65,47,.10);
+  --money:#B8740C; --money-soft:rgba(194,126,18,.12); --mood:#BC4A7E; --mood-soft:rgba(188,74,126,.11); --idea:#9E6E06; --idea-soft:rgba(168,117,8,.12);
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --round:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;
+  --serif:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC",serif;
+  --ease:cubic-bezier(.32,.72,0,1);
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:#D9D7D1;font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button{font-family:inherit;color:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px 0;box-sizing:border-box}
+.device{position:relative;width:390px;height:844px;border-radius:56px;overflow:hidden;background:var(--bg);box-shadow:0 0 0 11px #1b1a18,0 0 0 12.5px #46433d,0 40px 90px rgba(0,0,0,.35);--top:54px;--bot:24px;isolation:isolate;transform:translateZ(0)}
+@media (max-width:520px){.stage{display:block;padding:0;height:100%}.device{width:100%;height:100%;border-radius:0;box-shadow:none;--top:8px;--bot:6px}}
+.ms{font-family:'Material Symbols Rounded';font-weight:normal;font-style:normal;line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;direction:ltr;font-feature-settings:'liga';font-variation-settings:'FILL' 0,'wght' 500,'GRAD' 0,'opsz' 24;user-select:none;width:1em;overflow:hidden;flex:none}
+.ms.f{font-variation-settings:'FILL' 1,'wght' 500,'GRAD' 0,'opsz' 24}
+html:not(.icons-ready) .ms{visibility:hidden}
+.num{font-family:var(--round);font-variant-numeric:tabular-nums}
+.serif{font-family:var(--serif)}
+.press{transition:transform .18s var(--ease),opacity .18s}
+.press:active{transform:scale(.96)}
+
+/* 页面、导航 */
+.tabroot{position:absolute;inset:0}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);padding-bottom:190px;box-sizing:border-box;scrollbar-width:none;overscroll-behavior:contain}
+.page::-webkit-scrollbar{display:none}
+.pushed{animation:pushIn .46s var(--ease) both;box-shadow:-10px 0 40px rgba(0,0,0,.10)}
+.pushed.leaving{animation:pushOut .32s cubic-bezier(.4,0,1,1) both}
+@keyframes pushIn{from{transform:translateX(100%)}to{transform:none}}
+@keyframes pushOut{from{transform:none}to{transform:translateX(100%)}}
+.zoomin{animation:zoomIn .42s var(--ease) both}
+@keyframes zoomIn{from{transform:scale(.86);opacity:0;border-radius:40px}to{transform:none;opacity:1}}
+.navbar{position:sticky;top:0;z-index:6;padding:calc(var(--top) + 2px) 12px 8px;display:flex;align-items:center;gap:8px;min-height:44px;transition:background .25s,box-shadow .25s}
+.navbar.solid{background:rgba(242,241,238,.84);backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);box-shadow:0 .5px 0 var(--line)}
+.navtitle{position:absolute;left:70px;right:70px;bottom:18px;text-align:center;font-size:17px;font-weight:600;opacity:0;transform:translateY(4px);transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.navtitle.show{opacity:1;transform:none}
+.navright{margin-left:auto;display:flex;gap:8px;align-items:center}
+.lt{font-size:34px;font-weight:700;letter-spacing:.2px;margin:0 20px 6px;line-height:1.2}
+.subtitle{margin:-2px 20px 10px;font-size:14px;color:var(--ink2)}
+.glass{background:rgba(255,255,255,.80);backdrop-filter:blur(18px) saturate(1.8);-webkit-backdrop-filter:blur(18px) saturate(1.8);box-shadow:0 0 0 .5px rgba(0,0,0,.06),0 4px 18px rgba(0,0,0,.08)}
+.iconbtn{width:40px;height:40px;border-radius:20px;display:inline-flex;align-items:center;justify-content:center;border:0;cursor:pointer;color:var(--ink);flex:none;padding:0}
+.back{height:40px;border-radius:20px;padding:0 14px 0 4px;display:inline-flex;align-items:center;border:0;font-size:16px;cursor:pointer}
+.card{background:var(--card);border-radius:20px;box-shadow:0 1px 2px rgba(0,0,0,.035),0 3px 14px rgba(0,0,0,.035)}
+.mx{margin-left:16px;margin-right:16px}
+.sh{display:flex;align-items:baseline;justify-content:space-between;margin:24px 20px 8px}
+.sh h3{margin:0;font-size:18px;font-weight:700}
+.sh .meta{font-size:13px;color:var(--ink3)}
+.link{font-size:15px;color:var(--accent);border:0;background:none;padding:6px 0;cursor:pointer;display:inline-flex;align-items:center;gap:2px}
+.row{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 16px;box-sizing:border-box;position:relative}
+.sep{height:.5px;background:var(--line);margin-left:16px}
+.chip{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 13px;border-radius:16px;background:var(--fill);border:0;font-size:14px;cursor:pointer;white-space:nowrap;flex:none;transition:background .2s,color .2s}
+.chip.on{background:var(--ink);color:#fff}
+.chip.blue{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:3px;height:24px;padding:0 8px;border-radius:12px;font-size:13px;font-weight:600;white-space:nowrap;flex:none}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.hscroll{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 16px}
+.hscroll::-webkit-scrollbar{display:none}
+.primary{height:52px;border-radius:16px;border:0;background:var(--accent);color:#fff;font-size:17px;font-weight:600;width:100%;cursor:pointer}
+.primary:disabled{opacity:.4}
+.seg{display:flex;background:var(--fill2);border-radius:10px;padding:2px;margin:6px 16px 4px}
+.seg button{flex:1;height:32px;border-radius:8px;border:0;background:none;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer;transition:background .2s}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.empty{padding:28px 20px;text-align:center;color:var(--ink3);font-size:15px;line-height:1.6}
+
+/* 底部：说一句 + 标签栏 */
+.dock{position:absolute;left:0;right:0;bottom:var(--bot);z-index:30;pointer-events:none}
+.say{pointer-events:auto;margin:0 16px 10px;height:50px;border-radius:25px;display:flex;align-items:center;gap:8px;padding:0 5px 0 6px;transition:transform .4s var(--ease),opacity .3s;border:0;width:calc(100% - 32px);box-sizing:border-box;cursor:pointer;text-align:left}
+.say.hide{transform:translateY(64px) scale(.9);opacity:0;pointer-events:none}
+.say .ph{flex:1;font-size:15.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mic{width:40px;height:40px;border-radius:20px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;border:0;cursor:pointer;flex:none}
+.tabbar{pointer-events:auto;display:flex;gap:10px;padding:0 16px}
+.tabs{flex:1;height:62px;border-radius:31px;display:flex;align-items:center;padding:0 4px;box-sizing:border-box}
+.tab{flex:1;height:54px;border-radius:27px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10.5px;font-weight:600;border:0;background:none;cursor:pointer;transition:background .25s,color .25s}
+.tab.on{color:var(--accent);background:rgba(27,91,198,.10)}
+.searchbtn{width:62px;height:62px;border-radius:31px;border:0;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.searchbtn.on{color:var(--accent);background:rgba(220,230,248,.9)}
+
+/* 弹层 */
+.sheetwrap{position:absolute;inset:0;z-index:50}
+.backdrop{position:absolute;inset:0;background:rgba(0,0,0,.28);animation:fadeIn .3s ease both}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#F7F6F3;border-radius:30px 30px 0 0;box-shadow:0 -8px 40px rgba(0,0,0,.18);animation:sheetIn .5s var(--ease) both;display:flex;flex-direction:column;max-height:calc(100% - var(--top) - 10px);overflow:hidden}
+.sheet.tall{height:calc(100% - var(--top) - 10px)}
+.closing .backdrop{animation:fadeOut .28s ease both}
+.closing .sheet{animation:sheetOut .3s cubic-bezier(.4,0,1,1) both}
+@keyframes sheetIn{from{transform:translateY(100%)}to{transform:none}}
+@keyframes sheetOut{from{transform:none}to{transform:translateY(100%)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+.grab{padding:8px 0 4px;cursor:grab;touch-action:none;flex:none}
+.grab i{display:block;width:38px;height:5px;border-radius:3px;background:rgba(28,27,25,.2);margin:0 auto}
+.shead{display:flex;align-items:center;justify-content:space-between;padding:4px 16px 8px 20px;flex:none}
+.shead h2{margin:0;font-size:18px;font-weight:700}
+.sbody{overflow-y:auto;flex:1;padding-bottom:calc(24px + var(--bot));scrollbar-width:none}
+.sbody::-webkit-scrollbar{display:none}
+.closex{width:34px;height:34px;border-radius:17px;border:0;background:var(--fill2);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.grp{background:#fff;border-radius:16px;margin:0 16px;overflow:hidden}
+.grp .row{min-height:50px}
+.rl{width:62px;font-size:15px;color:var(--ink2);flex:none}
+
+/* 轻提示、长按菜单 */
+.toast{position:absolute;left:16px;right:16px;z-index:80;bottom:calc(var(--bot) + 140px);background:rgba(34,33,30,.94);color:#fff;border-radius:16px;padding:12px 10px 12px 16px;display:flex;align-items:center;gap:10px;font-size:15px;animation:toastIn .45s var(--ease) both;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.toast .tx{flex:1;line-height:1.4}
+.toast button{border:0;background:rgba(255,255,255,.14);color:#fff;height:32px;padding:0 12px;border-radius:16px;font-size:14px;font-weight:600;cursor:pointer;flex:none}
+@keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.menuwrap{position:absolute;inset:0;z-index:70;background:rgba(242,241,238,.45);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);animation:fadeIn .2s ease both;display:flex;flex-direction:column;justify-content:center;padding:0 16px}
+.menuprev{border-radius:18px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.18);animation:lift .3s var(--ease) both}
+@keyframes lift{from{transform:scale(.96)}to{transform:scale(1.02)}}
+.menu{margin-top:12px;width:250px;background:rgba(250,249,247,.96);border-radius:14px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.18);animation:menuIn .32s var(--ease) both;transform-origin:top left}
+@keyframes menuIn{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+.menu button{display:flex;align-items:center;justify-content:space-between;width:100%;height:46px;padding:0 16px;border:0;background:none;font-size:16px;cursor:pointer;border-bottom:.5px solid var(--line)}
+.menu button:last-child{border-bottom:0}
+.menu button.red{color:var(--bad)}
+
+/* 待办 */
+.trow{display:flex;align-items:center;gap:10px;min-height:58px;padding:8px 14px 8px 8px;background:#fff;position:relative;box-sizing:border-box;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.ck{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:0;background:none;cursor:pointer;flex:none;padding:0}
+.ck i{width:25px;height:25px;border-radius:13px;border:2px solid rgba(28,27,25,.28);box-sizing:border-box;display:flex;align-items:center;justify-content:center;transition:background .25s,border-color .25s}
+.ck.on i{background:var(--accent);border-color:var(--accent);animation:pop .4s var(--ease)}
+@keyframes pop{0%{transform:scale(.55)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
+.tt{font-size:16.5px;line-height:1.35;transition:color .3s}
+.trow.done .tt{color:var(--ink3);text-decoration:line-through;text-decoration-color:rgba(28,27,25,.4)}
+.tsub{font-size:12.5px;color:var(--ink3);margin-top:2px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.calbar{width:4px;height:28px;border-radius:2px;margin:0 20px 0 18px;flex:none}
+.swipe{position:relative;overflow:hidden;background:#fff}
+.sw-right{position:absolute;top:0;bottom:0;right:0;display:flex}
+.sw-left{position:absolute;inset:0;display:flex;align-items:center;padding-left:24px;gap:6px;background:var(--good);color:#fff;font-size:15px;font-weight:700}
+.sa{width:78px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#fff;font-size:12.5px;font-weight:600;border:0;cursor:pointer}
+.flash{animation:flash 1.4s ease both}
+@keyframes flash{0%,30%{background:#E6EEFB}100%{background:#fff}}
+.timeline{position:relative;margin:4px 16px 0;padding:6px 0 10px}
+.hour{display:flex;align-items:flex-start;height:44px;font-size:11.5px;color:var(--ink3)}
+.hour span{width:42px;transform:translateY(-6px)}
+.hour i{flex:1;border-top:.5px solid var(--line)}
+.blk{position:absolute;left:52px;right:6px;border-radius:10px;padding:6px 10px;font-size:13.5px;box-sizing:border-box;overflow:hidden}
+
+/* 钱 */
+.hero{padding:18px 18px 16px}
+.big{font-size:46px;font-weight:700;letter-spacing:-1px;line-height:1.05}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;padding:2px 10px 12px}
+.wd{text-align:center;font-size:12px;color:var(--ink3);padding:2px 0 4px}
+.day{height:52px;border-radius:12px;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:7px;gap:3px;cursor:pointer;position:relative;box-sizing:border-box}
+.day .d{font-size:11.5px;color:var(--ink3);font-family:var(--round);line-height:1}
+.day .a{font-size:12.5px;font-weight:650;font-family:var(--round);font-variant-numeric:tabular-nums;letter-spacing:-.3px;line-height:1.1;color:var(--ink)}
+.day.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.day.sel{background:var(--accent)!important;box-shadow:0 4px 12px rgba(27,91,198,.3)}
+.day.sel .d,.day.sel .a{color:#fff}
+.day.future{opacity:.32;cursor:default}
+.bar{height:8px;border-radius:4px;background:var(--fill);position:relative;overflow:hidden;flex:1}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px;transition:width .6s var(--ease)}
+.qa{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12.5px;font-weight:600;border:0;background:none;cursor:pointer;position:relative;padding:0;flex:1}
+.qa .c{width:52px;height:52px;border-radius:26px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,.05),0 3px 10px rgba(0,0,0,.05)}
+.badge{position:absolute;top:-3px;left:calc(50% + 14px);min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:#E7E4DE;color:#3A3833;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--round)}
+.mrow{display:flex;align-items:center;gap:12px;min-height:58px;padding:8px 16px;background:#fff;position:relative;box-sizing:border-box;touch-action:pan-y;cursor:pointer}
+.cico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
+.amt{font-size:16.5px;font-weight:650;font-family:var(--round);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 12px}
+.key{height:54px;border-radius:14px;border:0;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:500;cursor:pointer;font-family:var(--round)}
+.key:active{background:#E8E6E1}
+.worth{width:236px;flex:none;padding:16px;box-sizing:border-box}
+
+/* 我的 */
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));row-gap:18px;padding:16px 4px 18px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:12.5px;border:0;background:none;cursor:pointer;position:relative;padding:0}
+.sq{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:inset 0 -1px 0 rgba(0,0,0,.08)}
+.tile .bd{position:absolute;top:-5px;left:calc(50% + 15px);min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:#E7E4DE;color:#3A3833;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.jig{animation:jig .32s ease-in-out infinite alternate}
+.jig:nth-child(2n){animation-delay:-.16s}
+@keyframes jig{from{transform:rotate(-2.2deg)}to{transform:rotate(2.2deg)}}
+.mk{position:absolute;top:-6px;left:calc(50% - 32px);width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.gname{font-size:13px;font-weight:600;color:var(--ink2);margin:14px 0 0 18px}
+.qbig{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13px;font-weight:600;border:0;background:none;cursor:pointer;padding:0}
+.qbig .c{width:54px;height:54px;border-radius:17px;display:flex;align-items:center;justify-content:center}
+
+/* 心情、感悟 */
+.face{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);border:0;background:none;cursor:pointer;flex:1;padding:0;transition:transform .3s var(--ease)}
+.face .c{width:50px;height:50px;border-radius:25px;display:flex;align-items:center;justify-content:center;transition:transform .3s var(--ease),box-shadow .3s}
+.face.sel .c{transform:scale(1.14);box-shadow:0 0 0 3px #fff,0 0 0 5.5px var(--mood)}
+.face.sel{color:var(--ink);font-weight:700}
+.mcal .day{height:48px;padding-top:6px}
+.moment{border-left:2px solid rgba(28,27,25,.15);padding-left:10px;margin-top:6px;font-family:var(--serif);font-size:15.5px;line-height:1.55;color:#33312C}
+.flip{perspective:1200px}
+.flipin{position:relative;transition:transform .6s var(--ease);transform-style:preserve-3d}
+.flipin.on{transform:rotateY(180deg)}
+.flipface{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.flipback{position:absolute;inset:0;transform:rotateY(180deg)}
+.swapout{animation:swapOut .32s ease-in both}
+.swapin{animation:swapIn .5s var(--ease) both}
+@keyframes swapOut{to{transform:translateX(-40px);opacity:0}}
+@keyframes swapIn{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+
+/* 故事式回顾 */
+.story{position:absolute;inset:0;z-index:60;color:#fff;animation:storyIn .45s var(--ease) both;display:flex;flex-direction:column;overflow:hidden}
+.story.leaving{animation:storyOut .3s ease-in both}
+@keyframes storyIn{from{transform:scale(.9);opacity:0;border-radius:40px}to{transform:none;opacity:1}}
+@keyframes storyOut{to{transform:translateY(40px) scale(.94);opacity:0}}
+.prog{display:flex;gap:4px;padding:calc(var(--top) + 2px) 12px 0}
+.prog i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.3);overflow:hidden;display:block}
+.prog b{display:block;height:100%;background:#fff;width:0}
+.prog b.run{animation:prog 5.5s linear forwards}
+.prog b.full{width:100%}
+@keyframes prog{to{width:100%}}
+.stpage{flex:1;padding:22px 24px;display:flex;flex-direction:column;justify-content:center;animation:fadeIn .4s ease both}
+
+/* 对话 */
+.bub{max-width:80%;padding:10px 14px;border-radius:18px;font-size:16px;line-height:1.5}
+.bub.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:6px}
+.bub.pour{align-self:flex-start;background:#fff;border-bottom-left-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.wave{display:flex;align-items:center;gap:4px;height:44px}
+.wave i{width:4px;border-radius:2px;background:var(--accent);animation:wv 1s ease-in-out infinite}
+@keyframes wv{0%,100%{height:8px}50%{height:36px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+
+<div class="stage"><div class="device" id="app"></div></div>
+<script src="https://unpkg.com/htm@3.1.1/preact/standalone.umd.js"></script>
+<script>
+const { html, render, useState, useEffect, useRef, useMemo, useCallback, createContext, useContext } = htmPreact;
+const Ctx = createContext(null);
+const useApp = () => useContext(Ctx);
+let _uid = 0; const uid = () => 'u' + (++_uid);
+const fmt = (n) => Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 });
+const yuan = (n, masked) => (masked ? '¥•••' : '¥' + fmt(n));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const WDN = ['日', '一', '二', '三', '四', '五', '六'];
+const wdOf = (m, d) => new Date(2026, m - 1, d).getDay();
+const dayLabel = (m, d) => `${m}月${d}日 周${WDN[wdOf(m, d)]}`;
+const TODAY = { m: 10, d: 27, now: '16:10' };
+
+const I = ({ n, f, s, c, st }) => html`<span class="ms ${f ? 'f' : ''}" style=${{ fontSize: (s || 22) + 'px', color: c, ...(st || {}) }} aria-hidden="true">${n}</span>`;
+
+/* ───────────── 数据（演示里那个 34 岁的产品经理） ───────────── */
+const CATS = {
+  饮食: { i: 'restaurant', c: '#E0962A' }, 购物: { i: 'shopping_bag', c: '#DB7438' }, 家人朋友: { i: 'diversity_3', c: '#CF5786' },
+  宠物: { i: 'pets', c: '#8667D3' }, 娱乐: { i: 'movie', c: '#5579DC' }, 出行: { i: 'local_taxi', c: '#3796D5' },
+  办事: { i: 'description', c: '#7A808A' }, 工作: { i: 'work', c: '#986845' },
+};
+let _mid = 0;
+const M = (m, day, time, name, amt, cat, x = {}) => ({ id: 'm' + (++_mid), m, day, time, name, amt, cat, kind: 'daily', who: '自己', ...x });
+const SAY_SUPER = '超市买了 洗衣液 45 面包 16 葡萄 28 牛肉 89';
+function genMoney() {
+  const out = [
+    M(10, 27, '12:40', '食堂午饭', 15, '饮食', { place: '公司食堂', said: '食堂吃的 15' }),
+    M(10, 26, '21:40', '给儿子买运动鞋', 259, '购物', { who: '儿子', said: '给儿子买了双运动鞋 259' }),
+    M(10, 26, '19:10', '买猫粮', 120, '宠物', { who: '猫', note: '比 9 月贵了 ¥11', said: '给猫买了一袋猫粮 一百二' }),
+    M(10, 26, '19:10', '打疫苗', 80, '宠物', { who: '猫', said: '带猫去打了疫苗 花了八十' }),
+    M(10, 26, '19:10', '打车回家', 61, '出行', { kind: 'reimburse', said: '地铁停了 打车回家 61 回头报销' }),
+    M(10, 26, '12:40', '外卖 沙拉', 38, '饮食', { said: '外卖点了沙拉 38 减肥' }),
+    M(10, 25, '17:00', '电影票', 150, '娱乐', { who: '一家人', people: ['老婆', '儿子'], place: '电影院', said: '5点带儿子去看了场电影 三张票150' }),
+    M(10, 24, '21:50', '给妈妈转钱', 1000, '家人朋友', { who: '妈妈', said: '给妈妈转了 1000 让她买点好吃的' }),
+    M(10, 24, '19:40', '满月红包', 800, '家人朋友', { who: '老同学', tag: '人情', said: '老同学家孩子满月 包了800的红包' }),
+    M(10, 24, '17:40', '牛肉', 89, '饮食', { place: '超市', group: '超市买菜', said: SAY_SUPER }),
+    M(10, 24, '17:40', '葡萄', 28, '饮食', { place: '超市', group: '超市买菜', said: SAY_SUPER }),
+    M(10, 24, '17:40', '面包', 16, '饮食', { place: '超市', group: '超市买菜', said: SAY_SUPER }),
+    M(10, 24, '17:40', '洗衣液', 45, '购物', { place: '超市', group: '超市买菜', said: SAY_SUPER }),
+    M(10, 23, '22:20', '网购牛奶', 69, '购物', { said: '网购了一箱牛奶 69' }),
+    M(10, 23, '12:40', '和小李吃午饭', 26, '饮食', { people: ['小李'], said: '中午和小李吃的面 26' }),
+    M(10, 22, '12:40', '外卖 沙拉', 38, '饮食'),
+    M(10, 21, '23:10', '网购台灯', 159, '购物', { said: '网购了个台灯 159' }),
+    M(10, 21, '12:40', '午饭 牛肉面', 28, '饮食'),
+    M(10, 20, '21:40', '买按摩枪', 399, '购物', { verdict: { tone: 'regret', q: '有点后悔' }, said: '按摩枪买了就用过一次，有点后悔' }),
+    M(10, 20, '21:15', '回请小李吃火锅', 186, '饮食', { tag: '人情', people: ['小李'], said: '晚上回请小李吃了火锅 186' }),
+    M(10, 20, '21:40', '视频会员', 25, '娱乐', { kind: 'fixed', said: '视频会员又扣了 25' }),
+    M(10, 20, '19:10', '打车回家', 56, '出行', { kind: 'reimburse', said: '加班到十点 打车回家 56 能报销' }),
+    M(10, 20, '15:30', '喝奶茶', 16, '饮食'),
+    M(10, 20, '12:40', '外卖 黄焖鸡', 32, '饮食', { said: '外卖点了个黄焖鸡 32' }),
+    M(10, 19, '22:20', '夜宵 烧烤', 68, '饮食', { said: '加班饿了 点了份烧烤当夜宵 68' }),
+    M(10, 19, '12:40', '食堂午饭', 15, '饮食'),
+    M(10, 18, '19:00', '和老同学吃火锅', 186, '饮食', { people: ['老同学'] }),
+    M(10, 18, '18:40', '买猫粮', 120, '宠物', { who: '猫' }),
+    M(10, 18, '16:10', '买围巾', 159, '购物', { who: '老婆' }),
+    M(10, 17, '21:50', '买猫砂', 59, '宠物'),
+    M(10, 17, '14:00', '借给老同学', 2000, '家人朋友', { kind: 'lend', who: '老同学', said: '老同学找我借了 2000 说下个月还' }),
+    M(10, 15, '09:00', '房贷', 6800, '办事', { kind: 'fixed' }),
+    M(10, 10, '09:00', '工资', 18500, '工作', { kind: 'income' }),
+    M(10, 10, '19:00', '家庭聚餐', 368, '饮食', { who: '一家人' }),
+    M(10, 8, '09:00', '瑜伽月卡', 199, '娱乐', { kind: 'fixed' }),
+    M(10, 7, '20:30', '降噪耳机', 899, '购物', { verdict: { tone: 'good', q: '通勤戴着太安静了' }, said: '买了个降噪耳机 899 通勤戴着太安静了' }),
+    M(10, 5, '09:00', '话费', 128, '办事', { kind: 'fixed' }),
+    M(10, 3, '10:30', '海洋馆', 560, '娱乐', { who: '一家人', verdict: { tone: 'good', q: '他一路都在笑' }, said: '带儿子去了海洋馆 门票 560 他一路都在笑' }),
+    M(10, 3, '12:30', '午饭', 138, '饮食', { who: '一家人' }),
+    M(9, 5, '15:00', '装修款', 20000, '家人朋友', { who: '一家人' }),
+    M(9, 20, '15:00', '装修尾款', 8000, '家人朋友', { who: '一家人' }),
+  ];
+  const has = new Set(out.filter((x) => x.kind === 'daily').map((x) => x.m + '-' + x.day));
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  const work = [['食堂午饭', 15, '饮食'], ['午饭 牛肉面', 28, '饮食'], ['外卖 沙拉', 38, '饮食'], ['喝奶茶', 16, '饮食'], ['买菜', 46, '饮食'], ['坐地铁', 6, '出行']];
+  const wkend = [['超市', 168, '购物'], ['和老婆吃饭', 196, '饮食'], ['网购', 89, '购物'], ['带儿子去公园', 60, '娱乐'], ['买水果', 38, '饮食']];
+  for (const [m, last] of [[9, 30], [10, 26]]) {
+    for (let d = 1; d <= last; d++) {
+      if (has.has(m + '-' + d)) continue;
+      const we = [0, 6].includes(wdOf(m, d));
+      const pool = we ? wkend : work;
+      const n = 1 + Math.floor(rnd() * 2.2);
+      for (let k = 0; k < n; k++) {
+        const [name, amt, cat] = pool[Math.floor(rnd() * pool.length)];
+        out.push(M(m, d, we ? ['11:30', '15:20', '19:00'][k] || '20:10' : ['12:40', '15:30', '19:20'][k] || '20:10', name, Math.round(amt * (0.8 + rnd() * 0.5)), cat));
+      }
+    }
+  }
+  return out;
+}
+const WATCH0 = [
+  { id: 'w1', kind: 'reimburse', title: '等报销', amt: 117, sub: '2 笔打车回家，最早 10月20日', act: '都报销了' },
+  { id: 'w2', kind: 'lend', title: '借给老同学', amt: 2000, sub: '10月17日借的 · 过去 10 天', act: '已经还了', said: '老同学找我借了 2000 说下个月还' },
+  { id: 'w3', kind: 'fixed', title: '瑜伽月卡 每月', amt: 199, sub: '10月8日又扣了；9月15日以后没说到去瑜伽', act: '不再算固定的' },
+];
+const TODOS0 = [
+  { id: 't1', title: '交水费', sec: 'overdue', due: '10月25日 周日', said: '10月24日 你说：周日记得交水费' },
+  { id: 'c1', cal: true, title: '结婚纪念日', sec: 'today', allDay: true, color: '#BC4A7E' },
+  { id: 't2', title: '给客户回电话', sec: 'today', time: '10:00', past: true, people: ['客户'], said: '10月26日 21:30 你说：明天上午十点提醒我给客户回电话' },
+  { id: 'c2', cal: true, title: '需求评审', sec: 'today', time: '14:00', end: '15:30', color: '#2F6FD6' },
+  { id: 't3', title: '把会员改版的 PRD 发给研发', sec: 'today', time: '17:30', people: ['研发'], things: ['PRD'], said: '10月26日 21:40 你说：明天下午五点半提醒我把会员改版的 PRD 发给研发' },
+  { id: 't4', title: '交周报', sec: 'today', done: true, settled: true, time: '11:00' },
+  { id: 't5', title: '带儿子打疫苗', sec: 'tomorrow', time: '15:30', people: ['儿子'], place: '社区医院', said: '10月25日 你说：周三下午三点半带儿子打疫苗' },
+  { id: 't6', title: '背单词', sec: 'tomorrow', time: '21:30', repeat: '每周一、三、五' },
+  { id: 't8', title: '交周报', sec: 'later', date: '11月2日 周一', time: '09:00', repeat: '每周一' },
+  { id: 't7', title: '交季度报告', sec: 'later', date: '11月3日 周二', time: '10:00', said: '10月20日 你说：下个月三号上午十点交季度报告' },
+];
+const MOOD_W = ['很差', '不太好', '一般', '挺好', '很好'];
+const MOOD_I = ['sentiment_very_dissatisfied', 'sentiment_dissatisfied', 'sentiment_neutral', 'sentiment_satisfied', 'sentiment_very_satisfied'];
+const MOOD_BG = ['#EDE2E7', '#E5CAD6', '#DCA9BF', '#CF7FA4', '#B54A7C'];
+const MOOD_FG = ['#6D3352', '#7A2E52', '#FFFFFF', '#FFFFFF', '#FFFFFF'];
+const MOODS0 = [
+  { id: 'mo1', time: '08:20', lv: 2, emo: ['累'], moment: '地铁挤得要命，站了一路' },
+  { id: 'mo2', time: '12:50', lv: 4, emo: ['开心'], moment: '食堂今天有红烧肉' },
+];
+const MOOD_MONTH = [4, 3, 5, 4, 3, null, 4, 3, 2, 4, 4, 5, 3, null, 4, 2, 3, 4, 5, 4, 3, 2, 3, 5, 4, 3];
+const EMO_GOOD = ['开心', '放松', '满足', '平静', '期待', '感激', '自豪'];
+const EMO_BAD = ['累', '烦躁', '焦虑', '失落', '委屈', '生气', '难过'];
+const INS0 = [
+  { id: 'i1', q: '陪儿子的时候，就只陪儿子。', d: '10月24日', m: 10, tags: ['家人', '专注'], star: true, said: '今天精神挺好 心情不错 记一句 陪儿子的时候 就只陪儿子' },
+  { id: 'i2', q: '关掉消息专心做一件事，两个小时顶一天。', d: '10月23日', m: 10, tags: ['专注', '效率'], rel: 2, said: '下午关掉消息专心写了两个小时 比一整天效率都高 以后应该每天留出这么一段' },
+  { id: 'i3', q: '陪儿子二十分钟，手机放远一点，比陪一下午心不在焉强。', d: '10月19日', m: 10, tags: ['育儿', '专注'] },
+  { id: 'i4', q: '少做一个功能，往往比多做一个更难。', d: '10月18日', m: 10, tags: ['工作', '取舍'], star: true },
+  { id: 'i5', q: '睡前读半小时书，比刷手机睡得踏实。', d: '10月15日', m: 10, tags: ['阅读', '睡眠'] },
+  { id: 'i6', q: '累的时候先休息，与其硬撑不如早点睡。', d: '10月13日', m: 10, tags: ['精力', '休息'] },
+  { id: 'i7', q: '慢慢来，比较快。', d: '10月11日', m: 10, tags: ['心态'], star: true, ago: '16 天前', said: '今天方案又被打回来了 不急 慢慢来 比较快' },
+  { id: 'i8', q: '晚上又刷了两个小时手机，什么都没干成，下次应该放客厅充电。', d: '10月8日', m: 10, tags: ['手机', '时间'] },
+  { id: 'i9', q: '用户说的不一定是用户要的。', d: '10月4日', m: 10, tags: ['工作', '用户'], star: true, ago: '23 天前', said: '访谈了五个用户 用户说的不一定是用户要的' },
+  { id: 'i10', q: '先想清楚为什么做，再想做什么。', d: '9月28日', m: 9, tags: ['工作', '方法'], star: true, ago: '一个月前', said: '写需求之前 先想清楚为什么做 再想做什么' },
+  { id: 'i11', q: '每次只跑五公里反而坚持下来了，以前总觉得必须一上来就十公里。', d: '9月27日', m: 9, tags: ['运动', '习惯'], ago: '一个月前' },
+];
+const RESURFACE = ['i7', 'i9', 'i10', 'i1', 'i4'];
+const GOALS = [
+  { id: 'g1', title: '今年跑 500 公里', v: 92.4, t: 500, unit: '公里', st: 'bad', note: '落后 46%', sub: '应达 171 公里 · 照最近的速度，年底约 140 公里' },
+  { id: 'g2', title: '平均睡眠 7.5 小时', v: 6.8, t: 7.5, unit: '小时', st: 'warn', note: '差 0.7 小时', sub: '这周平均 6.8 小时' },
+  { id: 'g3', title: '每周背单词 4 次', v: 1, t: 4, unit: '次', st: 'good', note: '在正轨上', sub: '这周 1 次，还有 5 天' },
+  { id: 'g4', title: '每天走 8000 步', v: 5266, t: 8000, unit: '步', st: 'bad', note: '差 2,734 步', sub: '这周平均 5,266 步' },
+];
+const REVIEWS = {
+  day: [
+    { id: 'r26', d: '昨天 · 10月26日 周一', s: '睡了 6 小时 50 分，16:8 轻断食，外卖沙拉 ¥38，背单词。', chips: ['睡眠 6:50', '专注 12:25', '有起有落'], fresh: true },
+    { id: 'r25', d: '10月25日 周日', s: '睡了 8 小时，游泳，16:8 轻断食，看书 40 页。', chips: ['睡眠 8:00', '游泳', '挺好'] },
+    { id: 'r24', d: '10月24日 周六', s: '跑步 8.4 公里，陪儿子去公园一个半小时，花了 ¥1,978。', chips: ['跑步 8.4 公里', '¥1,978', '很好'] },
+    { id: 'r23', d: '10月23日 周五', s: '睡了 7 小时，走路 3.1 公里，和小李吃午饭 ¥26。', chips: ['睡眠 7:00', '走路 3.1 公里'] },
+    { id: 'r22', d: '10月22日 周四', s: '睡了 7 小时 10 分，力量训练，16:8 轻断食，烤蛋挞。', chips: ['力量训练', '一般'] },
+  ],
+  week: [
+    { id: 'w1', d: '10月19日 – 25日', s: '这周运动 3 小时 43 分，睡眠每晚平均 7 小时 23 分，日常花了 ¥3,164。', chips: ['运动 5 次', '睡眠 7:23', '心情 挺好'], fresh: true },
+    { id: 'w2', d: '10月12日 – 18日', s: '这周运动 3 小时 52 分（比上周少 1 小时 14 分），睡眠每晚平均 7 小时 15 分。', chips: ['运动 4 次', '睡眠 7:15'] },
+  ],
+  month: [{ id: 'mm9', d: '9月', s: '这个月装修收尾，日常花了 ¥39,158；开始跑步，16:8 坚持到第 8 天。', chips: ['跑步 4 次', '¥39,158', '心情 一般'] }],
+};
+const NOTES = [
+  { id: 'n1', day: '今天 · 10月27日 周二', time: '12:45', text: '食堂吃的 15', chips: ['食堂午饭 ¥15', '在公司食堂'] },
+  { id: 'n2', day: '今天 · 10月27日 周二', time: '08:20', text: '地铁挤得要命 站了一路 有点累', chips: ['心情：不太好 · 累'] },
+  { id: 'n3', day: '今天 · 10月27日 周二', time: '05:05', text: '又过了12点才睡 12点10分 早上7点起的 继续168', chips: ['睡觉 0:10 → 7:00', '16:8 轻断食'] },
+  { id: 'n4', day: '昨天 · 10月26日 周一', time: '21:40', text: '明天下午五点半提醒我把会员改版的PRD发给研发', chips: ['待办：把会员改版的 PRD 发给研发 · 明天 17:30'] },
+  { id: 'n5', day: '昨天 · 10月26日 周一', time: '21:30', text: '晚上楼下飘上来烤红薯的香味 一下子放松了', chips: ['心情：挺好 · 放松'] },
+  { id: 'n6', day: '昨天 · 10月26日 周一', time: '19:10', text: '在公司待了11个小时 有点累 地铁停了 打车回家 61 回头报销 给猫买了一袋猫粮 一百二 带猫去打了疫苗 花了八十', chips: ['上班 11 小时', '打车回家 ¥61 · 等报销', '买猫粮 ¥120', '+2'] },
+];
+const CHAT0 = [
+  { id: 'h0', day: '昨天' },
+  { id: 'h1', me: true, t: '晚上楼下飘上来烤红薯的香味 一下子放松了', at: '21:30' },
+  { id: 'h2', kind: 'mood', title: '心情 · 挺好 · 放松', sub: '那一刻：晚上楼下飘上来烤红薯的香味' },
+  { id: 'h3', me: true, t: '明天下午五点半提醒我把会员改版的PRD发给研发', at: '21:40' },
+  { id: 'h4', kind: 'todo', title: '待办 · 明天 17:30 提醒', sub: '把会员改版的 PRD 发给研发' },
+  { id: 'h5', me: true, t: '明天要做什么', at: '22:05' },
+  { id: 'h6', answer: '明天有 2 件：10:00 给客户回电话；17:30 把会员改版的 PRD 发给研发。以前该做、还没做完的还有：交水费（10月25日）。' },
+  { id: 'h7', day: '今天' },
+  { id: 'h8', me: true, t: '食堂吃的 15', at: '12:45' },
+  { id: 'h9', kind: 'money', title: '食堂午饭 ¥15', sub: '饮食 · 在公司食堂' },
+];
+
+/* ───────────── 认时间（加待办、说一句都用它；程序认，不等 AI） ───────────── */
+const CN = { 零: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10 };
+function cnNum(s) {
+  if (/^\d+$/.test(s)) return +s;
+  if (s === '十') return 10;
+  if (s.startsWith('十')) return 10 + (CN[s[1]] || 0);
+  if (s.endsWith('十')) return (CN[s[0]] || 0) * 10;
+  if (s.includes('十')) return (CN[s[0]] || 0) * 10 + (CN[s[2]] || 0);
+  return CN[s] ?? NaN;
+}
+const DAYS_IN = { 10: 31, 11: 30, 9: 30 };
+function addDays(m, d, n) { d += n; while (d > DAYS_IN[m]) { d -= DAYS_IN[m]; m += 1; } return [m, d]; }
+function parseWhen(text) {
+  const spans = []; let off = null, md = null, time = null, repeat = null;
+  const mark = (mm) => { if (mm) spans.push([mm.index, mm.index + mm[0].length]); };
+  let m = text.match(/每天|每个工作日|工作日|每周[一二三四五六日天](?:[、和][一二三四五六日天])*|每月\d{1,2}[号日]/);
+  if (m) { repeat = m[0].replace('每个', ''); mark(m); }
+  m = text.match(/大后天|后天|明天|明早|明晚|今天|今晚/);
+  if (m) { off = { 今天: 0, 今晚: 0, 明天: 1, 明早: 1, 明晚: 1, 后天: 2, 大后天: 3 }[m[0]]; mark(m); }
+  m = text.match(/(下周|下星期|这周|本周|周|星期)([一二三四五六日天])/);
+  if (m && off === null && !repeat) {
+    const target = '日一二三四五六天'.indexOf(m[2]) % 7; const cur = wdOf(10, 27);
+    let n = (target - cur + 7) % 7; if (m[1].startsWith('下')) n = n + 7 - (n >= 7 ? 7 : 0) + (n === 0 ? 0 : 0); if (m[1].startsWith('下') && n < 7) n += 0;
+    if (m[1].startsWith('下')) n = ((target - cur + 7) % 7) + 7; else if (n === 0) n = 7;
+    off = n; mark(m);
+  }
+  m = text.match(/(\d{1,2})月(\d{1,2})[日号]/);
+  if (m) { md = [+m[1], +m[2]]; mark(m); }
+  m = text.match(/(上午|早上|中午|下午|傍晚|晚上|凌晨)?([0-9]{1,2}|[一二两三四五六七八九十]{1,3})[点:：](半|一刻|三刻|([0-9]{1,2}|[一二三四五六七八九十]{1,3})分?)?/);
+  if (m) {
+    let h = cnNum(m[2]); let mi = 0;
+    if (m[3] === '半') mi = 30; else if (m[3] === '一刻') mi = 15; else if (m[3] === '三刻') mi = 45; else if (m[4]) mi = cnNum(m[4]);
+    const pre = m[1] || (/今晚|明晚/.test(text) ? '晚上' : '');
+    if (['下午', '傍晚', '晚上'].includes(pre) && h < 12) h += 12;
+    if (pre === '中午' && h < 6) h += 12;
+    if (!isNaN(h)) { time = String(h).padStart(2, '0') + ':' + String(mi || 0).padStart(2, '0'); mark(m); }
+  }
+  m = text.match(/(半|[0-9]+|[一两三四五六七八九十]+)(个)?(小时|钟头)后|([0-9]+|[一两三四五六七八九十]+)分钟后/);
+  if (m) {
+    const base = 16 * 60 + 10; let add = 0;
+    if (m[3]) add = m[1] === '半' ? 30 : cnNum(m[1]) * 60; else add = cnNum(m[4]);
+    const t = base + add; time = String(Math.floor(t / 60) % 24).padStart(2, '0') + ':' + String(t % 60).padStart(2, '0'); off = off ?? 0; mark(m);
+  }
+  if (!time && /今晚|明晚/.test(text)) time = '20:00';
+  if (!time && /明早/.test(text)) time = '09:00';
+  let dm = null;
+  if (md) dm = md; else if (off !== null) dm = addDays(10, 27, off);
+  let label = null, sec = 'today';
+  if (dm) {
+    const diff = dm[0] === 10 ? dm[1] - 27 : dm[0] === 11 ? dm[1] + 4 : -1;
+    label = diff === 0 ? '今天' : diff === 1 ? '明天' : diff === 2 ? '后天' : `${dm[0]}月${dm[1]}日 周${WDN[wdOf(dm[0], dm[1])]}`;
+    sec = diff <= 0 ? 'today' : diff === 1 ? 'tomorrow' : 'later';
+  } else if (time) { label = '今天'; }
+  let title = text;
+  for (const [a, b] of [...spans].sort((x, y) => y[0] - x[0])) title = title.slice(0, a) + ' ' + title.slice(b);
+  title = title.replace(/提醒我|提醒一下|记得|帮我|要去|的时候|之前|之后/g, ' ').replace(/^[\s，,。要再去把]+/, '').replace(/[\s，,。]+$/, '').replace(/\s+/g, ' ').trim();
+  return { label, time, repeat, sec, dm, spans, title: title || text.trim() };
+}
+function hilite(text, spans) {
+  if (!spans.length) return text;
+  const s = [...spans].sort((a, b) => a[0] - b[0]); const out = []; let at = 0;
+  for (const [a, b] of s) { if (a < at) continue; out.push(text.slice(at, a)); out.push(html`<mark style=${{ background: 'var(--accent-soft)', color: 'var(--accent)', borderRadius: '5px', padding: '0 2px', fontWeight: 600 }}>${text.slice(a, b)}</mark>`); at = b; }
+  out.push(text.slice(at)); return out;
+}
+
+/* ───────────── 通用的小部件 ───────────── */
+function Page({ title, back, right, sub, children, large = true, cls = '', pageRef }) {
+  const app = useApp(); const [solid, setSolid] = useState(false); const last = useRef(0);
+  const onScroll = (e) => { const y = e.currentTarget.scrollTop; setSolid(y > 36); app.onScrollDir(y > last.current + 4 && y > 90 ? 'down' : y < last.current - 4 ? 'up' : null); last.current = y; };
+  return html`<div class="page ${cls}" onScroll=${onScroll} ref=${pageRef}>
+    <div class="navbar ${solid ? 'solid' : ''}">
+      ${back && html`<button class="back glass press" onClick=${app.pop} aria-label=${'返回' + back}><${I} n="chevron_left" s=${26}/>${back}</button>`}
+      <div class="navtitle ${solid || !large ? 'show' : ''}">${title}</div>
+      <div class="navright">${right}</div>
+    </div>
+    ${large && html`<h1 class="lt">${title}</h1>`}
+    ${sub && html`<div class="subtitle">${sub}</div>`}
+    ${children}
+  </div>`;
+}
+function Ring({ v, t, size = 48, w = 6, color, track = 'rgba(28,27,25,.08)', anim = true }) {
+  const r = (size - w) / 2; const c = 2 * Math.PI * r; const p = clamp(v / t, 0, 1);
+  const [on, setOn] = useState(!anim); useEffect(() => { const h = setTimeout(() => setOn(true), 60); return () => clearTimeout(h); }, []);
+  return html`<svg width=${size} height=${size} viewBox="0 0 ${size} ${size}" aria-hidden="true" style=${{ flex: 'none' }}>
+    <circle cx=${size / 2} cy=${size / 2} r=${r} fill="none" stroke=${track} stroke-width=${w}/>
+    <circle cx=${size / 2} cy=${size / 2} r=${r} fill="none" stroke=${color} stroke-width=${w} stroke-linecap="round" stroke-dasharray=${`${c * (on ? p : 0)} ${c}`} transform=${`rotate(-90 ${size / 2} ${size / 2})`} style=${{ transition: 'stroke-dasharray .9s cubic-bezier(.32,.72,0,1)' }}/>
+  </svg>`;
+}
+function useLongPress(fn, ms = 450) {
+  const t = useRef(null); const st = useRef(null);
+  return {
+    onPointerDown: (e) => { st.current = [e.clientX, e.clientY]; t.current = setTimeout(() => { t.current = null; fn(e); }, ms); },
+    onPointerMove: (e) => { if (t.current && st.current && Math.hypot(e.clientX - st.current[0], e.clientY - st.current[1]) > 8) { clearTimeout(t.current); t.current = null; } },
+    onPointerUp: () => { if (t.current) { clearTimeout(t.current); t.current = null; } },
+    onPointerCancel: () => { if (t.current) { clearTimeout(t.current); t.current = null; } },
+  };
+}
+/** 左右滑：右滑完成（绿），左滑露出按钮（推迟、删除……） */
+function Swipe({ onRight, rightLabel = '完成', rightIcon = 'check', actions = [], children, onTap, onLong }) {
+  const [dx, setDx] = useState(0); const [anim, setAnim] = useState(false); const st = useRef(null); const lp = useRef(null);
+  const reveal = actions.length * 78;
+  const down = (e) => {
+    st.current = { x: e.clientX, y: e.clientY, dx0: dx, act: false, moved: false, id: e.pointerId };
+    lp.current = onLong ? setTimeout(() => { lp.current = null; if (st.current && !st.current.moved) { st.current = null; onLong(); } }, 480) : null;
+  };
+  const move = (e) => {
+    const s = st.current; if (!s) return; const mx = e.clientX - s.x, my = e.clientY - s.y;
+    if (Math.hypot(mx, my) > 8) { s.moved = true; if (lp.current) { clearTimeout(lp.current); lp.current = null; } }
+    if (!s.act) { if (Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my) * 1.2) { s.act = true; try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {} setAnim(false); } else if (Math.abs(my) > 10) { st.current = null; return; } else return; }
+    let v = s.dx0 + mx; if (!onRight) v = Math.min(v, 0); if (!reveal) v = Math.max(v, 0);
+    setDx(clamp(v, -reveal - 40, 160));
+  };
+  const up = () => {
+    if (lp.current) { clearTimeout(lp.current); lp.current = null; }
+    const s = st.current; st.current = null; setAnim(true);
+    if (!s) return;
+    if (!s.act) { if (!s.moved) { if (dx !== 0) setDx(0); else onTap && onTap(); } return; }
+    if (dx > 90 && onRight) { setDx(420); setTimeout(() => { onRight(); setAnim(false); setDx(0); }, 220); }
+    else if (dx < -reveal / 2) setDx(-reveal); else setDx(0);
+  };
+  return html`<div class="swipe">
+    ${onRight && dx > 0 && html`<div class="sw-left"><${I} n=${rightIcon} s=${22}/>${rightLabel}</div>`}
+    ${dx < 0 && html`<div class="sw-right">${actions.map((a) => html`<button class="sa" style=${{ background: a.c }} onClick=${() => { setAnim(true); setDx(0); a.fn(); }}><${I} n=${a.i} s=${22}/>${a.t}</button>`)}</div>`}
+    <div onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up} style=${{ transform: `translateX(${dx}px)`, transition: anim ? 'transform .35s cubic-bezier(.32,.72,0,1)' : 'none', position: 'relative', background: '#fff' }}>${children}</div>
+  </div>`;
+}
+function AnimNum({ v, masked, pre = '¥' }) {
+  const [shown, setShown] = useState(v); const from = useRef(v);
+  useEffect(() => {
+    const a = from.current, b = v; if (a === b) return; const t0 = performance.now(); let raf;
+    const step = (t) => { const p = Math.min(1, (t - t0) / 650); const e = 1 - Math.pow(1 - p, 3); setShown(Math.round(a + (b - a) * e)); if (p < 1) raf = requestAnimationFrame(step); else from.current = b; };
+    raf = requestAnimationFrame(step); return () => cancelAnimationFrame(raf);
+  }, [v]);
+  return masked ? html`<span>${pre}•••</span>` : html`<span>${pre}${fmt(shown)}</span>`;
+}
+
+/* ───────────── 今天（生活画布，内容不变，只换外壳） ───────────── */
+function TodayPage() {
+  const app = useApp();
+  const todos = app.todos.filter((t) => t.sec === 'today');
+  const left = todos.filter((t) => !t.cal && !t.done).length;
+  const spent = app.dayTotal(10, 27);
+  return html`<div class="page" onScroll=${(e) => app.onScrollY(e)}>
+    <div style=${{ padding: 'calc(var(--top) + 2px) 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <button class="glass press" style=${{ height: '44px', borderRadius: '22px', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '4px', border: 0, fontSize: '16px', fontWeight: 600, cursor: 'pointer' }}>今天 · 10月27日<${I} n="expand_more" s=${20}/></button>
+      <button class="iconbtn glass press" aria-label="跳到某一天" style=${{ width: '44px', height: '44px', borderRadius: '22px' }}><${I} n="calendar_month"/></button>
+    </div>
+    <div class="card mx" style=${{ marginTop: '14px', padding: '4px 0 6px' }}>
+      <button onClick=${() => app.setTab('todos')} style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', border: 0, background: 'none', padding: '12px 16px 6px', cursor: 'pointer' }}>
+        <span style=${{ fontSize: '17px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '2px' }}>待办<${I} n="chevron_right" s=${20} c="var(--ink3)"/></span><span style=${{ fontSize: '13px', color: 'var(--ink2)' }}>还有 ${left} 件</span>
+      </button>
+      ${todos.map((t, i) => html`${i > 0 && html`<div class="sep" style=${{ marginLeft: '52px' }}/>`}<${TodoRow} t=${t} compact/>`)}
+    </div>
+    <div style=${{ display: 'flex', gap: '12px', margin: '12px 16px 0' }}>
+      <div class="card" style=${{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}><${Ring} v=${8} t=${30} size=${42} w=${6} color="var(--good)"/><div><div class="num" style=${{ fontSize: '17px', fontWeight: 700 }}>第 8 天</div><div style=${{ fontSize: '12px', color: 'var(--ink2)' }}>连续 30 天 16:8</div></div></div>
+      <div class="card" style=${{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}><${Ring} v=${4493} t=${8000} size=${42} w=${6} color="var(--bad)"/><div><div class="num" style=${{ fontSize: '17px', fontWeight: 700 }}>4,493 步</div><div style=${{ fontSize: '12px', color: 'var(--ink2)' }}>每天走 8000 步</div></div></div>
+    </div>
+    <button class="card mx press" onClick=${() => app.push('mood')} style=${{ display: 'block', width: 'calc(100% - 32px)', marginTop: '12px', padding: '14px 16px', border: 0, textAlign: 'left', cursor: 'pointer' }}>
+      <div style=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style=${{ fontSize: '15px', fontWeight: 700 }}>心情</span><span style=${{ fontSize: '13px', color: 'var(--ink2)' }}>有起有落</span></div>
+      ${app.moods.slice(-2).map((x) => html`<div style=${{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px' }}><span class="num" style=${{ fontSize: '12.5px', color: 'var(--ink3)', width: '38px' }}>${x.time}</span><span style=${{ width: '24px', height: '24px', borderRadius: '12px', background: MOOD_BG[x.lv - 1], color: MOOD_FG[x.lv - 1], display: 'flex', alignItems: 'center', justifyContent: 'center' }}><${I} n=${MOOD_I[x.lv - 1]} s=${17}/></span><span style=${{ fontSize: '15px' }}>${MOOD_W[x.lv - 1]}</span><span style=${{ fontSize: '13px', color: 'var(--ink2)' }}>${x.emo.join('、')}</span></div>`)}
+    </button>
+    <button class="card mx press" onClick=${() => app.setTab('money')} style=${{ display: 'flex', alignItems: 'center', gap: '12px', width: 'calc(100% - 32px)', marginTop: '12px', padding: '14px 16px', border: 0, textAlign: 'left', cursor: 'pointer' }}>
+      <span class="cico" style=${{ background: CATS.饮食.c }}><${I} n="restaurant" s=${19}/></span><div style=${{ flex: 1 }}><div style=${{ fontSize: '15px', fontWeight: 700 }}>今天花了</div><div style=${{ fontSize: '13px', color: 'var(--ink2)' }}>食堂午饭 · 公司食堂</div></div><span class="amt">${yuan(spent, app.masked)}</span>
+    </button>
+    <div style=${{ margin: '18px 24px 0', fontSize: '13px', color: 'var(--ink3)', lineHeight: 1.6 }}>生活画布的内容 3.0 不改，只换外壳：左上角的菜单去掉了，底部是标签栏和「说一句」。</div>
+  </div>`;
+}
+
+/* ───────────── 待办 ───────────── */
+function TodoRow({ t, compact }) {
+  const app = useApp(); const [flash, setFlash] = useState(t.fresh);
+  useEffect(() => { if (t.fresh) { const h = setTimeout(() => { setFlash(false); app.updateTodo(t.id, { fresh: false }); }, 1500); return () => clearTimeout(h); } }, []);
+  if (t.cal) return html`<div class="trow" style=${{ paddingLeft: '0' }}><span class="calbar" style=${{ background: t.color }}/><div style=${{ flex: 1, minWidth: 0 }}><div class="tt">${t.title}</div></div>${t.allDay ? html`<span class="pill" style=${{ background: 'var(--fill)', color: 'var(--ink2)' }}>全天 · 日历</span>` : html`<span class="num" style=${{ fontSize: '13.5px', color: 'var(--ink2)' }}>${t.time}–${t.end}</span>`}</div>`;
+  const timeChip = t.done ? null : t.time ? html`<span class="pill num" style=${{ background: t.past ? 'var(--warn-soft)' : 'var(--accent-soft)', color: t.past ? 'var(--warn)' : 'var(--accent)' }}><${I} n=${t.past ? 'schedule' : 'notifications'} s=${14} f/>${t.past ? `${t.time} 过了` : t.time}</span>` : t.due ? html`<span class="pill" style=${{ background: 'var(--warn-soft)', color: 'var(--warn)' }}>${t.due.split(' ')[0]}</span>` : null;
+  const subs = [...(t.people || []), ...(t.things || []), ...(t.place ? [t.place] : [])];
+  const inner = html`<div class="trow ${t.done ? 'done' : ''} ${flash ? 'flash' : ''}">
+    <button class="ck ${t.done ? 'on' : ''}" aria-label=${t.done ? '改成没完成' : '完成'} onPointerDown=${(e) => e.stopPropagation()} onClick=${(e) => { e.stopPropagation(); app.toggleTodo(t.id); }}><i>${t.done && html`<${I} n="check" s=${17} c="#fff" st=${{ fontVariationSettings: "'FILL' 1,'wght' 700,'GRAD' 0,'opsz' 24" }}/>`}</i></button>
+    <div style=${{ flex: 1, minWidth: 0 }}>
+      <div class="tt">${t.title}</div>
+      ${!compact && (subs.length || t.repeat || t.date) && html`<div class="tsub">${t.date && html`<span>${t.date}</span>`}${t.repeat && html`<span style=${{ display: 'inline-flex', alignItems: 'center', gap: '2px' }}><${I} n="repeat" s=${13}/>${t.repeat}</span>`}${subs.length > 0 && html`<span>${subs.join(' · ')}</span>`}</div>`}
+    </div>
+    ${timeChip}
+  </div>`;
+  if (compact) return html`<div onClick=${() => app.openSheet('todo', { id: t.id })} style=${{ cursor: 'pointer' }}>${inner}</div>`;
+  return html`<${Swipe} onRight=${t.done ? null : () => app.toggleTodo(t.id)} onTap=${() => app.openSheet('todo', { id: t.id })} onLong=${() => app.openMenu({ kind: 'todo', id: t.id })}
+    actions=${t.sec === 'overdue' ? [{ t: '今天', i: 'today', c: '#2F6FD6', fn: () => app.moveTodo(t.id, 'today') }, { t: '删除', i: 'delete', c: '#C0412F', fn: () => app.deleteTodo(t.id) }] : [{ t: '推迟', i: 'snooze', c: '#D9862A', fn: () => app.openSheet('snooze', { id: t.id }) }, { t: '删除', i: 'delete', c: '#C0412F', fn: () => app.deleteTodo(t.id) }]}>${inner}<//>`;
+}
+function TodosPage() {
+  const app = useApp(); const [view, setView] = useState('list'); const [showDone, setShowDone] = useState(false);
+  const all = app.todos;
+  const by = (s) => all.filter((t) => t.sec === s && !(t.done && t.settled));
+  const doneOld = all.filter((t) => t.done && t.settled);
+  const secs = [['overdue', '以前没做完的'], ['today', '今天 · 10月27日 周二'], ['tomorrow', '明天 · 10月28日 周三'], ['later', '以后']];
+  const left = all.filter((t) => t.sec === 'today' && !t.cal && !t.done).length;
+  return html`<${Page} title="待办" right=${html`<button class="iconbtn glass press" aria-label="加待办" onClick=${() => app.openSheet('todoAdd')}><${I} n="add" s=${26}/></button>`}>
+    <div class="subtitle num">今天还有 ${left} 件 · 已完成 ${all.filter((t) => t.done).length} 件</div>
+    <div class="seg"><button class=${view === 'list' ? 'on' : ''} onClick=${() => setView('list')}>清单</button><button class=${view === 'time' ? 'on' : ''} onClick=${() => setView('time')}>今天的时间线</button></div>
+    ${view === 'time' ? html`<${DayTimeline}/>` : secs.map(([s, name]) => {
+      const list = by(s); if (!list.length) return null;
+      return html`<div key=${s}>
+        <div class="sh"><h3 style=${{ fontSize: '16px', color: s === 'overdue' ? 'var(--warn)' : 'var(--ink)' }}>${name}</h3>
+          ${s === 'overdue' ? html`<button class="link" onClick=${() => app.bringAll()}>全部带到今天</button>` : html`<span class="meta num">${list.filter((t) => !t.cal && !t.done).length} 件</span>`}</div>
+        <div class="card mx" style=${{ overflow: 'hidden' }}>${list.map((t, i) => html`<div key=${t.id}>${i > 0 && html`<div class="sep" style=${{ marginLeft: '52px' }}/>`}<${TodoRow} t=${t}/></div>`)}</div>
+      </div>`;
+    })}
+    ${view === 'list' && html`<button class="link" style=${{ margin: '16px 20px 0' }} onClick=${() => setShowDone(!showDone)}>${showDone ? '收起已完成' : `已完成 ${doneOld.length} 件`}<${I} n=${showDone ? 'expand_more' : 'chevron_right'} s=${18}/></button>
+      ${showDone && html`<div class="card mx" style=${{ marginTop: '6px', overflow: 'hidden' }}>${doneOld.map((t, i) => html`${i > 0 && html`<div class="sep" style=${{ marginLeft: '52px' }}/>`}<${TodoRow} t=${t}/>`)}</div>`}
+      <div style=${{ margin: '20px 24px 0', fontSize: '13px', color: 'var(--ink3)', lineHeight: 1.7 }}>右滑完成 · 左滑推迟或删除 · 按住更多操作 · 完成的留在原地，下次打开才收进「已完成」</div>`}
+  <//>`;
+}
+function DayTimeline() {
+  const app = useApp(); const start = 8, end = 22, H = 44;
+  const y = (t) => { const [h, m] = t.split(':').map(Number); return (h - start + m / 60) * H; };
+  const items = app.todos.filter((t) => t.sec === 'today' && t.time && !t.allDay);
+  return html`<div class="card mx" style=${{ marginTop: '12px', padding: '12px 0' }}>
+    <div style=${{ padding: '0 16px 8px', display: 'flex', alignItems: 'center', gap: '8px' }}><span class="calbar" style=${{ background: '#BC4A7E', margin: 0, height: '18px' }}/><span style=${{ fontSize: '14px' }}>全天：结婚纪念日</span></div>
+    <div class="timeline">${Array.from({ length: end - start + 1 }, (_, i) => html`<div class="hour"><span class="num">${String(start + i).padStart(2, '0')}:00</span><i/></div>`)}
+      ${items.map((t) => html`<div class="blk" style=${{ top: y(t.time) + 6 + 'px', height: t.end ? Math.max(30, y(t.end) - y(t.time)) + 'px' : '30px', background: t.cal ? 'rgba(47,111,214,.12)' : t.done ? 'var(--fill)' : t.past ? 'var(--warn-soft)' : 'var(--accent-soft)', color: t.cal ? '#1F4E99' : t.past ? 'var(--warn)' : 'var(--accent)', textDecoration: t.done ? 'line-through' : 'none' }}><b class="num">${t.time}</b> ${t.title}${t.cal ? ' · 日历' : ''}</div>`)}
+      <div style=${{ position: 'absolute', left: '44px', right: 0, top: y(TODAY.now) + 6 + 'px', height: '2px', background: '#C0412F' }}><i style=${{ position: 'absolute', left: '-5px', top: '-4px', width: '10px', height: '10px', borderRadius: '5px', background: '#C0412F', display: 'block' }}/></div>
+    </div>
+  </div>`;
+}
+function TodoAddSheet({ close, preset }) {
+  const app = useApp(); const [v, setV] = useState(preset || ''); const ref = useRef(null);
+  useEffect(() => { setTimeout(() => ref.current && ref.current.focus(), 350); }, []);
+  const p = parseWhen(v);
+  const add = () => { if (!v.trim()) return; app.addTodo(v); close(); };
+  const samples = ['明天下午三点取快递', '下周一上午十点交方案', '半小时后给老婆打电话', '每周五晚上八点给妈妈打视频'];
+  return html`<div class="shead"><h2>加待办</h2><button class="primary" style=${{ width: 'auto', height: '36px', padding: '0 18px', borderRadius: '18px', fontSize: '15px' }} disabled=${!v.trim()} onClick=${add}>加上</button></div>
+    <div class="sbody">
+      <form onSubmit=${(e) => { e.preventDefault(); add(); }} style=${{ margin: '6px 16px 0', background: '#fff', borderRadius: '16px', padding: '6px 6px 6px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <input id="todo-add" ref=${ref} value=${v} onInput=${(e) => setV(e.target.value)} placeholder="比如：明天下午三点取快递" style=${{ flex: 1, border: 0, outline: 'none', fontSize: '18px', padding: '10px 0', background: 'none', fontFamily: 'inherit', minWidth: 0 }} autocomplete="off"/>
+        <button type="button" class="iconbtn" aria-label="说话" style=${{ background: 'var(--accent-soft)', color: 'var(--accent)' }} onClick=${() => { setV('明天下午三点取快递'); }}><${I} n="mic"/></button>
+      </form>
+      ${v.trim() ? html`<div style=${{ margin: '12px 20px 0', fontSize: '15px', lineHeight: 1.6, color: 'var(--ink2)' }}>${hilite(v, p.spans)}</div>
+        <div style=${{ display: 'flex', gap: '8px', flexWrap: 'wrap', margin: '10px 16px 0' }}>
+          <span class="chip blue"><${I} n="event" s=${17}/>${p.label || '今天'}</span>
+          ${p.time ? html`<span class="chip blue num"><${I} n="notifications" s=${17} f/>${p.time} 提醒</span>` : html`<span class="chip" style=${{ color: 'var(--ink2)' }}><${I} n="notifications" s=${17}/>不提醒</span>`}
+          ${p.repeat && html`<span class="chip blue"><${I} n="repeat" s=${17}/>${p.repeat}</span>`}
+        </div>
+        <div style=${{ margin: '14px 20px 0', fontSize: '13px', color: 'var(--ink3)' }}>会记成：<b style=${{ color: 'var(--ink)' }}>${p.title}</b> · 打的这句话照样存成原话</div>`
+      : html`<div style=${{ margin: '18px 20px 8px', fontSize: '13px', color: 'var(--ink3)' }}>试试这样说（点一下填进去）</div>
+        <div style=${{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '0 16px' }}>${samples.map((s) => html`<button class="chip" style=${{ justifyContent: 'flex-start', height: '40px', fontSize: '15px' }} onClick=${() => setV(s)}>${s}</button>`)}</div>`}
+    </div>`;
+}
+function TodoSheet({ id, close }) {
+  const app = useApp(); const t = app.todos.find((x) => x.id === id); const [title, setTitle] = useState(t ? t.title : '');
+  if (!t) return null;
+  const set = (patch) => app.updateTodo(id, patch);
+  const dates = [['today', '今天'], ['tomorrow', '明天'], ['later', '周六'], ['later2', '下周一']];
+  const times = ['09:00', '12:00', '15:00', '17:30', '20:00'];
+  const reps = ['不重复', '每天', '工作日', '每周', '每月'];
+  return html`<div class="shead"><span/><button class="closex" aria-label="关闭" onClick=${close}><${I} n="close" s=${20}/></button></div>
+    <div class="sbody">
+      <div style=${{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '0 20px' }}>
+        <button class="ck ${t.done ? 'on' : ''}" style=${{ marginTop: '-6px', marginLeft: '-10px' }} onClick=${() => app.toggleTodo(id)} aria-label="完成"><i>${t.done && html`<${I} n="check" s=${17} c="#fff"/>`}</i></button>
+        <textarea id="todo-title" value=${title} onInput=${(e) => setTitle(e.target.value)} onBlur=${() => set({ title })} rows="2" style=${{ flex: 1, border: 0, background: 'none', fontSize: '22px', fontWeight: 700, fontFamily: 'inherit', resize: 'none', outline: 'none', lineHeight: 1.35, padding: 0 }}></textarea>
+      </div>
+      ${t.said && html`<div class="moment" style=${{ margin: '6px 20px 16px 54px' }}>${t.said.split('：')[1]}<div class="num" style=${{ fontFamily: 'var(--round)', fontSize: '12px', color: 'var(--ink3)', marginTop: '3px' }}>${t.said.split('：')[0]}</div></div>`}
+      <div class="grp">
+        <div class="row" style=${{ flexWrap: 'wrap', gap: '8px' }}><span class="rl" style=${{ display: 'flex', alignItems: 'center', gap: '6px' }}><${I} n="event" s=${20} c="var(--bad)"/>日期</span>
+          <div style=${{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>${dates.map(([s, n]) => html`<button class="chip ${(t.sec === s || (s === 'later2' && t.date === '11月2日 周一')) ? 'on' : ''}" style=${{ height: '30px' }} onClick=${() => set(s === 'later2' ? { sec: 'later', date: '11月2日 周一', past: false } : s === 'later' ? { sec: 'later', date: '10月31日 周六', past: false } : { sec: s, date: null, past: false })}>${n}</button>`)}<button class="chip" style=${{ height: '30px' }}><${I} n="calendar_month" s=${16}/></button></div></div>
+        <div class="sep" style=${{ marginLeft: '16px' }}/>
+        <div class="row" style=${{ flexWrap: 'wrap', gap: '8px' }}><span class="rl" style=${{ display: 'flex', alignItems: 'center', gap: '6px' }}><${I} n="notifications" s=${20} c="var(--accent)"/>提醒</span>
+          <div style=${{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: 1 }}>${times.map((x) => html`<button class="chip num ${t.time === x ? 'on' : ''}" style=${{ height: '30px' }} onClick=${() => set({ time: x, past: false })}>${x}</button>`)}<button class="chip ${!t.time ? 'on' : ''}" style=${{ height: '30px' }} onClick=${() => set({ time: null })}>不提醒</button></div></div>
+        <div class="sep" style=${{ marginLeft: '16px' }}/>
+        <div class="row" style=${{ flexWrap: 'wrap', gap: '8px' }}><span class="rl" style=${{ display: 'flex', alignItems: 'center', gap: '6px' }}><${I} n="repeat" s=${20} c="var(--good)"/>重复</span>
+          <div style=${{ display: 'flex', gap: '6px', flexWrap: 'wrap', flex: 1 }}>${reps.map((x) => html`<button class="chip ${(t.repeat || '不重复') === x ? 'on' : ''}" style=${{ height: '30px' }} onClick=${() => set({ repeat: x === '不重复' ? null : x })}>${x}</button>`)}</div></div>
+      </div>
+      ${(t.people || t.things || t.place) && html`<div class="grp" style=${{ marginTop: '12px' }}><div class="row" style=${{ gap: '8px', flexWrap: 'wrap' }}><span class="rl">相关</span>${[...(t.people || []), ...(t.things || []), ...(t.place ? [t.place] : [])].map((x) => html`<span class="chip" style=${{ height: '28px' }}>${x}</span>`)}<button class="chip" style=${{ height: '28px', color: 'var(--accent)' }}>+ 加</button></div></div>`}
+      <div style=${{ padding: '20px 16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <button class="primary press" onClick=${() => { if (!t.done) app.toggleTodo(id); close(); }}><span style=${{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><${I} n="check" s=${20}/>${t.done ? '已完成' : '完成'}</span></button>
+        <button class="link" style=${{ justifyContent: 'center', color: 'var(--bad)', height: '44px' }} onClick=${() => { close(); app.deleteTodo(id); }}>删除这件待办</button>
+      </div>
+    </div>`;
+}
+function SnoozeSheet({ id, close }) {
+  const app = useApp(); const t = app.todos.find((x) => x.id === id);
+  const opts = [['1 小时后', '17:10', 'today', null, 'history'], ['今晚', '20:00', 'today', null, 'bedtime'], ['明天早上', '09:00', 'tomorrow', null, 'wb_sunny'], ['这个周六', '10:00', 'later', '10月31日 周六', 'event'], ['下周一', '09:00', 'later', '11月2日 周一', 'today']];
+  return html`<div class="shead"><h2>推迟到</h2><button class="closex" aria-label="关闭" onClick=${close}><${I} n="close" s=${20}/></button></div>
+    <div class="sbody"><div style=${{ margin: '0 20px 12px', fontSize: '14px', color: 'var(--ink2)' }}>${t && t.title}</div>
+      <div class="grp">${opts.map(([n, time, sec, date, ic], i) => html`${i > 0 && html`<div class="sep" style=${{ marginLeft: '52px' }}/>`}<button class="row" style=${{ width: '100%', border: 0, background: 'none', cursor: 'pointer', textAlign: 'left' }} onClick=${() => { close(); app.snooze(id, { time, sec, date, label: n }); }}><${I} n=${ic} s=${22} c="#D9862A"/><span style=${{ flex: 1, fontSize: '16px' }}>${n}</span><span class="num" style=${{ color: 'var(--ink2)', fontSize: '15px' }}>${date ? date.split(' ')[0] + ' ' : ''}${time}</span></button>`)}</div>
+      <button class="link" style=${{ margin: '12px 20px' }}><${I} n="schedule" s=${18}/>选别的时间</button>
+    </div>`;
+}
+
+/* ───────────── 钱 ───────────── */
+function PaceChart({ cur, prev, masked }) {
+  const W = 326, H = 92, P = 6; const [hover, setHover] = useState(null); const ref = useRef(null);
+  const max = Math.max(...prev, ...cur) || 1; const n = 31;
+  const x = (i) => P + (i / (n - 1)) * (W - 2 * P); const y = (v) => H - 8 - (v / max) * (H - 18);
+  const path = (arr) => arr.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const onMove = (e) => { const r = ref.current.getBoundingClientRect(); const i = clamp(Math.round(((e.clientX - r.left) / r.width * W - P) / (W - 2 * P) * (n - 1)), 0, cur.length - 1); setHover(i); };
+  const hi = hover ?? cur.length - 1;
+  return html`<div style=${{ position: 'relative', marginTop: '12px' }}>
+    <div style=${{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--ink2)', marginBottom: '4px' }} class="num">
+      <span><b style=${{ color: 'var(--money)' }}>━</b> 这个月 ${10}月${hi + 1}日 ${masked ? '¥•••' : yuan(cur[hi])}</span><span><b style=${{ color: '#A39E95' }}>┅</b> 上个月同日 ${masked ? '¥•••' : yuan(prev[hi])}</span>
+    </div>
+    <svg ref=${ref} width="100%" viewBox="0 0 ${W} ${H}" style=${{ display: 'block', touchAction: 'pan-y', cursor: 'crosshair' }} onPointerMove=${onMove} onPointerDown=${onMove} onPointerLeave=${() => setHover(null)} role="img" aria-label="这个月和上个月每天累计花的钱">
+      <path d=${path(prev.slice(0, 31))} fill="none" stroke="#B5B0A6" stroke-width="1.6" stroke-dasharray="4 4"/>
+      <path d=${path(cur) + ` L${x(cur.length - 1)},${H - 8} L${x(0)},${H - 8} Z`} fill="rgba(194,126,18,.10)" stroke="none"/>
+      <path d=${path(cur)} fill="none" stroke="#C27E12" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1=${x(hi)} x2=${x(hi)} y1="4" y2=${H - 8} stroke="rgba(28,27,25,.25)" stroke-width="1"/>
+      <circle cx=${x(hi)} cy=${y(cur[hi])} r="4.5" fill="#C27E12" stroke="#fff" stroke-width="2"/>
+      <circle cx=${x(hi)} cy=${y(prev[hi])} r="3.5" fill="#B5B0A6" stroke="#fff" stroke-width="1.5"/>
+      <line x1=${P} x2=${W - P} y1=${H - 8} y2=${H - 8} stroke="rgba(28,27,25,.12)"/>
+    </svg>
+    <div class="num" style=${{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--ink3)' }}><span>1日</span><span>10日</span><span>20日</span><span>31日</span></div>
+  </div>`;
+}
+function MoneyRow({ x, onOpen }) {
+  const app = useApp(); const c = CATS[x.cat] || CATS.办事;
+  const grey = ['reimburse', 'lend'].includes(x.kind) && !x.settled;
+  const kindTag = { reimburse: ['等报销', 'var(--accent-soft)', 'var(--accent)'], lend: ['借出去', 'var(--warn-soft)', 'var(--warn)'], fixed: ['固定的', 'var(--fill2)', 'var(--ink2)'], income: ['收入', 'var(--good-soft)', 'var(--good)'] }[x.kind];
+  const sub = [x.who !== '自己' ? (x.kind === 'income' ? '' : '给' + x.who) : '', x.place ? '在' + x.place : '', x.note || ''].filter(Boolean).join(' · ');
+  return html`<${Swipe} onTap=${() => (onOpen || (() => app.openSheet('moneyItem', { id: x.id })))()}
+    actions=${[...(x.kind === 'reimburse' && !x.settled ? [{ t: '已报销', i: 'done_all', c: '#2F6FD6', fn: () => app.settleMoney(x.id) }] : []), { t: '删除', i: 'delete', c: '#C0412F', fn: () => app.deleteMoney(x.id) }]}>
+    <div class="mrow ${x.fresh ? 'flash' : ''}">
+      <span class="cico" style=${{ background: c.c }}><${I} n=${c.i} s=${19}/></span>
+      <div style=${{ flex: 1, minWidth: 0 }}>
+        <div style=${{ fontSize: '16px', display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}><span style=${{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>${x.name}</span>${kindTag && html`<span class="tag" style=${{ background: kindTag[1], color: kindTag[2] }}>${x.settled ? '已报销' : kindTag[0]}</span>`}${x.tag && html`<span class="tag" style=${{ background: 'rgba(201,70,58,.10)', color: '#A8392E' }}>${x.tag}</span>`}${x.fresh && html`<span class="tag" style=${{ background: 'var(--fill)', color: 'var(--ink3)' }}>整理中</span>`}</div>
+        <div class="num" style=${{ fontSize: '12.5px', color: 'var(--ink3)', marginTop: '2px' }}>${x.time}${sub ? ' · ' + sub : ''}</div>
+      </div>
+      <span class="amt" style=${{ color: grey ? 'var(--ink3)' : x.kind === 'income' ? 'var(--good)' : 'var(--ink)' }}>${x.kind === 'income' ? '+' : ''}${yuan(x.amt, app.masked)}</span>
+    </div><//>`;
+}
+function MoneyPage() {
+  const app = useApp(); const [month, setMonth] = useState(10); const [sel, setSel] = useState(27); const swipeX = useRef(null);
+  const masked = app.masked; const last = month === 10 ? 27 : 30; const total = app.monthTotal(month, last);
+  const days = Array.from({ length: DAYS_IN[month] }, (_, i) => i + 1);
+  const maxDay = Math.max(...days.map((d) => app.dayTotal(month, d)));
+  const first = wdOf(month, 1); const lead = (first + 6) % 7;
+  const cum = (m, upto) => { let s = 0; return Array.from({ length: upto }, (_, i) => (s += app.dayTotal(m, i + 1))); };
+  const cur = cum(10, 27), prev = cum(9, 30);
+  const diff = prev[26] - cur[26];
+  const cats = app.catTotals(month); const catSum = cats.reduce((a, b) => a + b[1], 0) || 1;
+  const who = app.whoTotals(month); const whoMax = Math.max(...who.map((w) => w[1]), 1);
+  const selItems = app.money.filter((x) => x.m === month && x.day === sel).sort((a, b) => b.time.localeCompare(a.time));
+  const selTotal = app.dayTotal(month, sel);
+  const worth = app.money.filter((x) => x.verdict);
+  const tint = (d) => { const a = app.dayTotal(month, d); if (!a) return 'transparent'; const k = Math.log(1 + a) / Math.log(1 + maxDay); return `rgba(194,126,18,${(0.06 + 0.26 * k).toFixed(3)})`; };
+  const short = (a) => (a >= 10000 ? (a / 10000).toFixed(a >= 100000 ? 0 : 1) + '万' : fmt(a));
+  const go = (m) => { if (m < 9 || m > 10) return; setMonth(m); setSel(m === 10 ? 27 : 30); };
+  return html`<${Page} title="钱" right=${html`<button class="iconbtn glass press" aria-label=${masked ? '显示金额' : '遮住金额'} onClick=${app.toggleMask}><${I} n=${masked ? 'visibility_off' : 'visibility'}/></button>`}>
+    <div class="card mx hero">
+      <div style=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style=${{ fontSize: '14px', color: 'var(--ink2)' }}>${month}月日常花的</span>
+        <span style=${{ display: 'flex', gap: '4px' }}><button class="iconbtn" style=${{ width: '30px', height: '30px', background: 'var(--fill)' }} aria-label="上个月" onClick=${() => go(month - 1)} disabled=${month === 9}><${I} n="chevron_left" s=${20}/></button><button class="iconbtn" style=${{ width: '30px', height: '30px', background: 'var(--fill)', opacity: month === 10 ? 0.35 : 1 }} aria-label="下个月" onClick=${() => go(month + 1)}><${I} n="chevron_right" s=${20}/></button></span>
+      </div>
+      <div class="big num" style=${{ marginTop: '4px' }}><${AnimNum} v=${total} masked=${masked}/></div>
+      <div class="num" style=${{ fontSize: '14px', color: 'var(--ink2)', marginTop: '4px' }}>${month === 10 ? `今天 ${yuan(app.dayTotal(10, 27), masked)} · ` : ''}${app.money.filter((x) => x.m === month && x.kind === 'daily').length} 笔</div>
+      ${month === 10 && html`<div style=${{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '10px', fontSize: '15px', lineHeight: 1.5 }}><span class="pill" style=${{ background: 'var(--good-soft)', color: 'var(--good)' }}><${I} n="trending_down" s=${16}/>少 ${masked ? '¥•••' : yuan(diff)}</span><span>比上个月这时候，上月有装修款</span></div>
+        <${PaceChart} cur=${cur} prev=${prev} masked=${masked}/>
+        <div style=${{ height: '.5px', background: 'var(--line)', margin: '14px 0 12px' }}/>
+        <button onClick=${() => app.push('goals')} style=${{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', border: 0, background: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}>
+          <span style=${{ fontSize: '15px', width: '64px' }}>外卖</span><div class="bar"><i style=${{ width: '70%', background: 'var(--good)' }}/></div><span style=${{ fontSize: '14px', fontWeight: 600, width: '86px', textAlign: 'right' }} class="num">还能花 ${yuan(90, masked)}</span></button>
+        <div class="num" style=${{ fontSize: '12px', color: 'var(--ink3)', marginTop: '6px' }}>每月外卖不超过 ¥300 · 已用 ${yuan(210, masked)} · 每周 2 次这周用满了</div>`}
+    </div>
+    <div style=${{ display: 'flex', margin: '18px 12px 0' }}>
+      <button class="qa press" onClick=${() => app.openSheet('keypad')}><span class="c" style=${{ background: 'var(--money)', color: '#fff' }}><${I} n="add" s=${28}/></span>记一笔</button>
+      <button class="qa press" onClick=${() => app.push('moneyList', { month })}><span class="c"><${I} n="receipt_long" s=${24} c="var(--money)"/></span>每一笔</button>
+      <button class="qa press" onClick=${() => app.push('watch')}><span class="c"><${I} n="inventory_2" s=${24} c="#D4682A"/></span>留意的${app.watch.length > 0 && html`<span class="badge">${app.watch.length}</span>`}</button>
+      <button class="qa press" onClick=${() => app.push('renqing')}><span class="c"><${I} n="redeem" s=${24} c="#C8463A"/></span>人情往来</button>
+    </div>
+    <div class="card mx" style=${{ marginTop: '18px', paddingTop: '14px' }}
+      onPointerDown=${(e) => { swipeX.current = e.clientX; }} onPointerUp=${(e) => { if (swipeX.current !== null) { const d = e.clientX - swipeX.current; if (Math.abs(d) > 60) go(d > 0 ? month - 1 : month + 1); } swipeX.current = null; }}>
+      <div style=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', padding: '0 16px 8px' }}><b style=${{ fontSize: '17px' }}>${month}月</b><span style=${{ fontSize: '12.5px', color: 'var(--ink3)' }}>每天花了多少 · 点一天看那天</span></div>
+      <div class="cal">${WDN.slice(1).concat('日').map((w) => html`<div class="wd">${w}</div>`)}${Array.from({ length: lead }, () => html`<div/>`)}
+        ${days.map((d) => { const a = app.dayTotal(month, d); const fut = month === 10 && d > 27; return html`<button class="day ${month === 10 && d === 27 ? 'today' : ''} ${sel === d ? 'sel' : ''} ${fut ? 'future' : ''}" style=${{ background: tint(d) }} onClick=${() => !fut && setSel(d)} aria-label=${`${month}月${d}日 ${a ? '花了' + a + '元' : '没说到钱'}`}><span class="d">${d}</span>${a > 0 && html`<span class="a">${masked ? '•••' : short(a)}</span>`}</button>`; })}
+      </div>
+    </div>
+    <div class="sh"><h3 style=${{ fontSize: '16px' }}>${dayLabel(month, sel)}</h3><span class="meta num">${selTotal ? '花了 ' + yuan(selTotal, masked) : '这天没说到钱'}</span></div>
+    ${selItems.length ? html`<div class="card mx" style=${{ overflow: 'hidden' }}>${selItems.map((x, i) => html`<div key=${x.id}>${i > 0 && html`<div class="sep" style=${{ marginLeft: '62px' }}/>`}<${MoneyRow} x=${x}/></div>`)}</div>` : html`<div class="card mx empty">那天没说到钱（没说 ≠ 没花）</div>`}
+    ${app.watch.length > 0 && html`<div class="sh"><h3>留意</h3><button class="link" onClick=${() => app.push('watch')}>全部<${I} n="chevron_right" s=${18}/></button></div>
+      <div class="card mx" style=${{ overflow: 'hidden' }}>${app.watch.map((w, i) => html`<div key=${w.id}>${i > 0 && html`<div class="sep"/>`}<div class="row" style=${{ minHeight: '62px' }}><div style=${{ flex: 1, minWidth: 0 }}><div style=${{ fontSize: '16px' }}>${w.title} <span class="num" style=${{ fontWeight: 650 }}>${yuan(w.amt, masked)}</span></div><div style=${{ fontSize: '12.5px', color: 'var(--ink3)', marginTop: '2px' }}>${w.sub}</div></div><button class="chip blue press" style=${{ height: '32px', fontSize: '13.5px' }} onClick=${() => app.doneWatch(w.id)}>${w.act}</button></div></div>`)}</div>`}
+    <div class="sh"><h3>花在哪</h3><span class="meta">${month}月 · 点一行看那几笔</span></div>
+    <div class="card mx" style=${{ padding: '6px 0' }}>${cats.map(([name, amt]) => { const c = CATS[name] || CATS.办事; return html`<button class="row press" style=${{ width: '100%', border: 0, background: 'none', cursor: 'pointer', textAlign: 'left', minHeight: '50px' }} onClick=${() => app.push('moneyList', { month, cat: name })}><span class="cico" style=${{ background: c.c, width: '30px', height: '30px', borderRadius: '9px' }}><${I} n=${c.i} s=${17}/></span><div style=${{ flex: 1, minWidth: 0 }}><div style=${{ display: 'flex', justifyContent: 'space-between', fontSize: '15px' }}><span>${name}</span><span class="num"><b style=${{ fontWeight: 650 }}>${yuan(amt, masked)}</b><span style=${{ color: 'var(--ink3)', marginLeft: '6px', fontSize: '13px' }}>${Math.round((amt / catSum) * 100)}%</span></span></div><div class="bar" style=${{ marginTop: '6px', height: '6px' }}><i style=${{ width: (amt / cats[0][1]) * 100 + '%', background: c.c }}/></div></div></button>`; })}</div>
+    <div class="sh"><h3>花给了谁</h3><span class="meta">${month}月</span></div>
+    <div class="card mx" style=${{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>${who.map(([n, a]) => html`<div style=${{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '15px' }}><span style=${{ width: '56px' }}>${n}</span><div class="bar"><i style=${{ width: (a / whoMax) * 100 + '%', background: n === '一家人' ? '#CF5786' : '#8F8A81' }}/></div><span class="num" style=${{ width: '74px', textAlign: 'right', fontWeight: 600 }}>${yuan(a, masked)}</span></div>`)}</div>
+    <div class="sh"><h3>值不值 · 你自己说的</h3></div>
+    <div class="hscroll">${worth.map((x) => html`<button class="card worth press" style=${{ border: 0, textAlign: 'left', cursor: 'pointer' }} onClick=${() => app.openSheet('moneyItem', { id: x.id })}>
+      <div style=${{ display: 'flex', justifyContent: 'space-between' }}><b style=${{ fontSize: '16px' }}>${x.name}</b><span class="num" style=${{ fontWeight: 650 }}>${yuan(x.amt, masked)}</span></div>
+      <div class="serif" style=${{ fontSize: '17px', marginTop: '10px', lineHeight: 1.45 }}>「${x.verdict.q}」</div>
+      <div style=${{ fontSize: '12.5px', marginTop: '10px', fontWeight: 600, color: x.verdict.tone === 'good' ? 'var(--good)' : 'var(--warn)' }}>${x.verdict.tone === 'good' ? (x.name === '降噪耳机' ? '你说值 · 用了 5 次 · 每次 ¥180' : '你说值 · 之后又说起 3 次') : '你说后悔 · 之后还没说到用它'}</div></button>`)}</div>
+    <div style=${{ textAlign: 'center', fontSize: '12.5px', color: 'var(--ink3)', marginTop: '22px' }}>只算你说过的钱</div>
+  <//>`;
+}
+function MoneyListPage({ month = 10, cat }) {
+  const app = useApp(); const [q, setQ] = useState(''); const [f, setF] = useState(cat ? '分类' : '全部');
+  const kinds = [['全部', null], ['日常', 'daily'], ['等报销', 'reimburse'], ['固定', 'fixed'], ['收入', 'income'], ['借出', 'lend'], ['人情', 'renqing']];
+  let list = app.money.filter((x) => x.m === month);
+  if (cat && f === '分类') list = list.filter((x) => x.cat === cat && x.kind === 'daily');
+  const k = kinds.find((x) => x[0] === f); if (k && k[1]) list = list.filter((x) => (k[1] === 'renqing' ? x.tag === '人情' : x.kind === k[1]));
+  if (q.trim()) list = list.filter((x) => (x.name + x.who + x.cat + (x.said || '') + (x.place || '')).includes(q.trim()));
+  const days = [...new Set(list.map((x) => x.day))].sort((a, b) => b - a);
+  return html`<${Page} title=${cat && f === '分类' ? `${month}月 · ${cat}` : `${month}月的每一笔`} back="钱">
+    <div class="mx" style=${{ height: '40px', borderRadius: '12px', background: 'var(--fill2)', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px' }}><${I} n="search" s=${20} c="var(--ink3)"/><input id="money-q" value=${q} onInput=${(e) => setQ(e.target.value)} placeholder="搜：外卖、儿子、你说的话" style=${{ flex: 1, border: 0, background: 'none', outline: 'none', fontSize: '16px', fontFamily: 'inherit', minWidth: 0 }}/></div>
+    <div class="hscroll" style=${{ marginTop: '10px' }}>${cat && html`<button class="chip ${f === '分类' ? 'on' : ''}" onClick=${() => setF('分类')}>${cat}</button>`}${kinds.map(([n]) => html`<button class="chip ${f === n ? 'on' : ''}" onClick=${() => setF(n)}>${n}</button>`)}</div>
+    ${days.length === 0 && html`<div class="empty">没有找到</div>`}
+    ${days.map((d) => { const items = list.filter((x) => x.day === d).sort((a, b) => b.time.localeCompare(a.time)); const t = items.filter((x) => x.kind === 'daily').reduce((a, b) => a + b.amt, 0); return html`<div key=${d}>
+      <div style=${{ position: 'sticky', top: 'calc(var(--top) + 54px)', zIndex: 3, display: 'flex', justifyContent: 'space-between', padding: '14px 20px 6px', background: 'var(--bg)' }}><b style=${{ fontSize: '15px' }}>${month === 10 && d === 27 ? '今天 · ' : month === 10 && d === 26 ? '昨天 · ' : ''}${dayLabel(month, d)}</b><span class="num" style=${{ fontSize: '13.5px', color: 'var(--ink2)' }}>${t ? '花了 ' + yuan(t, app.masked) : ''}</span></div>
+      <div class="card mx" style=${{ overflow: 'hidden' }}>${items.map((x, i) => html`<div key=${x.id}>${i > 0 && html`<div class="sep" style=${{ marginLeft: '62px' }}/>`}<${MoneyRow} x=${x}/></div>`)}</div></div>`; })}
+  <//>`;
+}
+function KeypadSheet({ close }) {
+  const app = useApp(); const [a, setA] = useState(''); const [name, setName] = useState('午饭'); const [flags, setFlags] = useState({});
+  const quick = [['午饭', 25, '饮食'], ['打车', 30, '出行'], ['咖啡', 22, '饮食'], ['外卖', 35, '饮食'], ['买菜', 48, '饮食'], ['地铁', 6, '出行']];
+  const press = (k) => { if (k === 'del') return setA((s) => s.slice(0, -1)); if (k === '.' && a.includes('.')) return; if (a.replace('.', '').length >= 7) return; setA((s) => (s === '0' && k !== '.' ? k : s + k)); };
+  const amt = parseFloat(a || '0');
+  const cat = (quick.find((q) => q[0] === name) || [0, 0, name.includes('车') ? '出行' : '饮食'])[2];
+  const said = `${name} ${a || '多少钱'}${flags.reimb ? ' 能报销' : ''}${flags.lend ? ' 借给别人的' : ''}${flags.income ? ' 收入' : ''}`;
+  return html`<div class="shead"><h2>记一笔</h2><button class="closex" aria-label="关闭" onClick=${close}><${I} n="close" s=${20}/></button></div>
+    <div class="sbody" style=${{ display: 'flex', flexDirection: 'column' }}>
+      <div style=${{ textAlign: 'center', padding: '4px 0 8px' }}>
+        <div class="num" style=${{ fontSize: '58px', fontWeight: 700, letterSpacing: '-1px', lineHeight: 1.1, color: a ? 'var(--ink)' : 'var(--ink3)' }}>¥${a || '0'}<span style=${{ display: 'inline-block', width: '3px', height: '46px', background: 'var(--money)', borderRadius: '2px', verticalAlign: '-6px', marginLeft: '3px', animation: 'fadeIn .8s ease infinite alternate' }}/></div>
+        <div style=${{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '8px', height: '38px', padding: '0 6px 0 14px', borderRadius: '19px', background: '#fff', fontSize: '16px' }}>
+          <span class="cico" style=${{ width: '24px', height: '24px', borderRadius: '7px', background: (CATS[cat] || CATS.饮食).c }}><${I} n=${(CATS[cat] || CATS.饮食).i} s=${15}/></span>
+          <input id="money-name" value=${name} onInput=${(e) => setName(e.target.value)} aria-label="买了什么" style=${{ border: 0, outline: 'none', fontSize: '16px', width: '96px', fontFamily: 'inherit', background: 'none' }}/>
+        </div>
+      </div>
+      <div style=${{ fontSize: '12.5px', color: 'var(--ink3)', margin: '4px 20px 8px' }}>你常买的（点一下连价钱一起填上）</div>
+      <div class="hscroll">${quick.map(([n, p]) => html`<button class="chip ${name === n ? 'on' : ''}" onClick=${() => { setName(n); if (!a) setA(String(p)); }}>${n}<span class="num" style=${{ opacity: 0.6, fontSize: '12.5px' }}>${p}</span></button>`)}</div>
+      <div class="hscroll" style=${{ marginTop: '8px' }}>${[['reimb', '能报销'], ['lend', '借给别人'], ['income', '是收入'], ['who', '给谁 ›']].map(([k, n]) => html`<button class="chip ${flags[k] ? 'blue' : ''}" style=${{ height: '30px', fontSize: '13.5px' }} onClick=${() => setFlags({ ...flags, [k]: !flags[k] })}>${n}</button>`)}</div>
+      <div style=${{ fontSize: '12px', color: 'var(--ink3)', margin: '10px 20px 10px' }}>记下的是一句原话「${said}」，Pour 照常整理</div>
+      <div class="pad">${['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'del'].map((k) => html`<button class="key" aria-label=${k === 'del' ? '删一位' : k} onClick=${() => press(k)} style=${k === 'del' ? { background: '#E8E6E1' } : {}}>${k === 'del' ? html`<${I} n="backspace" s=${24}/>` : k}</button>`)}</div>
+      <div style=${{ padding: '10px 12px 0' }}><button class="primary press" style=${{ background: 'var(--money)' }} disabled=${!amt} onClick=${() => { app.addMoney({ name: name || '一笔', amt, cat, kind: flags.reimb ? 'reimburse' : flags.lend ? 'lend' : flags.income ? 'income' : 'daily', said }); close(); }}>记下${amt ? ' ¥' + fmt(amt) : ''}</button></div>
+    </div>`;
+}
+function MoneyItemSheet({ id, close }) {
+  const app = useApp(); const x = app.money.find((m) => m.id === id); if (!x) return null;
+  const group = x.group ? app.money.filter((m) => m.group === x.group && m.day === x.day && m.m === x.m) : [x];
+  const c = CATS[x.cat] || CATS.办事; const tot = group.reduce((a, b) => a + b.amt, 0);
+  const rows = [['地方', x.place], ['时间', `${dayLabel(x.m, x.day)} ${x.time}`], ['给谁', x.who !== '自己' ? x.who : null], ['和谁', x.people && x.people.join('、')]].filter((r) => r[1]);
+  const missing = [['和谁', !x.people], ['给谁', x.who === '自己'], ['值不值', !x.verdict], ['地方', !x.place]].filter((r) => r[1]).map((r) => r[0]);
+  return html`<div class="shead"><span/><button class="closex" aria-label="关闭" onClick=${close}><${I} n="close" s=${20}/></button></div>
+    <div class="sbody">
+      <div style=${{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', marginTop: '-8px' }}>
+        <span class="cico" style=${{ width: '52px', height: '52px', borderRadius: '16px', background: c.c }}><${I} n=${c.i} s=${30}/></span>
+        <div style=${{ fontSize: '18px', fontWeight: 600 }}>${x.group || x.name}</div>
+        <div class="num" style=${{ fontSize: '42px', fontWeight: 700, letterSpacing: '-.5px' }}>${yuan(tot, app.masked)}</div>
+        <div style=${{ display: 'flex', gap: '6px' }}><span class="tag" style=${{ background: 'var(--fill)', color: 'var(--ink2)', height: '24px', fontSize: '12.5px' }}>${{ daily: '日常', reimburse: '等报销', lend: '借出去', fixed: '固定的 · 每月', income: '收入' }[x.kind]}</span><span class="tag" style=${{ background: 'var(--fill)', color: 'var(--ink2)', height: '24px', fontSize: '12.5px' }}>${x.cat}</span>${x.tag && html`<span class="tag" style=${{ background: 'rgba(201,70,58,.10)', color: '#A8392E', height: '24px', fontSize: '12.5px' }}>${x.tag}</span>`}</div>
+      </div>
+      ${group.length > 1 && html`<div class="grp" style=${{ marginTop: '16px' }}>${group.map((g, i) => html`${i > 0 && html`<div class="sep"/>`}<div class="row"><span style=${{ flex: 1, fontSize: '16px' }}>${g.name}</span><span class="amt">${yuan(g.amt, app.masked)}</span></div>`)}</div>`}
+      <div class="grp" style=${{ marginTop: '12px' }}>${rows.map(([k, v], i) => html`${i > 0 && html`<div class="sep"/>`}<div class="row"><span class="rl">${k}</span><span style=${{ flex: 1, fontSize: '16px' }} class=${k === '时间' ? 'num' : ''}>${v}</span><${I} n="chevron_right" s=${18} c="var(--ink3)"/></div>`)}</div>
+      ${x.verdict && html`<div class="grp" style=${{ marginTop: '12px' }}><div class="row"><span class="rl">你说</span><span class="serif" style=${{ flex: 1, fontSize: '16.5px' }}>「${x.verdict.q}」</span><span class="tag" style=${{ background: x.verdict.tone === 'good' ? 'var(--good-soft)' : 'var(--warn-soft)', color: x.verdict.tone === 'good' ? 'var(--good)' : 'var(--warn)' }}>${x.verdict.tone === 'good' ? '值' : '后悔'}</span></div></div>`}
+      ${missing.length > 0 && html`<div style=${{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', margin: '12px 20px 0' }}><span style=${{ fontSize: '13px', color: 'var(--ink2)' }}>补充</span>${missing.map((m) => html`<button class="chip" style=${{ height: '30px', fontSize: '13.5px' }}>+ ${m}</button>`)}</div>`}
+      ${x.said && html`<div class="moment" style=${{ margin: '18px 20px 0' }}>${x.said}<div class="num" style=${{ fontFamily: 'var(--round)', fontSize: '12px', color: 'var(--ink3)', marginTop: '3px' }}>${x.m}月${x.day}日 ${x.time} 你说的 · 在笔记库看 ›</div></div>`}
+      <div style=${{ padding: '18px 16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        ${x.kind === 'reimburse' && !x.settled && html`<button class="primary press" onClick=${() => { app.settleMoney(x.id); close(); }}>标记为已报销</button>`}
+        ${x.kind === 'lend' && html`<button class="primary press" onClick=${() => { close(); app.toast('记下了：老同学还了 ¥2,000', () => {}); }}>已经还了</button>`}
+        <button class="link" style=${{ justifyContent: 'center', color: 'var(--bad)', height: '44px' }} onClick=${() => { close(); app.deleteMoney(x.id); }}>删除这一笔</button>
+      </div>
+    </div>`;
+}
+function WatchPage() {
+  const app = useApp();
+  return html`<${Page} title="留意的" back="钱" sub="你顺口说过的、和钱有关的事，Pour 替你记着；办完点一下就清掉">
+    ${app.watch.length === 0 && html`<div class="card mx empty">没有要你办的事了</div>`}
+    ${app.watch.map((w) => html`<div class="card mx" style=${{ marginTop: '12px', padding: '16px' }}>
+      <div style=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}><b style=${{ fontSize: '17px' }}>${w.title}</b><span class="amt">${yuan(w.amt, app.masked)}</span></div>
+      <div style=${{ fontSize: '13.5px', color: 'var(--ink2)', marginTop: '4px' }}>${w.sub}</div>
+      ${w.kind === 'reimburse' && html`<div style=${{ marginTop: '10px' }}>${app.money.filter((x) => x.kind === 'reimburse' && !x.settled).map((x) => html`<div class="num" style=${{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', padding: '8px 0', borderTop: '.5px solid var(--line)' }}><span>${x.m}月${x.day}日 · ${x.name}</span><span>${yuan(x.amt, app.masked)}</span></div>`)}</div>`}
+      ${w.said && html`<div class="moment">${w.said}</div>`}
+      <div style=${{ display: 'flex', gap: '8px', marginTop: '14px', alignItems: 'center' }}><button class="chip blue press" onClick=${() => app.doneWatch(w.id)}>${w.act}</button>${w.kind === 'reimburse' && html`<span style=${{ fontSize: '12.5px', color: 'var(--ink3)' }}>只到了一部分就说一声，比如「报销到账 93」</span>`}</div>
+    </div>`)}
+    <div class="sh"><h3>每个月固定的</h3><span class="meta num">¥7,152</span></div>
+    <div class="card mx" style=${{ overflow: 'hidden' }}>${[['5日', '话费', 128, '10月5日扣了'], ['8日', '瑜伽月卡', 199, '10月8日扣了'], ['15日', '房贷', 6800, '10月15日扣了'], ['20日', '视频会员', 25, '10月20日扣了']].map(([d, n, a, s], i) => html`${i > 0 && html`<div class="sep"/>`}<div class="row"><span class="num" style=${{ width: '36px', color: 'var(--ink2)' }}>${d}</span><div style=${{ flex: 1 }}><div style=${{ fontSize: '16px' }}>${n}</div><div style=${{ fontSize: '12.5px', color: 'var(--ink3)' }}>${s}</div></div><span class="amt">${yuan(a, app.masked)}</span></div>`)}</div>
+    <div class="sh"><h3>常买的</h3></div>
+    <div class="card mx" style=${{ padding: '14px 16px' }}><div style=${{ display: 'flex', justifyContent: 'space-between' }}><b>猫粮</b><span style=${{ fontSize: '13px', color: 'var(--ink2)' }}>大约 2 周买一次</span></div><div class="num" style=${{ display: 'flex', gap: '8px', marginTop: '10px' }}>${['10月4日 ¥120', '10月18日 ¥120', '10月26日 ¥120'].map((s) => html`<span class="chip" style=${{ height: '30px', fontSize: '13px' }}>${s}</span>`)}</div><div style=${{ fontSize: '14px', marginTop: '10px' }}>按平常，<b>11月9日</b>前后又该买了 · 比 9 月贵了 ¥11</div></div>
+  <//>`;
+}
+function RenqingPage() {
+  const app = useApp();
+  const people = [['老同学', '满月 · 你随的 ¥800', 800, 600, '10月24日'], ['小李', '你请的火锅 ¥186', 186, 500, '10月20日'], ['小王', '结婚 · 你随的 ¥800', 800, 0, '10月10日'], ['大姐', '乔迁 · 她给的 ¥1,000', 0, 1000, '9月26日']];
+  return html`<${Page} title="人情往来" back="钱" sub="只算你说过的；随多少你自己定，这里只记事实">
+    <div style=${{ display: 'flex', gap: '12px', margin: '6px 16px 0' }}>
+      <div class="card" style=${{ flex: 1, padding: '14px 16px' }}><div style=${{ fontSize: '13px', color: 'var(--ink2)' }}>送出</div><div class="num" style=${{ fontSize: '26px', fontWeight: 700, marginTop: '2px' }}>${yuan(4066, app.masked)}</div><div style=${{ fontSize: '12.5px', color: 'var(--ink3)' }}>3 份 · 请客 2 次</div></div>
+      <div class="card" style=${{ flex: 1, padding: '14px 16px' }}><div style=${{ fontSize: '13px', color: 'var(--ink2)' }}>收到</div><div class="num" style=${{ fontSize: '26px', fontWeight: 700, marginTop: '2px' }}>${yuan(3100, app.masked)}</div><div style=${{ fontSize: '12.5px', color: 'var(--ink3)' }}>3 份 · 被请 1 次</div></div>
+    </div>
+    <div class="sh"><h3>和谁来往</h3><span class="meta">按最近一次</span></div>
+    <div class="card mx" style=${{ overflow: 'hidden' }}>${people.map(([n, last, out, inn, d], i) => html`${i > 0 && html`<div class="sep"/>`}<div class="row" style=${{ minHeight: '64px' }}><span class="cico" style=${{ background: '#C8463A', borderRadius: '17px' }}><${I} n="person" s=${19}/></span><div style=${{ flex: 1 }}><div style=${{ fontSize: '16px' }}>${n}</div><div style=${{ fontSize: '12.5px', color: 'var(--ink3)' }}>${d} · ${last}</div></div><div class="num" style=${{ textAlign: 'right', fontSize: '13px', lineHeight: 1.5 }}><div>送 ${yuan(out, app.masked)}</div><div style=${{ color: 'var(--ink3)' }}>收 ${yuan(inn, app.masked)}</div></div></div>`)}</div>
+  <//>`;
+}
+
+/* ───────────── 我的 ───────────── */
+const TILES = {
+  todos: ['待办', 'checklist', '#2F6FD6'], money: ['钱', 'currency_yuan', '#C27E12'], mood: ['心情', 'sentiment_satisfied', '#BC4A7E'], insights: ['感悟', 'lightbulb', '#B07A0E'], health: ['健康', 'monitor_heart', '#D2453B'],
+  review: ['回顾', 'menu_book', '#4F5FD0'], calendar: ['日历', 'calendar_month', '#3E7FCC'], library: ['笔记库', 'description', '#6B5BC7'], moments: ['好时刻', 'auto_awesome', '#C9487F'], year: ['你的一年', 'flag', '#22895A'],
+  about: ['关于我', 'person', '#8253C9'], people: ['人', 'group', '#C2557F'], talk: ['你说的话', 'record_voice_over', '#4F5FD0'], finds: ['新发现', 'insights', '#22895A'],
+  moneyList: ['每一笔', 'receipt_long', '#C27E12'], watch: ['留意的', 'inventory_2', '#D4682A'], fixed: ['固定的', 'push_pin', '#A8741A'], renqing: ['人情往来', 'redeem', '#C8463A'], worth: ['值不值', 'thumb_up', '#22895A'],
+  goals: ['目标', 'flag', '#22895A'], streak: ['坚持', 'local_fire_department', '#D2453B'], budget: ['预算', 'pie_chart', '#C27E12'],
+};
+const GROUPS = [['记录', ['todos', 'money', 'mood', 'insights', 'health']], ['回看', ['review', 'calendar', 'library', 'moments', 'year']], ['了解自己', ['about', 'people', 'talk', 'finds']], ['钱', ['moneyList', 'watch', 'fixed', 'renqing', 'worth']], ['目标', ['goals', 'streak', 'budget']]];
+function Tile({ k, edit, inFav, onToggle }) {
+  const app = useApp(); const [n, ic, c] = TILES[k];
+  const badge = k === 'watch' ? app.watch.length || null : k === 'review' ? '新' : k === 'finds' ? 2 : null;
+  return html`<button class="tile press ${edit && inFav !== undefined ? 'jig' : ''}" onClick=${() => (edit ? onToggle && onToggle(k) : app.openTile(k))} aria-label=${n}>
+    <span class="sq" style=${{ background: c }}><${I} n=${ic} s=${27} f/></span>${n}
+    ${!edit && badge && html`<span class="bd num">${badge}</span>`}
+    ${edit && inFav === true && html`<span class="mk" style=${{ background: '#8E8A83' }}>−</span>`}
+    ${edit && inFav === false && html`<span class="mk" style=${{ background: 'var(--accent)' }}>+</span>`}
+  </button>`;
+}
+function MePage() {
+  const app = useApp(); const [edit, setEdit] = useState(false);
+  const toggle = (k) => app.setFav((f) => (f.includes(k) ? f.filter((x) => x !== k) : f.length >= 8 ? f : [...f, k]));
+  return html`<div class="page" onScroll=${(e) => app.onScrollY(e)}>
+    <div style=${{ padding: 'calc(var(--top) + 8px) 20px 0', display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+      <span style=${{ width: '58px', height: '58px', borderRadius: '29px', background: 'linear-gradient(140deg,#2A66CF,#1B4FA6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '23px', fontWeight: 600, flex: 'none' }}>我</span>
+      <div style=${{ flex: 1, minWidth: 0 }}>
+        <div style=${{ display: 'flex', alignItems: 'center', gap: '8px' }}><b style=${{ fontSize: '23px' }}>我</b><span class="tag" style=${{ background: 'var(--warn-soft)', color: 'var(--warn)', height: '22px' }}>演示数据</span></div>
+        <div class="num" style=${{ fontSize: '14px', color: 'var(--ink2)', marginTop: '3px' }}>记了 63 天 · 377 段话</div>
+        <button class="link" style=${{ padding: '2px 0', fontSize: '13.5px', whiteSpace: 'nowrap' }} onClick=${() => app.openTile('about')}>Pour 认识你 12 个人、8 件事<${I} n="chevron_right" s=${16}/></button>
+      </div>
+      <button class="iconbtn glass press" aria-label="设置" onClick=${() => app.push('settings')}><${I} n="settings"/></button>
+    </div>
+    <div class="card mx" style=${{ marginTop: '16px', padding: '16px 6px', display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))' }}>
+      ${[['记一笔', 'currency_yuan', 'var(--money)', 'var(--money-soft)', () => app.openSheet('keypad')], ['记心情', 'sentiment_satisfied', 'var(--mood)', 'var(--mood-soft)', () => app.openSheet('checkin', { lv: 4 })], ['记一句', 'lightbulb', 'var(--idea)', 'var(--idea-soft)', () => app.openSheet('insightAdd')], ['加待办', 'add', 'var(--accent)', 'var(--accent-soft)', () => app.openSheet('todoAdd')]].map(([n, ic, fg, bg, fn]) => html`<button class="qbig press" onClick=${fn}><span class="c" style=${{ background: bg, color: fg }}><${I} n=${ic} s=${28} f/></span>${n}</button>`)}
+    </div>
+    <div style=${{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '22px 20px 10px' }}><b style=${{ fontSize: '18px' }}>常用</b><button class="link" style=${{ fontWeight: 600 }} onClick=${() => setEdit(!edit)}>${edit ? '完成' : '管理'}</button></div>
+    <div class="card mx"><div class="grid4">${app.fav.map((k) => html`<${Tile} key=${k} k=${k} edit=${edit} inFav=${true} onToggle=${toggle}/>`)}${edit && app.fav.length < 8 && html`<div class="tile" style=${{ color: 'var(--ink3)' }}><span class="sq" style=${{ background: 'transparent', border: '1.5px dashed rgba(28,27,25,.25)', boxSizing: 'border-box', color: 'var(--ink3)' }}><${I} n="add"/></span>空位</div>`}</div></div>
+    ${edit && html`<div style=${{ margin: '10px 24px 0', fontSize: '13px', color: 'var(--ink3)' }}>点 − 拿出来，在下面点 + 放进去；最多 8 个</div>`}
+    ${GROUPS.map(([g, ks]) => html`<div class="card mx" style=${{ marginTop: '12px' }}><div class="gname">${g}</div><div class="grid4" style=${{ paddingTop: '14px' }}>${ks.map((k) => html`<${Tile} k=${k} edit=${edit} inFav=${edit ? app.fav.includes(k) : undefined} onToggle=${toggle}/>`)}</div></div>`)}
+    <div class="card mx" style=${{ marginTop: '12px', overflow: 'hidden' }}>${[['settings', '设置', ''], ['feedback', '反馈', '截图和页面自动带上'], ['info', '关于 Pour', '3.0']].map(([ic, n, v], i) => html`${i > 0 && html`<div class="sep" style=${{ marginLeft: '52px' }}/>`}<button class="row" style=${{ width: '100%', border: 0, background: 'none', cursor: 'pointer', textAlign: 'left' }} onClick=${() => (ic === 'settings' ? app.push('settings') : ic === 'feedback' ? app.openSheet('feedback') : null)}><${I} n=${ic} c="var(--ink2)"/><span style=${{ flex: 1, fontSize: '16px' }}>${n}</span><span style=${{ fontSize: '13.5px', color: 'var(--ink3)' }}>${v}</span><${I} n="chevron_right" s=${18} c="var(--ink3)"/></button>`)}</div>
+  </div>`;
+}
+
+/* ───────────── 心情 ───────────── */
+function Face({ lv, size = 50, sel, onClick, label = true }) {
+  return html`<button class="face ${sel ? 'sel' : ''}" onClick=${onClick} aria-label=${MOOD_W[lv - 1]}><span class="c" style=${{ width: size + 'px', height: size + 'px', borderRadius: size / 2 + 'px', background: MOOD_BG[lv - 1], color: MOOD_FG[lv - 1] }}><${I} n=${MOOD_I[lv - 1]} s=${size * 0.6} f/></span>${label && MOOD_W[lv - 1]}</button>`;
+}
+function MoodPage() {
+  const app = useApp(); const [sel, setSel] = useState(27);
+  const lvOf = (d) => (d === 27 ? Math.round(app.moods.reduce((a, b) => a + b.lv, 0) / app.moods.length) : MOOD_MONTH[d - 1]);
+  const first = (wdOf(10, 1) + 6) % 7;
+  const week = [20, 21, 22, 23, 24, 25, 26].map((d) => [d, MOOD_MONTH[d - 1]]);
+  const selMoments = sel === 27 ? app.moods : sel === 26 ? [{ id: 'y1', time: '16:20', lv: 2, emo: ['烦躁'], moment: '下午方案被改了三遍' }, { id: 'y2', time: '21:30', lv: 4, emo: ['放松'], moment: '晚上楼下飘上来烤红薯的香味' }] : [{ id: 'x' + sel, time: '21:00', lv: MOOD_MONTH[sel - 1] || 3, emo: [], moment: '' }];
+  return html`<${Page} title="心情" back="我的">
+    <div class="card mx" style=${{ padding: '18px 10px 16px' }}>
+      <div style=${{ fontSize: '17px', fontWeight: 700, margin: '0 0 14px 8px' }}>现在心情怎么样？</div>
+      <div style=${{ display: 'flex' }}>${[1, 2, 3, 4, 5].map((lv) => html`<${Face} lv=${lv} onClick=${() => app.openSheet('checkin', { lv })}/>`)}</div>
+    </div>
+    <div class="sh"><h3>今天</h3><span class="meta">${app.moods.length} 刻 · 有起有落</span></div>
+    <div class="card mx" style=${{ padding: '6px 0' }}>${app.moods.map((x, i) => html`<div key=${x.id} class=${x.fresh ? 'flash' : ''} style=${{ display: 'flex', gap: '12px', padding: '12px 16px', borderTop: i ? '.5px solid var(--line)' : 0 }}>
+      <span class="num" style=${{ fontSize: '13px', color: 'var(--ink3)', width: '40px', flex: 'none', paddingTop: '6px' }}>${x.time}</span>
+      <span style=${{ width: '32px', height: '32px', borderRadius: '16px', background: MOOD_BG[x.lv - 1], color: MOOD_FG[x.lv - 1], display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><${I} n=${MOOD_I[x.lv - 1]} s=${21} f/></span>
+      <div style=${{ flex: 1, minWidth: 0 }}><div style=${{ display: 'flex', alignItems: 'baseline', gap: '8px', paddingTop: '4px' }}><b style=${{ fontSize: '16px' }}>${MOOD_W[x.lv - 1]}</b><span style=${{ fontSize: '14px', color: 'var(--ink2)' }}>${x.emo.join('、')}</span></div>${x.moment && html`<div class="moment">${x.moment}</div>`}</div></div>`)}</div>
+    <div class="sh"><h3>10月</h3><span class="meta">每天的心情 · 点一天看那天</span></div>
+    <div class="card mx mcal" style=${{ paddingTop: '10px' }}>
+      <div class="cal">${['一', '二', '三', '四', '五', '六', '日'].map((w) => html`<div class="wd">${w}</div>`)}${Array.from({ length: first }, () => html`<div/>`)}
+        ${Array.from({ length: 31 }, (_, i) => i + 1).map((d) => { const lv = d <= 27 ? lvOf(d) : null; const fut = d > 27; return html`<button class="day ${d === 27 ? 'today' : ''} ${sel === d ? 'sel' : ''} ${fut ? 'future' : ''}" onClick=${() => !fut && setSel(d)} aria-label=${`10月${d}日 ${lv ? MOOD_W[lv - 1] : '没说心情'}`}><span class="d">${d}</span>${lv ? html`<span style=${{ width: '24px', height: '24px', borderRadius: '12px', background: MOOD_BG[lv - 1], color: MOOD_FG[lv - 1], display: 'flex', alignItems: 'center', justifyContent: 'center' }}><${I} n=${MOOD_I[lv - 1]} s=${17} f/></span>` : !fut && html`<span style=${{ fontSize: '11px', color: 'var(--ink3)' }}>—</span>`}</button>`; })}
+      </div>
+    </div>
+    ${sel !== 27 && html`<div class="card mx" style=${{ marginTop: '10px', padding: '10px 16px' }}><div style=${{ fontSize: '14px', fontWeight: 700, marginBottom: '4px' }}>${dayLabel(10, sel)}</div>${selMoments.map((x) => html`<div style=${{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '6px 0' }}><span class="num" style=${{ fontSize: '12.5px', color: 'var(--ink3)', width: '38px', paddingTop: '3px' }}>${x.time}</span><span style=${{ width: '24px', height: '24px', borderRadius: '12px', background: MOOD_BG[x.lv - 1], color: MOOD_FG[x.lv - 1], display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><${I} n=${MOOD_I[x.lv - 1]} s=${17} f/></span><div style=${{ flex: 1 }}><b style=${{ fontSize: '15px' }}>${MOOD_W[x.lv - 1]}</b> <span style=${{ fontSize: '13.5px', color: 'var(--ink2)' }}>${x.emo.join('、')}</span>${x.moment && html`<div class="moment" style=${{ fontSize: '14.5px' }}>${x.moment}</div>`}</div></div>`)}</div>`}
+    <div class="sh"><h3>这周</h3><span class="meta">周三最低（前后两段都是）</span></div>
+    <div class="card mx" style=${{ padding: '14px 12px 10px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>${week.map(([d, lv]) => html`<div style=${{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}><div style=${{ height: '86px', display: 'flex', alignItems: 'flex-end' }}><span style=${{ width: '30px', height: 20 + lv * 13 + 'px', borderRadius: '10px', background: MOOD_BG[lv - 1], color: MOOD_FG[lv - 1], display: 'flex', alignItems: 'flex-start', justifyContent: 'center', paddingTop: '4px', boxSizing: 'border-box' }}><${I} n=${MOOD_I[lv - 1]} s=${18} f/></span></div><span class="num" style=${{ fontSize: '12px', color: 'var(--ink2)' }}>${'一二三四五六日'[(wdOf(10, d) + 6) % 7]}</span></div>`)}</div>
+    <div class="sh"><h3>好时刻</h3><button class="link">全部 15 个<${I} n="chevron_right" s=${18}/></button></div>
+    <div class="card mx" style=${{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>${[['晚上楼下飘上来烤红薯的香味', '10月26日 · 放松'], ['陪儿子去公园玩了一个半小时', '10月24日 · 开心'], ['老同学家孩子满月，大家都很开心', '10月24日 · 满足']].map(([q, m]) => html`<div class="moment" style=${{ marginTop: 0 }}>${q}<div class="num" style=${{ fontFamily: 'var(--round)', fontSize: '12px', color: 'var(--ink3)', marginTop: '3px' }}>${m}</div></div>`)}</div>
+    <${Finding} title="和儿子在一起的日子，几乎都心情挺好；别的日子很少这样。" a=${['和儿子一起', '31 天里 28 天', 90]} b=${['别的日子', '26 天里 2 天', 8]} good/>
+  <//>`;
+}
+function Finding({ title, a, b, good }) {
+  const [v, setV] = useState(null);
+  return html`<div class="card mx" style=${{ marginTop: '12px', padding: '16px' }}>
+    <div style=${{ fontSize: '12.5px', fontWeight: 700, color: 'var(--ink2)' }}>发现</div>
+    <div style=${{ fontSize: '17px', fontWeight: 700, lineHeight: 1.45, marginTop: '6px' }}>${title}</div>
+    ${[a, b].map(([n, t, p], i) => html`<div style=${{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px', marginTop: i ? '8px' : '12px' }}><span style=${{ width: '74px' }}>${n}</span><div class="bar"><i style=${{ width: p + '%', background: i ? '#A39E95' : good ? 'var(--good)' : '#B08A2E' }}/></div><span class="num" style=${{ width: '86px', textAlign: 'right', color: 'var(--ink2)' }}>${t}</span></div>`)}
+    <div style=${{ fontSize: '12.5px', color: 'var(--ink3)', marginTop: '10px' }}>只是同时出现，不一定是因为它</div>
+    <div style=${{ display: 'flex', gap: '6px', marginTop: '12px', flexWrap: 'wrap' }}>${['说中了', '早知道', '没意思', '不对'].map((x) => html`<button class="chip ${v === x ? 'on' : ''}" style=${{ height: '30px', fontSize: '13.5px' }} onClick=${() => setV(v === x ? null : x)}>${x}</button>`)}</div>
+  </div>`;
+}
+function CheckinSheet({ lv: lv0 = 4, close }) {
+  const app = useApp(); const [lv, setLv] = useState(lv0); const [emo, setEmo] = useState([]); const [why, setWhy] = useState('');
+  const tog = (e) => setEmo((x) => (x.includes(e) ? x.filter((y) => y !== e) : [...x, e]));
+  const said = `心情${MOOD_W[lv - 1]}${emo.length ? '，' + emo.join('、') : ''}${why ? '，因为' + why : ''}`;
+  const groups = lv >= 3 ? [['好的', EMO_GOOD], ['不好的', EMO_BAD]] : [['不好的', EMO_BAD], ['好的', EMO_GOOD]];
+  return html`<div class="shead"><h2>现在心情怎么样？</h2><button class="closex" aria-label="关闭" onClick=${close}><${I} n="close" s=${20}/></button></div>
+    <div class="sbody">
+      <div style=${{ display: 'flex', padding: '14px 8px 0' }}>${[1, 2, 3, 4, 5].map((n) => html`<${Face} lv=${n} sel=${lv === n} onClick=${() => setLv(n)}/>`)}</div>
+      ${groups.map(([g, list]) => html`<div style=${{ fontSize: '13px', color: 'var(--ink2)', margin: '20px 20px 8px' }}>${g}的感觉（可以不选）</div><div style=${{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '0 16px' }}>${list.map((e) => html`<button class="chip ${emo.includes(e) ? 'on' : ''}" style=${emo.includes(e) ? { background: 'var(--mood)' } : {}} onClick=${() => tog(e)}>${e}</button>`)}</div>`)}
+      <div style=${{ fontSize: '13px', color: 'var(--ink2)', margin: '20px 20px 8px' }}>因为……（可以不填）</div>
+      <div style=${{ margin: '0 16px', background: '#fff', borderRadius: '16px', padding: '8px 8px 8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}><input id="mood-why" value=${why} onInput=${(e) => setWhy(e.target.value)} placeholder="比如：晚上楼下飘来烤红薯的香味" class="serif" style=${{ flex: 1, border: 0, outline: 'none', fontSize: '17px', padding: '8px 0', background: 'none', minWidth: 0 }}/><button class="iconbtn" aria-label="说话" style=${{ background: 'var(--accent-soft)', color: 'var(--accent)' }} onClick=${() => setWhy('晚上楼下飘上来烤红薯的香味')}><${I} n="mic"/></button></div>
+      <div style=${{ fontSize: '12px', color: 'var(--ink3)', margin: '10px 20px 0' }}>记下的是一句原话「${said}」；情绪词只写你点的和你说的</div>
+      <div style=${{ padding: '16px 16px 0' }}><button class="primary press" style=${{ background: 'var(--mood)' }} onClick=${() => { app.addMood({ lv, emo, moment: why }); close(); }}>记下</button></div>
+    </div>`;
+}
+
+/* ───────────── 感悟 ───────────── */
+function InsightsPage() {
+  const app = useApp(); const [k, setK] = useState(0); const [flip, setFlip] = useState(false); const [anim, setAnim] = useState('');
+  const [tag, setTag] = useState('全部');
+  const cur = app.insights.find((x) => x.id === RESURFACE[k % RESURFACE.length]) || app.insights[0];
+  const next = () => { setAnim('swapout'); setTimeout(() => { setFlip(false); setK(k + 1); setAnim('swapin'); }, 300); };
+  const tags = ['全部', '语录 ★', ...[...new Set(app.insights.flatMap((x) => x.tags))].slice(0, 8)];
+  const list = app.insights.filter((x) => tag === '全部' || (tag === '语录 ★' ? x.star : x.tags.includes(tag)));
+  const months = [...new Set(list.map((x) => x.m))];
+  return html`<${Page} title="感悟" back="我的" right=${html`<button class="iconbtn glass press" aria-label="记一句" onClick=${() => app.openSheet('insightAdd')}><${I} n="add" s=${26}/></button>`}>
+    <div class="flip mx" style=${{ marginTop: '6px' }}><div class="flipin ${flip ? 'on' : ''} ${anim}" onClick=${() => setFlip(!flip)} style=${{ cursor: 'pointer' }}>
+      <div class="card flipface" style=${{ padding: '22px 22px 18px', background: '#FFFDF8', minHeight: '232px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+        <div style=${{ fontSize: '12.5px', fontWeight: 700, color: 'var(--idea)', letterSpacing: '.5px' }}>今天重温 · ${cur.ago || '以前'}你说</div>
+        <div class="serif" style=${{ fontSize: cur.q.length > 14 ? '24px' : '30px', lineHeight: 1.5, marginTop: '14px', flex: 1 }}>${cur.q}</div>
+        <div style=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}><span class="num" style=${{ fontSize: '13px', color: 'var(--ink3)' }}>${cur.d} · ${cur.tags.join(' · ')}</span><span style=${{ fontSize: '12.5px', color: 'var(--ink3)', display: 'flex', alignItems: 'center', gap: '2px' }}><${I} n="swap_horiz" s=${16}/>点一下看原话</span></div>
+      </div>
+      <div class="card flipface flipback" style=${{ padding: '22px', background: '#FBF8F1', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+        <div style=${{ fontSize: '12.5px', fontWeight: 700, color: 'var(--ink2)' }}>你当时说的</div>
+        <div class="moment" style=${{ fontSize: '17px', marginTop: '12px', flex: 1 }}>${cur.said || cur.q}</div>
+        <div class="num" style=${{ fontSize: '13px', color: 'var(--ink3)' }}>${cur.d} · 以前也说过类似的 ${cur.rel || 1} 条 ›</div>
+      </div>
+    </div></div>
+    <div style=${{ display: 'flex', gap: '8px', margin: '12px 16px 0' }}>
+      <button class="chip press" style=${cur.star ? { background: 'var(--idea-soft)', color: 'var(--idea)', fontWeight: 600 } : {}} onClick=${() => app.starInsight(cur.id)}><${I} n="star" s=${18} f=${cur.star}/>${cur.star ? '已收藏' : '收藏'}</button>
+      <button class="chip press" onClick=${() => app.openSheet('share', { id: cur.id })}><${I} n="ios_share" s=${18}/>分享</button>
+      <button class="chip press" onClick=${next}><${I} n="refresh" s=${18}/>换一句</button>
+    </div>
+    <div class="hscroll" style=${{ marginTop: '18px' }}>${tags.map((t) => html`<button class="chip ${tag === t ? 'on' : ''}" onClick=${() => setTag(t)}>${t}</button>`)}</div>
+    ${months.map((m) => html`<div class="sh"><h3 style=${{ fontSize: '16px' }}>${m}月</h3><span class="meta num">${list.filter((x) => x.m === m).length} 条</span></div>
+      <div style=${{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '0 16px' }}>${list.filter((x) => x.m === m).map((x) => html`<div class="card ${x.fresh ? 'flash' : ''}" style=${{ padding: '16px', position: 'relative' }} key=${x.id}>
+        <div class="serif" style=${{ fontSize: '18.5px', lineHeight: 1.55, paddingRight: '34px' }}>${x.q}</div>
+        <div class="num" style=${{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', fontSize: '12.5px', color: 'var(--ink3)', flexWrap: 'wrap' }}>${x.d}${x.tags.map((t) => html`<span class="tag" style=${{ background: 'var(--idea-soft)', color: '#7A5300' }}>${t}</span>`)}${x.rel && html`<span style=${{ marginLeft: 'auto', color: 'var(--ink2)' }}>以前也说过类似的 ${x.rel} 条</span>`}</div>
+        <button class="iconbtn" aria-label=${x.star ? '取消收藏' : '收藏'} style=${{ position: 'absolute', right: '6px', top: '6px', color: x.star ? '#C98315' : 'var(--ink3)' }} onClick=${() => app.starInsight(x.id)}><${I} n="star" s=${22} f=${x.star}/></button>
+      </div>`)}</div>`)}
+  <//>`;
+}
+function InsightAddSheet({ close }) {
+  const app = useApp(); const [v, setV] = useState(''); const ref = useRef(null);
+  useEffect(() => { setTimeout(() => ref.current && ref.current.focus(), 350); }, []);
+  return html`<div class="shead"><h2>记一句</h2><button class="primary" style=${{ width: 'auto', height: '36px', padding: '0 18px', borderRadius: '18px', fontSize: '15px', background: 'var(--idea)' }} disabled=${!v.trim()} onClick=${() => { app.addInsight(v.trim()); close(); }}>记下</button></div>
+    <div class="sbody"><div style=${{ margin: '6px 16px 0', background: '#FFFDF8', borderRadius: '18px', padding: '18px' }}>
+      <textarea id="insight-text" ref=${ref} value=${v} onInput=${(e) => setV(e.target.value)} rows="5" placeholder="想明白的一件事、想留着的一句话……" class="serif" style=${{ width: '100%', border: 0, outline: 'none', background: 'none', fontSize: '21px', lineHeight: 1.6, resize: 'none', boxSizing: 'border-box' }}></textarea>
+      <div style=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span style=${{ fontSize: '12.5px', color: 'var(--ink3)' }}>记下的会收藏成你的语录</span><button class="iconbtn" aria-label="说话" style=${{ background: 'var(--idea-soft)', color: 'var(--idea)' }} onClick=${() => setV('先把一件事做完，再开始下一件。')}><${I} n="mic"/></button></div>
+    </div></div>`;
+}
+function ShareSheet({ id, close }) {
+  const app = useApp(); const x = app.insights.find((i) => i.id === id) || app.insights[0]; const [sty, setSty] = useState(0);
+  const looks = [['暖白', '#FBF8F1', '#2A2723', '#C9B892'], ['墨色', '#22211E', '#EFE9DC', '#8C8270'], ['月白', '#E9EEF5', '#22324E', '#8FA2C2']];
+  const [n, bg, fg, ac] = looks[sty];
+  return html`<div class="shead"><h2>分享成图片</h2><button class="closex" aria-label="关闭" onClick=${close}><${I} n="close" s=${20}/></button></div>
+    <div class="sbody">
+      <div style=${{ margin: '6px auto 0', width: '262px', minHeight: '340px', background: bg, color: fg, borderRadius: '8px', boxShadow: '0 16px 40px rgba(0,0,0,.22)', padding: '38px 28px 24px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', transition: 'background .3s,color .3s' }}>
+        <div class="serif" style=${{ fontSize: '44px', color: ac, lineHeight: 1 }}>“</div>
+        <div class="serif" style=${{ fontSize: x.q.length > 14 ? '21px' : '26px', lineHeight: 1.6, flex: 1, marginTop: '4px' }}>${x.q}</div>
+        <div class="serif" style=${{ fontSize: '13.5px', opacity: 0.7, marginTop: '18px' }}>—— 我，2026年${x.d}</div>
+        <div style=${{ textAlign: 'right', fontSize: '10.5px', letterSpacing: '2px', opacity: 0.5, marginTop: '14px' }}>POUR · 倾</div>
+      </div>
+      <div style=${{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '18px' }}>${looks.map(([nm, b, f], i) => html`<button class="chip ${sty === i ? 'on' : ''}" onClick=${() => setSty(i)}><span style=${{ width: '14px', height: '14px', borderRadius: '7px', background: b, boxShadow: '0 0 0 1px rgba(0,0,0,.15)' }}/>${nm}</button>`)}</div>
+      <div style=${{ display: 'flex', justifyContent: 'space-around', margin: '22px 12px 0' }}>${[['photo_library', '存到相册'], ['forum', '发给朋友'], ['content_copy', '拷贝']].map(([ic, nm]) => html`<button class="qbig press" onClick=${() => { close(); app.toast(nm === '拷贝' ? '拷贝好了' : `${nm}（原型里不会真的发）`); }}><span class="c" style=${{ background: '#fff', boxShadow: '0 0 0 .5px var(--line)' }}><${I} n=${ic} s=${26}/></span>${nm}</button>`)}</div>
+      <div style=${{ textAlign: 'center', fontSize: '12.5px', color: 'var(--ink3)', marginTop: '16px' }}>只在你点分享时生成，不上传</div>
+    </div>`;
+}
+
+/* ───────────── 回顾、故事 ───────────── */
+function ReviewPage() {
+  const app = useApp(); const [k, setK] = useState('day');
+  return html`<${Page} title="回顾" back="我的">
+    <div class="seg"><button class=${k === 'day' ? 'on' : ''} onClick=${() => setK('day')}>每天</button><button class=${k === 'week' ? 'on' : ''} onClick=${() => setK('week')}>每周</button><button class=${k === 'month' ? 'on' : ''} onClick=${() => setK('month')}>每月</button></div>
+    ${k === 'day' && html`<div class="card mx" style=${{ marginTop: '14px', padding: '14px 16px', background: '#FFF8EA' }}>
+      <div style=${{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 700, color: 'var(--warn)' }}><${I} n="warning" s=${17} f/>需要留意 · 2 件</div>
+      <div class="num" style=${{ fontSize: '15px', lineHeight: 1.5, marginTop: '8px' }}>睡眠连着 3 天变短：7:40 → 7:20 → 6:50</div>
+      <div style=${{ height: '.5px', background: 'rgba(148,96,0,.2)', margin: '10px 0' }}/>
+      <div style=${{ fontSize: '15px', lineHeight: 1.5 }}>「每周外卖不超过 2 次」这周用满了（2 / 2）</div></div>`}
+    <div style=${{ display: 'flex', flexDirection: 'column', gap: '10px', margin: '14px 16px 0' }}>${REVIEWS[k].map((r) => html`<button class="card press" style=${{ border: 0, textAlign: 'left', padding: '14px 16px', cursor: 'pointer' }} onClick=${() => (k === 'day' ? app.openStory(r.id) : app.toast('周报、月报也是同一套故事式的样子（原型里只做了每日回顾）'))}>
+      <div style=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><b style=${{ fontSize: '16px', color: r.fresh ? 'var(--ink)' : 'var(--ink2)' }}>${r.d}</b>${r.fresh ? html`<span class="tag" style=${{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>新</span>` : html`<${I} n="chevron_right" s=${18} c="var(--ink3)"/>`}</div>
+      <div style=${{ fontSize: '15px', lineHeight: 1.55, marginTop: '6px', color: r.fresh ? 'var(--ink)' : 'var(--ink2)' }}>${r.s}</div>
+      <div class="num" style=${{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>${r.chips.map((c) => html`<span class="tag" style=${{ background: 'var(--fill)', color: 'var(--ink2)', height: '24px', fontSize: '12.5px', fontWeight: 500 }}>${c}</span>`)}</div>
+    </button>`)}</div>
+  <//>`;
+}
+function Story({ id, close, leaving }) {
+  const app = useApp(); const [p, setP] = useState(0); const N = 6;
+  useEffect(() => { const h = setTimeout(() => { if (p < N - 1) setP(p + 1); }, 5500); return () => clearTimeout(h); }, [p]);
+  const tap = (e) => { const r = e.currentTarget.getBoundingClientRect(); if (e.clientX - r.left < r.width * 0.33) setP(Math.max(0, p - 1)); else if (p < N - 1) setP(p + 1); else close(); };
+  const bgs = ['linear-gradient(170deg,#2E3A55,#1D2433)', 'linear-gradient(170deg,#3B3242,#24202B)', 'linear-gradient(170deg,#283B3A,#1A2625)', 'linear-gradient(170deg,#4A2F3E,#2A1C24)', 'linear-gradient(170deg,#3C3424,#241F15)', 'linear-gradient(170deg,#FBF8F1,#EFE9DC)'];
+  const pages = [
+    html`<div class="stpage"><div style=${{ fontSize: '14px', opacity: 0.75, fontWeight: 600 }}>每日回顾 · 昨天</div><div style=${{ fontSize: '32px', fontWeight: 700, marginTop: '6px' }}>10月26日 周一</div><div class="serif" style=${{ fontSize: '26px', lineHeight: 1.6, marginTop: '28px' }}>睡了 6 小时 50 分，16:8 轻断食，外卖沙拉 ¥38，背单词。</div></div>`,
+    html`<div class="stpage"><div style=${{ fontSize: '14px', opacity: 0.75, fontWeight: 600, marginBottom: '18px' }}>四个数 · 和平时比</div><div style=${{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>${[['睡眠', '6:50', '和平时差不多'], ['专注', '12:25', '多 1 小时 15 分'], ['心情', '有起有落', '和平时差不多'], ['花了', '¥497', '等报销另有 ¥61']].map(([a, b, c]) => html`<div style=${{ background: 'rgba(255,255,255,.1)', borderRadius: '18px', padding: '16px' }}><div style=${{ fontSize: '13px', opacity: 0.75 }}>${a}</div><div class="num" style=${{ fontSize: b.length > 5 ? '22px' : '30px', fontWeight: 700, marginTop: '4px' }}>${b}</div><div style=${{ fontSize: '12.5px', opacity: 0.75, marginTop: '4px' }}>${c}</div></div>`)}</div></div>`,
+    html`<div class="stpage"><div style=${{ fontSize: '14px', opacity: 0.75, fontWeight: 600 }}>一天的样子</div><div style=${{ marginTop: '22px', display: 'flex', flexDirection: 'column', gap: '12px' }}>${[['0:00–6:50', '睡觉', 28, 0, '#8E7CC3'], ['8:00–19:10', '上班 11 小时 · 开会 · 改方案', 46, 33, '#B58A62'], ['15:00–16:00', '开会', 4, 62, '#2F6FD6'], ['21:00–21:25', '背单词', 2, 88, '#3FA57A']].map(([t, n, w, l, c]) => html`<div><div class="num" style=${{ fontSize: '13px', opacity: 0.75 }}>${t}</div><div style=${{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}><div style=${{ flex: 1, height: '12px', borderRadius: '6px', background: 'rgba(255,255,255,.12)', position: 'relative' }}><i style=${{ position: 'absolute', left: l + '%', width: Math.max(w, 2) + '%', top: 0, bottom: 0, borderRadius: '6px', background: c, display: 'block' }}/></div></div><div style=${{ fontSize: '16px', marginTop: '4px' }}>${n}</div></div>`)}</div></div>`,
+    html`<div class="stpage"><div style=${{ fontSize: '14px', opacity: 0.75, fontWeight: 600 }}>心情和那一刻</div>${[[2, '16:20', '烦躁', '下午方案被改了三遍'], [4, '21:30', '放松', '晚上楼下飘上来烤红薯的香味']].map(([lv, t, e, m]) => html`<div style=${{ display: 'flex', gap: '12px', marginTop: '22px' }}><span style=${{ width: '40px', height: '40px', borderRadius: '20px', background: MOOD_BG[lv - 1], color: MOOD_FG[lv - 1], display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><${I} n=${MOOD_I[lv - 1]} s=${26} f/></span><div><div class="num" style=${{ fontSize: '13px', opacity: 0.75 }}>${t} · ${MOOD_W[lv - 1]} · ${e}</div><div class="serif" style=${{ fontSize: '21px', lineHeight: 1.5, marginTop: '4px' }}>${m}</div></div></div>`)}</div>`,
+    html`<div class="stpage"><div style=${{ fontSize: '14px', opacity: 0.75, fontWeight: 600 }}>还没收尾的</div>${['给客户回电话', '把会员改版的 PRD 发给研发'].map((t) => html`<div style=${{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '18px', background: 'rgba(255,255,255,.1)', borderRadius: '16px', padding: '14px' }}><span style=${{ width: '22px', height: '22px', borderRadius: '11px', border: '2px solid rgba(255,255,255,.6)', flex: 'none' }}/><span style=${{ flex: 1, fontSize: '16px' }}>${t}</span><button class="chip" style=${{ background: '#fff', color: '#241F15', fontWeight: 600, height: '32px' }} onClick=${(e) => { e.stopPropagation(); app.toast(`「${t}」带到今天了`); }}>带到今天</button></div>`)}
+      <div style=${{ marginTop: '24px', background: 'rgba(255,255,255,.1)', borderRadius: '16px', padding: '14px' }}><div style=${{ fontSize: '13px', opacity: 0.75 }}>自动检查：「下午三点」记成了凌晨 3 点</div><div class="serif" style=${{ fontSize: '17px', marginTop: '6px' }}>下午<b>三点</b>到四点开了个会</div><div style=${{ display: 'flex', gap: '8px', marginTop: '12px' }}><button class="chip" style=${{ background: '#fff', color: '#241F15', fontWeight: 600, height: '32px' }} onClick=${(e) => { e.stopPropagation(); app.toast('改好了：开会 15:00–16:00 · 撤销', () => {}); }}>确实错了</button><button class="chip" style=${{ background: 'rgba(255,255,255,.15)', color: '#fff', height: '32px' }} onClick=${(e) => e.stopPropagation()}>没错</button></div></div></div>`,
+    html`<div class="stpage" style=${{ color: '#2A2723' }}><div style=${{ fontSize: '14px', opacity: 0.7, fontWeight: 600 }}>你说过</div><div class="serif" style=${{ fontSize: '34px', lineHeight: 1.5, marginTop: '20px' }}>「慢慢来，比较快。」</div><div class="num" style=${{ fontSize: '13px', opacity: 0.6, marginTop: '12px' }}>10月11日 周日记下的</div><button class="chip" style=${{ marginTop: '30px', alignSelf: 'flex-start', background: '#2A2723', color: '#fff', height: '38px' }} onClick=${(e) => { e.stopPropagation(); close(); }}>看完了</button></div>`,
+  ];
+  return html`<div class="story ${leaving ? 'leaving' : ''}" style=${{ background: bgs[p] }}>
+    <div class="prog">${Array.from({ length: N }, (_, i) => html`<i><b class=${i < p ? 'full' : i === p ? 'run' : ''} key=${i + '-' + (i === p ? p : 'x')}/></i>`)}</div>
+    <div style=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px 0', color: p === 5 ? '#2A2723' : '#fff' }}><span style=${{ fontSize: '14px', fontWeight: 600 }}>Pour · 昨天</span><button class="iconbtn" aria-label="关闭" style=${{ color: 'inherit', background: p === 5 ? 'rgba(0,0,0,.06)' : 'rgba(255,255,255,.12)' }} onClick=${close}><${I} n="close"/></button></div>
+    <div style=${{ flex: 1, display: 'flex', cursor: 'pointer' }} onClick=${tap} key=${p}>${pages[p]}</div>
+    <div style=${{ textAlign: 'center', fontSize: '12.5px', opacity: 0.6, padding: '0 0 calc(var(--bot) + 16px)', color: p === 5 ? '#2A2723' : '#fff' }}>点右边下一页 · 点左边上一页</div>
+  </div>`;
+}
+
+/* ───────────── 目标、关于我、笔记库、设置、别的页 ───────────── */
+function GoalsPage() {
+  const app = useApp(); const col = { good: 'var(--good)', warn: 'var(--warn)', bad: 'var(--bad)' };
+  return html`<${Page} title="目标" back="我的" right=${html`<button class="iconbtn glass press" aria-label="定目标" onClick=${() => app.openSheet('goalAdd')}><${I} n="add" s=${26}/></button>`}>
+    <div class="subtitle">4 个进行中 · 1 个在正轨上</div>
+    <div style=${{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '10px', margin: '6px 16px 0' }}>${GOALS.map((g) => html`<button class="card press" style=${{ border: 0, textAlign: 'left', padding: '14px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px' }} onClick=${() => app.push('goal', { id: g.id })}>
+      <div style=${{ position: 'relative', width: '56px', height: '56px' }}><${Ring} v=${g.v} t=${g.t} size=${56} w=${7} color=${col[g.st]}/><span class="num" style=${{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12.5px', fontWeight: 700 }}>${Math.round((g.v / g.t) * 100)}%</span></div>
+      <div style=${{ fontSize: '15.5px', fontWeight: 600, lineHeight: 1.35 }}>${g.title}</div>
+      <div class="num" style=${{ fontSize: '13px', color: 'var(--ink2)' }}>${fmt(g.v)} / ${fmt(g.t)} ${g.unit}</div>
+      <span class="tag" style=${{ alignSelf: 'flex-start', background: g.st === 'good' ? 'var(--good-soft)' : g.st === 'warn' ? 'var(--warn-soft)' : 'var(--bad-soft)', color: col[g.st], height: '22px' }}>${g.note}</span></button>`)}</div>
+    <div class="sh"><h3>坚持</h3></div>
+    <div class="card mx" style=${{ padding: '14px 16px' }}><div style=${{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}><b style=${{ fontSize: '15.5px' }}>连续 30 天 16:8 轻断食</b><span class="num" style=${{ fontSize: '22px', fontWeight: 700 }}>8<span style=${{ fontSize: '13px', color: 'var(--ink2)', fontWeight: 400 }}> / 30 天</span></span></div>
+      <div style=${{ display: 'flex', gap: '4px', marginTop: '12px' }}>${Array.from({ length: 14 }, (_, i) => html`<span style=${{ flex: 1, height: '18px', borderRadius: '5px', background: i === 5 ? 'var(--fill2)' : 'var(--good)', opacity: i === 13 ? 0.45 : 1 }}/>`)}</div>
+      <div style=${{ fontSize: '12.5px', color: 'var(--ink3)', marginTop: '8px' }}>最近 14 天 · 连续 8 天 · 最长 13 天 · 今天还没说</div></div>
+    <div class="sh"><h3>预算</h3></div>
+    <div class="card mx" style=${{ overflow: 'hidden' }}><div class="row"><span style=${{ flex: 1, fontSize: '15.5px' }}>每月外卖不超过 ¥300</span><span class="num" style=${{ fontSize: '14px', fontWeight: 600, color: 'var(--good)' }}>还能花 ¥90</span></div><div class="sep"/><div class="row"><span style=${{ flex: 1, fontSize: '15.5px' }}>每周外卖不超过 2 次</span><span class="num" style=${{ fontSize: '14px', fontWeight: 600, color: 'var(--warn)' }}>这周用满了</span></div></div>
+  <//>`;
+}
+function GoalPage({ id }) {
+  const g = GOALS.find((x) => x.id === id) || GOALS[0]; const [h, setH] = useState(null); const ref = useRef(null);
+  const col = { good: '#1E7A49', warn: '#946000', bad: '#C0412F' }[g.st];
+  const W = 326, H = 140; const pts = 10; const actual = Array.from({ length: pts }, (_, i) => (g.v * (i + 1)) / pts * (0.85 + 0.15 * Math.sin(i))); const should = Array.from({ length: pts }, (_, i) => ((g.t * 0.34) * (i + 1)) / pts);
+  const max = Math.max(...should, ...actual); const x = (i) => 10 + (i / (pts - 1)) * (W - 20); const y = (v) => H - 14 - (v / max) * (H - 30);
+  const p = (a) => a.map((v, i) => `${i ? 'L' : 'M'}${x(i)},${y(v)}`).join(' ');
+  const hi = h ?? pts - 1; const label = ['8月下', '9月上', '9月中', '9月下', '10月上', '10月上', '10月中', '10月中', '10月下', '今天'][hi];
+  return html`<${Page} title=${g.title} back="目标">
+    <div class="card mx" style=${{ padding: '20px 16px', display: 'flex', alignItems: 'center', gap: '18px' }}><div style=${{ position: 'relative', width: '96px', height: '96px' }}><${Ring} v=${g.v} t=${g.t} size=${96} w=${11} color=${col}/><span class="num" style=${{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 700 }}>${Math.round((g.v / g.t) * 100)}%</span></div>
+      <div><div class="num" style=${{ fontSize: '28px', fontWeight: 700 }}>${fmt(g.v)}<span style=${{ fontSize: '15px', color: 'var(--ink2)', fontWeight: 500 }}> / ${fmt(g.t)} ${g.unit}</span></div><div style=${{ fontSize: '14px', color: col, fontWeight: 600, marginTop: '4px' }}>${g.note}</div><div style=${{ fontSize: '13px', color: 'var(--ink2)', marginTop: '4px', lineHeight: 1.5 }}>${g.sub}</div></div></div>
+    <div class="sh"><h3>应达和实际</h3><span class="meta">拖着看每一段</span></div>
+    <div class="card mx" style=${{ padding: '12px 14px' }}><div class="num" style=${{ fontSize: '13px', color: 'var(--ink2)', marginBottom: '6px' }}>${label}：实际 ${fmt(Math.round(actual[hi] * 10) / 10)} · 应达 ${fmt(Math.round(should[hi] * 10) / 10)} ${g.unit}</div>
+      <svg ref=${ref} width="100%" viewBox="0 0 ${W} ${H}" style=${{ display: 'block', touchAction: 'pan-y' }} onPointerMove=${(e) => { const r = ref.current.getBoundingClientRect(); setH(clamp(Math.round(((e.clientX - r.left) / r.width * W - 10) / (W - 20) * (pts - 1)), 0, pts - 1)); }} onPointerLeave=${() => setH(null)} role="img" aria-label="应达和实际的曲线">
+        <path d=${p(should)} fill="none" stroke="#B5B0A6" stroke-width="1.8" stroke-dasharray="5 5"/><path d=${p(actual)} fill="none" stroke=${col} stroke-width="2.6" stroke-linecap="round"/>
+        <line x1=${x(hi)} x2=${x(hi)} y1="6" y2=${H - 14} stroke="rgba(28,27,25,.2)"/><circle cx=${x(hi)} cy=${y(actual[hi])} r="5" fill=${col} stroke="#fff" stroke-width="2"/></svg></div>
+    <div class="sh"><h3>最近推进它的</h3></div>
+    <div class="card mx" style=${{ overflow: 'hidden' }}>${[['10月24日', '跑步 8.4 公里'], ['10月22日', '跑步 5.4 公里'], ['10月19日', '跑步 6.9 公里']].map(([d, t], i) => html`${i > 0 && html`<div class="sep"/>`}<div class="row"><span class="num" style=${{ width: '70px', color: 'var(--ink2)', fontSize: '14px' }}>${d}</span><span style=${{ flex: 1, fontSize: '15.5px' }}>${t}</span><${I} n="chevron_right" s=${18} c="var(--ink3)"/></div>`)}</div>
+  <//>`;
+}
+function AboutPage() {
+  const app = useApp();
+  const parts = [['饮食', 22, '#E0962A'], ['工作', 12, '#986845'], ['学习', 10, '#3E8E7E'], ['睡眠', 10, '#7A68C8'], ['家人朋友', 9, '#CF5786'], ['运动', 7, '#2E9A6B']];
+  return html`<${Page} title="关于我" back="我的" sub="从你说过的 377 段话里看出来的你 · 最近 9 周">
+    <div class="sh" style=${{ marginTop: '10px' }}><h3>你的生活由什么组成</h3><span class="meta">最近 30 天说到的比例</span></div>
+    <div class="card mx" style=${{ padding: '8px 0' }}>${parts.map(([n, p, c]) => html`<button class="row press" style=${{ width: '100%', border: 0, background: 'none', cursor: 'pointer', minHeight: '46px' }} onClick=${() => app.toast(`${n}那一页：一个大数、什么时候、做什么、和谁、那些日子的心情（原型里没画）`)}><span style=${{ width: '64px', fontSize: '15px', textAlign: 'left' }}>${n}</span><div class="bar" style=${{ height: '10px' }}><i style=${{ width: (p / 22) * 100 + '%', background: c }}/></div><span class="num" style=${{ width: '40px', textAlign: 'right', fontWeight: 650 }}>${p}%</span></button>`)}
+      <div style=${{ padding: '6px 16px 8px', fontSize: '14.5px', lineHeight: 1.6 }}>最近 30 天，你说得最多的是饮食；说到家人朋友的话，一半多在周末。</div></div>
+    <div class="sh"><h3>这周的新发现</h3><span class="meta">2 条</span></div>
+    <${Finding} title="和小王在一起的日子，几乎都心情不太好；别的日子一成多。" a=${['和小王一起', '11 天里 10 天', 91]} b=${['别的日子', '46 天里 7 天', 15]}/>
+    <div class="sh"><h3>换个角度看你</h3></div>
+    <div style=${{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '10px', margin: '0 16px' }}>${[['心情', '一般', '周三最低 · 最近 4 周', () => app.push('mood')], ['人', '儿子', '最常在一起 · 31 天', () => app.push('people')], ['钱', '¥777 / 周', '周末花得多', () => app.setTab('money')], ['你说的话', '377 段', '一半多在晚上 9 点以后', () => app.toast('你说的话：说话的时钟、在说什么、小词里的你（原型里没画）')]].map(([a, b, c, fn]) => html`<button class="card press" style=${{ border: 0, textAlign: 'left', padding: '14px', cursor: 'pointer', minHeight: '108px' }} onClick=${fn}><div style=${{ fontSize: '12.5px', fontWeight: 700, color: 'var(--ink2)' }}>${a}</div><div class="num" style=${{ fontSize: '22px', fontWeight: 700, marginTop: '6px' }}>${b}</div><div style=${{ fontSize: '12.5px', color: 'var(--ink2)', marginTop: '4px' }}>${c}</div></button>`)}</div>
+    <div class="sh"><h3>好日子的配方</h3><span class="meta">最好的 10 天 / 最差的 10 天</span></div>
+    <div class="card mx" style=${{ padding: '4px 0' }}>${[['和儿子在一起', 9, 1], ['没加班', 8, 2], ['运动了', 6, 1], ['加班到很晚', 1, 7], ['点了外卖', 2, 6]].map(([n, g, b], i) => html`${i > 0 && html`<div class="sep"/>`}<div class="row" style=${{ minHeight: '46px' }}><span style=${{ flex: 1, fontSize: '15px' }}>${n}</span><span class="num" style=${{ fontSize: '14px', color: 'var(--good)', fontWeight: 650, width: '64px', textAlign: 'right' }}>好的 ${g} 天</span><span class="num" style=${{ fontSize: '14px', color: 'var(--warn)', fontWeight: 650, width: '64px', textAlign: 'right' }}>差的 ${b} 天</span></div>`)}</div>
+    <div class="sh"><h3>Pour 认识的</h3></div>
+    <div class="card mx" style=${{ overflow: 'hidden' }}>${[['人和关系', '12 个人', () => app.push('people')], ['常做的事 · 常去的地方', '8 · 5'], ['你的说法', '「168」「媳妇」「老地方」']].map(([a, b, fn], i) => html`${i > 0 && html`<div class="sep"/>`}<button class="row" style=${{ width: '100%', border: 0, background: 'none', cursor: 'pointer', textAlign: 'left' }} onClick=${fn || null}><span style=${{ flex: 1, fontSize: '16px' }}>${a}</span><span style=${{ fontSize: '14px', color: 'var(--ink2)' }}>${b}</span><${I} n="chevron_right" s=${18} c="var(--ink3)"/></button>`)}</div>
+  <//>`;
+}
+function PeoplePage() {
+  const people = [['儿子', '家人', 31, '多是接放学、上篮球课、看电影', 'good'], ['老婆', '家人', 20, '多是看电影、看纪录片、追剧', null], ['小王', '同事', 11, '多是开会、对方案', 'bad'], ['小李', '朋友', 7, '多是吃午饭', null], ['老同学', '朋友', 4, '满月红包、吃火锅', null], ['妈妈', '家人', 3, '多是视频', null]];
+  return html`<${Page} title="人" back="我的" sub="这 9 周你提到 12 个人；儿子在 31 天里出现，是最常在一起的">
+    <div class="card mx" style=${{ overflow: 'hidden', marginTop: '6px' }}>${people.map(([n, r, d, s, m], i) => html`${i > 0 && html`<div class="sep" style=${{ marginLeft: '62px' }}/>`}<div class="row" style=${{ minHeight: '64px' }}><span style=${{ width: '36px', height: '36px', borderRadius: '18px', background: r === '家人' ? '#F3D9E4' : r === '同事' ? '#EADFD3' : '#DDE7F5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#3A3833', flex: 'none' }}>${n[0]}</span><div style=${{ flex: 1, minWidth: 0 }}><div style=${{ fontSize: '16px' }}>${n} <span style=${{ fontSize: '12.5px', color: 'var(--ink3)' }}>${r}</span></div><div class="num" style=${{ fontSize: '12.5px', color: 'var(--ink3)', marginTop: '2px' }}>${d} 天 · ${s}</div></div>${m && html`<span class="tag" style=${{ background: m === 'good' ? 'var(--good-soft)' : 'var(--warn-soft)', color: m === 'good' ? 'var(--good)' : 'var(--warn)' }}>${m === 'good' ? '心情好不少' : '心情差不少'}</span>`}</div>`)}</div>
+  <//>`;
+}
+function LibraryPage() {
+  const app = useApp(); const [q, setQ] = useState(''); const [open, setOpen] = useState(null); const [notes, setNotes] = useState(NOTES);
+  const list = notes.filter((n) => !q.trim() || n.text.includes(q.trim()));
+  const days = [...new Set(list.map((n) => n.day))];
+  return html`<${Page} title="笔记库" back="我的" right=${html`<button class="iconbtn glass press" aria-label="筛选"><${I} n="tune"/></button>`}>
+    <div class="mx" style=${{ height: '40px', borderRadius: '12px', background: 'var(--fill2)', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 12px' }}><${I} n="search" s=${20} c="var(--ink3)"/><input id="lib-q" value=${q} onInput=${(e) => setQ(e.target.value)} placeholder="搜说过的话（按意思也能找到）" style=${{ flex: 1, border: 0, background: 'none', outline: 'none', fontSize: '16px', fontFamily: 'inherit', minWidth: 0 }}/></div>
+    ${days.map((d) => html`<div class="sh"><h3 style=${{ fontSize: '15px' }}>${d}</h3><span class="meta num">${list.filter((n) => n.day === d).length} 段</span></div>
+      <div class="card mx" style=${{ overflow: 'hidden' }}>${list.filter((n) => n.day === d).map((n, i) => html`<div key=${n.id}>${i > 0 && html`<div class="sep" style=${{ marginLeft: '68px' }}/>`}<${Swipe} onTap=${() => setOpen(open === n.id ? null : n.id)} actions=${[{ t: '删除', i: 'delete', c: '#C0412F', fn: () => { const keep = notes; setNotes(notes.filter((x) => x.id !== n.id)); app.toast('删了这段原话', () => setNotes(keep)); } }]}>
+        <div style=${{ display: 'flex', gap: '12px', padding: '12px 16px', background: '#fff' }}><span class="num" style=${{ fontSize: '13px', color: 'var(--ink3)', width: '40px', flex: 'none', paddingTop: '3px' }}>${n.time}</span><div style=${{ flex: 1, minWidth: 0 }}><div class="serif" style=${{ fontSize: '16px', lineHeight: 1.6, display: '-webkit-box', WebkitLineClamp: open === n.id ? 'unset' : 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>${n.text}</div><div style=${{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>${(open === n.id ? n.chips : n.chips.slice(0, 2)).map((c) => html`<span class="tag" style=${{ background: 'var(--fill)', color: 'var(--ink2)', height: '24px', fontSize: '12.5px', fontWeight: 500 }}>${c}</span>`)}${open !== n.id && n.chips.length > 2 && html`<span class="tag" style=${{ background: 'var(--fill)', color: 'var(--ink3)', height: '24px' }}>+${n.chips.length - 2}</span>`}</div></div></div><//></div>`)}</div>`)}
+  <//>`;
+}
+function Toggle({ on, onChange, label }) {
+  return html`<button role="switch" aria-checked=${on ? 'true' : 'false'} aria-label=${label} onClick=${() => onChange(!on)} style=${{ width: '51px', height: '31px', borderRadius: '16px', border: 0, background: on ? '#34A853' : 'rgba(28,27,25,.16)', position: 'relative', cursor: 'pointer', flex: 'none', transition: 'background .25s' }}><i style=${{ position: 'absolute', top: '2px', left: on ? '22px' : '2px', width: '27px', height: '27px', borderRadius: '14px', background: '#fff', boxShadow: '0 2px 4px rgba(0,0,0,.2)', transition: 'left .3s cubic-bezier(.32,.72,0,1)', display: 'block' }}/></button>`;
+}
+function SettingsPage() {
+  const app = useApp(); const [s, setS] = useState({ review: true, evening: true, warn: true, report: true, faceid: false }); const [model, setModel] = useState('便宜');
+  const T = (k) => html`<${Toggle} on=${s[k]} label=${k} onChange=${(v) => setS({ ...s, [k]: v })}/>`;
+  const R = (ic, bg, n, right, i) => html`${i > 0 && html`<div class="sep" style=${{ marginLeft: '58px' }}/>`}<div class="row" style=${{ minHeight: '50px' }}><span style=${{ width: '30px', height: '30px', borderRadius: '8px', background: bg, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}><${I} n=${ic} s=${19} f/></span><span style=${{ flex: 1, fontSize: '16px' }}>${n}</span>${right}</div>`;
+  const val = (t) => html`<span class="num" style=${{ fontSize: '15px', color: 'var(--ink2)' }}>${t}</span><${I} n="chevron_right" s=${18} c="var(--ink3)"/>`;
+  return html`<${Page} title="设置" back="我的">
+    <div class="gname" style=${{ margin: '10px 32px 6px' }}>提醒和通知</div>
+    <div class="grp">${R('menu_book', '#4F5FD0', '每日回顾 07:30', T('review'), 0)}${R('sentiment_satisfied', '#BC4A7E', '晚上问一句 21:30', T('evening'), 1)}${R('warning', '#D4682A', '预警', T('warn'), 2)}${R('insights', '#6B5BC7', '周报和月报', T('report'), 3)}${R('bedtime', '#5B5750', '免打扰', val('23:00–07:00'), 4)}</div>
+    <div class="gname" style=${{ margin: '22px 32px 6px' }}>记录</div>
+    <div class="grp">${R('grid_view', '#22895A', '类别', val('18 个'), 0)}${R('record_voice_over', '#B07A0E', '你的说法', val('3 个'), 1)}${R('schedule', '#3E7FCC', '几点以前算前一天', val('凌晨 4:00'), 2)}</div>
+    <div class="gname" style=${{ margin: '22px 32px 6px' }}>隐私和数据</div>
+    <div class="grp">${R('visibility', '#C27E12', '打开钱要面容 ID', T('faceid'), 0)}${R('monitor_heart', '#D2453B', '健康', val('已接上'), 1)}${R('calendar_month', '#E5534B', '日历', val('已接上'), 2)}${R('savings', '#5B5750', '导出和备份', val('今天 00:35'), 3)}${R('auto_awesome', '#8253C9', '演示数据', val('正在用'), 4)}</div>
+    <div class="gname" style=${{ margin: '22px 32px 6px' }}>AI 和用量</div>
+    <div class="grp">${R('psychology', '#1B5BC6', '用哪个', html`<div class="seg" style=${{ margin: 0, width: '130px' }}>${['便宜', '最强'].map((m) => html`<button class=${model === m ? 'on' : ''} style=${{ height: '28px', fontSize: '13px' }} onClick=${() => setModel(m)}>${m}</button>`)}</div>`, 0)}${R('wallet', '#22895A', '这个月花了', val('¥3.2 · 不设上限'), 1)}</div>
+    <div class="gname" style=${{ margin: '22px 32px 6px' }}>关于</div>
+    <div class="grp">${R('info', '#1B5BC6', '关于 Pour', val('3.0 · 服务器 2.8.2'), 0)}</div>
+    <div style=${{ margin: '12px 32px 0', fontSize: '13px', color: 'var(--ink3)', lineHeight: 1.6 }}>AI 准不准的数字在「关于 Pour → AI 表现」里。密钥、PIN、导入在电脑上的「Pour 设置」里改。</div>
+  <//>`;
+}
+function SimplePage({ title, back = '我的', lines }) {
+  return html`<${Page} title=${title} back=${back}><div class="card mx" style=${{ padding: '16px', fontSize: '15.5px', lineHeight: 1.7 }}>${lines.map((l) => html`<div>${l}</div>`)}</div><//>`;
+}
+
+/* ───────────── 搜索、说一句（对话） ───────────── */
+function SearchPage() {
+  const app = useApp(); const [q, setQ] = useState(''); const ref = useRef(null);
+  useEffect(() => { if (app.tab === 'search') setTimeout(() => ref.current && ref.current.focus(), 300); }, [app.tab]);
+  const isQ = /多少|几次|什么时候|哪天|谁|吗|？|\?/.test(q);
+  const corpus = [...app.money.filter((x) => x.said).map((x) => ({ t: '原话', s: x.said, d: `${x.m}月${x.day}日`, open: () => app.openSheet('moneyItem', { id: x.id }) })), ...app.insights.map((x) => ({ t: '感悟', s: x.q, d: x.d, open: () => app.push('insights') })), ...app.todos.filter((x) => !x.cal).map((x) => ({ t: '待办', s: x.title, d: x.time || '', open: () => app.openSheet('todo', { id: x.id }) }))];
+  const key = q.replace(/这个月|上个月|花了|多少|几次|什么时候|是|的|吗|？|\?/g, '').trim();
+  const hits = key ? corpus.filter((c) => c.s.includes(key)) : [];
+  const answer = /外卖/.test(q) ? '这个月点了 6 次外卖，一共 ¥410；最多的一次是 10月21日的黄焖鸡 ¥32。比上个月同一段少 ¥96。' : /跑/.test(q) ? '这个月跑了 6 次，一共 38.6 公里；上次是 10月24日，8.4 公里。' : /欠|借/.test(q) ? '老同学 10月17日借了 ¥2,000，说下个月还，过去 10 天了。' : `按你说过的话，找到 ${hits.length} 条。`;
+  return html`<div class="page">
+    <div style=${{ padding: 'calc(var(--top) + 4px) 16px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style=${{ flex: 1, height: '44px', borderRadius: '22px', background: '#fff', boxShadow: '0 0 0 .5px var(--line)', display: 'flex', alignItems: 'center', gap: '8px', padding: '0 14px' }}><${I} n="search" s=${20} c="var(--ink3)"/><input id="search-q" ref=${ref} value=${q} onInput=${(e) => setQ(e.target.value)} placeholder="找说过的话，或者问一句" style=${{ flex: 1, border: 0, outline: 'none', fontSize: '16px', background: 'none', fontFamily: 'inherit', minWidth: 0 }}/>${q && html`<button class="iconbtn" style=${{ width: '28px', height: '28px', background: 'var(--fill2)' }} aria-label="清空" onClick=${() => setQ('')}><${I} n="close" s=${16}/></button>`}</div>
+    </div>
+    ${!q && html`<div class="sh"><h3 style=${{ fontSize: '16px' }}>可以这样问</h3></div><div style=${{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '0 16px' }}>${['这个月外卖花了多少', '上次跑步是什么时候', '谁还欠我钱', '和儿子在一起的日子心情怎么样'].map((s) => html`<button class="chip" style=${{ justifyContent: 'flex-start', height: '42px', fontSize: '15px', background: '#fff' }} onClick=${() => setQ(s)}><${I} n="forum" s=${18} c="var(--accent)"/>${s}</button>`)}</div>
+      <div class="sh"><h3 style=${{ fontSize: '16px' }}>最近搜过</h3></div><div class="hscroll">${['猫粮', '小李', '降噪耳机', '方案'].map((s) => html`<button class="chip" onClick=${() => setQ(s)}><${I} n="history" s=${16}/>${s}</button>`)}</div>`}
+    ${q && isQ && html`<div class="sh"><h3 style=${{ fontSize: '16px' }}>回答</h3></div><div class="card mx" style=${{ padding: '16px', fontSize: '16px', lineHeight: 1.65 }}>${answer}<div style=${{ fontSize: '13px', color: 'var(--accent)', marginTop: '10px' }}>来源 · ${Math.max(hits.length, 3)} 段原话 ›</div></div>`}
+    ${q && hits.length > 0 && html`<div class="sh"><h3 style=${{ fontSize: '16px' }}>找到的</h3><span class="meta num">${hits.length} 条</span></div><div class="card mx" style=${{ overflow: 'hidden' }}>${hits.slice(0, 8).map((h, i) => html`${i > 0 && html`<div class="sep"/>`}<button class="row" style=${{ width: '100%', border: 0, background: 'none', cursor: 'pointer', textAlign: 'left' }} onClick=${h.open}><span class="tag" style=${{ background: 'var(--fill)', color: 'var(--ink2)' }}>${h.t}</span><span class="serif" style=${{ flex: 1, fontSize: '15.5px', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>${hilite(h.s, [[h.s.indexOf(key), h.s.indexOf(key) + key.length]])}</span><span class="num" style=${{ fontSize: '12.5px', color: 'var(--ink3)' }}>${h.d}</span></button>`)}</div>`}
+    ${q && !isQ && hits.length === 0 && html`<div class="empty">没有找到「${q}」。换个说法试试，或者直接问一句</div>`}
+  </div>`;
+}
+function classify(t) {
+  const w = parseWhen(t);
+  if (/提醒|记得|待办|要做|别忘/.test(t) || (w.time && !/\d+\s*(块|元)?$/.test(t))) return { kind: 'todo', title: `待办 · ${w.label || '今天'}${w.time ? ' ' + w.time + ' 提醒' : ''}`, sub: w.title };
+  const m = t.match(/(\d+(?:\.\d+)?)\s*(块|元)?/);
+  if (m) return { kind: 'money', title: `${t.replace(m[0], '').trim() || '一笔'} ¥${m[1]}`, sub: '日常 · 记在今天', amt: parseFloat(m[1]), name: t.replace(m[0], '').trim() || '一笔' };
+  if (/开心|难过|烦|累|放松|高兴|不爽|心情|焦虑|郁闷/.test(t)) return { kind: 'mood', title: '心情 · AI 听出来的', sub: t };
+  if (/悟|明白|原来|记一句|道理/.test(t)) return { kind: 'insight', title: '感悟', sub: t };
+  return { kind: 'note', title: '记下了', sub: t };
+}
+function ChatSheet({ close, voice }) {
+  const app = useApp(); const [v, setV] = useState(''); const [listen, setListen] = useState(!!voice); const [heard, setHeard] = useState(''); const [busy, setBusy] = useState(false); const end = useRef(null); const inp = useRef(null);
+  useEffect(() => { end.current && end.current.scrollIntoView({ block: 'end' }); }, [app.chat.length, busy]);
+  useEffect(() => { if (!voice) setTimeout(() => inp.current && inp.current.focus(), 400); }, []);
+  useEffect(() => {
+    if (!listen) return; const target = '中午吃了碗牛肉面 26'; let i = 0;
+    const h = setInterval(() => { i += 1; setHeard(target.slice(0, i)); if (i >= target.length) { clearInterval(h); setTimeout(() => { setListen(false); send(target); setHeard(''); }, 600); } }, 120);
+    return () => clearInterval(h);
+  }, [listen]);
+  const send = (text) => {
+    const t = (text ?? v).trim(); if (!t) return; setV('');
+    app.addChat({ id: uid(), me: true, t, at: TODAY.now }); setBusy(true);
+    setTimeout(() => { setBusy(false); const c = classify(t); app.applyChat(c, t); }, 900);
+  };
+  const chipsQ = [['问一句', '/问 '], ['记一笔', '/记 '], ['定目标', '/目标 '], ['改一下', '/改 ']];
+  return html`<div class="shead"><h2>说一句</h2><button class="closex" aria-label="关闭" onClick=${close}><${I} n="close" s=${20}/></button></div>
+    <div class="sbody" style=${{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '4px 14px 12px' }}>
+      ${app.chat.map((m) => m.day ? html`<div style=${{ textAlign: 'center', fontSize: '12.5px', color: 'var(--ink3)', margin: '8px 0 2px' }}>${m.day}</div>`
+        : m.me ? html`<div class="bub me">${m.t}</div>`
+        : m.answer ? html`<div class="bub pour">${m.answer}<div style=${{ fontSize: '12.5px', color: 'var(--accent)', marginTop: '6px' }}>来源 2 · 程序查的待办单子</div></div>`
+        : html`<div class="bub pour" style=${{ padding: '10px 12px' }}><div style=${{ display: 'flex', alignItems: 'center', gap: '8px' }}><span class="cico" style=${{ width: '28px', height: '28px', borderRadius: '8px', background: { todo: '#2F6FD6', money: '#C27E12', mood: '#BC4A7E', insight: '#B07A0E', note: '#7A808A' }[m.kind] }}><${I} n=${{ todo: 'checklist', money: 'currency_yuan', mood: 'sentiment_satisfied', insight: 'lightbulb', note: 'check' }[m.kind]} s=${17}/></span><div style=${{ flex: 1, minWidth: 0 }}><div style=${{ fontSize: '15px', fontWeight: 600 }}>${m.title}</div><div style=${{ fontSize: '13px', color: 'var(--ink2)' }}>${m.sub}</div></div>${m.undo !== false && html`<button class="link" style=${{ fontSize: '14px' }} onClick=${() => app.undoChat(m.id)}>撤销</button>`}</div></div>`)}
+      ${busy && html`<div class="bub pour" style=${{ color: 'var(--ink3)' }}>整理中…</div>`}
+      <div ref=${end}/>
+    </div>
+    ${listen ? html`<div style=${{ padding: '14px 16px calc(var(--bot) + 18px)', background: '#fff', borderTop: '.5px solid var(--line)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}><div style=${{ fontSize: '18px', minHeight: '26px' }}>${heard || '在听……'}</div><div class="wave">${[0, 1, 2, 3, 4, 5, 6].map((i) => html`<i style=${{ animationDelay: i * 0.12 + 's' }}/>`)}</div><button class="chip" onClick=${() => setListen(false)}>松开发送 · 点这里取消</button></div>`
+      : html`<div style=${{ padding: '8px 12px calc(var(--bot) + 12px)', background: 'rgba(255,255,255,.9)', borderTop: '.5px solid var(--line)' }}>
+        <div class="hscroll" style=${{ padding: '0 0 8px' }}>${chipsQ.map(([n, p]) => html`<button class="chip" style=${{ height: '30px', fontSize: '13.5px' }} onClick=${() => { setV(p); inp.current && inp.current.focus(); }}>${n}</button>`)}</div>
+        <form onSubmit=${(e) => { e.preventDefault(); send(); }} style=${{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input id="chat-input" ref=${inp} value=${v} onInput=${(e) => setV(e.target.value)} placeholder="说点什么，比如：晚饭 35" style=${{ flex: 1, height: '42px', borderRadius: '21px', border: '.5px solid var(--line)', padding: '0 16px', fontSize: '16px', outline: 'none', fontFamily: 'inherit', minWidth: 0, background: '#F7F6F3' }}/>
+          ${v.trim() ? html`<button class="mic" type="submit" aria-label="发送"><${I} n="send" s=${20} f/></button>` : html`<button class="mic" type="button" aria-label="说话" onClick=${() => setListen(true)}><${I} n="mic" s=${22} f/></button>`}
+        </form></div>`}`;
+}
+function FeedbackSheet({ close }) {
+  const app = useApp(); const [v, setV] = useState('');
+  return html`<div class="shead"><h2>反馈</h2><button class="primary" style=${{ width: 'auto', height: '36px', padding: '0 18px', borderRadius: '18px', fontSize: '15px' }} disabled=${!v.trim()} onClick=${() => { close(); app.toast('发出去了：会变成一条问题，验收账号和开发账号都看得到'); }}>发送</button></div>
+    <div class="sbody"><textarea id="fb" value=${v} onInput=${(e) => setV(e.target.value)} rows="5" placeholder="哪里不好用、想要什么……" style=${{ margin: '6px 16px 0', width: 'calc(100% - 32px)', boxSizing: 'border-box', border: 0, borderRadius: '16px', padding: '16px', fontSize: '17px', fontFamily: 'inherit', outline: 'none', resize: 'none' }}></textarea>
+      <div class="grp" style=${{ marginTop: '12px' }}>${[['photo_library', '带上截图', true], ['description', '带上在哪一页、App 和服务器的版本', true], ['history', '带上最近的出错记录', true]].map(([ic, n], i) => html`${i > 0 && html`<div class="sep" style=${{ marginLeft: '52px' }}/>`}<div class="row"><${I} n=${ic} c="var(--ink2)"/><span style=${{ flex: 1, fontSize: '15px' }}>${n}</span><${I} n="check" c="var(--accent)"/></div>`)}</div>
+      <div style=${{ margin: '10px 20px 0', fontSize: '12.5px', color: 'var(--ink3)' }}>原话、金额不会自动带上</div></div>`;
+}
+function GoalAddSheet({ close }) {
+  const app = useApp(); const [v, setV] = useState('');
+  return html`<div class="shead"><h2>定个目标</h2><button class="primary" style=${{ width: 'auto', height: '36px', padding: '0 18px', borderRadius: '18px', fontSize: '15px' }} disabled=${!v.trim()} onClick=${() => { close(); app.toast(`🎯 新目标：${v}（AI 会问你从哪天开始算）`); }}>定下</button></div>
+    <div class="sbody"><input id="goal-add" value=${v} onInput=${(e) => setV(e.target.value)} placeholder="说一句，比如：每周运动 3 次" style=${{ margin: '6px 16px 0', width: 'calc(100% - 32px)', boxSizing: 'border-box', border: 0, borderRadius: '16px', padding: '16px', fontSize: '18px', fontFamily: 'inherit', outline: 'none' }}/>
+      <div style=${{ fontSize: '13px', color: 'var(--ink2)', margin: '18px 20px 8px' }}>常用的</div>
+      <div style=${{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '0 16px' }}>${['每天走 8000 步', '平均睡眠 7.5 小时', '每月外卖不超过 300 元', '每周运动 3 次', '读完一本书'].map((s) => html`<button class="chip" style=${{ justifyContent: 'flex-start', height: '42px', fontSize: '15px', background: '#fff' }} onClick=${() => setV(s)}><${I} n="flag" s=${18} c="var(--good)"/>${s}</button>`)}</div></div>`;
+}
+
+/* ───────────── App：外壳、状态、动作 ───────────── */
+const PAGES = {
+  mood: MoodPage, insights: InsightsPage, review: ReviewPage, goals: GoalsPage, goal: GoalPage, about: AboutPage, library: LibraryPage, settings: SettingsPage, moneyList: MoneyListPage, watch: WatchPage, renqing: RenqingPage, people: PeoplePage,
+  health: (p) => html`<${SimplePage} title="健康" lines=${['今天 4,493 步 · 来自健康', '昨晚 0:10 – 7:00，睡了 6 小时 50 分', '这周锻炼 3 次：跑步 2 次、力量 1 次', '说了的跑步和手表记的只算一次']}/>`,
+  calendar: (p) => html`<${SimplePage} title="日历" lines=${['按月看每一天：每天一格，写着那天花了多少、心情、做了几件事', '点一天打开那天的生活画布']}/>`,
+  moments: (p) => html`<${SimplePage} title="好时刻" lines=${['你说过觉得好的那一刻，按月分组、新的在前（15 个）', '「晚上楼下飘上来烤红薯的香味」10月26日', '「陪儿子去公园玩了一个半小时」10月24日']}/>`,
+  year: (p) => html`<${SimplePage} title="你的一年" lines=${['记到 120 天以后能看（现在 63 天）', '先看看：一年每天一格的热力图']}/>`,
+  talk: (p) => html`<${SimplePage} title="你说的话" lines=${['377 段 · 一半多在晚上 9 点以后，最常在 22 点', '这几周你在说什么：工作越说越多，孩子少了']}/>`,
+  finds: (p) => html`<${AboutPage}/>`,
+  fixed: (p) => html`<${WatchPage}/>`,
+  worth: (p) => html`<${SimplePage} title="值不值" back="我的" lines=${['降噪耳机 ¥899「通勤戴着太安静了」用了 5 次 · 每次 ¥180', '海洋馆 ¥560「他一路都在笑」之后又说起 3 次', '按摩枪 ¥399「有点后悔」之后还没说到用它']}/>`,
+  streak: (p) => html`<${GoalsPage}/>`, budget: (p) => html`<${GoalsPage}/>`,
+};
+const SHEETS = { todoAdd: [TodoAddSheet, 'tall'], todo: [TodoSheet, 'tall'], snooze: [SnoozeSheet, ''], keypad: [KeypadSheet, 'tall'], moneyItem: [MoneyItemSheet, 'tall'], checkin: [CheckinSheet, 'tall'], insightAdd: [InsightAddSheet, ''], share: [ShareSheet, 'tall'], chat: [ChatSheet, 'tall'], feedback: [FeedbackSheet, ''], goalAdd: [GoalAddSheet, ''] };
+const ROOTS = { today: TodayPage, todos: TodosPage, money: MoneyPage, me: MePage, search: SearchPage };
+const TABS = [['today', '今天', 'wb_sunny'], ['todos', '待办', 'checklist'], ['money', '钱', 'currency_yuan'], ['me', '我的', 'grid_view']];
+
+function SheetBox({ s, close }) {
+  const [Comp, size] = SHEETS[s.name]; const ref = useRef(null); const st = useRef(null);
+  const down = (e) => { st.current = e.clientY; e.currentTarget.setPointerCapture(e.pointerId); if (ref.current) ref.current.style.transition = 'none'; };
+  const move = (e) => { if (st.current === null || !ref.current) return; const d = Math.max(0, e.clientY - st.current); ref.current.style.transform = `translateY(${d}px)`; };
+  const up = (e) => { if (st.current === null || !ref.current) return; const d = e.clientY - st.current; st.current = null; ref.current.style.transition = 'transform .35s cubic-bezier(.32,.72,0,1)'; if (d > 110) close(); else ref.current.style.transform = ''; };
+  return html`<div class="sheetwrap ${s.closing ? 'closing' : ''}"><div class="backdrop" onClick=${close}/>
+    <div class="sheet ${size}" ref=${ref} role="dialog" aria-modal="true"><div class="grab" onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}><i/></div><${Comp} ...${s.props} close=${close}/></div></div>`;
+}
+function App() {
+  const hash = (location.hash || '').slice(1);
+  const [tab, setTabState] = useState(['todos', 'money', 'me', 'search'].includes(hash) ? hash : ['mood', 'insights', 'review', 'goals', 'about', 'library', 'settings', 'story'].includes(hash) ? 'me' : 'today');
+  const [stacks, setStacks] = useState(() => ({ today: [], todos: [], money: [], me: ['mood', 'insights', 'review', 'goals', 'about', 'library', 'settings'].includes(hash) ? [{ id: uid(), name: hash, props: {} }] : [], search: [] }));
+  const [sheets, setSheets] = useState(() => { const m = { keypad: 'keypad', todoadd: 'todoAdd', checkin: 'checkin', chat: 'chat', share: 'share' }[hash]; return m ? [{ id: uid(), name: m, props: m === 'checkin' ? { lv: 4 } : m === 'share' ? { id: 'i7' } : {} }] : []; });
+  const [toastS, setToastS] = useState(null); const [menu, setMenu] = useState(null); const [story, setStory] = useState(hash === 'story' ? { id: 'r26' } : null);
+  const [todos, setTodos] = useState(TODOS0); const [money, setMoney] = useState(genMoney); const [watch, setWatch] = useState(WATCH0);
+  const [moods, setMoods] = useState(MOODS0); const [insights, setInsights] = useState(INS0); const [fav, setFav] = useState(['mood', 'insights', 'review', 'goals', 'about', 'library', 'watch', 'calendar']);
+  const [masked, setMasked] = useState(false); const [chat, setChat] = useState(CHAT0); const [sayHidden, setSayHidden] = useState(false);
+  const toastT = useRef(null);
+  const toast = (text, undo) => { clearTimeout(toastT.current); setToastS({ id: uid(), text, undo }); toastT.current = setTimeout(() => setToastS(null), 4200); };
+  const setTab = (t) => { if (t === tab) { setStacks((s) => ({ ...s, [t]: [] })); } setTabState(t); setSayHidden(false); };
+  const push = (name, props = {}) => setStacks((s) => ({ ...s, [tab]: [...s[tab], { id: uid(), name, props }] }));
+  const pop = () => { setStacks((s) => { const st = s[tab]; if (!st.length) return s; return { ...s, [tab]: st.map((p, i) => (i === st.length - 1 ? { ...p, leaving: true } : p)) }; }); setTimeout(() => setStacks((s) => ({ ...s, [tab]: s[tab].filter((p) => !p.leaving) })), 300); };
+  const openSheet = (name, props = {}) => setSheets((s) => [...s, { id: uid(), name, props }]);
+  const closeSheet = (id) => { setSheets((s) => s.map((x) => (x.id === id ? { ...x, closing: true } : x))); setTimeout(() => setSheets((s) => s.filter((x) => x.id !== id)), 300); };
+  const updateTodo = (id, patch) => setTodos((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  const toggleTodo = (id) => { const t = todos.find((x) => x.id === id); if (!t) return; const done = !t.done; updateTodo(id, { done, settled: false }); if (done) toast(`完成了：${t.title}`, () => updateTodo(id, { done: false })); };
+  const deleteTodo = (id) => { const keep = todos; const t = todos.find((x) => x.id === id); setTodos(todos.filter((x) => x.id !== id)); toast(`删了：${t ? t.title : ''}`, () => setTodos(keep)); };
+  const moveTodo = (id, sec) => { const keep = todos; updateTodo(id, { sec, due: null, fresh: true }); toast('带到今天了', () => setTodos(keep)); };
+  const bringAll = () => { const keep = todos; setTodos(todos.map((t) => (t.sec === 'overdue' ? { ...t, sec: 'today', due: null, fresh: true } : t))); toast('以前没做完的都带到今天了', () => setTodos(keep)); };
+  const snooze = (id, o) => { const keep = todos; updateTodo(id, { time: o.time, sec: o.sec, date: o.date, past: false, fresh: true }); toast(`推迟到${o.label} ${o.time}`, () => setTodos(keep)); };
+  const addTodo = (text) => { const p = parseWhen(text); const t = { id: uid(), title: p.title, sec: p.sec, time: p.time, repeat: p.repeat, date: p.sec === 'later' && p.dm ? `${p.dm[0]}月${p.dm[1]}日 周${WDN[wdOf(p.dm[0], p.dm[1])]}` : null, fresh: true, said: `10月27日 ${TODAY.now} 你说：${text}` }; setTodos((ts) => [...ts, t]); toast(`加上了：${p.label || '今天'}${p.time ? ' ' + p.time : ''} ${p.title}`, () => setTodos((ts) => ts.filter((x) => x.id !== t.id))); if (tab !== 'todos' && !stacks[tab].length) setTabState('todos'); };
+  const dayTotal = (m, d) => money.filter((x) => x.m === m && x.day === d && x.kind === 'daily').reduce((a, b) => a + b.amt, 0);
+  const monthTotal = (m, upto) => money.filter((x) => x.m === m && x.day <= upto && x.kind === 'daily').reduce((a, b) => a + b.amt, 0);
+  const catTotals = (m) => { const o = {}; money.filter((x) => x.m === m && x.kind === 'daily').forEach((x) => (o[x.cat] = (o[x.cat] || 0) + x.amt)); return Object.entries(o).sort((a, b) => b[1] - a[1]); };
+  const whoTotals = (m) => { const o = {}; money.filter((x) => x.m === m && x.kind === 'daily').forEach((x) => { const k = ['儿子', '一家人', '妈妈', '老婆', '自己'].includes(x.who) ? x.who : x.who === '猫' ? '猫' : '别人'; o[k] = (o[k] || 0) + x.amt; }); return Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 5); };
+  const addMoney = ({ name, amt, cat, kind, said }) => { const x = { id: uid(), m: 10, day: 27, time: TODAY.now, name, amt, cat, kind, who: '自己', said, fresh: true }; setMoney((ms) => [x, ...ms]); setTimeout(() => setMoney((ms) => ms.map((y) => (y.id === x.id ? { ...y, fresh: false } : y))), 1600); toast(`记下了：${name} ¥${fmt(amt)}`, () => setMoney((ms) => ms.filter((y) => y.id !== x.id))); };
+  const deleteMoney = (id) => { const keep = money; const x = money.find((y) => y.id === id); setMoney(money.filter((y) => y.id !== id)); toast(`删了：${x ? x.name : ''}`, () => setMoney(keep)); };
+  const settleMoney = (id) => { const keep = money; setMoney(money.map((y) => (y.id === id ? { ...y, settled: true } : y))); toast('标记为已报销', () => setMoney(keep)); };
+  const doneWatch = (id) => { const keep = watch; const w = watch.find((x) => x.id === id); setWatch(watch.filter((x) => x.id !== id)); if (w && w.kind === 'reimburse') setMoney((ms) => ms.map((y) => (y.kind === 'reimburse' ? { ...y, settled: true } : y))); toast(`${w ? w.act : '办完了'}`, () => setWatch(keep)); };
+  const addMood = ({ lv, emo, moment }) => { const x = { id: uid(), time: TODAY.now, lv, emo, moment, fresh: true }; setMoods((ms) => [...ms, x]); toast(`记下了：${MOOD_W[lv - 1]}${emo.length ? ' · ' + emo.join('、') : ''}`, () => setMoods((ms) => ms.filter((y) => y.id !== x.id))); };
+  const addInsight = (q) => { const x = { id: uid(), q, d: '10月27日', m: 10, tags: ['语录'], star: true, fresh: true }; setInsights((xs) => [x, ...xs]); toast('记下了，收藏成你的语录', () => setInsights((xs) => xs.filter((y) => y.id !== x.id))); };
+  const starInsight = (id) => setInsights((xs) => xs.map((x) => (x.id === id ? { ...x, star: !x.star } : x)));
+  const addChat = (m) => setChat((c) => [...c, m]);
+  const applyChat = (c, t) => {
+    const id = uid(); let undo = () => {};
+    if (c.kind === 'todo') { const p = parseWhen(t); const nt = { id: uid(), title: p.title, sec: p.sec, time: p.time, repeat: p.repeat, fresh: true }; setTodos((ts) => [...ts, nt]); undo = () => setTodos((ts) => ts.filter((x) => x.id !== nt.id)); }
+    if (c.kind === 'money') { const x = { id: uid(), m: 10, day: 27, time: TODAY.now, name: c.name, amt: c.amt, cat: /车|地铁/.test(c.name) ? '出行' : '饮食', kind: 'daily', who: '自己', said: t, fresh: true }; setMoney((ms) => [x, ...ms]); undo = () => setMoney((ms) => ms.filter((y) => y.id !== x.id)); }
+    if (c.kind === 'mood') { const x = { id: uid(), time: TODAY.now, lv: /开心|高兴|放松/.test(t) ? 4 : 2, emo: [], moment: t }; setMoods((ms) => [...ms, x]); undo = () => setMoods((ms) => ms.filter((y) => y.id !== x.id)); }
+    if (c.kind === 'insight') { const x = { id: uid(), q: t, d: '10月27日', m: 10, tags: [], fresh: true }; setInsights((xs) => [x, ...xs]); undo = () => setInsights((xs) => xs.filter((y) => y.id !== x.id)); }
+    undos.current[id] = undo; setChat((cs) => [...cs, { id, kind: c.kind, title: c.title, sub: c.sub }]);
+  };
+  const undos = useRef({});
+  const undoChat = (id) => { const f = undos.current[id]; if (f) f(); setChat((cs) => cs.map((m) => (m.id === id ? { ...m, title: '撤销了', sub: '这段话没有记成任何东西', undo: false, kind: 'note' } : m))); };
+  const openTile = (k) => { if (k === 'todos' || k === 'money') return setTab(k); if (k === 'moneyList') return push('moneyList', { month: 10 }); push(k); };
+  const openMenu = (m) => setMenu(m);
+  const openStory = (id) => setStory({ id });
+  const closeStory = () => { setStory((s) => s && { ...s, leaving: true }); setTimeout(() => setStory(null), 300); };
+  const onScrollDir = (d) => { if (d === 'down') setSayHidden(true); if (d === 'up') setSayHidden(false); };
+  const lastY = useRef(0);
+  const onScrollY = (e) => { const y = e.currentTarget.scrollTop; onScrollDir(y > lastY.current + 4 && y > 90 ? 'down' : y < lastY.current - 4 ? 'up' : null); lastY.current = y; };
+  const app = { tab, setTab, push, pop, openSheet, toast, todos, updateTodo, toggleTodo, deleteTodo, moveTodo, bringAll, snooze, addTodo, money, dayTotal, monthTotal, catTotals, whoTotals, addMoney, deleteMoney, settleMoney, watch, doneWatch, moods, addMood, insights, addInsight, starInsight, fav, setFav, masked, toggleMask: () => setMasked(!masked), chat, addChat, applyChat, undoChat, openTile, openMenu, openStory, onScrollDir, onScrollY };
+  const placeholder = { today: '说一句……', todos: '说一句待办：明天三点取快递', money: '记一笔，比如：午饭 25', me: '说一句……', search: '说一句……' }[tab];
+  const menuTodo = menu && menu.kind === 'todo' ? todos.find((t) => t.id === menu.id) : null;
+  return html`<${Ctx.Provider} value=${app}>
+    ${Object.keys(ROOTS).map((t) => { const Root = ROOTS[t]; return html`<div class="tabroot" key=${t} style=${{ display: tab === t ? 'block' : 'none' }}>
+      <${Root}/>
+      ${stacks[t].map((p) => { const P = PAGES[p.name]; return P ? html`<div class="tabroot pushed ${p.leaving ? 'leaving' : ''}" key=${p.id}><${P} ...${p.props}/></div>` : null; })}
+    </div>`; })}
+    <div class="dock">
+      ${tab !== 'search' && html`<button class="say glass ${sayHidden ? 'hide' : ''}" onClick=${() => openSheet('chat')} aria-label="说一句"><span class="iconbtn" style=${{ width: '38px', height: '38px', color: 'var(--ink2)' }}><${I} n="forum" s=${22}/></span><span class="ph">${placeholder}</span><span class="mic" role="button" aria-label="说话" onClick=${(e) => { e.stopPropagation(); openSheet('chat', { voice: true }); }}><${I} n="mic" s=${22} f/></span></button>`}
+      <div class="tabbar"><div class="tabs glass">${TABS.map(([k, n, ic]) => html`<button class="tab ${tab === k ? 'on' : ''}" onClick=${() => setTab(k)} aria-label=${n}><${I} n=${ic} s=${25} f=${tab === k}/>${n}</button>`)}</div>
+        <button class="searchbtn glass ${tab === 'search' ? 'on' : ''}" aria-label="搜索" onClick=${() => setTab('search')}><${I} n="search" s=${26}/></button></div>
+    </div>
+    ${story && html`<${Story} id=${story.id} leaving=${story.leaving} close=${closeStory}/>`}
+    ${sheets.map((s) => html`<${SheetBox} key=${s.id} s=${s} close=${() => closeSheet(s.id)}/>`)}
+    ${menuTodo && html`<div class="menuwrap" onClick=${() => setMenu(null)}>
+      <div class="menuprev" onClick=${(e) => e.stopPropagation()}><div class="trow" style=${{ borderRadius: '18px' }}><span class="ck"><i/></span><div style=${{ flex: 1 }}><div class="tt">${menuTodo.title}</div>${menuTodo.said && html`<div class="tsub">${menuTodo.said.split('：')[0]}</div>`}</div>${menuTodo.time && html`<span class="pill num" style=${{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>${menuTodo.time}</span>`}</div></div>
+      <div class="menu" onClick=${(e) => e.stopPropagation()}>${[['完成', 'check', () => toggleTodo(menuTodo.id)], ['推迟到…', 'snooze', () => openSheet('snooze', { id: menuTodo.id })], ['改时间', 'schedule', () => openSheet('todo', { id: menuTodo.id })], ['复制', 'content_copy', () => toast('拷贝好了')], ['看原话', 'format_quote', () => openSheet('todo', { id: menuTodo.id })], ['删除', 'delete', () => deleteTodo(menuTodo.id), true]].map(([n, ic, fn, red]) => html`<button class=${red ? 'red' : ''} onClick=${() => { setMenu(null); fn(); }}>${n}<${I} n=${ic} s=${20}/></button>`)}</div>
+    </div>`}
+    ${toastS && html`<div class="toast" key=${toastS.id} role="status"><span class="tx">${toastS.text}</span>${toastS.undo && html`<button onClick=${() => { toastS.undo(); setToastS(null); }}>撤销</button>`}</div>`}
+  <//>`;
+}
+(function waitIcons() {
+  const ready = () => document.documentElement.classList.add('icons-ready');
+  const link = document.querySelector('link[href*="Material+Symbols"]');
+  const go = () => { if (!document.fonts || !document.fonts.load) return ready(); document.fonts.load('24px "Material Symbols Rounded"', 'check').then((f) => (f && f.length ? ready() : setTimeout(go, 150)), ready); };
+  if (!link || link.sheet) go(); else { link.addEventListener('load', go); link.addEventListener('error', ready); }
+  setTimeout(ready, 6000);
+})();
+window.addEventListener('error', (e) => { const d = document.createElement('div'); d.style.cssText = 'position:fixed;left:8px;right:8px;top:8px;z-index:9999;background:#C0412F;color:#fff;font:12px/1.4 monospace;padding:8px;border-radius:8px;white-space:pre-wrap'; d.textContent = '出错了：' + (e.message || e.error); document.body.appendChild(d); });
+render(html`<${App}/>`, document.getElementById('app'));
+</script>
+</body></html>
