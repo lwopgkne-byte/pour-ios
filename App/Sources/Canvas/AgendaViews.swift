@@ -10,7 +10,7 @@ struct CalendarHint: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        if model.shownDay == model.today, model.calendar.showHint, !model.health.showHint {
+        if model.shownDay == model.today, model.calendar.showHint, !model.showHealthHint {
             ConnectHint(
                 key: "calendar", symbol: "calendar", color: "red", title: "接上日历：今天的日程出现在待办里",
                 text: "只读，不改日历。日程只在这台手机上，不送到电脑上的 Pour；和你说的待办是同一件的只显示一次。",

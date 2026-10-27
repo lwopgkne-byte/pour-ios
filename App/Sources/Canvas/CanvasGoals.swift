@@ -52,8 +52,9 @@ private struct GoalRingCard: View {
                 ProgressRing(progress: goal.pct, color: color).frame(width: Theme.Size.ring, height: Theme.Size.ring)
                 Spacer(minLength: Theme.Space.small)
                 if let delta = goal.delta {
+                    // 放不下一行时字缩小一点，不截成「今天 3946…」（步数这种四位数，2026-10-27 演示数据里看到的）
                     Text(Show.spaced(delta)).font(Theme.Typeface.rowNumber).foregroundStyle(color)
-                        .lineLimit(typeSize > .large ? nil : 1)
+                        .lineLimit(typeSize > .large ? nil : 1).minimumScaleFactor(0.7)
                         .padding(.horizontal, Theme.Space.small).frame(minHeight: Theme.Size.badge + Theme.Space.tight)
                         .background(color.opacity(0.1), in: Theme.rounded(Theme.Corner.tile))
                 }

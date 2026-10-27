@@ -61,8 +61,8 @@ final class AppModel {
     private(set) var dataVersion = 0
     /// 轻提示（「已删除 · 撤销」「密钥已保存」），4 秒后自己消失
     private(set) var notice: Notice?
-    /// 服务器是在用真实数据（real）还是演示数据（demo，页面顶上有一条横幅）
-    private(set) var mode = "real"
+    /// 服务器是在用真实数据（real）还是演示数据（demo，页面顶上有一条横幅）；换了就换日程、刷新小组件（AppModel+Demo）
+    private(set) var mode = "real" { didSet { if mode != oldValue { modeChanged() } } }
     /// 电脑上的 Pour 是哪个版本（设置里「这台手机」写着；docs/模块/产品优化.md R8）
     var serverVersion: API.Meta?
     /// 大模型的状态：没连大模型时画布上有「连接大模型」

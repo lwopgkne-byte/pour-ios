@@ -80,7 +80,7 @@ private struct DataRows: View {
                 }
             }
             ReparseRows(today: model.today)
-            SettingRow(label: "演示数据", hint: "一个人连续 9 周的生活，每个功能都用到，用来看看 Pour 用久了是什么样") {
+            SettingRow(label: "演示数据", hint: "一个产品经理连续 9 周的生活，每个功能都用到：给别人看看 Pour 用久了是什么样") {
                 if demo {
                     WebTextButton("重新生成") { switchMode("demo", regenerate: true) }
                     WebButton("回到真实数据", variant: .primary, loading: busy == "real") { switchMode("real") }
@@ -90,7 +90,8 @@ private struct DataRows: View {
                     WebTextButton("切换到演示数据") { switchMode("demo") }
                 }
             }
-            FieldMessage(text: "演示数据放在单独的数据库里，你的真实数据不会被改动；演示时不发提醒和推送。")
+            FieldMessage(
+                text: "演示数据放在单独的数据库里，你的真实数据不会被改动。每次切过来都生成到此刻；演示时不发提醒和推送，待办里的日程、健康的数据也是演示里那个人的，你的不会露出来。")
             #if DEBUG
                 SettingRow(label: "画布样张", hint: "看生活画布的每一种卡片：这一周每天是一种人的一天，左右滑着看") {
                     WebTextButton(CanvasSamples.isOn ? "关掉样张" : "打开样张") { model.showSamples(!CanvasSamples.isOn) }

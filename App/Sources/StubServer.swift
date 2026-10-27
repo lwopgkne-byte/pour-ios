@@ -120,8 +120,10 @@
                 case ("GET", "/api/meta"):
                     return ok([
                         "today": today, "dayBoundary": 240, "mode": "real",
-                        "api": ["version": APIClient.apiVersion, "minClient": 1], "server": "2.7.0",
+                        "api": ["version": APIClient.apiVersion, "minClient": 1], "server": "2.8.0",
                     ])
+                case ("GET", "/api/demo/calendar"):
+                    return ok(Self.demoCalendar(query.first { $0.name == "day" }?.value ?? today, today: today))
                 case ("GET", "/api/categories"): return ok(["categories": Self.categories + Self.sampleCategories])
                 case ("GET", "/api/messages"): return ok(["messages": messages])
                 case ("GET", "/api/notes"):

@@ -11,7 +11,7 @@ struct HealthHint: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        if model.shownDay == model.today, model.health.showHint {
+        if model.shownDay == model.today, model.showHealthHint {
             ConnectHint(
                 key: "health", symbol: "heart.fill", color: "pink", title: "接上健康：步数、睡眠、锻炼自动出现",
                 text: "只读这三样，不往健康里写。送到电脑上的 Pour，算进目标、回顾和问答；你说过的为准，同一次只算一次。",

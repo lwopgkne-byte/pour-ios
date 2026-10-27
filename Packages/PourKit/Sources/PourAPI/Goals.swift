@@ -203,8 +203,9 @@ extension APIClient {
 
 /// 目标的写法
 extension Show {
-    /// 保留一位小数，整数不带「.0」：612、6.8
+    /// 保留一位小数，整数不带「.0」：612、6.8；上千的不带小数：平均 4993 步（不写 4992.5 步，和服务器的 fmtNum 一样）
     public static func fmtNum(_ value: Double) -> String {
+        if abs(value) >= 1000 { return String(Int(value.rounded())) }
         let rounded = (value * 10).rounded() / 10
         return rounded == rounded.rounded() ? String(Int(rounded)) : String(format: "%.1f", rounded)
     }

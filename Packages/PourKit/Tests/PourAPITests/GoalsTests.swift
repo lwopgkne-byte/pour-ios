@@ -43,6 +43,8 @@ struct GoalsTests {
         #expect(Show.fmtNum(612) == "612")
         #expect(Show.fmtNum(6.84) == "6.8")
         #expect(Show.fmtNum(101.94) == "101.9")
+        // 上千的不带小数（和服务器的 fmtNum 一样）：平均每天走了 4993 步
+        #expect([999.94, 4992.5, 8000, -1234.4].map(Show.fmtNum) == ["999.9", "4993", "8000", "-1234"])
         #expect(Show.periodName("week", repeating: true) == "每周")
     }
 }
