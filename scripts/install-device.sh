@@ -51,6 +51,10 @@ xcodebuild build -project Pour.xcodeproj -scheme Pour -configuration Debug \
     if grep -qE "login details for account .* were rejected|Unable to log in with account" build/install-device.log; then
       fail "Xcode 里的 Apple ID 登录过期了：打开 Xcode → 设置 → Accounts（账户），选中你的 Apple ID 重新登录，再运行一次"
     fi
+    # Xcode 里一个账户都没有（被去掉了，或者从来没登过）：报的是 No Accounts
+    if grep -q "No Accounts" build/install-device.log; then
+      fail "Xcode 里没有 Apple ID：打开 Xcode → 设置 → Accounts（账户），点左下角「+」→ Apple ID，登录你的 Apple ID，再运行一次"
+    fi
     fail "构建没成功（完整输出：build/install-device.log）"
   }
 
