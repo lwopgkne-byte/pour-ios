@@ -49,8 +49,9 @@ final class HealthLink {
         if !force, let lastSync, now.timeIntervalSince(lastSync) < Self.interval { return nil }
         syncing = true
         defer { syncing = false }
-        let start = Calendar.current.startOfDay(for: now)
-        let from = Calendar.current.date(byAdding: .day, value: -days, to: start) ?? start
+        // 从「现在」往前算，不从那天零点算：系统只给读接上那一刻往前 30 天的（实测），零点到那一刻的读不到。
+        // 起点写早了，服务器会把只读到半天的那天当成读全了的
+        let from = Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
         let snapshot: HealthSnapshot
         do {
             snapshot = try await source.read(from: from, to: now)

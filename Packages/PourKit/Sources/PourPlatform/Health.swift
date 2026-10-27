@@ -101,10 +101,22 @@ public protocol HealthSource: Sendable {
         }
 
         public func read(from: Date, to: Date) async throws -> HealthSnapshot {
-            async let steps = readSteps(from: from, to: to)
-            async let sleep = readSleep(from: from, to: to)
-            async let workouts = readWorkouts(from: from, to: to)
-            return try await HealthSnapshot(from: from, to: to, steps: steps, sleep: sleep, workouts: workouts)
+            let earliest = await earliestReadable()
+            let start = min(max(from, earliest), to)
+            async let steps = readSteps(from: start, to: to)
+            async let sleep = readSleep(from: start, to: to)
+            async let workouts = readWorkouts(from: start, to: to)
+            return try await HealthSnapshot(from: start, to: to, steps: steps, sleep: sleep, workouts: workouts)
+        }
+
+        /// 你在系统那一页只给看某天以后的（iOS 27 的有限访问）：更早的读不到。送给服务器的起点写这一天，
+        /// 服务器才知道最早那天没读全（不然那天只有半天的步数、半截的一觉）
+        private func earliestReadable() async -> Date {
+            let types: Set<HKObjectType> = [
+                HKQuantityType(.stepCount), HKCategoryType(.sleepAnalysis), HKObjectType.workoutType(),
+            ]
+            let dates = (try? await store.earliestAuthorizedSampleDate(for: types)) ?? [:]
+            return dates.values.max() ?? .distantPast
         }
 
         /// 每小时一格的步数（健康 App 把 iPhone 和手表的合好了，不会算两遍）

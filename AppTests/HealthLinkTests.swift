@@ -2,6 +2,7 @@ import Foundation
 import PourAPI
 import PourCore
 import PourPlatform
+import Synchronization
 import Testing
 
 @testable import Pour
@@ -44,5 +45,32 @@ struct HealthLinkTests {
         #expect(await health.disconnect(client) == nil)
         #expect(!health.connected)
         #expect(try await client.day(today).health == nil)
+    }
+
+    /// 系统只给读接上那一刻往前 30 天的：从「现在」往前算，不从那天零点算（不然服务器以为最早那天读全了）
+    @Test func readsBackFromNowNotFromMidnight() async {
+        let source = RecordingHealth()
+        let name = "pour.tests.health.window"
+        let defaults = UserDefaults(suiteName: name) ?? .standard
+        defaults.removePersistentDomain(forName: name)
+        let health = HealthLink(source: source, defaults: defaults)
+        let client = StubServer.client()
+        _ = await health.connect(client)
+        let now = Date(timeIntervalSince1970: 1_793_000_000)
+        _ = await health.sync(client, days: 8, force: true, now: now)
+        #expect(source.from.withLock { $0 } == Calendar.current.date(byAdding: .day, value: -8, to: now))
+    }
+}
+
+/// 记下 App 从哪一刻开始读
+private final class RecordingHealth: HealthSource {
+    let from = Mutex<Date?>(nil)
+    var isAvailable: Bool { true }
+
+    func requestAccess() async -> Bool { true }
+
+    func read(from: Date, to: Date) async throws -> HealthSnapshot {
+        self.from.withLock { $0 = from }
+        return HealthSnapshot(from: from, to: to, steps: [], sleep: [], workouts: [])
     }
 }
