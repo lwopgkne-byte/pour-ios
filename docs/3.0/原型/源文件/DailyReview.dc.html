@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>每日回顾</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:1750px;position:relative;overflow:hidden;background:#F3F2EF;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#1D1C1A}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,"PingFang SC",sans-serif}
+.q{font-family:"Songti SC","STSong","Noto Serif SC",serif}
+.card{background:#FFFFFF;border-radius:20px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 2px 10px rgba(0,0,0,.035)}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.glass{background:rgba(255,255,255,.86);box-shadow:0 6px 24px rgba(0,0,0,.10),0 0 0 .5px rgba(0,0,0,.07);backdrop-filter:blur(20px)}
+.m{background:#FFFFFF;border-radius:16px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.ml{font-size:12px;color:#58554F}
+.mv{font-size:22px;font-weight:700;margin-top:2px}
+.mc{font-size:12px;color:#58554F;margin-top:2px}
+.hd{font-size:15px;font-weight:700;margin:20px 20px 8px 20px}
+.dr{display:flex;align-items:flex-start;gap:12px;padding:10px 16px}
+.di{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#FFFFFF;flex:none}
+.di .ico{width:18px;height:18px}
+.sep{height:1px;background:rgba(29,28,26,.08);margin-left:58px}
+.act{height:30px;padding:0 12px;border-radius:15px;background:rgba(27,86,179,.10);color:#1B56B3;font-size:13px;font-weight:600;display:inline-flex;align-items:center;flex:none}
+</style>
+</helmet>
+<div class="scr">
+  <div style="padding:52px 16px 0 12px;display:flex;justify-content:space-between;align-items:center">
+    <button class="btn glass" aria-label="返回" style="height:40px;border-radius:20px;padding:0 12px 0 8px;display:flex;align-items:center;gap:2px;font-size:16px"><svg class="ico" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>回顾</button>
+    <button class="btn glass" aria-label="看这一天的画布" style="height:40px;border-radius:20px;padding:0 14px;font-size:14px">看这一天</button>
+  </div>
+  <div style="margin:14px 20px 0 20px;font-size:13px;color:#58554F;font-weight:600">每日回顾 · 昨天</div>
+  <h1 style="margin:2px 20px 0 20px;font-size:30px;font-weight:700">10月26日 周一</h1>
+  <div class="q" style="margin:10px 20px 0 20px;font-size:20px;line-height:1.55">睡了 6 小时 50 分，16:8 轻断食，外卖沙拉 ¥38，背单词。</div>
+
+  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 16px 0 16px">
+    <div class="m"><div class="ml">睡眠</div><div class="mv num">6:50</div><div class="mc">和平时差不多</div></div>
+    <div class="m"><div class="ml">专注</div><div class="mv num">12:25</div><div class="mc">比平时多 1 小时 15 分</div></div>
+    <div class="m"><div class="ml">心情</div><div class="mv">有起有落</div><div class="mc">和平时差不多</div></div>
+    <div class="m"><div class="ml">花了</div><div class="mv num">¥497</div><div class="mc">其中等报销 ¥61</div></div>
+  </div>
+
+  <div class="hd">一天的样子</div>
+  <div class="card" style="margin:0 16px;padding:14px 16px">
+    <div style="height:14px;border-radius:7px;background:rgba(29,28,26,.05);position:relative">
+      <div style="position:absolute;left:0;width:29%;top:0;bottom:0;border-radius:7px;background:#8E7CC3"></div>
+      <div style="position:absolute;left:38%;width:46%;top:0;bottom:0;border-radius:7px;background:#B58A62"></div>
+      <div style="position:absolute;left:62%;width:4%;top:0;bottom:0;border-radius:3px;background:#2F6FD6"></div>
+      <div style="position:absolute;left:88%;width:2%;top:0;bottom:0;border-radius:3px;background:#3FA57A"></div>
+    </div>
+    <div class="num" style="display:flex;justify-content:space-between;font-size:11px;color:#6B6760;margin-top:5px"><span>0:00</span><span>6:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+  </div>
+
+  <div class="hd">做了什么</div>
+  <div class="card" style="margin:0 16px;padding:4px 0">
+    <div class="dr"><div class="di" style="background:#C98315"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 0-3 2-3 5s1 4 3 4v9"></path></svg></div><div style="flex:1;font-size:15px;line-height:1.45">16:8 轻断食 · 外卖沙拉 <span class="num">¥38</span></div></div>
+    <div class="sep"></div>
+    <div class="dr"><div class="di" style="background:#9A6B43"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7" width="17" height="12.5" rx="2"></rect><path d="M9 7V5h6v2"></path></svg></div><div style="flex:1;font-size:15px;line-height:1.45">上班 11 小时 · 开会 · 改方案</div></div>
+    <div class="sep"></div>
+    <div class="dr"><div class="di" style="background:#2F6FD6"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2 2 0 0 1 6 3.5h5v16H6a2 2 0 0 0-2 2zM20 5.5a2 2 0 0 0-2-2h-5v16h5a2 2 0 0 1 2 2z"></path></svg></div><div style="flex:1;font-size:15px;line-height:1.45">背单词 25 分钟</div></div>
+    <div class="sep"></div>
+    <div class="dr"><div class="di" style="background:#C9487F"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2.5l2.2 10.5h10.6L20.5 7H7"></path><circle cx="9.5" cy="19" r="1.5"></circle><circle cx="17" cy="19" r="1.5"></circle></svg></div><div style="flex:1;font-size:15px;line-height:1.45">给儿子买运动鞋 <span class="num">¥259</span> · 买猫粮 <span class="num">¥120</span></div></div>
+  </div>
+
+  <div class="hd">目标</div>
+  <div style="display:flex;gap:10px;margin:0 16px">
+    <div class="card" style="flex:1;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px"><svg width="44" height="44" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(29,28,26,.08)" stroke-width="6"></circle><circle cx="20" cy="20" r="16" fill="none" stroke="#1A683D" stroke-width="6" stroke-linecap="round" stroke-dasharray="24 101" transform="rotate(-90 20 20)"></circle></svg><span style="font-size:12px;text-align:center">16:8 第 7 天</span></div>
+    <div class="card" style="flex:1;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px"><svg width="44" height="44" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(29,28,26,.08)" stroke-width="6"></circle><circle cx="20" cy="20" r="16" fill="none" stroke="#7D5500" stroke-width="6" stroke-linecap="round" stroke-dasharray="76 101" transform="rotate(-90 20 20)"></circle></svg><span class="num" style="font-size:12px;text-align:center">6,039 / 8000 步</span></div>
+    <div class="card" style="flex:1;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px"><svg width="44" height="44" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(29,28,26,.08)" stroke-width="6"></circle><circle cx="20" cy="20" r="16" fill="none" stroke="#1A683D" stroke-width="6" stroke-linecap="round" stroke-dasharray="50 101" transform="rotate(-90 20 20)"></circle></svg><span class="num" style="font-size:12px;text-align:center">外卖 1 / 2 次</span></div>
+  </div>
+
+  <div class="card" style="margin:16px 16px 0 16px;padding:14px 16px;background:#FFF8EA">
+    <div style="font-size:12px;font-weight:700;color:#7D5500">一个观察</div>
+    <div style="font-size:16px;line-height:1.5;margin-top:4px">睡眠连着 3 天变短，昨晚 6 小时 50 分。</div>
+  </div>
+
+  <div class="hd">还没收尾的</div>
+  <div class="card" style="margin:0 16px;padding:4px 0">
+    <div class="dr" style="align-items:center"><div style="width:22px;height:22px;border-radius:11px;border:2px solid rgba(29,28,26,.28);box-sizing:border-box;flex:none"></div><div style="flex:1;font-size:15px">给客户回电话</div><span class="act">带到今天</span></div>
+    <div class="sep" style="margin-left:50px"></div>
+    <div class="dr" style="align-items:flex-start"><svg class="ico" style="color:#7D5500;margin-top:2px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg><div style="flex:1;min-width:0"><div style="font-size:15px;line-height:1.45">自动检查：「下午三点」记成了凌晨 3 点</div><div class="q" style="font-size:14px;color:#58554F;margin-top:4px">下午<b style="font-family:inherit">三点</b>到四点开了个会</div><div style="display:flex;gap:8px;margin-top:10px"><span class="act">确实错了</span><span class="act" style="background:rgba(29,28,26,.06);color:#3A3833">没错</span></div></div></div>
+  </div>
+
+  <div class="hd">你说过</div>
+  <div class="card" style="margin:0 16px;padding:16px 18px;background:#FFFDF8">
+    <div class="q" style="font-size:20px;line-height:1.5">「慢慢来，比较快。」</div>
+    <div class="num" style="font-size:12px;color:#6B6760;margin-top:6px">10月11日 周日记下的</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1750}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>每一笔</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;position:relative;overflow:hidden;background:#F3F2EF;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#1D1C1A}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,"PingFang SC",sans-serif}
+.card{background:#FFFFFF;border-radius:20px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 2px 10px rgba(0,0,0,.035);overflow:hidden}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.glass{background:rgba(255,255,255,.86);box-shadow:0 6px 24px rgba(0,0,0,.10),0 0 0 .5px rgba(0,0,0,.07);backdrop-filter:blur(20px)}
+.tabs{position:absolute;left:16px;bottom:30px;height:62px;width:282px;border-radius:31px;display:flex;justify-content:space-around;align-items:center;padding:0 4px;box-sizing:border-box}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:600;width:66px;height:54px;border-radius:27px;color:#1D1C1A}
+.tab.on{color:#1B56B3;background:rgba(27,86,179,.10)}
+.srch{position:absolute;right:16px;bottom:30px;width:62px;height:62px;border-radius:31px;display:flex;align-items:center;justify-content:center}
+.chip{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 12px;border-radius:16px;font-size:14px;background:#FFFFFF;box-shadow:0 0 0 1px rgba(29,28,26,.10) inset;flex:none}
+.chip.on{background:#1D1C1A;color:#FFFFFF;box-shadow:none}
+.dh{display:flex;justify-content:space-between;align-items:baseline;margin:16px 20px 6px 20px;font-size:14px}
+.row{display:flex;align-items:center;gap:12px;min-height:54px;padding:6px 16px;box-sizing:border-box;background:#FFFFFF}
+.sep{height:1px;background:rgba(29,28,26,.08);margin-left:66px}
+.t{width:40px;font-size:13px;color:#6B6760;flex:none}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:6px;font-size:11px;font-weight:600;margin-left:6px;vertical-align:1px}
+.amt{font-size:16px;font-weight:600}
+</style>
+</helmet>
+<div class="scr">
+  <div style="padding:52px 16px 0 12px;display:flex;align-items:center;gap:4px">
+    <button class="btn glass" aria-label="返回" style="height:40px;border-radius:20px;padding:0 12px 0 8px;display:flex;align-items:center;gap:2px;font-size:16px"><svg class="ico" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>钱</button>
+  </div>
+  <h1 style="margin:10px 20px 0 20px;font-size:28px;font-weight:700">10月的每一笔</h1>
+  <div style="margin:12px 16px 0 16px;height:40px;border-radius:12px;background:rgba(29,28,26,.06);display:flex;align-items:center;gap:8px;padding:0 12px;color:#6B6760;font-size:15px">
+    <svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg>搜：外卖、儿子、你说的话……
+  </div>
+  <div style="display:flex;gap:8px;padding:12px 16px 0 16px;overflow:hidden">
+    <span class="chip on">全部 <span class="num">83</span></span><span class="chip">日常 <span class="num">69</span></span><span class="chip">等报销 <span class="num">2</span></span><span class="chip">固定 <span class="num">4</span></span><span class="chip">人情 <span class="num">3</span></span>
+  </div>
+
+  <div class="dh"><b>今天 · 10月27日 周二</b><span class="num" style="color:#58554F">花了 ¥15</span></div>
+  <div class="card" style="margin:0 16px">
+    <div class="row"><span class="t num">12:40</span><div style="flex:1;font-size:16px">食堂午饭</div><span class="amt num">¥15</span></div>
+  </div>
+
+  <div class="dh"><b>昨天 · 10月26日 周一</b><span class="num" style="color:#58554F">花了 ¥497</span></div>
+  <div class="card" style="margin:0 16px">
+    <div class="row"><span class="t num">21:40</span><div style="flex:1;min-width:0"><div style="font-size:16px">给儿子买运动鞋</div></div><span class="amt num">¥259</span></div>
+    <div class="sep"></div>
+    <div class="row"><span class="t num">19:10</span><div style="flex:1;min-width:0"><div style="font-size:16px">买猫粮</div><div style="font-size:12px;color:#6B6760">给猫 · 比 9 月贵了 ¥11</div></div><span class="amt num">¥120</span></div>
+    <div class="sep"></div>
+    <div style="position:relative;height:54px">
+      <div style="position:absolute;right:0;top:0;bottom:0;display:flex">
+        <div style="width:80px;background:#1B56B3;color:#FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:600;gap:2px"><svg class="ico" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>已报销</div>
+        <div style="width:72px;background:#C2402F;color:#FFFFFF;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:600;gap:2px"><svg class="ico" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg>删除</div>
+      </div>
+      <div class="row" style="position:absolute;left:-152px;right:152px;top:0;bottom:0"><span class="t num">19:10</span><div style="flex:1;font-size:16px">打车回家<span class="tag" style="background:rgba(27,86,179,.10);color:#1B56B3">等报销</span></div><span class="amt num" style="color:#6B6760">¥61</span></div>
+    </div>
+    <div class="sep"></div>
+    <div class="row"><span class="t num">12:40</span><div style="flex:1;font-size:16px">外卖 沙拉</div><span class="amt num">¥38</span></div>
+  </div>
+
+  <div class="dh"><b>10月24日 周六</b><span class="num" style="color:#58554F">花了 ¥1,978</span></div>
+  <div class="card" style="margin:0 16px">
+    <div class="row"><span class="t num">19:40</span><div style="flex:1;min-width:0"><div style="font-size:16px">满月红包<span class="tag" style="background:rgba(200,70,58,.10);color:#A8392E">人情</span></div><div style="font-size:12px;color:#6B6760">给老同学</div></div><span class="amt num">¥800</span></div>
+  </div>
+
+  <div class="tabs glass">
+    <div class="tab"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2.5v2M12 19.5v2M4.6 4.6L6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"></path></svg>今天</div>
+    <div class="tab"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 6h10M10 12h10M10 18h10"></path><path d="M3.5 6l1.4 1.4L7.5 5M3.5 12l1.4 1.4L7.5 11M3.5 18l1.4 1.4L7.5 17"></path></svg>待办</div>
+    <div class="tab on"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8.5 7.5L12 12l3.5-4.5M12 12v5M9 12.5h6M9 15h6"></path></svg>钱</div>
+    <div class="tab"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"></rect><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"></rect><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"></rect><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"></rect></svg>我的</div>
+  </div>
+  <button class="btn srch glass" aria-label="搜索"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg></button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

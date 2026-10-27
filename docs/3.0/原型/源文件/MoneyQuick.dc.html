@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>记一笔</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;position:relative;overflow:hidden;background:#F3F2EF;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#1D1C1A}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,"PingFang SC",sans-serif}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.sheet{position:absolute;left:0;right:0;top:120px;bottom:0;background:#F7F6F3;border-radius:28px 28px 0 0;box-shadow:0 -6px 30px rgba(0,0,0,.18)}
+.chip{display:inline-flex;align-items:center;gap:4px;height:34px;padding:0 13px;border-radius:17px;font-size:15px;background:#FFFFFF;box-shadow:0 0 0 1px rgba(29,28,26,.10) inset;flex:none}
+.chip.on{background:#1B56B3;color:#FFFFFF;box-shadow:none}
+.pad{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 12px}
+.key{height:54px;border-radius:14px;background:#FFFFFF;box-shadow:0 1px 0 rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:500}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.22)"></div>
+  <div class="sheet">
+    <div style="width:36px;height:5px;border-radius:3px;background:rgba(29,28,26,.2);margin:8px auto 0 auto"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px 0 20px">
+      <div style="font-size:17px;font-weight:700">记一笔</div>
+      <button class="btn" aria-label="关闭" style="width:36px;height:36px;border-radius:18px;background:rgba(29,28,26,.07);display:flex;align-items:center;justify-content:center"><svg class="ico" style="width:16px;height:16px;stroke-width:2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <div style="text-align:center;margin-top:14px">
+      <div class="num" style="font-size:56px;font-weight:700;letter-spacing:-1px">¥25<span style="display:inline-block;width:3px;height:44px;background:#1B56B3;border-radius:2px;vertical-align:-4px;margin-left:3px"></span></div>
+      <div style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;height:36px;padding:0 14px;border-radius:18px;background:#FFFFFF;font-size:16px">午饭<span style="color:#6B6760;font-size:14px">· 改一下</span></div>
+    </div>
+    <div style="font-size:13px;color:#58554F;margin:16px 20px 8px 20px">你常买的</div>
+    <div style="display:flex;gap:8px;padding:0 16px;overflow:hidden">
+      <span class="chip on">午饭</span><span class="chip">打车</span><span class="chip">咖啡</span><span class="chip">外卖</span><span class="chip">买菜</span>
+    </div>
+    <div style="display:flex;gap:8px;padding:10px 16px 0 16px">
+      <span class="chip" style="font-size:14px;height:32px">能报销</span><span class="chip" style="font-size:14px;height:32px">借给别人</span><span class="chip" style="font-size:14px;height:32px">收入</span><span class="chip" style="font-size:14px;height:32px">给谁 ›</span>
+    </div>
+    <div style="font-size:12px;color:#6B6760;margin:10px 20px 10px 20px">记下的是一句原话「午饭 25」，Pour 照常整理</div>
+    <div class="pad num">
+      <div class="key">1</div><div class="key">2</div><div class="key">3</div>
+      <div class="key">4</div><div class="key">5</div><div class="key">6</div>
+      <div class="key">7</div><div class="key">8</div><div class="key">9</div>
+      <div class="key">.</div><div class="key">0</div><div class="key" style="background:#E7E5E0"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h12a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 20 19H8l-6-7z"></path><path d="M12 9.5l5 5M17 9.5l-5 5"></path></svg></div>
+    </div>
+    <div style="padding:10px 12px 0 12px"><button class="btn" style="width:100%;height:54px;border-radius:16px;background:#C98315;color:#FFFFFF;font-size:18px;font-weight:700">记下</button></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

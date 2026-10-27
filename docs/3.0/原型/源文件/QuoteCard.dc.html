@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>分享成图片</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;position:relative;overflow:hidden;background:#3A3833;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#1D1C1A}
+.q{font-family:"Songti SC","STSong","Noto Serif SC",serif}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.style{width:64px;height:84px;border-radius:12px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;box-sizing:border-box;font-size:12px}
+.sh{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:#1D1C1A;width:72px}
+.shc{width:56px;height:56px;border-radius:14px;background:#FFFFFF;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px rgba(0,0,0,.06)}
+</style>
+</helmet>
+<div class="scr">
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:56px 20px 0 20px;color:#FFFFFF">
+    <button class="btn" style="font-size:16px;color:#FFFFFF;height:40px">取消</button>
+    <div style="font-size:16px;font-weight:600">分享成图片</div>
+    <div style="width:40px"></div>
+  </div>
+
+  <div style="margin:22px auto 0 auto;width:268px;height:356px;background:#FBF8F1;border-radius:6px;box-shadow:0 16px 40px rgba(0,0,0,.35);padding:40px 30px 26px 30px;box-sizing:border-box;display:flex;flex-direction:column">
+    <div class="q" style="font-size:40px;color:#C9B892;line-height:1">“</div>
+    <div class="q" style="font-size:26px;line-height:1.6;color:#2A2723;margin-top:6px;flex:1">慢慢来，<br>比较快。</div>
+    <div class="q" style="font-size:14px;color:#6B6760">—— 我，2026年10月11日</div>
+    <div style="display:flex;justify-content:flex-end;margin-top:18px;font-size:11px;letter-spacing:2px;color:#A39E95">POUR · 倾</div>
+  </div>
+
+  <div style="display:flex;justify-content:center;gap:12px;margin-top:22px">
+    <div class="style q" style="background:#FBF8F1;box-shadow:0 0 0 2px #FFFFFF,0 0 0 4px #C98315">暖白</div>
+    <div class="style q" style="background:#22211E;color:#E9E4D8">墨色</div>
+    <div class="style q" style="background:#E9EEF5;color:#2B3A55">月白</div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#F2F2F4;border-radius:22px 22px 0 0;padding:16px 8px 34px 8px">
+    <div style="font-size:13px;color:#58554F;text-align:center;margin-bottom:14px">只在你点分享时生成，不上传</div>
+    <div style="display:flex;justify-content:space-around">
+      <div class="sh"><div class="shc"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"></rect><circle cx="9" cy="10" r="1.8"></circle><path d="M20.5 16l-5-5L6 19.5"></path></svg></div>存到相册</div>
+      <div class="sh"><div class="shc"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5h11a2 2 0 0 1 2 2V13a2 2 0 0 1-2 2H9l-3.5 3v-3H4a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z"></path><path d="M19 9h1a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-1v2.5L16 18h-3"></path></svg></div>发给朋友</div>
+      <div class="sh"><div class="shc"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"></path></svg></div>拷贝</div>
+      <div class="sh"><div class="shc"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12h.01M12 12h.01M18.5 12h.01" style="stroke-width:3"></path></svg></div>更多</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

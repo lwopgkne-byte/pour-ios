@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>目标</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:1150px;position:relative;overflow:hidden;background:#F3F2EF;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#1D1C1A}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,"PingFang SC",sans-serif}
+.card{background:#FFFFFF;border-radius:20px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 2px 10px rgba(0,0,0,.035)}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.glass{background:rgba(255,255,255,.86);box-shadow:0 6px 24px rgba(0,0,0,.10),0 0 0 .5px rgba(0,0,0,.07);backdrop-filter:blur(20px)}
+.hd{font-size:15px;font-weight:700;margin:18px 20px 8px 20px;display:flex;justify-content:space-between;align-items:baseline}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 16px}
+.gc{padding:14px;display:flex;flex-direction:column;gap:8px}
+.gt{font-size:15px;font-weight:600;line-height:1.35}
+.gn{font-size:12px;color:#58554F}
+.st{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:10px;font-size:11px;font-weight:700;align-self:flex-start}
+.sq{width:16px;height:16px;border-radius:4px}
+</style>
+</helmet>
+<div class="scr">
+  <div style="padding:52px 16px 0 12px;display:flex;justify-content:space-between;align-items:center">
+    <button class="btn glass" aria-label="返回" style="height:40px;border-radius:20px;padding:0 12px 0 8px;display:flex;align-items:center;gap:2px;font-size:16px"><svg class="ico" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>我的</button>
+    <button class="btn glass" aria-label="定目标" style="width:40px;height:40px;border-radius:20px;display:flex;align-items:center;justify-content:center"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>
+  </div>
+  <h1 style="margin:10px 20px 0 20px;font-size:34px;font-weight:700">目标</h1>
+
+  <div class="hd"><span>进行中</span><span class="num" style="font-size:13px;color:#58554F;font-weight:400">2 个在正轨上</span></div>
+  <div class="g2">
+    <div class="card gc"><svg width="52" height="52" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(29,28,26,.08)" stroke-width="6"></circle><circle cx="20" cy="20" r="16" fill="none" stroke="#AA3831" stroke-width="6" stroke-linecap="round" stroke-dasharray="19 101" transform="rotate(-90 20 20)"></circle></svg><div class="gt">今年跑 500 公里</div><div class="gn num">92.4 / 500 公里</div><span class="st" style="background:rgba(170,56,49,.10);color:#AA3831">落后 46%</span></div>
+    <div class="card gc"><svg width="52" height="52" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(29,28,26,.08)" stroke-width="6"></circle><circle cx="20" cy="20" r="16" fill="none" stroke="#7D5500" stroke-width="6" stroke-linecap="round" stroke-dasharray="91 101" transform="rotate(-90 20 20)"></circle></svg><div class="gt">平均睡眠 7.5 小时</div><div class="gn num">平均 6.8 小时</div><span class="st" style="background:rgba(125,85,0,.12);color:#7D5500">差 0.7 小时</span></div>
+    <div class="card gc"><svg width="52" height="52" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(29,28,26,.08)" stroke-width="6"></circle><circle cx="20" cy="20" r="16" fill="none" stroke="#1A683D" stroke-width="6" stroke-linecap="round" stroke-dasharray="25 101" transform="rotate(-90 20 20)"></circle></svg><div class="gt">每周背单词 4 次</div><div class="gn num">这周 1 / 4 次</div><span class="st" style="background:rgba(26,104,61,.10);color:#1A683D">在正轨上</span></div>
+    <div class="card gc"><svg width="52" height="52" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="none" stroke="rgba(29,28,26,.08)" stroke-width="6"></circle><circle cx="20" cy="20" r="16" fill="none" stroke="#AA3831" stroke-width="6" stroke-linecap="round" stroke-dasharray="66 101" transform="rotate(-90 20 20)"></circle></svg><div class="gt">每天走 8000 步</div><div class="gn num">平均 5,266 步</div><span class="st" style="background:rgba(170,56,49,.10);color:#AA3831">差 2,734 步</span></div>
+  </div>
+  <div class="card" style="margin:10px 16px 0 16px;padding:14px;display:flex;align-items:center;gap:14px">
+    <div style="display:flex;gap:-6px"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15" fill="none" stroke="rgba(29,28,26,.08)" stroke-width="7"></circle><circle cx="20" cy="20" r="15" fill="none" stroke="#1A683D" stroke-width="7" stroke-linecap="round" stroke-dasharray="70 95" transform="rotate(-90 20 20)"></circle></svg><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15" fill="none" stroke="rgba(29,28,26,.08)" stroke-width="7"></circle><circle cx="20" cy="20" r="15" fill="none" stroke="#AA3831" stroke-width="7" stroke-linecap="round" stroke-dasharray="30 95" transform="rotate(-90 20 20)"></circle></svg></div>
+    <div style="flex:1"><div class="gt">三个月瘦 5 斤</div><div class="gn">2 个小目标，1 个在正轨上</div></div>
+    <svg class="ico" style="width:16px;height:16px;color:#6B6760" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>
+  </div>
+
+  <div class="hd"><span>坚持</span></div>
+  <div class="card" style="margin:0 16px;padding:14px 16px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="gt">连续 30 天 16:8 轻断食</span><span class="num" style="font-size:20px;font-weight:700">8<span style="font-size:13px;color:#58554F;font-weight:400"> / 30 天</span></span></div>
+    <div style="display:flex;gap:4px;margin-top:10px">
+      <span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:rgba(29,28,26,.10)"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span><span class="sq" style="background:#1A683D"></span>
+    </div>
+    <div class="gn" style="margin-top:8px">连续 8 天 · 最长 13 天</div>
+  </div>
+
+  <div class="hd"><span>预算</span></div>
+  <div class="card" style="margin:0 16px;padding:4px 0">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px"><div style="flex:1;font-size:15px">每月外卖不超过 300 元</div><span class="num" style="font-size:14px;color:#58554F">¥210 / 300</span></div>
+    <div style="height:1px;background:rgba(29,28,26,.08);margin-left:16px"></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px"><div style="flex:1;font-size:15px">每周外卖不超过 2 次</div><span class="num" style="font-size:14px;color:#7D5500;font-weight:600">2 / 2 用满了</span></div>
+  </div>
+  <div style="margin:16px 20px 0 20px;font-size:14px;color:#58554F">做完就算 1 个 · 已完成 1 个 ›</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1150}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

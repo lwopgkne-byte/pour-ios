@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>一笔的详情</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;position:relative;overflow:hidden;background:#F3F2EF;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#1D1C1A}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,"PingFang SC",sans-serif}
+.q{font-family:"Songti SC","STSong","Noto Serif SC",serif}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.sheet{position:absolute;left:0;right:0;top:96px;bottom:0;background:#F7F6F3;border-radius:28px 28px 0 0;box-shadow:0 -6px 30px rgba(0,0,0,.18)}
+.grp{background:#FFFFFF;border-radius:16px;margin:0 16px}
+.row{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 16px;box-sizing:border-box}
+.sep{height:1px;background:rgba(29,28,26,.08);margin-left:16px}
+.lab{width:56px;font-size:15px;color:#58554F;flex:none}
+.chip{display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 12px;border-radius:15px;font-size:14px;background:rgba(29,28,26,.06)}
+.tag{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:12px;font-size:12px;font-weight:600}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.22)"></div>
+  <div class="sheet">
+    <div style="width:36px;height:5px;border-radius:3px;background:rgba(29,28,26,.2);margin:8px auto 0 auto"></div>
+    <div style="display:flex;justify-content:flex-end;padding:6px 16px 0 16px">
+      <button class="btn" aria-label="关闭" style="width:36px;height:36px;border-radius:18px;background:rgba(29,28,26,.07);display:flex;align-items:center;justify-content:center"><svg class="ico" style="width:16px;height:16px;stroke-width:2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:-6px">
+      <div style="width:52px;height:52px;border-radius:16px;background:#FBE9D2;color:#9A5E0C;display:flex;align-items:center;justify-content:center"><svg class="ico" style="width:28px;height:28px" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2.5l2.2 10.5h10.6L20.5 7H7"></path><circle cx="9.5" cy="19" r="1.5"></circle><circle cx="17" cy="19" r="1.5"></circle></svg></div>
+      <div style="font-size:18px;font-weight:600">超市买菜</div>
+      <div class="num" style="font-size:40px;font-weight:700;letter-spacing:-.5px">¥178</div>
+      <div style="display:flex;gap:6px"><span class="tag" style="background:rgba(29,28,26,.06);color:#58554F">日常</span><span class="tag" style="background:#FBE9D2;color:#7A4A06">购物</span><span class="tag num" style="background:rgba(29,28,26,.06);color:#58554F">4 样</span></div>
+    </div>
+
+    <div class="grp" style="margin-top:16px">
+      <div class="row"><div style="flex:1;font-size:16px">洗衣液</div><span class="num" style="font-size:16px">¥45</span></div>
+      <div class="sep"></div>
+      <div class="row"><div style="flex:1;font-size:16px">面包</div><span class="num" style="font-size:16px">¥16</span></div>
+      <div class="sep"></div>
+      <div class="row"><div style="flex:1;font-size:16px">葡萄</div><span class="num" style="font-size:16px">¥28</span></div>
+      <div class="sep"></div>
+      <div class="row"><div style="flex:1;font-size:16px">牛肉</div><span class="num" style="font-size:16px">¥89</span></div>
+    </div>
+
+    <div class="grp" style="margin-top:12px">
+      <div class="row"><span class="lab">地方</span><div style="flex:1;font-size:16px">超市</div></div>
+      <div class="sep"></div>
+      <div class="row"><span class="lab">时间</span><div class="num" style="flex:1;font-size:16px">10月24日 周六 17:40</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 20px 0 20px"><span style="font-size:13px;color:#58554F">补充</span><span class="chip">+ 和谁</span><span class="chip">+ 给谁</span><span class="chip">+ 值不值</span></div>
+
+    <div style="margin:18px 20px 0 20px;padding-left:12px;border-left:2px solid rgba(29,28,26,.15)">
+      <div class="q" style="font-size:16px;line-height:1.6;color:#3A3833">超市买了 洗衣液 45 面包 16 葡萄 28 牛肉 89</div>
+      <div class="num" style="font-size:12px;color:#6B6760;margin-top:4px">10月24日 15:10 记下 · 在笔记库看 ›</div>
+    </div>
+    <div style="position:absolute;left:0;right:0;bottom:34px;text-align:center"><button class="btn" style="height:44px;font-size:16px;color:#C2402F">删除这一笔</button></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

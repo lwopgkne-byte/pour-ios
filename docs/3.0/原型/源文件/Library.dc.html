@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>笔记库</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;position:relative;overflow:hidden;background:#F3F2EF;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#1D1C1A}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,"PingFang SC",sans-serif}
+.q{font-family:"Songti SC","STSong","Noto Serif SC",serif}
+.card{background:#FFFFFF;border-radius:20px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 2px 10px rgba(0,0,0,.035)}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.glass{background:rgba(255,255,255,.86);box-shadow:0 6px 24px rgba(0,0,0,.10),0 0 0 .5px rgba(0,0,0,.07);backdrop-filter:blur(20px)}
+.seg{display:flex;background:rgba(29,28,26,.07);border-radius:10px;padding:2px;margin:12px 16px 0 16px}
+.seg div{flex:1;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:#3A3833}
+.seg .on{background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.12);color:#1D1C1A}
+.dh{display:flex;justify-content:space-between;align-items:center;margin:16px 20px 6px 20px}
+.nt{padding:12px 16px;display:flex;gap:12px}
+.chip{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border-radius:12px;background:rgba(29,28,26,.05);font-size:12px;color:#3A3833}
+.sep{height:1px;background:rgba(29,28,26,.08);margin-left:66px}
+</style>
+</helmet>
+<div class="scr">
+  <div style="padding:52px 16px 0 12px;display:flex;justify-content:space-between;align-items:center">
+    <button class="btn glass" aria-label="返回" style="height:40px;border-radius:20px;padding:0 12px 0 8px;display:flex;align-items:center;gap:2px;font-size:16px"><svg class="ico" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>我的</button>
+    <button class="btn glass" aria-label="筛选" style="height:40px;border-radius:20px;padding:0 14px;display:flex;align-items:center;gap:6px;font-size:15px"><svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>筛选</button>
+  </div>
+  <h1 style="margin:10px 20px 0 20px;font-size:34px;font-weight:700">笔记库</h1>
+  <div style="margin:10px 16px 0 16px;height:40px;border-radius:12px;background:rgba(29,28,26,.06);display:flex;align-items:center;gap:8px;padding:0 12px;color:#6B6760;font-size:15px">
+    <svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l4 4"></path></svg>搜说过的话（按意思也能找到）
+  </div>
+  <div class="seg"><div class="on">原话</div><div>感悟</div><div>好时刻</div></div>
+
+  <div class="dh"><b style="font-size:15px">今天 · 10月27日 周二 <span class="num" style="font-weight:400;color:#58554F;font-size:13px">· 2 段</span></b><svg class="ico" style="width:18px;height:18px;color:#1B56B3" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg></div>
+  <div class="card" style="margin:0 16px">
+    <div class="nt"><span class="num" style="font-size:13px;color:#6B6760;width:40px;flex:none;padding-top:3px">10:10</span><div style="flex:1;min-width:0"><div class="q" style="font-size:16px;line-height:1.55">食堂吃的 15</div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><span class="chip">食堂午饭 ¥15</span><span class="chip">在公司食堂</span></div></div></div>
+    <div class="sep"></div>
+    <div class="nt"><span class="num" style="font-size:13px;color:#6B6760;width:40px;flex:none;padding-top:3px">05:05</span><div style="flex:1;min-width:0"><div class="q" style="font-size:16px;line-height:1.55">又过了 12 点才睡 12 点 10 分 早上 7 点起的 继续 168</div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><span class="chip num">睡觉 0:10 → 7:00</span><span class="chip">16:8 轻断食</span></div></div></div>
+  </div>
+
+  <div class="dh"><b style="font-size:15px">昨天 · 10月26日 周一 <span class="num" style="font-weight:400;color:#58554F;font-size:13px">· 7 段</span></b><svg class="ico" style="width:18px;height:18px;color:#1B56B3" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg></div>
+  <div class="card" style="margin:0 16px">
+    <div class="nt"><span class="num" style="font-size:13px;color:#6B6760;width:40px;flex:none;padding-top:3px">19:10</span><div style="flex:1;min-width:0"><div class="q" style="font-size:16px;line-height:1.55">单词背了 25 分钟 给儿子买了双运动鞋 259 明天上午十点提醒我给客户回电话……</div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><span class="chip">背单词 25 分钟</span><span class="chip">运动鞋 ¥259</span><span class="chip">+3</span></div></div></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

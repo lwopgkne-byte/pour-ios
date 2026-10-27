@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>提醒通知</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;position:relative;overflow:hidden;background:#24303F;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#FFFFFF}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,"PingFang SC",sans-serif}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.noti{background:rgba(245,245,247,.92);color:#1D1C1A;border-radius:22px;padding:12px 14px;box-sizing:border-box}
+.act{display:flex;align-items:center;justify-content:space-between;height:46px;padding:0 16px;font-size:16px;color:#1D1C1A}
+.asep{height:1px;background:rgba(0,0,0,.1)}
+.appicon{width:38px;height:38px;border-radius:9px;background:#1B56B3;display:flex;align-items:center;justify-content:center;flex:none}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.35)"></div>
+  <div style="position:relative;text-align:center;padding-top:70px">
+    <div style="font-size:16px;font-weight:600;opacity:.9">10月27日 星期二</div>
+    <div class="num" style="font-size:84px;font-weight:600;line-height:1;margin-top:4px">17:30</div>
+  </div>
+
+  <div style="position:relative;margin:56px 14px 0 14px">
+    <div class="noti" style="display:flex;gap:12px;align-items:flex-start">
+      <div class="appicon"><svg class="ico" style="color:#FFFFFF;width:22px;height:22px" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v9a5 5 0 0 1-5 5h-4a5 5 0 0 1-5-5z"></path><path d="M19 8h1.5a2 2 0 0 1 0 4H19"></path></svg></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#58554F"><span style="font-weight:600">Pour · 时间敏感</span><span>现在</span></div>
+        <div style="font-size:16px;font-weight:600;margin-top:2px">把会员改版的 PRD 发给研发</div>
+        <div style="font-size:14px;color:#3A3833;margin-top:2px">你 10月26日说的</div>
+      </div>
+    </div>
+    <div style="margin-top:8px;background:rgba(245,245,247,.92);border-radius:16px;overflow:hidden">
+      <div class="act"><span style="font-weight:600;color:#1B56B3">完成</span><svg class="ico" style="width:18px;height:18px;color:#1B56B3;stroke-width:2.3" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></div>
+      <div class="asep"></div>
+      <div class="act"><span>10 分钟后再提醒</span><svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></div>
+      <div class="asep"></div>
+      <div class="act"><span>1 小时后再提醒</span><svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg></div>
+      <div class="asep"></div>
+      <div class="act"><span>明天早上再提醒</span><svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2.5v2M4.6 4.6L6 6M2.5 12h2M19.5 12h2M18 6l1.4-1.4"></path></svg></div>
+    </div>
+  </div>
+
+  <div style="position:relative;margin:18px 14px 0 14px">
+    <div class="noti" style="display:flex;gap:12px;align-items:flex-start;opacity:.96">
+      <div class="appicon"><svg class="ico" style="color:#FFFFFF;width:22px;height:22px" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v9a5 5 0 0 1-5 5h-4a5 5 0 0 1-5-5z"></path><path d="M19 8h1.5a2 2 0 0 1 0 4H19"></path></svg></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#58554F"><span style="font-weight:600">Pour</span><span>21:30</span></div>
+        <div style="font-size:16px;font-weight:600;margin-top:2px">今天心情怎么样？</div>
+        <div style="font-size:14px;color:#3A3833;margin-top:2px">按住选一个就记下，不用打开 Pour（晚上问问心情：选开）</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

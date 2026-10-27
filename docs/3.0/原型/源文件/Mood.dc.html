@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>心情</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:1600px;position:relative;overflow:hidden;background:#F3F2EF;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#1D1C1A}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,"PingFang SC",sans-serif}
+.q{font-family:"Songti SC","STSong","Noto Serif SC",serif}
+.card{background:#FFFFFF;border-radius:20px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 2px 10px rgba(0,0,0,.035)}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.glass{background:rgba(255,255,255,.86);box-shadow:0 6px 24px rgba(0,0,0,.10),0 0 0 .5px rgba(0,0,0,.07);backdrop-filter:blur(20px)}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px 16px}
+.hd b{font-size:17px}
+.lv{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:#58554F;flex:1}
+.lvc{width:48px;height:48px;border-radius:24px;display:flex;align-items:center;justify-content:center;color:#FFFFFF}
+.dots{display:flex;gap:3px}
+.dots i{width:7px;height:7px;border-radius:4px;background:#E7D3DD;display:block}
+.dots i.f{background:#B83E73}
+.moment{margin:6px 0 0 0;padding-left:10px;border-left:2px solid rgba(29,28,26,.14)}
+.px{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;padding:0 16px 16px 16px}
+.px div{height:30px;border-radius:7px}
+.fb{display:inline-flex;align-items:center;height:30px;padding:0 11px;border-radius:15px;font-size:13px;background:rgba(29,28,26,.06);color:#3A3833}
+.bar{height:8px;border-radius:4px;background:rgba(29,28,26,.07);position:relative;flex:1}
+</style>
+</helmet>
+<div class="scr">
+  <div style="padding:52px 16px 0 12px"><button class="btn glass" aria-label="返回" style="height:40px;border-radius:20px;padding:0 12px 0 8px;display:flex;align-items:center;gap:2px;font-size:16px"><svg class="ico" style="width:20px;height:20px" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>我的</button></div>
+  <h1 style="margin:10px 20px 0 20px;font-size:34px;font-weight:700">心情</h1>
+
+  <div class="card" style="margin:14px 16px 0 16px;padding:18px 10px 16px 10px">
+    <div style="font-size:17px;font-weight:700;margin:0 0 14px 8px">现在心情怎么样？</div>
+    <div style="display:flex">
+      <div class="lv"><div class="lvc" style="background:#E9D1DC;color:#7E2A52"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M8.5 16s1.3-2 3.5-2 3.5 2 3.5 2M9 9.8h.01M15 9.8h.01"></path></svg></div>很差</div>
+      <div class="lv"><div class="lvc" style="background:#DDB0C5;color:#6E2147"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M9 15.5h6M9 9.8h.01M15 9.8h.01"></path></svg></div>不太好</div>
+      <div class="lv"><div class="lvc" style="background:#CF8DAD"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M8.5 14.5h7M9 9.8h.01M15 9.8h.01"></path></svg></div>一般</div>
+      <div class="lv"><div class="lvc" style="background:#C2669A"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M8.5 14s1.3 2 3.5 2 3.5-2 3.5-2M9 9.8h.01M15 9.8h.01"></path></svg></div>挺好</div>
+      <div class="lv"><div class="lvc" style="background:#A63A6D"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M8 13.5s1.5 3 4 3 4-3 4-3M9 9.8h.01M15 9.8h.01"></path></svg></div>很好</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin:12px 16px 0 16px;padding-bottom:14px">
+    <div class="hd"><b>今天</b><span style="font-size:13px;color:#58554F">有起有落</span></div>
+    <div style="display:flex;gap:12px;padding:4px 16px 10px 16px">
+      <span class="num" style="font-size:13px;color:#6B6760;width:40px;flex:none;padding-top:2px">08:20</span>
+      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="dots"><i class="f"></i><i class="f"></i><i></i><i></i><i></i></span><b style="font-size:15px">不太好</b><span style="font-size:14px;color:#58554F">累</span></div>
+      <div class="moment q" style="font-size:15px">地铁挤得要命，站了一路</div></div>
+    </div>
+    <div style="display:flex;gap:12px;padding:6px 16px 4px 16px">
+      <span class="num" style="font-size:13px;color:#6B6760;width:40px;flex:none;padding-top:2px">12:50</span>
+      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px"><span class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i></span><b style="font-size:15px">挺好</b><span style="font-size:14px;color:#58554F">开心</span></div>
+      <div class="moment q" style="font-size:15px">食堂今天有红烧肉</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin:12px 16px 0 16px">
+    <div class="hd"><b>10月</b><span style="font-size:12px;color:#6B6760">点一格看那天的回顾</span></div>
+    <div class="px">
+      <div></div><div></div><div></div><div style="background:#DDB0C5"></div><div style="background:#C2669A"></div><div style="background:#A63A6D"></div><div style="background:#C2669A"></div>
+      <div style="background:#CF8DAD"></div><div style="background:#C2669A"></div><div style="background:#DDB0C5"></div><div style="background:#CF8DAD"></div><div style="background:#EDEBE7"></div><div style="background:#A63A6D"></div><div style="background:#C2669A"></div>
+      <div style="background:#CF8DAD"></div><div style="background:#E9D1DC"></div><div style="background:#DDB0C5"></div><div style="background:#C2669A"></div><div style="background:#CF8DAD"></div><div style="background:#C2669A"></div><div style="background:#A63A6D"></div>
+      <div style="background:#C2669A"></div><div style="background:#CF8DAD"></div><div style="background:#DDB0C5"></div><div style="background:#EDEBE7"></div><div style="background:#C2669A"></div><div style="background:#A63A6D"></div><div style="background:#CF8DAD"></div>
+      <div style="background:#DDB0C5"></div><div style="background:#CF8DAD;box-shadow:0 0 0 2px #1B56B3"></div><div></div><div></div><div></div><div></div><div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:0 16px 14px 16px;font-size:12px;color:#58554F">很差<span style="width:12px;height:12px;border-radius:3px;background:#E9D1DC"></span><span style="width:12px;height:12px;border-radius:3px;background:#DDB0C5"></span><span style="width:12px;height:12px;border-radius:3px;background:#CF8DAD"></span><span style="width:12px;height:12px;border-radius:3px;background:#C2669A"></span><span style="width:12px;height:12px;border-radius:3px;background:#A63A6D"></span>很好<span style="width:12px;height:12px;border-radius:3px;background:#EDEBE7;margin-left:8px"></span>记了没说心情</div>
+  </div>
+
+  <div class="card" style="margin:12px 16px 0 16px;padding-bottom:16px">
+    <div class="hd"><b>好时刻</b><span style="font-size:14px;color:#58554F">全部 15 个 ›</span></div>
+    <div style="display:flex;flex-direction:column;gap:12px;padding:0 16px">
+      <div class="moment q" style="font-size:16px;margin:0">晚上楼下飘上来烤红薯的香味<div class="num" style="font-family:ui-rounded,-apple-system,sans-serif;font-size:12px;color:#6B6760;margin-top:2px">10月26日 · 放松</div></div>
+      <div class="moment q" style="font-size:16px;margin:0">陪儿子去公园玩了一个半小时<div class="num" style="font-family:ui-rounded,-apple-system,sans-serif;font-size:12px;color:#6B6760;margin-top:2px">10月24日 · 开心</div></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin:12px 16px 0 16px;padding:16px">
+    <div style="font-size:12px;color:#58554F;font-weight:600">发现</div>
+    <div style="font-size:17px;font-weight:700;line-height:1.45;margin-top:6px">和儿子在一起的日子，几乎都心情挺好；别的日子很少这样。</div>
+    <div style="display:flex;align-items:center;gap:10px;font-size:13px;margin-top:12px"><span style="width:76px">和儿子一起</span><div class="bar"><div style="position:absolute;left:0;top:0;bottom:0;width:90%;border-radius:4px;background:#1A683D"></div></div><span class="num" style="width:76px;text-align:right;color:#58554F">31 天里 28 天</span></div>
+    <div style="display:flex;align-items:center;gap:10px;font-size:13px;margin-top:8px"><span style="width:76px">别的日子</span><div class="bar"><div style="position:absolute;left:0;top:0;bottom:0;width:8%;border-radius:4px;background:#8E8A83"></div></div><span class="num" style="width:76px;text-align:right;color:#58554F">26 天里 2 天</span></div>
+    <div style="font-size:12px;color:#6B6760;margin-top:10px">只是同时出现，不一定是因为它 · 点开看是哪几天</div>
+    <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap"><span class="fb">说中了</span><span class="fb">早知道</span><span class="fb">没意思</span><span class="fb">不对</span></div>
+  </div>
+
+  <div class="card" style="margin:12px 16px 0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px"><span style="font-size:16px">心情分析：什么时候、和谁、在做什么</span><svg class="ico" style="width:16px;height:16px;color:#6B6760" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>记心情</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;position:relative;overflow:hidden;background:#F3F2EF;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#1D1C1A}
+.q{font-family:"Songti SC","STSong","Noto Serif SC",serif}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.sheet{position:absolute;left:0;right:0;top:150px;bottom:0;background:#F7F6F3;border-radius:28px 28px 0 0;box-shadow:0 -6px 30px rgba(0,0,0,.18)}
+.lv{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:#58554F;flex:1}
+.lvc{width:48px;height:48px;border-radius:24px;display:flex;align-items:center;justify-content:center;color:#FFFFFF;opacity:.45}
+.lv.on{color:#1D1C1A;font-weight:700}
+.lv.on .lvc{opacity:1;transform:scale(1.15);box-shadow:0 0 0 3px #FFFFFF,0 0 0 5px #A63A6D}
+.chip{display:inline-flex;align-items:center;height:34px;padding:0 13px;border-radius:17px;font-size:15px;background:#FFFFFF;box-shadow:0 0 0 1px rgba(29,28,26,.10) inset}
+.chip.on{background:#B83E73;color:#FFFFFF;box-shadow:none}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.22)"></div>
+  <div class="sheet">
+    <div style="width:36px;height:5px;border-radius:3px;background:rgba(29,28,26,.2);margin:8px auto 0 auto"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px 0 20px">
+      <div style="font-size:17px;font-weight:700">现在心情怎么样？</div>
+      <button class="btn" aria-label="关闭" style="width:36px;height:36px;border-radius:18px;background:rgba(29,28,26,.07);display:flex;align-items:center;justify-content:center"><svg class="ico" style="width:16px;height:16px;stroke-width:2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+    <div style="display:flex;padding:22px 10px 0 10px">
+      <div class="lv"><div class="lvc" style="background:#E9D1DC;color:#7E2A52"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M8.5 16s1.3-2 3.5-2 3.5 2 3.5 2M9 9.8h.01M15 9.8h.01"></path></svg></div>很差</div>
+      <div class="lv"><div class="lvc" style="background:#DDB0C5;color:#6E2147"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M9 15.5h6M9 9.8h.01M15 9.8h.01"></path></svg></div>不太好</div>
+      <div class="lv"><div class="lvc" style="background:#CF8DAD"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M8.5 14.5h7M9 9.8h.01M15 9.8h.01"></path></svg></div>一般</div>
+      <div class="lv on"><div class="lvc" style="background:#C2669A"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M8.5 14s1.3 2 3.5 2 3.5-2 3.5-2M9 9.8h.01M15 9.8h.01"></path></svg></div>挺好</div>
+      <div class="lv"><div class="lvc" style="background:#A63A6D"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M8 13.5s1.5 3 4 3 4-3 4-3M9 9.8h.01M15 9.8h.01"></path></svg></div>很好</div>
+    </div>
+
+    <div style="font-size:13px;color:#58554F;margin:26px 20px 10px 20px">什么样的感觉（可以不选）</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;padding:0 16px">
+      <span class="chip on">放松</span><span class="chip">开心</span><span class="chip">满足</span><span class="chip">平静</span><span class="chip">期待</span><span class="chip">累</span><span class="chip">烦躁</span><span class="chip">失落</span>
+    </div>
+
+    <div style="font-size:13px;color:#58554F;margin:22px 20px 10px 20px">因为……（可以不填）</div>
+    <div style="margin:0 16px;background:#FFFFFF;border-radius:16px;padding:14px 12px 14px 16px;display:flex;align-items:center;gap:10px">
+      <div class="q" style="flex:1;font-size:17px;line-height:1.5">晚上楼下飘上来烤红薯的香味</div>
+      <button class="btn" aria-label="说话" style="width:36px;height:36px;border-radius:18px;background:rgba(27,86,179,.10);color:#1B56B3;display:flex;align-items:center;justify-content:center;flex:none"><svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3.5" width="6" height="11" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5"></path></svg></button>
+    </div>
+    <div style="font-size:12px;color:#6B6760;margin:10px 20px 0 20px">记下的是一句原话「心情挺好，放松，因为晚上楼下飘上来烤红薯的香味」</div>
+    <div style="position:absolute;left:16px;right:16px;bottom:34px"><button class="btn" style="width:100%;height:54px;border-radius:16px;background:#B83E73;color:#FFFFFF;font-size:18px;font-weight:700">记下</button></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

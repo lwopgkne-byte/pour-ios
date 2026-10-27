@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>待办详情</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.scr{width:390px;height:844px;position:relative;overflow:hidden;background:#F3F2EF;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC",sans-serif;color:#1D1C1A}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,"PingFang SC",sans-serif}
+.q{font-family:"Songti SC","STSong","Noto Serif SC",serif}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn{border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:118px;background:#F7F6F3;border-radius:28px 28px 0 0;box-shadow:0 -6px 30px rgba(0,0,0,.18)}
+.grp{background:#FFFFFF;border-radius:16px;margin:0 16px}
+.row{display:flex;align-items:center;gap:12px;min-height:50px;padding:0 16px;box-sizing:border-box}
+.sep{height:1px;background:rgba(29,28,26,.08);margin-left:50px}
+.lab{flex:1;font-size:16px}
+.val{font-size:15px;color:#58554F}
+.chip{display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:15px;font-size:14px;background:rgba(29,28,26,.06);color:#1D1C1A}
+.chip.on{background:#1B56B3;color:#FFFFFF}
+.toggle{width:51px;height:31px;border-radius:16px;background:#34A853;position:relative;flex:none}
+.toggle:after{content:"";position:absolute;right:2px;top:2px;width:27px;height:27px;border-radius:14px;background:#FFFFFF;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+</style>
+</helmet>
+<div class="scr">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.22)"></div>
+  <div style="position:absolute;left:16px;right:16px;top:60px;height:44px;border-radius:14px;background:rgba(255,255,255,.55)"></div>
+  <div class="sheet">
+    <div style="width:36px;height:5px;border-radius:3px;background:rgba(29,28,26,.2);margin:8px auto 0 auto"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px 0 16px">
+      <button class="btn" aria-label="关闭" style="width:36px;height:36px;border-radius:18px;background:rgba(29,28,26,.07);display:flex;align-items:center;justify-content:center"><svg class="ico" style="width:16px;height:16px;stroke-width:2.2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      <button class="btn" aria-label="更多" style="width:36px;height:36px;border-radius:18px;background:rgba(29,28,26,.07);display:flex;align-items:center;justify-content:center"><svg class="ico" style="width:18px;height:18px" viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12h.01M12 12h.01M18.5 12h.01" style="stroke-width:3"></path></svg></button>
+    </div>
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px 20px 0 20px">
+      <div style="width:26px;height:26px;border-radius:13px;border:2px solid rgba(29,28,26,.3);box-sizing:border-box;margin-top:3px;flex:none"></div>
+      <div style="font-size:22px;font-weight:700;line-height:1.35">把会员改版的 PRD 发给研发</div>
+    </div>
+    <div style="margin:12px 20px 16px 58px;padding-left:12px;border-left:2px solid rgba(29,28,26,.15)">
+      <div class="q" style="font-size:15px;line-height:1.6;color:#3A3833">明天下午五点半提醒我把会员改版的 PRD 发给研发</div>
+      <div class="num" style="font-size:12px;color:#6B6760;margin-top:4px">10月26日 21:40 你说的 · 看原话 ›</div>
+    </div>
+
+    <div class="grp">
+      <div class="row"><svg class="ico" style="color:#C2402F" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg><div class="lab">期限</div><span class="val" style="background:rgba(29,28,26,.06);padding:5px 10px;border-radius:8px;color:#1D1C1A">今天 10月27日</span></div>
+      <div class="sep"></div>
+      <div class="row"><svg class="ico" style="color:#1B56B3" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16z"></path><path d="M10 20.5a2 2 0 0 0 4 0"></path></svg><div class="lab">提醒</div><span class="num" style="font-size:15px;background:rgba(29,28,26,.06);padding:5px 10px;border-radius:8px;margin-right:6px">17:30</span><div class="toggle"></div></div>
+      <div style="display:flex;gap:8px;padding:0 16px 14px 50px;flex-wrap:wrap">
+        <span class="chip">到期那天 9:00</span><span class="chip">提前 1 小时</span><span class="chip">今晚 8 点</span>
+      </div>
+      <div class="sep"></div>
+      <div class="row"><svg class="ico" style="color:#22895A" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 2.5l3 3-3 3M4 11V9.5a4 4 0 0 1 4-4h12M7 21.5l-3-3 3-3M20 13v1.5a4 4 0 0 1-4 4H4"></path></svg><div class="lab">重复</div><span class="val">不重复 ›</span></div>
+    </div>
+
+    <div class="grp" style="margin-top:12px">
+      <div class="row"><svg class="ico" style="color:#58554F" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.5"></circle><path d="M2.5 19.5a6.5 6.5 0 0 1 13 0"></path></svg><div class="lab">和谁</div><span class="chip">研发</span></div>
+      <div class="sep"></div>
+      <div class="row"><svg class="ico" style="color:#58554F" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"></path><path d="M14 3v5h5"></path></svg><div class="lab">东西</div><span class="chip">PRD</span></div>
+    </div>
+
+    <div style="position:absolute;left:16px;right:16px;bottom:34px;display:flex;flex-direction:column;gap:10px">
+      <button class="btn" style="height:52px;border-radius:16px;background:#1B56B3;color:#FFFFFF;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px"><svg class="ico" style="width:20px;height:20px;stroke-width:2.4" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>完成</button>
+      <button class="btn" style="height:44px;font-size:16px;color:#C2402F">删除这件待办</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
