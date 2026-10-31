@@ -141,6 +141,8 @@ extension API {
         public var amount: Double
         public var sub: String
         public var entryId: Int?
+        /// 右边的按钮办的是哪几笔（都报销了、已经还了、不再算固定的；快扣的只提醒，是空的）；服务器太旧没有是 nil
+        public var refs: [WatchRef]?
     }
 
     public struct MoneyWhoRow: Codable, Hashable, Sendable {

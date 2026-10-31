@@ -24,6 +24,8 @@ extension Theme {
         public static let unit = Font.subheadline.weight(.medium)
         /// 卡片的大数字（28 半粗圆体）
         public static let metric = Font.system(.title, design: .rounded, weight: .semibold)
+        /// 页面上的大数（钱的主页「¥9,616」）：34 点圆体（01 需求文档 3.1）
+        public static let bigNumber = Font.system(.largeTitle, design: .rounded, weight: .bold)
         /// 今天的样子里的数字（22 半粗圆体）
         public static let heroMetric = Font.system(.title2, design: .rounded, weight: .semibold)
         /// 一行里的钱、次数（15 半粗圆体）

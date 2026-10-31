@@ -38,6 +38,14 @@ struct ThemeColorTests {
         #expect(contrast(Theme.Tokens.warnInk, on: Theme.Tokens.background, ink: Self.smallText) >= 4.5, "页面底上")
     }
 
+    /// 3.0 钱的种类标签：浅底上的小字都 ≥ 4.5（等报销蓝、借出去黄、收入绿、人情红、固定的灰）
+    @Test func moneyTags() {
+        #expect(contrast(Theme.Tokens.accent, on: Theme.Tokens.remindFill, ink: Self.smallText) >= 4.5, "等报销")
+        #expect(contrast(Theme.Tokens.warnInk, on: Theme.Tokens.warnFill, ink: Self.smallText) >= 4.5, "借出去")
+        #expect(contrast(Theme.Tokens.good, on: Theme.Tokens.goodFill, ink: Self.smallText) >= 4.5, "收入")
+        #expect(contrast(Theme.Tokens.badInk, on: Theme.Tokens.badFill, ink: Self.smallText) >= 4.5, "人情")
+    }
+
     /// 3.0「我的」功能格子：彩色方块上的白色图标（图形 ≥ 3:1）
     @Test func hubTileIcons() {
         for token in Theme.Tile.tokens {

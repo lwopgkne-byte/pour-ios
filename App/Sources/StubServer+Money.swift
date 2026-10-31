@@ -7,17 +7,7 @@
         func moneyReply(_ method: String, _ path: String) -> Any? {
             guard path.hasPrefix("/api/money") else { return nil }
             if method == "POST" { return ["ok": true] }
-            let rest = String(path.dropFirst("/api/money".count))
-            switch rest {
-            case "/overview": return MoneyStub.json(MoneyStub.overview)
-            case "/watch": return MoneyStub.json(MoneyStub.watch)
-            case "/findings": return MoneyStub.json(MoneyStub.findings)
-            case "/renqing": return MoneyStub.json(MoneyStub.renqing)
-            case let other where other.hasPrefix("/renqing/"): return MoneyStub.json(MoneyStub.person)
-            case let other where other.hasPrefix("/day/"): return MoneyStub.json(MoneyStub.day)
-            case let other where other.hasPrefix("/thing/"): return MoneyStub.json(MoneyStub.thing)
-            default: return MoneyStub.json(MoneyStub.month)
-            }
+            return MoneyStub.reply(String(path.dropFirst("/api/money".count)))
         }
     }
 
@@ -26,6 +16,68 @@
         static func json(_ text: String) -> Any {
             (try? JSONSerialization.jsonObject(with: Data(text.utf8))) ?? [String: Any]()
         }
+
+        /// /api/money 后面那一截 → 回什么
+        static func reply(_ rest: String) -> Any {
+            if rest.hasPrefix("/home") { return home() }
+            if rest == "/quick" { return ["items": quick] }
+            return json(text(rest))
+        }
+
+        private static func text(_ rest: String) -> String {
+            switch rest {
+            case "/overview": overview
+            case "/watch": watch
+            case "/findings": findings
+            case "/renqing": renqing
+            case let other where other.hasPrefix("/renqing/"): person
+            case let other where other.hasPrefix("/day/"): day
+            case let other where other.hasPrefix("/thing/"): thing
+            default: month
+            }
+        }
+
+        /// 3.0 钱的主页（服务器 /api/money/home）：这个月、每天累计、预算、留意的几条（带上按钮办的是哪几笔）、
+        /// 花给了谁、值不值、钱和你的日子
+        static func home() -> [String: Any] {
+            let month = json(Self.month) as? [String: Any] ?? [:]
+            let days = (month["days"] as? [[String: Any]]) ?? []
+            let spent = Dictionary(
+                days.compactMap { day in (day["day"] as? String).map { ($0, day["spent"] as? Double ?? 0) } },
+                uniquingKeysWith: +)
+            var sum = 0.0
+            let current = (1...20).map { number -> Double in
+                sum += spent[String(format: "2026-10-%02d", number)] ?? 0
+                return sum
+            }
+            let previous = (1...30).map { Double($0) * 905 }
+            var overview = json(Self.overview) as? [String: Any] ?? [:]
+            overview["watch"] = ((overview["watch"] as? [[String: Any]]) ?? []).map { line in
+                var line = line
+                let id = line["entryId"] as? Int
+                switch line["kind"] as? String {
+                case "reimburse": line["refs"] = [["entryId": 580, "index": 0]]
+                case "lend", "unused": line["refs"] = id.map { [["entryId": $0, "index": 0]] } ?? []
+                default: line["refs"] = [[String: Any]]()
+                }
+                return line
+            }
+            let budget: [String: Any] = [
+                "id": 3, "title": "每月外卖不超过 300 元", "limit": 300, "spent": 236, "left": 64, "pct": 236.0 / 300,
+                "tone": "ok", "text": "还能花 ¥64",
+            ]
+            return [
+                "month": month, "pace": ["current": current, "previous": previous], "budgets": [budget],
+                "overview": overview, "findings": json(Self.findings),
+            ]
+        }
+
+        /// 记一笔的「你常买的」
+        nonisolated(unsafe) static let quick: [[String: Any]] = [
+            ["name": "午饭", "amount": 25, "count": 9], ["name": "打车", "amount": 30, "count": 6],
+            ["name": "咖啡", "amount": 22, "count": 5], ["name": "外卖", "amount": 35, "count": 4],
+            ["name": "买菜", "amount": 48, "count": 3], ["name": "地铁", "amount": 6, "count": 3],
+        ]
 
         static let month = #"""
             {"month":"2026-10","from":"2026-10-01","to":"2026-10-20","today":"2026-10-20",

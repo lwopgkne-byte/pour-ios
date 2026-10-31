@@ -38,6 +38,10 @@ extension Theme {
         public static let warnInk = one(0x6B4700)
         /// 到点提醒的待办胶囊：比气泡浅一点的蓝底，上面是强调色的字
         public static let remindFill = one(0xEEF3FC)
+        /// 钱的种类标签（3.0 第 3 步）：收入、回来的钱（浅绿底、好的字）；人情（浅红底、深一档的红字）
+        public static let goodFill = one(0xF0F8F2)
+        public static let badFill = one(0xFBEFEE)
+        public static let badInk = one(0x9E322B)
         public static let bad = one(0xAA3831)
 
         /// 一个颜色（只有一种样子：亮、暗用同一个值）
@@ -68,6 +72,9 @@ extension Theme {
         public static let warnFill = Tokens.warnFill.color
         public static let warnInk = Tokens.warnInk.color
         public static let remindFill = Tokens.remindFill.color
+        public static let goodFill = Tokens.goodFill.color
+        public static let badFill = Tokens.badFill.color
+        public static let badInk = Tokens.badInk.color
         public static let bad = Tokens.bad.color
         /// 卡片的两层影子（只在亮色）
         public static let shadowNear = Color.black.opacity(0.04)

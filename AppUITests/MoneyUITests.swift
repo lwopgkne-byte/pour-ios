@@ -14,6 +14,7 @@ final class MoneyUITests: XCTestCase {
         app.openTile("money")
         let hide = app.buttons["遮住金额"]
         XCTAssertTrue(hide.waitForExistence(timeout: 5), "钱没打开")
+        firstScreen(app)
         settle()
         audit(app, "钱")
         app.swipeUp(velocity: .slow)
@@ -31,14 +32,55 @@ final class MoneyUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '¥•••'")).firstMatch.exists)
         app.buttons["显示金额"].tap()
 
-        // 月历点一天：一天的钱
-        app.buttons.matching(NSPredicate(format: "label BEGINSWITH '10月18日'")).firstMatch.tap()
+        pickADay(app)
+        watchInline(app)
+        otherPages(app)
+    }
+
+    /// 3.0 第一屏：大数、和上个月比、每天累计、预算写还能花多少、四个圆按钮
+    @MainActor private func firstScreen(_ app: XCUIApplication) {
+        XCTAssertTrue(app.navigationBars["钱"].exists, "导航栏没写「钱」")
+        XCTAssertEqual(app.staticTexts["money.spent"].label, "¥5,924")
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '少 ¥12,189'")).firstMatch.exists)
+        XCTAssertTrue(app.descendants(matching: .any)["每天累计"].exists, "没有每天累计的曲线")
+        XCTAssertTrue(
+            app.buttons.matching(NSPredicate(format: "label CONTAINS '还能花 ¥64'")).firstMatch.exists, "预算没写还能花")
+        for action in ["money.record", "money.list", "money.watch", "money.renqing"] {
+            XCTAssertTrue(app.buttons[action].exists, "没有圆按钮 \(action)")
+        }
+    }
+
+    /// 月历点一天：下面换成那天的每一笔（不跳页）；「那天 ›」进一天的钱
+    @MainActor private func pickADay(_ app: XCUIApplication) {
+        let day = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '10月18日'")).firstMatch
+        scroll(app, to: day)
+        day.tap()
+        let picked = app.buttons["money.pickedDay"]
+        XCTAssertTrue(picked.waitForExistence(timeout: 3), "点一天下面没出来那天的每一笔")
+        XCTAssertTrue(picked.label.contains("花了 ¥609"), "那天花了多少不对：\(picked.label)")
+        settle()
+        audit(app, "钱-点了一天")
+        scroll(app, to: picked)
+        picked.tap()
         XCTAssertTrue(app.navigationBars.buttons["钱"].waitForExistence(timeout: 5), "一天的钱没打开")
         settle()
         audit(app, "一天的钱")
         app.navigationBars.buttons["钱"].tap()
+    }
 
-        // 留意的
+    /// 留意：一行一件 + 右边按钮；点「都报销了」这一行收起，轻提示能撤销
+    @MainActor private func watchInline(_ app: XCUIApplication) {
+        let reimburse = app.buttons["money.watch.reimburse"]
+        scroll(app, to: reimburse)
+        reimburse.tap()
+        XCTAssertTrue(app.staticTexts["报销了：等报销"].waitForExistence(timeout: 3), "都报销了没说")
+        XCTAssertTrue(app.buttons["undoToast"].exists, "没有撤销")
+        settle()
+        audit(app, "钱-留意")
+    }
+
+    /// 留意的、人情往来、和一个人的来往
+    @MainActor private func otherPages(_ app: XCUIApplication) {
         let all = app.buttons["全部 ›"]
         scroll(app, to: all)
         all.tap()
@@ -51,8 +93,6 @@ final class MoneyUITests: XCTestCase {
         app.swipeDown(velocity: .fast)
         app.swipeDown(velocity: .fast)
         app.navigationBars.buttons["钱"].tap()
-
-        // 人情往来、和一个人的来往
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH '人情往来'")).firstMatch.tap()
         XCTAssertTrue(app.staticTexts["和谁来往"].waitForExistence(timeout: 5), "人情往来没打开")
         settle()
