@@ -7,18 +7,19 @@ import SwiftUI
 /// 最后一块「这台手机」：连哪台电脑上的 Pour
 struct SettingsPage: View {
     @Environment(AppModel.self) private var model
+    /// 打开时滚到哪一块：画布上点「演示数据 · 回到真实数据」（/settings#data）直接到「数据」；
+    /// 「我的」里的健康格子（/settings#health）到「健康」
+    let anchor: String?
 
     var body: some View {
         ScrollViewReader { reader in
-            page.onAppear { jump(reader) }.onChange(of: model.pagePath) { _, _ in jump(reader) }
+            page.onAppear { jump(reader) }
         }
     }
 
-    /// 横幅上点「回到真实数据」（/settings#data）：直接滚到「数据」
     private func jump(_ reader: ScrollViewProxy) {
-        guard let path = model.pagePath, path.hasPrefix("/settings") else { return }
-        model.pagePath = nil
-        if path.hasSuffix("#data") { withAnimation(Web.panel) { reader.scrollTo("data", anchor: .top) } }
+        guard let anchor, ["data", "health"].contains(anchor) else { return }
+        withAnimation(Web.panel) { reader.scrollTo(anchor, anchor: .top) }
     }
 
     private var page: some View {
@@ -44,7 +45,7 @@ struct SettingsPage: View {
                 }
                 SettingsSection(title: "局域网访问") { LanSettings() }
                 SettingsSection(title: "数据") { DataSettings() }.id("data")
-                SettingsSection(title: "健康") { HealthSettings() }
+                SettingsSection(title: "健康") { HealthSettings() }.id("health")
                 SettingsSection(title: "日历") { CalendarSettings() }
                 SettingsSection(title: "这台手机") { PhoneSettings() }
             }

@@ -18,9 +18,12 @@ final class CalendarUITests: XCTestCase {
         app.buttons["health.dismiss"].tap()
         let connect = app.buttons["calendar.connect"]
         XCTAssertTrue(connect.waitForExistence(timeout: 5), "画布上没有「接上日历」")
+        // 先滚到它整个露出来：在最下面时点到的是浮在底部的「说一句」（2026-10-31）
+        app.reveal(connect)
         connect.tap()
         let allDay = app.descendants(matching: .any)["agenda.allDay"]
-        XCTAssertTrue(allDay.waitForExistence(timeout: 5), "待办卡上没有全天的日程")
+        if !allDay.waitForExistence(timeout: 5) { keep(app, "日历-接上以后") }
+        XCTAssertTrue(allDay.exists, "待办卡上没有全天的日程")
         XCTAssertTrue(allDay.label.contains("小李生日"), "全天的不对：\(allDay.label)")
         let event = app.descendants(matching: .any)["agenda.event"]
         XCTAssertTrue(event.waitForExistence(timeout: 3), "待办卡里没有日程")
@@ -39,6 +42,14 @@ final class CalendarUITests: XCTestCase {
 
     @MainActor
     private func attach(_ app: XCUIApplication, _ name: String) {
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = name
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
+
+    /// 没对上时留一张截图（结果包里看）
+    @MainActor private func keep(_ app: XCUIApplication, _ name: String) {
         let shot = XCTAttachment(screenshot: app.screenshot())
         shot.name = name
         shot.lifetime = .keepAlways

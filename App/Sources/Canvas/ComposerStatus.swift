@@ -34,7 +34,7 @@ struct ComposerStatus: View {
         switch state {
         case .offline:
             row(symbol: "icloud.slash", text: "没网，先存在手机上 · 连上自动发", tint: Theme.Palette.secondaryLabel) {
-                Button("重试") { Task { await model.flushOutbox() } }
+                retry { Task { await model.flushOutbox() } }
             }
         case .processing(let text):
             Button {
@@ -51,9 +51,14 @@ struct ComposerStatus: View {
         case .failed(let noteId, let reason):
             let said = reason.hasPrefix("没整理成") ? reason : "没整理成：\(reason)"
             row(symbol: "exclamationmark.circle", text: said, tint: Theme.Palette.bad) {
-                Button("重试") { model.retry(note: noteId) }
+                retry { model.retry(note: noteId) }
             }
         }
+    }
+
+    /// 「重试」：字小，能点的范围撑到 44 点
+    private func retry(_ action: @escaping () -> Void) -> some View {
+        ThemeTextButton("重试", action: action)
     }
 
     private func row<Action: View>(
@@ -62,7 +67,9 @@ struct ComposerStatus: View {
         HStack(spacing: Theme.Space.small) {
             Image(systemName: symbol).foregroundStyle(tint)
                 .symbolEffect(.breathe, options: .repeating, isActive: breathing && !reduceMotion)
-            Text(Show.spaced(text)).foregroundStyle(Theme.Palette.label).lineLimit(1)
+            // 放不下就折成两行（右边的「重试」占 44 点）：不截字
+            Text(Show.spaced(text)).foregroundStyle(Theme.Palette.label).lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: Theme.Space.tight)
             action().font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.accent).buttonStyle(.plain)
                 .frame(minWidth: Theme.Size.touch, minHeight: Theme.Size.touch)

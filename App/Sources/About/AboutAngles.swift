@@ -159,7 +159,7 @@ struct MeCareView: View {
     private func said(_ said: API.CareRow.Said) -> some View {
         MoneyLinkRow(minHeight: Web.touch, chevron: false) {
             if said.kind == "goal" {
-                model.page = .goals
+                model.open("/goals")
             } else {
                 model.open("/library?note=\(said.noteId ?? 0)")
             }

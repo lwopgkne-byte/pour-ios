@@ -11,10 +11,7 @@ final class MoneyUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
         app.launch()
-        let menu = app.descendants(matching: .any)["today.menu"]
-        XCTAssertTrue(menu.waitForExistence(timeout: 5), "画布没打开")
-        menu.tap()
-        app.buttons["钱"].firstMatch.tap()
+        app.openTile("money")
         let hide = app.buttons["遮住金额"]
         XCTAssertTrue(hide.waitForExistence(timeout: 5), "钱没打开")
         settle()
@@ -36,10 +33,10 @@ final class MoneyUITests: XCTestCase {
 
         // 月历点一天：一天的钱
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH '10月18日'")).firstMatch.tap()
-        XCTAssertTrue(app.buttons["‹ 钱"].waitForExistence(timeout: 5), "一天的钱没打开")
+        XCTAssertTrue(app.navigationBars.buttons["钱"].waitForExistence(timeout: 5), "一天的钱没打开")
         settle()
         audit(app, "一天的钱")
-        app.buttons["‹ 钱"].tap()
+        app.navigationBars.buttons["钱"].tap()
 
         // 留意的
         let all = app.buttons["全部 ›"]
@@ -53,7 +50,7 @@ final class MoneyUITests: XCTestCase {
         audit(app, "留意的-下面")
         app.swipeDown(velocity: .fast)
         app.swipeDown(velocity: .fast)
-        app.buttons["‹ 钱"].tap()
+        app.navigationBars.buttons["钱"].tap()
 
         // 人情往来、和一个人的来往
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH '人情往来'")).firstMatch.tap()
@@ -61,7 +58,7 @@ final class MoneyUITests: XCTestCase {
         settle()
         audit(app, "人情往来")
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH '小李'")).firstMatch.tap()
-        XCTAssertTrue(app.buttons["‹ 人情往来"].waitForExistence(timeout: 5), "和小李的来往没打开")
+        XCTAssertTrue(app.navigationBars.buttons["人情往来"].waitForExistence(timeout: 5), "和小李的来往没打开")
         settle()
         audit(app, "和小李的来往")
     }
@@ -70,10 +67,7 @@ final class MoneyUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
         app.launch()
-        let menu = app.descendants(matching: .any)["today.menu"]
-        XCTAssertTrue(menu.waitForExistence(timeout: 5), "画布没打开")
-        menu.tap()
-        app.buttons["钱"].firstMatch.tap()
+        app.openTile("money")
         XCTAssertTrue(app.buttons["遮住金额"].waitForExistence(timeout: 5), "钱没打开")
         let thing = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '空气炸锅'")).firstMatch
         scroll(app, to: thing)
@@ -99,11 +93,7 @@ final class MoneyUITests: XCTestCase {
     /// 往下翻到它能点为止（最多翻 8 次）
     @MainActor
     private func scroll(_ app: XCUIApplication, to element: XCUIElement) {
-        var tries = 0
-        while !element.isHittable && tries < 8 {
-            app.swipeUp(velocity: .slow)
-            tries += 1
-        }
+        app.reveal(element)
     }
 
     @MainActor

@@ -51,17 +51,19 @@ enum AppAudit {
         let glass = [app.buttons["pourbar"], app.descendants(matching: .any)["undoToast"]].filter(\.exists).map(\.frame)
         let navigation = app.navigationBars.allElementsBoundByIndex.filter(\.exists).map(\.frame)
         // 底部的输入框：页面在它后面滚，压在它下面、只露出一半的字量出来对比度不准、像被截断
-        let bar = ["pourbar.input", "pourbar.chat", "pourbar.send"]
-            .map { app.descendants(matching: .any)[$0] }.filter(\.exists).map(\.frame.minY).min()
-        // 顶栏（菜单、搜索）：页面往上滚到它后面去的字也只露出一截
-        let header = app.descendants(matching: .any)["today.menu"]
+        // 3.0：往下翻时「说一句」收起来（挪到屏幕外面），这时页面的最下沿是屏幕底边淡出的那一截（系统的 scrollEdgeEffect）
+        let screenBottom = app.frame.height - Self.bottomFade
+        let bar =
+            (["pourbar.input", "pourbar.chat", "pourbar.send"]
+            .map { app.descendants(matching: .any)[$0] }.filter(\.exists).map(\.frame.minY) + [screenBottom]).min()
+        // 画布顶上那一行（「我」、日子、搜索）：页面往上滚到它后面去的字也只露出一截
+        let header = app.descendants(matching: .any)["today.me"]
         let headerBottom = header.exists ? header.frame.maxY + Self.headerPadding : nil
         // 对话面板开着：面板里的字往上滚到面板上沿后面，只露出一截
         let chatOpen = app.buttons["pourbar.chat"].exists && app.buttons["pourbar.chat"].label == "收起对话"
-        let panelTop =
-            chatOpen
-            ? app.scrollViews.allElementsBoundByIndex.filter { $0.exists && $0.frame.height > 200 }
-                .map(\.frame.minY).max() : nil
+        // 按名字认（键盘弹着时面板很矮，按高度认不出来，2026-10-31）
+        let chatScroll = app.scrollViews["chat.scroll"]
+        let panelTop = chatOpen && chatScroll.exists ? chatScroll.frame.minY : nil
         var place = Place(
             glass: glass, navigation: navigation, barTop: bar.map { $0 - Self.barPadding }, headerBottom: headerBottom)
         place.panelTop = panelTop
@@ -119,8 +121,8 @@ enum AppAudit {
             var place = place
             if element.identifier.hasPrefix("pourbar") { place.barTop = nil }
             place.oneLine = element.identifier == "webOneLine"
-            // 顶栏自己的菜单、搜索也照样审
-            if element.identifier == "today.menu" || element.label == "搜索" { place.headerBottom = nil }
+            // 顶栏自己的「我」、搜索也照样审
+            if element.identifier == "today.me" || element.label == "搜索" { place.headerBottom = nil }
             // 类别小标签（WebChip）：字是令牌色、对比度够；前面的彩色表情让审计量不准（和「表情不是字」一样）
             if issue.auditType == .contrast, element.identifier == "webChip" {
                 print("放过（表情不是字）[\(name)] \(issue.compactDescription) ← \(element.label)")
@@ -158,6 +160,8 @@ enum AppAudit {
     /// 输入框里的字、按钮到整条输入栏上沿那条分隔线的距离（Composer：上下各 4 点、外面再 8 点，再加分隔线上下几点：
     /// 检查用的模拟器上，压着分隔线的那一行字量出来对比度不够）
     private static let barPadding: CGFloat = 18
+    /// 屏幕底边淡出的那一截：底下的横条（34）+ 淡出的边（约 30）
+    private static let bottomFade: CGFloat = 64
     /// 顶栏 48 点高，菜单按钮 44 点、上下各空 2 点
     private static let headerPadding: CGFloat = 2
 
@@ -226,6 +230,10 @@ enum AppAudit {
         }
         if let bottom = place.headerBottom, frame.minY < bottom {
             return "在顶栏后面"
+        }
+        // 3.0 外壳：推进来的页往上滚，内容从导航栏、状态栏底下滑过去（系统把那一截淡化了）：露出来的那一截量不准
+        if let bottom = place.navigation.map(\.maxY).max(), frame.minY < bottom {
+            return "在导航栏后面"
         }
         // 对话开着时，面板里往上滚出面板上沿的（整个在上沿上面，被面板裁掉、看不见）：后面的页面压暗了、读屏不读
         if let top = place.panelTop, frame.maxY <= top + 2 {

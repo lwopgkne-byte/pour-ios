@@ -6,7 +6,7 @@ import WidgetKit
 extension AppModel {
     /// 小组件、控制中心的「说一句」：回到画布、收起对话，输入框看到 voicePending 就开始听
     func requestVoice() {
-        page = .canvas
+        goHome()
         chatOpen = false
         search = nil
         voicePending = true

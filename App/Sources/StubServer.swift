@@ -73,6 +73,10 @@
             var quotes: [[String: Any]] = Self.sampleQuotes
             /// 健康 App 送来的（StubServer+Health）
             var health: [String: Any]?
+            /// 3.0「我的」：管理过的常用（nil 是没管理过，StubServer+Hub）
+            var hubFavorites: [String]?
+            /// 说了「全部断网」以后：所有请求都连不上（测没网时页面用缓存、顶上的细条）
+            var offlineAll = false
             /// 最近一个请求带的请求头（单元测试看 App 有没有说自己照哪一版接口写的）
             var seenHeaders: [String: String] = [:]
 
@@ -83,6 +87,7 @@
                 seenHeaders = request.allHTTPHeaderFields ?? [:]
                 let method = request.httpMethod ?? "GET"
                 let body = Self.body(request)
+                if let reply = offlineReply(body) { return reply }
                 if let reply = basic(method, url, body) { return reply }
                 let parts = url.path.split(separator: "/").map(String.init)
                 if parts.count == 3, parts[1] == "day" {
@@ -112,7 +117,7 @@
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
                 if let value = settingsReply(method, url.path, body) ?? namesReply(method, url.path, body)
                     ?? cardsReply(method, url.path, body) ?? healthReply(method, url.path, body)
-                    ?? pageReply(method, url.path)
+                    ?? hubReply(method, url.path, body) ?? pageReply(method, url.path)
                 {
                     return ok(value)
                 }

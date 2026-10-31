@@ -26,10 +26,19 @@ public actor APIClient {
     let session: URLSession
     /// 这台设备的钥匙（设备登录，docs/模块/产品优化.md R8）：配对时服务器给的，每个请求带上；没有就只靠 cookie
     nonisolated let deviceKey: @Sendable () -> String?
+    /// 页面缓存（3.0 第 1 步，PageCache）：拿到的每一页都存一份，没连上时拿它顶上
+    public nonisolated let cache: PageCache
+    /// 现在显示的是不是缓存：没连上、用了缓存时说是几点存的；又连上了说 nil（外壳顶上那一条细条）
+    private var staleHandler: (@Sendable (Date?) -> Void)?
+    private var stale = false
 
-    public init(baseURL: URL, session: URLSession? = nil, deviceKey: @escaping @Sendable () -> String? = { nil }) {
+    public init(
+        baseURL: URL, session: URLSession? = nil, deviceKey: @escaping @Sendable () -> String? = { nil },
+        cacheFolder: URL? = nil
+    ) {
         self.baseURL = baseURL
         self.deviceKey = deviceKey
+        self.cache = PageCache(server: baseURL, folder: cacheFolder)
         if let session {
             self.session = session
         } else {
@@ -68,11 +77,15 @@ public actor APIClient {
     // MARK: - 说一句、改
 
     /// 说一句：原话交给服务器排队整理；clientId 防重复（同一段话重发不记两遍）。
-    /// day：补记——看以前的某一天时说的，记到那一天（docs/模块/产品优化.md R1.1）
+    /// day：补记——看以前的某一天时说的，记到那一天（docs/模块/产品优化.md R1.1）。
+    /// context：在哪一页说的（todos · money · mood · insights · goals；3.0 说一句的条每一页都在），只给意图识别作参考
     @discardableResult
-    public func send(_ text: String, clientId: String, day: String? = nil) async throws(APIError) -> API.Note {
+    public func send(_ text: String, clientId: String, day: String? = nil, context: String? = nil)
+        async throws(APIError) -> API.Note
+    {
         var body = ["text": text, "clientId": clientId]
         if let day { body["day"] = day }
+        if let context { body["context"] = context }
         return try await request("POST", "/api/notes", body: body)
     }
 
@@ -127,6 +140,21 @@ public actor APIClient {
         try await request("GET", path)
     }
 
+    /// 没连上时用了缓存、又连上了：告诉外壳（顶上那一条细条）
+    public func onStale(_ handler: @escaping @Sendable (Date?) -> Void) {
+        staleHandler = handler
+    }
+
+    /// 上次存下的这一页（新页面打开时先画出来，再去拿新的）；没有、看不懂都是 nil
+    public nonisolated func cached<T: Decodable>(_ path: String) -> T? {
+        cache.load(path).flatMap { try? JSONDecoder().decode(T.self, from: $0.data) }
+    }
+
+    /// 发一个写操作（写操作队列用：改界面在先，这里只管发；AppModel+Writes）
+    public func write(_ method: String, _ path: String, body: Data?) async throws(APIError) {
+        let _: Empty = try await request(method, path, data: body)
+    }
+
     func request<T: Decodable>(
         _ method: String, _ path: String, body: [String: String]? = nil
     ) async throws(APIError) -> T {
@@ -158,6 +186,14 @@ public actor APIClient {
         do {
             (data, response) = try await session.data(for: request)
         } catch {
+            // 没连上：拿过的页面用上次存的顶上（PageCache），顶上的细条说是几点的
+            if method == "GET", let saved = cache.load(path),
+                let value = try? JSONDecoder().decode(T.self, from: saved.data)
+            {
+                stale = true
+                staleHandler?(saved.savedAt)
+                return value
+            }
             throw .unreachable
         }
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
@@ -169,7 +205,15 @@ public actor APIClient {
         }
         if T.self == Empty.self, let empty = Empty() as? T { return empty }
         do {
-            return try JSONDecoder().decode(T.self, from: data.isEmpty ? Data("{}".utf8) : data)
+            let value = try JSONDecoder().decode(T.self, from: data.isEmpty ? Data("{}".utf8) : data)
+            if method == "GET" {
+                cache.save(data, for: path)
+                if stale {
+                    stale = false
+                    staleHandler?(nil)
+                }
+            }
+            return value
         } catch {
             throw .server(status: status, code: "decode", message: "看不懂服务器的回复：\(error.localizedDescription)")
         }

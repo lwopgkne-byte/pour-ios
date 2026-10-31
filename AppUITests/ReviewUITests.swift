@@ -11,10 +11,7 @@ final class ReviewUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
         app.launch()
-        let menu = app.descendants(matching: .any)["today.menu"]
-        XCTAssertTrue(menu.waitForExistence(timeout: 5), "画布没打开")
-        menu.tap()
-        app.buttons["回顾"].firstMatch.tap()
+        app.openTile("review")
         // 标题里中文和数字之间有窄空格：按「周日」「周报」找
         let daily = app.buttons.matching(NSPredicate(format: "label CONTAINS '周日'")).firstMatch
         XCTAssertTrue(daily.waitForExistence(timeout: 5), "回顾列表没出来")

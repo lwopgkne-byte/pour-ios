@@ -168,7 +168,7 @@ struct SearchPalette: View {
 
     private func open(day: String) {
         close()
-        model.page = .canvas
+        model.goHome()
         model.show(day)
     }
 

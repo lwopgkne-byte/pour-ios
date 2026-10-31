@@ -7,7 +7,8 @@ import SwiftUI
  * 一列（上面一条细线、每行下面一条细线）、办完一件事（带撤销）
  */
 
-/// 子页面的开头：「‹ 钱」（点了回去）、大标题、下面一句小字
+/// 子页面的开头：大标题、下面一句小字。3.0 外壳（第 1 步）起返回用导航栏的返回按钮，页面里不再画「‹ 钱」
+/// （back、backTo 留着：第 3 步重做钱的时候一起删）
 struct MoneyHead<Sub: View>: View {
     var back = "‹ 钱"
     let title: String
@@ -16,10 +17,6 @@ struct MoneyHead<Sub: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Web.space2) {
-            Button(back, action: backTo).buttonStyle(.plain).font(Web.caption).foregroundStyle(Web.fgTertiary)
-                .tracking(Web.kickerTracking)
-                .padding(.horizontal, Web.space3).frame(minHeight: Web.touch).contentShape(Rectangle())
-                .padding(.leading, -Web.space3)
             Text(Show.spaced(title)).font(Web.title).foregroundStyle(Web.fg).accessibilityAddTraits(.isHeader)
             sub()
         }

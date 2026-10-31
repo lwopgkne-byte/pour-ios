@@ -31,6 +31,14 @@ struct ThemeColorTests {
         #expect(contrast(token, on: Theme.Tokens.background) >= 3, "\(name) 在页面底上不够")
     }
 
+    /// 3.0「我的」功能格子：彩色方块上的白色图标（图形 ≥ 3:1）
+    @Test func hubTileIcons() {
+        for token in Theme.Tile.tokens {
+            let fill = token.resolved(dark: false).rgb
+            #expect(RGB.white.contrast(with: fill) >= 3, "白色图标在 \(fill) 上不够")
+        }
+    }
+
     /// 填满的蓝色上的白字（今天那个圆、发送按钮）；气泡里的字
     @Test func filledBackgrounds() {
         let fill = Theme.Tokens.accentFill.resolved(dark: false).rgb

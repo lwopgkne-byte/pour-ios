@@ -9,8 +9,6 @@ struct CanvasView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
-    /// 左上角菜单（外壳给的）
-    let openMenu: () -> Void
     @State private var picking = false
     /// 一周条展开着（默认收起：设计评审 2026-10-23，日期不长期占着首页；点顶上的日子展开）
     @State private var weekOpen = false
@@ -22,8 +20,16 @@ struct CanvasView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     if weekOpen {
-                        CanvasWeek().padding(.bottom, Theme.Space.small)
-                            .themeTransition(.move(edge: .top).combined(with: .opacity))
+                        VStack(alignment: .trailing, spacing: 0) {
+                            CanvasWeek()
+                            // 跳到更早的哪一天（3.0 的日历页第 10 步做；这里先用系统的月历选）
+                            Button("跳到某一天") { picking = true }
+                                .font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.accent)
+                                .buttonStyle(.plain).frame(minHeight: Theme.Size.touch)
+                                .accessibilityIdentifier("today.pickDay")
+                        }
+                        .padding(.bottom, Theme.Space.small)
+                        .themeTransition(.move(edge: .top).combined(with: .opacity))
                     }
                     CanvasDayHints()
                     SetupCard()
@@ -48,10 +54,9 @@ struct CanvasView: View {
                 .padding(.horizontal, Theme.Space.screen)
                 .padding(.bottom, Theme.Space.section)
             }
-            // 顶上浮着的玻璃按钮那一截算安全区：滚到某张卡时停在按钮下面，不被盖住
-            .safeAreaPadding(.top, Theme.Size.touch + Theme.Space.small)
             .scrollDismissesKeyboard(.interactively)
             .scrollEdgeEffectStyle(.soft, for: [.top, .bottom])
+            .sayBarFollowsScroll()
             .refreshable { await model.refreshAll() }
             // 日历的日程只在手机上（R6）：换一天、回到前台时读一次
             .task(id: model.shownDay) { model.loadCalendar() }
@@ -65,9 +70,6 @@ struct CanvasView: View {
             }
         }
         .background(Theme.Palette.background.ignoresSafeArea())
-        .overlay(alignment: .top) {
-            CanvasTopBar(weekOpen: $weekOpen, openMenu: openMenu, pickDay: { picking = true })
-        }
         // 左右滑动切换日期（横着滑 60 点以上、比竖着多一倍才算）
         .simultaneousGesture(
             DragGesture(minimumDistance: Theme.Space.xLarge).onEnded { drag in
@@ -81,6 +83,15 @@ struct CanvasView: View {
             }
         )
         .sheet(isPresented: $picking) { DayPicker() }
+        .onChange(of: model.dayPickerRequest) { picking = true }
+        // 顶上那一行（「我」、日子、搜索）在系统的导航栏里；推进来的页返回按钮写「今天」（看别的日子时写那天）
+        .toolbar {
+            CanvasTopBar(
+                weekOpen: $weekOpen, title: CanvasTopBar.short(model.shownDay, today: model.today),
+                reduceMotion: reduceMotion, openMe: { model.open("/me") }, search: { model.search = "" })
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(model.shownDay == model.today ? "今天" : Show.monthDay(model.shownDay))
     }
 }
 
@@ -114,9 +125,7 @@ private struct CanvasBody: View {
         } else if let offline = model.offline {
             VStack(alignment: .leading, spacing: Theme.Space.small) {
                 Text(Show.spaced(offline)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
-                Button("重试") { Task { await model.refreshAll() } }
-                    .font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.accent)
-                    .buttonStyle(.plain).frame(minHeight: Theme.Size.touch)
+                ThemeTextButton("重试", font: Theme.Typeface.bodySemibold) { Task { await model.refreshAll() } }
             }
             .themeCard()
         } else {

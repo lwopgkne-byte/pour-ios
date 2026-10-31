@@ -23,7 +23,7 @@ struct DayNotes: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityAddTraits(.isHeader)
                 Button("看这一天 →") {
-                    model.page = .canvas
+                    model.goHome()
                     model.show(day)
                 }
                 .buttonStyle(.plain).font(Web.caption).foregroundStyle(Web.fgTertiary)

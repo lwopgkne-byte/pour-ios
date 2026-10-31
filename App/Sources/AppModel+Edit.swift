@@ -12,7 +12,22 @@ extension AppModel {
 
     func confirm(_ entryId: Int) { act { client in try await client.confirm(entry: entryId) } }
 
-    func setDone(_ entryId: Int, _ done: Bool) { act { client in try await client.setDone(entry: entryId, done) } }
+    /// 勾待办（3.0 写操作队列）：圆圈马上变；没网时排在手机上，连上了自动发；服务器不收就退回去
+    func setDone(_ entryId: Int, _ done: Bool) {
+        let flip = { (value: Bool) in
+            { (entry: inout API.Entry) in
+                if case .todo(var todo) = entry.data {
+                    todo.done = value
+                    entry.data = .todo(todo)
+                }
+            }
+        }
+        patchEntry(entryId, flip(done))
+        write("PATCH", "/api/entries/\(entryId)", json: .object(["done": .bool(done)])) { [weak self] in
+            self?.patchEntry(entryId, flip(!done))
+        }
+        refreshWidgets()
+    }
 
     /// 详情里原地改（字段名照服务器：label、start、duration_min、metrics……）
     func update(_ entryId: Int, _ fields: [String: JSONValue]) {

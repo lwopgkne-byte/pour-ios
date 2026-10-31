@@ -7,11 +7,18 @@ import SwiftUI
 /// 「感悟」像一本会自己整理的随笔集；「好时刻」是你说过觉得好的那一刻
 struct LibraryPage: View {
     @Environment(AppModel.self) private var model
-    @State private var view = "notes"
+    @State private var view: String
     /// 从一条来源原话跳过来（回顾、详情里的「原话」）：从那一段开始往前看
     @State private var focus: Int?
     /// 从「关于我」跳过来带着的人物
-    @State private var tag = ""
+    @State private var tag: String
+
+    /// 3.0 外壳（第 1 步）：地址里带着的（「/library?note=12」「/library?view=insights」「/library?tag=小王」）
+    init(ask: LibraryAsk) {
+        _view = State(initialValue: ask.view)
+        _focus = State(initialValue: ask.note)
+        _tag = State(initialValue: ask.tag)
+    }
 
     private static let views = [
         (key: "notes", label: "原话"), (key: "insights", label: "感悟"), (key: "moments", label: "好时刻"),
@@ -21,8 +28,6 @@ struct LibraryPage: View {
         ScrollViewReader { proxy in
             page { id in withAnimation(Web.panel) { proxy.scrollTo(id, anchor: .center) } }
         }
-        .onAppear { follow(model.pagePath) }
-        .onChange(of: model.pagePath) { _, path in follow(path) }
     }
 
     private func page(reveal: @escaping (Int) -> Void) -> some View {
@@ -53,17 +58,6 @@ struct LibraryPage: View {
             view = "notes"
             focus = id
         }
-    }
-
-    /// 「/library?note=12」「/library?view=insights」「/library?tag=小王」
-    private func follow(_ path: String?) {
-        guard let path, path.hasPrefix("/library") else { return }
-        model.pagePath = nil
-        let query = URLComponents(string: path)?.queryItems ?? []
-        let value = { (name: String) in query.first { $0.name == name }?.value }
-        view = value("view").flatMap { ["insights", "moments"].contains($0) ? $0 : nil } ?? "notes"
-        focus = value("note").flatMap(Int.init)
-        tag = value("tag") ?? ""
     }
 }
 

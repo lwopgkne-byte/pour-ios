@@ -164,7 +164,7 @@ private struct GoalDetailView: View {
                     ForEach(detail.contributions.prefix(50)) { item in
                         Button {
                             dismiss()
-                            model.page = .canvas
+                            model.goHome()
                             model.show(item.day)
                         } label: {
                             HStack(spacing: Web.space3) {

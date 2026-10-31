@@ -167,22 +167,9 @@ private struct DataRows: View {
     /// 切换真实数据、演示数据：服务器会重新启动，等它回来再整个重新拿
     private func switchMode(_ mode: String, regenerate: Bool = false) {
         busy = mode
-        model.toast(mode == "demo" ? "正在切换到演示数据…" : "正在回到真实数据…")
-        let client = model.client
         Task {
             defer { busy = nil }
-            do {
-                try await client.switchData(to: mode, regenerate: regenerate)
-                try? await Task.sleep(for: .milliseconds(800))
-                for _ in 0..<60 {
-                    if let meta = try? await client.meta(), meta.mode == mode { break }
-                    try? await Task.sleep(for: .milliseconds(500))
-                }
-                await model.refreshAll()
-                reload()
-            } catch {
-                model.toast(error.readable)
-            }
+            if await model.switchData(to: mode, regenerate: regenerate) { reload() }
         }
     }
 

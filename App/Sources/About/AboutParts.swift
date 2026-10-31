@@ -30,7 +30,8 @@ enum MeStyle {
     }
 }
 
-/// 子页面的开头：「‹ 关于我」、标题（领域页前面一个领域色的点）、下面一句
+/// 子页面的开头：标题（领域页前面一个领域色的点）、下面一句。3.0 外壳（第 1 步）起返回用导航栏的返回按钮，
+/// 页面里不再画「‹ 关于我」（back 留着：第 8 步重做关于我的时候一起删）
 struct MeHead<Sub: View>: View {
     let title: String
     var color: String?
@@ -39,9 +40,6 @@ struct MeHead<Sub: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Web.space1) {
-            Button("‹ 关于我", action: back).buttonStyle(.plain).font(Web.caption).foregroundStyle(Web.fgSecondary)
-                .padding(.horizontal, Web.space1).frame(minHeight: Web.touch).contentShape(Rectangle())
-                .padding(.leading, -Web.space1)
             HStack(spacing: Web.space2) {
                 if let color {
                     Circle().fill(Web.tag(color).solid).frame(width: Web.space3, height: Web.space3)
@@ -114,7 +112,7 @@ struct DayLinks: View {
             MoneyList {
                 ForEach(shown, id: \.self) { day in
                     MoneyLinkRow(minHeight: Web.touch) {
-                        model.page = .canvas
+                        model.goHome()
                         model.show(day)
                     } label: {
                         HStack(spacing: Web.space2) {
@@ -181,7 +179,7 @@ struct MeFindings: View {
                 FindingCard(
                     finding: finding,
                     openDay: { day in
-                        model.page = .canvas
+                        model.goHome()
                         model.show(day)
                     })
             }

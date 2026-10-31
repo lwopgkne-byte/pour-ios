@@ -45,10 +45,7 @@ final class GoalsUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
         app.launch()
-        let menu = app.descendants(matching: .any)["today.menu"]
-        XCTAssertTrue(menu.waitForExistence(timeout: 5), "画布没打开")
-        menu.tap()
-        app.buttons["目标"].firstMatch.tap()
+        app.openTile("goals")
         XCTAssertTrue(app.buttons["添加目标"].waitForExistence(timeout: 5), "目标页没打开")
         return app
     }

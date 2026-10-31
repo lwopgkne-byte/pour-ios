@@ -11,10 +11,9 @@ final class SettingsUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
         app.launch()
-        let menu = app.descendants(matching: .any)["today.menu"]
-        XCTAssertTrue(menu.waitForExistence(timeout: 5), "画布没打开")
-        menu.tap()
-        app.buttons["设置"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["today.me"].waitForExistence(timeout: 10), "画布没打开")
+        app.buttons["today.me"].tap()
+        app.buttons["hub.settings"].tap()
         XCTAssertTrue(app.staticTexts["大模型"].waitForExistence(timeout: 5), "设置没打开")
         // 密钥那一行：名称下面一句「在电脑上用「Pour 设置」填」（和名称一起念）
         let keyHint = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '在电脑上用「Pour 设置」填'")).firstMatch
@@ -34,8 +33,8 @@ final class SettingsUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
         app.launch()
-        app.descendants(matching: .any)["today.menu"].tap()
-        app.buttons["设置"].firstMatch.tap()
+        app.buttons["today.me"].tap()
+        app.buttons["hub.settings"].tap()
         XCTAssertTrue(app.staticTexts["大模型"].waitForExistence(timeout: 5), "设置没打开")
         // 开关在读屏里是「开关」（switch）
         let warning = app.switches["预警"].firstMatch

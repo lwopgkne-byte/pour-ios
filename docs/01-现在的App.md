@@ -12,19 +12,21 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 - **App 只做界面**：读写服务器的接口；一直听服务器的推送，哪样变了就重新拿哪样；没网时说的话先存在手机上（发件箱），连上自动发；看到的待办里要提醒的，由手机自己排系统通知
 - **服务器做其余一切**：整理（意图识别 → 解析 → 程序把关 → 收据）、钱、目标、心情、关于我、回顾和周报月报、按意思搜索（电脑上的本地模型）、提醒和推送（Bark / Server酱）、夜里自动体检
 - **只能在电脑上做的**（密钥、PIN、从备份导入、评测、审核员考试）：App 里只看得到现在的样子，改要双击 `~/Developer/pour/Pour 设置.command`
-- **链接**：服务器和对话里的链接是页面地址（`/review/2026-10-18`、`/money/watch`、`/library?note=12`、`/about?find=老地方`），`model.open(地址)` 打开；从 App 外面是 `pour://open?path=地址`，Bark 的推送是 `pour://`（打开 App）
+- **链接**：服务器和对话里的链接是页面地址（`/review/2026-10-18`、`/money/watch`、`/library?note=12`、`/about?find=老地方`、3.0 加了 `/me`），`model.open(地址)` 推进来一页（同一种页面里翻页换掉最上面那页，要去的页就在下面就退回去）；从 App 外面是 `pour://open?path=地址`（`model.openLink`：画布在最底下，只推这一页），Bark 的推送是 `pour://`（打开 App）；开发时启动参数 `-open /me` 直接打开那一页
 
 ## 2. 代码在哪
 
 | 位置 | 是什么 |
 |---|---|
 | `App/Sources/PourApp.swift` | 入口；`pour://` 链接在这里接 |
-| `App/Sources/AppModel*.swift` | App 的状态：连哪台服务器、拿数据、听推送、发件箱、轻提示、打开哪一页（`open(地址)`、`pagePath`）、对话面板（`chatOpen`）、搜索（`search`）、打开记录或目标的详情 |
-| `App/Sources/RootView.swift`、`Pages.swift` | 外壳：左上角菜单、右上角搜索、八页、演示数据的横幅、轻提示 |
+| `App/Sources/AppModel*.swift` | App 的状态：连哪台服务器、拿数据、听推送、发件箱和写操作队列（`AppModel+Writes`）、轻提示、导航栈（`stack`、`open(地址)`、`openLink`，`AppModel+Navigation`）、对话面板（`chatOpen`）、搜索（`search`）、打开记录或目标的详情 |
+| `App/Sources/RootView.swift`、`Shell/` | 3.0 外壳：一个导航栈，根是生活画布；页面地址 ↔ `Route` 的对照表（`Route.swift`，全部旧链接单元测试一条一条对）；推进来的页（`RouteView`）；按住图标的快捷操作（`QuickActions`）；底部「说一句」、没网时顶上的细条、轻提示 |
+| `App/Sources/Hub/` | 「我的」= 全部功能：头、四个快捷、常用（管理、长按）、五组格子、下拉搜功能；格子表 `HubTiles.swift`（键和服务器的 `HUB_TILES` 一样） |
 | `App/Sources/Canvas/` | 生活画布、输入框（斜杠命令）、对话面板、记录详情（原地改、最近 7 天、相关目标、来源原话）、时间轴、类别卡片 |
 | `App/Sources/Review/`、`Money/`、`About/`、`Goals/`、`Library/`、`Search/`、`Settings/` | 各页 |
 | `App/Sources/PinGate.swift`、`ServerConfiguration.swift` | 要 PIN 时整个 App 先显示的那一页；服务器地址（设置里改过的存在钥匙串，没有就用 Info.plist 的 `PourServerURL`） |
 | `App/Sources/WebPeek.swift` | 从底部滑出的详情层 |
+| `Packages/PourKit/Sources/PourAPI/PageCache.swift` | 页面缓存：每个页面接口最后一次的回复存在手机上（按服务器分开），没连上时拿它顶上；换真实 / 演示数据清掉 |
 | `App/Sources/StubServer*.swift` | 界面测试用的假服务器（启动参数 `-uiTest`）：照服务器的接口回话，数据是从演示服务器拿的 |
 | `Packages/PourKit/Sources/PourAPI/` | 服务器接口的数据类型（字段名一字不差）、客户端 `APIClient`、推送 `Events`、写法 `Show`（日期、钱、心情、时长……和服务器说的一字不差） |
 | `PourDesign/Theme/` | **唯一的设计系统**（[ADR A26](ADR/A26-一套设计系统.md)）：生活画布 2.0 起的令牌（`Theme.Palette`、`Theme.Space`、`Theme.Corner`、`Theme.Motion`……）和组件；`ColorToken.swift` 是颜色值和对比度计算 |
@@ -61,7 +63,7 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 
 ## 6. 现在的局限（第二阶段要解决的，见 00 提示词第 2、9 节）
 
-- 手感是网页的：左上角菜单、半屏详情层、网页式按钮和列表；只有亮色；动效和触感少
+- 还没重做的页手感是网页的：半屏详情层、网页式按钮和列表、页面里自己画的大标题；只有亮色；动效和触感少（3.0 第 2–10 步一块一块重做）
 - 还没重做的页面用 `Web*`（名字是从网页版搬来的痕迹）：3.0 第 1–10 步一块一块换成 `Theme`
 - 输入只有打字和输入法的语音键；没有拍照、分享、小组件、Siri
 - 只在家里的 WiFi 下能用；推送靠 Bark / Server酱

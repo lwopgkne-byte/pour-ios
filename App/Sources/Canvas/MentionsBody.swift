@@ -70,21 +70,22 @@ struct MentionsBody: View {
         }
     }
 
+    /// 点一下搜一搜；长按出菜单（外面的 contextMenu）。不用 Button：按钮上挂长按菜单，菜单收起以后整个 App 的下一下点击
+    /// 会被吞掉（2026-10-31 界面测试查出来的，ShellUITests.testTopBarAfterContextMenu）
     private func chip(_ item: String, shown: String, note: String?) -> some View {
-        Button {
-            model.search = item
-        } label: {
-            // 名字和「这周第 3 次」拼成一段字：字大了放不下就折行，不会被截掉
-            (Text(Show.spaced(shown)).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
-                + Text(note.map { "  \($0)" } ?? "").font(Theme.Typeface.footnote)
-                .foregroundStyle(Theme.Palette.secondaryLabel))
-                .padding(.horizontal, Theme.Space.medium).frame(minHeight: Theme.Size.capsule)
-                .background(Theme.Palette.fill, in: Capsule())
-                .frame(minHeight: Theme.Size.touch)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(PressScale())
-        .accessibilityLabel(Text(note.map { "\(shown)，\($0)" } ?? shown))
-        .accessibilityHint(Text("搜一搜以前也说到的；长按能改名字、不再显示"))
+        // 名字和「这周第 3 次」拼成一段字：字大了放不下就折行，不会被截掉
+        (Text(Show.spaced(shown)).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
+            + Text(note.map { "  \($0)" } ?? "").font(Theme.Typeface.footnote)
+            .foregroundStyle(Theme.Palette.secondaryLabel))
+            .padding(.horizontal, Theme.Space.medium).frame(minHeight: Theme.Size.capsule)
+            .background(Theme.Palette.fill, in: Capsule())
+            .frame(minHeight: Theme.Size.touch)
+            .contentShape(Rectangle())
+            .onTapGesture { model.search = item }
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityLabel(Text(note.map { "\(shown)，\($0)" } ?? shown))
+            .accessibilityHint(Text("搜一搜以前也说到的；长按能改名字、不再显示"))
+            .accessibilityAction { model.search = item }
     }
 }

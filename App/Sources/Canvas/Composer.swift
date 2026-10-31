@@ -47,6 +47,18 @@ struct Composer: View {
                 }
                 .onDisappear { menuHeight = 0 }
             }
+            if open, commands.isEmpty, model.draft.isEmpty, !voice.active {
+                SayChips { prefix in
+                    model.draft = prefix
+                    focused = true
+                }
+                .onGeometryChange(for: CGFloat.self) {
+                    $0.size.height
+                } action: {
+                    menuHeight = $0
+                }
+                .onDisappear { menuHeight = 0 }
+            }
             if voice.active, voice.mode == .tap {
                 VoiceCard { words, send in use(words, send: send) }
                     .themeTransition(.scale(scale: 0.96, anchor: .bottom).combined(with: .opacity))
@@ -67,6 +79,10 @@ struct Composer: View {
         // 收起对话是要看画布：键盘一起收起来
         .onChange(of: model.chatOpen) { _, open in
             if !open { focused = false }
+        }
+        // 点「说一句」：展开成对话，上面一排快捷（docs/3.0/01-需求文档.md 2.2）
+        .onChange(of: focused) { _, isFocused in
+            if isFocused, !model.chatOpen { model.chatOpen = true }
         }
         // 别处先填好了一段（时间轴上点空当补记）：弹出键盘接着说
         .onChange(of: model.composeFocus) { focused = true }
@@ -194,7 +210,7 @@ private struct ComposerBar: View {
                 .lineLimit(1...6)
                 .padding(.vertical, Theme.Space.medium)
                 .focused(focused)
-                .accessibilityLabel(Text(model.shownDay < model.today ? "补记 \(Show.monthDay(model.shownDay))" : "说说今天"))
+                .accessibilityLabel(Text(backfilling ? "补记 \(Show.monthDay(model.shownDay))" : "说一句"))
                 .accessibilityIdentifier("pourbar.input")
                 // 字号调小以后（控制中心、设置里调），多行的输入框不会自己缩回去：回到 App 时换一个新的。
                 // 不在字号一变就换：审计正看着它时换掉，后面的审计会一直等那个旧的、超时
@@ -243,10 +259,21 @@ private struct ComposerBar: View {
         .accessibilityIdentifier("pourbar.send")
     }
 
-    /// 早上问吃了什么；白天问做了什么；晚上（6 点到日界线）问哪一刻觉得挺好。
-    /// 看以前的某一天：说的话补记到那一天（docs/模块/产品优化.md R1.1）
+    /// 在画布上看以前的某一天：说的话补记到那一天（docs/模块/产品优化.md R1.1）
+    private var backfilling: Bool { model.stack.isEmpty && model.shownDay < model.today }
+
+    /// 提示跟着页面变（docs/3.0/01-需求文档.md 2.2）：在钱、目标、心情、感悟那一页说什么；
+    /// 画布上早上问吃了什么，白天问做了什么，晚上（6 点到日界线）问哪一刻觉得挺好
     private var placeholder: String {
-        if model.shownDay < model.today { return "补记 \(Show.monthDay(model.shownDay))：那天做了什么？" }
+        switch model.sayContext {
+        case "money": return "记一笔，比如：午饭 25"
+        case "goals": return "定个目标，比如：每周跑 3 次"
+        case "mood": return "说说心情，比如：今天挺开心"
+        case "insights": return "记一句，比如：慢慢来，比较快"
+        case "todos": return "说一句待办，比如：明天下午三点取快递"
+        default: break
+        }
+        if backfilling { return "补记 \(Show.monthDay(model.shownDay))：那天做了什么？" }
         let now = Date()
         if Show.isEvening(now, boundary: model.dayBoundary) { return "今天哪一刻觉得挺好？" }
         let hour = Calendar.current.component(.hour, from: now)
@@ -255,17 +282,18 @@ private struct ComposerBar: View {
 }
 
 /// 对话开着时，面板（连着输入框）上面两个圆角
+/// 收着时不裁（裁了玻璃边上那圈柔光会被切成一个方块）：用一个比自己大一圈的框，等于不裁。
+/// 同一个修饰只换形状，不换成另一个视图——换了的话输入框会重建，点「说一句」展开对话时键盘的焦点就丢了
 private struct PanelTop: ViewModifier {
     let open: Bool
 
     func body(content: Content) -> some View {
-        if open {
-            content.clipShape(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: Theme.Corner.card, topTrailingRadius: Theme.Corner.card, style: .continuous))
-        } else {
-            content
-        }
+        content.clipShape(
+            open
+                ? AnyShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: Theme.Corner.card, topTrailingRadius: Theme.Corner.card, style: .continuous))
+                : AnyShape(Rectangle().inset(by: -Theme.Space.section)))
     }
 }
 
@@ -274,11 +302,7 @@ private struct GlassWhenFloating: ViewModifier {
     let floating: Bool
 
     func body(content: Content) -> some View {
-        if floating {
-            content.themeGlass(radius: Theme.Corner.composer)
-        } else {
-            content
-        }
+        content.themeGlass(radius: Theme.Corner.composer, active: floating)
     }
 }
 

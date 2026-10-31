@@ -2,46 +2,33 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 关于我（docs/prd-about-me-2.md）：主页和点进去的几页（心情、人、你说的话、你的一年、一块生活）
+/// 关于我（docs/prd-about-me-2.md）：主页和点进去的几页（心情、人、你说的话、你的一年、一块生活）。
+/// 3.0 外壳（第 1 步）：一个地址一页，点进去的推进导航栈（AppModel.open）
 struct AboutPage: View {
     @Environment(AppModel.self) private var model
-    @State private var route = AboutRoute.home
+    let route: AboutRoute
     /// 地址里带着的「Pour 认识的」那一条（?item=person:小王），或者只知道一个词（?find=老地方：对话里「记住了」的链接）
     @State private var ask: KnownAsk?
 
+    init(route: AboutRoute, ask: KnownAsk?) {
+        self.route = route
+        _ask = State(initialValue: ask)
+    }
+
     var body: some View {
-        Group {
-            switch route {
-            case .home: AboutHome(navigate: navigate, ask: $ask)
-            case .mood: AboutMoodView(navigate: navigate)
-            case .people: AboutPeopleView(navigate: navigate)
-            case .talk: AboutTalkView(navigate: navigate)
-            case .year(let year): AboutYearView(year: year ?? Int(model.today.prefix(4)) ?? 2026, navigate: navigate)
-            case .domain(let key): AboutDomainView(key: key, navigate: navigate)
-            }
+        switch route {
+        case .home: AboutHome(navigate: navigate, ask: $ask)
+        case .mood: AboutMoodView(navigate: navigate)
+        case .people: AboutPeopleView(navigate: navigate)
+        case .talk: AboutTalkView(navigate: navigate)
+        case .year(let year): AboutYearView(year: year ?? Int(model.today.prefix(4)) ?? 2026, navigate: navigate)
+        case .domain(let key): AboutDomainView(key: key, navigate: navigate)
         }
-        .id(route)
-        .onAppear { follow(model.pagePath) }
-        .onChange(of: model.pagePath) { _, path in follow(path) }
     }
 
-    /// 换到一个页面地址：关于我里的留在这儿，别的（钱、笔记库）交给外面
+    /// 换到一个页面地址（关于我里互相跳、去钱、去笔记库）
     private func navigate(_ path: String) {
-        guard let next = AboutRoute(path) else {
-            model.open(path)
-            return
-        }
-        withAnimation(Web.panel) { route = next }
-    }
-
-    private func follow(_ path: String?) {
-        guard let path, path.hasPrefix("/about"), let next = AboutRoute(path) else { return }
-        model.pagePath = nil
-        route = next
-        let query = URLComponents(string: path)?.queryItems ?? []
-        let item = query.first { $0.name == "item" }?.value
-        let find = query.first { $0.name == "find" }?.value
-        if item != nil || find != nil { ask = KnownAsk(item: item, find: find) }
+        model.open(path)
     }
 }
 
@@ -123,7 +110,7 @@ private struct AboutHome: View {
                             FindingCard(
                                 finding: finding,
                                 openDay: { day in
-                                    model.page = .canvas
+                                    model.goHome()
                                     model.show(day)
                                 }, vote: { vote(finding.key, $0) })
                         }
@@ -228,7 +215,7 @@ private struct AboutHome: View {
 }
 
 /// 地址里要打开的「Pour 认识的」那一条
-struct KnownAsk: Equatable {
+struct KnownAsk: Hashable {
     var item: String?
     var find: String?
 }

@@ -54,6 +54,8 @@ extension Theme {
         public static let accent = Tokens.accent.color
         public static let accentFill = Tokens.accentFill.color
         public static let onAccent = Color.white
+        /// 格子角上的小胶囊：安静的灰底（3.0 不用红点）
+        public static let badgeFill = Tokens.one(0xE7E4DE).color
         public static let bubble = Tokens.bubble.color
         public static let statFill = Tokens.statFill.color
         public static let good = Tokens.good.color

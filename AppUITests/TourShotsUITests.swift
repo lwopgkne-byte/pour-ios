@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 
 /// 全部页面截图（docs/3.0/03-开发计划.md 2.1 第 5 条）：连一台演示数据的服务器，把每一页从上往下一屏一屏截下来，
@@ -45,6 +46,7 @@ final class TourShotsUITests: XCTestCase {
     /// 要截的页（名字、页面地址）：编号和现状截图 docs/3.0/现状截图/ 一样，前后好对
     private func tourPaths(_ days: TourDays) -> [(String, String)] {
         var paths: [(String, String)] = [
+            ("05-我的", "/me"),
             ("10-回顾-列表", "/review"),
             ("11-回顾-昨天", "/review/\(days.yesterday)"),
             ("12-回顾-周报", "/review/week/\(days.lastWeekMonday)"),
@@ -86,19 +88,31 @@ final class TourShotsUITests: XCTestCase {
         app.open(try XCTUnwrap(URL(string: "pour://open?path=\(value)"), "链接拼不出来：\(path)"))
     }
 
-    /// 一页从上往下，每屏一张；滑不动了就停，再滑回顶上
+    /// 一页从上往下，每屏一张；滑不动了就停（不看最上面的状态栏：时间走了一分钟不算动了），再滑回顶上
     @MainActor private func pages(_ app: XCUIApplication, _ name: String) {
-        var last = XCUIScreen.main.screenshot().pngRepresentation
-        keep(last, "\(name)-1")
+        var shot = XCUIScreen.main.screenshot()
+        var last = Self.content(of: shot)
+        keep(shot.pngRepresentation, "\(name)-1")
         for index in 2...12 {
             app.swipeUp(velocity: .slow)
             sleep(1)
-            let now = XCUIScreen.main.screenshot().pngRepresentation
+            shot = XCUIScreen.main.screenshot()
+            let now = Self.content(of: shot)
             if now == last { break }
-            keep(now, "\(name)-\(index)")
+            keep(shot.pngRepresentation, "\(name)-\(index)")
             last = now
         }
         for _ in 0..<6 { app.swipeDown(velocity: .fast) }
+    }
+
+    /// 截图里状态栏以下的那一块（比较滑没滑动用）
+    private static func content(of shot: XCUIScreenshot) -> Data {
+        let image = shot.image
+        guard let bitmap = image.cgImage else { return shot.pngRepresentation }
+        let cut = Int(60 * image.scale)
+        let rect = CGRect(x: 0, y: cut, width: bitmap.width, height: max(1, bitmap.height - cut))
+        guard let cropped = bitmap.cropping(to: rect) else { return shot.pngRepresentation }
+        return UIImage(cgImage: cropped).pngData() ?? shot.pngRepresentation
     }
 
     @MainActor private func shot(_ name: String) {

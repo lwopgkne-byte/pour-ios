@@ -175,3 +175,38 @@ public struct PressScale: ButtonStyle {
             .animation(Theme.Motion.quick, value: configuration.isPressed)
     }
 }
+
+/// 「我」的圆头像（3.0：画布左上角进全部功能、「我的」页头；docs/3.0/01-需求文档.md 2.1、2.3）：
+/// 还没有头像时是蓝色圆里一个白色的「我」字。点的范围至少 44
+public struct MeAvatar: View {
+    let size: CGFloat
+
+    public init(size: CGFloat = Theme.Size.touch) {
+        self.size = size
+    }
+
+    public var body: some View {
+        Text("我")
+            .font(size > Theme.Size.touch ? Theme.Typeface.section : Theme.Typeface.bodySemibold)
+            .dynamicTypeSize(...DynamicTypeSize.xLarge)
+            .foregroundStyle(Theme.Palette.onAccent)
+            .frame(width: size, height: size)
+            .background(
+                LinearGradient(
+                    colors: [Theme.Palette.accentFill, Theme.Palette.accent], startPoint: .topLeading,
+                    endPoint: .bottomTrailing),
+                in: Circle()
+            )
+            .overlay(Circle().strokeBorder(Theme.Palette.card, lineWidth: Theme.Space.hairline))
+            .accessibilityHidden(true)
+    }
+}
+
+#Preview("我") {
+    HStack(spacing: Theme.Space.regular) {
+        MeAvatar()
+        MeAvatar(size: Theme.Size.avatar)
+    }
+    .padding()
+    .background(Theme.Palette.background)
+}

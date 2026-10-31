@@ -9,6 +9,8 @@ extension AppModel {
         let createdAt: Date
         /// 补记到哪一天（看以前的某一天时说的，docs/模块/产品优化.md R1.1）；平常是 nil
         var day: String?
+        /// 在哪一页说的（3.0：todos · money · mood · insights · goals）；在画布上说的是 nil
+        var context: String?
         /// 连不上、服务器拒了：说清楚，自动重试
         var failed: String?
 

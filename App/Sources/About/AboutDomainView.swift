@@ -42,7 +42,7 @@ struct AboutDomainView: View {
                 MeCalendar(
                     weeks: page.calendar, kind: "domain", paint: { $0.state == "on" ? Web.tag(page.color).solid : nil },
                     open: { day in
-                        model.page = .canvas
+                        model.goHome()
                         model.show(day)
                     }
                 )

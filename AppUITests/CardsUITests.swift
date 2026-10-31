@@ -54,14 +54,13 @@ final class CardsUITests: XCTestCase {
     /// 左上角菜单去一页（按位置点：翻过的页面按名字点会点偏，见 ios-test-gotchas）
     @MainActor
     private func go(to page: String, in app: XCUIApplication) {
-        let menu = app.descendants(matching: .any)["today.menu"]
-        XCTAssertTrue(menu.waitForExistence(timeout: 5), "没有菜单")
-        let item = app.buttons[page].firstMatch
-        for _ in 0..<3 where !item.exists {
-            menu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-            _ = item.waitForExistence(timeout: 2)
+        // 3.0 外壳：画布是首页（返回到底），别的页从「我」进
+        switch page {
+        case "生活画布": app.goBackToCanvas()
+        case "关于我": app.openTile("about")
+        case "回顾": app.openTile("review")
+        default: XCTFail("测试里没写怎么去「\(page)」")
         }
-        item.tap()
     }
 
     @MainActor

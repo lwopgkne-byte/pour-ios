@@ -3,38 +3,27 @@ import PourDesign
 import SwiftUI
 
 /// 「钱」（docs/prd-money.md）：这个月日常花了多少、每天花在哪、固定的和收入、留意、花在哪、
-/// 花给了谁、值不值；点进去是一天的钱、每一笔、留意的、一样东西、人情往来。数字全部是服务器现算的
+/// 花给了谁、值不值；点进去是一天的钱、每一笔、留意的、一样东西、人情往来。数字全部是服务器现算的。
+/// 3.0 外壳（第 1 步）：一个地址一页，点进去的推进导航栈，翻上一个月、下一天换掉这一页（AppModel.open）
 struct MoneyPage: View {
     @Environment(AppModel.self) private var model
-    @State private var route = MoneyRoute.month(nil)
+    let route: MoneyRoute
 
     var body: some View {
-        Group {
-            switch route {
-            case .month(let month): MoneyMonthView(month: month ?? String(model.today.prefix(7)), navigate: navigate)
-            case .day(let day): MoneyDayView(day: day, navigate: navigate)
-            case .list(let month, let filter): MoneyListView(month: month, filter: filter, navigate: navigate)
-            case .watch: MoneyWatchView(navigate: navigate)
-            case .thing(let id): MoneyThingView(id: id, navigate: navigate)
-            case .renqing: RenqingView(navigate: navigate)
-            case .person(let name): RenqingPersonView(name: name, navigate: navigate)
-            }
+        switch route {
+        case .month(let month): MoneyMonthView(month: month ?? String(model.today.prefix(7)), navigate: navigate)
+        case .day(let day): MoneyDayView(day: day, navigate: navigate)
+        case .list(let month, let filter): MoneyListView(month: month, filter: filter, navigate: navigate)
+        case .watch: MoneyWatchView(navigate: navigate)
+        case .thing(let id): MoneyThingView(id: id, navigate: navigate)
+        case .renqing: RenqingView(navigate: navigate)
+        case .person(let name): RenqingPersonView(name: name, navigate: navigate)
         }
-        .id(route)
-        .onAppear { follow(model.pagePath) }
-        .onChange(of: model.pagePath) { _, path in follow(path) }
     }
 
-    /// 换到一个页面地址（钱里互相跳）
+    /// 换到一个页面地址（钱里互相跳、去别处）
     private func navigate(_ path: String) {
-        guard let next = MoneyRoute(path) else { return }
-        withAnimation(Web.panel) { route = next }
-    }
-
-    private func follow(_ path: String?) {
-        guard let path, path.hasPrefix("/money"), let next = MoneyRoute(path) else { return }
-        model.pagePath = nil
-        route = next
+        model.open(path)
     }
 }
 

@@ -3,35 +3,41 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 画布顶上浮着的一行玻璃（设计评审 2026-10-23：日期默认收起，需要时再展开）：左边菜单；中间是现在看的那天
-/// 「今天 · 10月21日」，点一下展开、收起一周；右边日历（跳到哪天都行）、搜索
-struct CanvasTopBar: View {
-    @Environment(AppModel.self) private var model
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+/// 画布顶上的一行（3.0，docs/3.0/06-交互细节.md 第 1 节、07 开发任务清单 1.5）：放在系统的导航栏工具栏里——
+/// 左边「我」进全部功能；中间是现在看的那天「今天 · 10月21日」，点一下展开、收起一周（展开的一周下面能跳到哪天都行）；
+/// 右边搜索。不再自己盖一层在画布上：盖着的那一层在长按菜单用过以后会一直点不动（2026-10-31 界面测试查出来的，
+/// ShellUITests.testTopBarAfterContextMenu），系统的工具栏和画布内容是分开的两层
+struct CanvasTopBar: ToolbarContent {
     @Binding var weekOpen: Bool
-    let openMenu: () -> Void
-    let pickDay: () -> Void
+    /// 现在看的那天：「今天 · 10月21日」，别的日子「10月18日 周六」（画布算好传进来）
+    let title: String
+    let reduceMotion: Bool
+    let openMe: () -> Void
+    let search: () -> Void
 
-    var body: some View {
-        GlassEffectContainer(spacing: Theme.Space.small) {
-            HStack(spacing: Theme.Space.small) {
-                GlassCircleButton("line.3.horizontal", label: "菜单", action: openMenu)
-                    .accessibilityIdentifier("today.menu")
-                Spacer(minLength: 0)
-                dayButton
-                Spacer(minLength: 0)
-                GlassCircleButton("calendar", label: "跳到某一天", action: pickDay)
-                GlassCircleButton("magnifyingglass", label: "搜索") { model.search = "" }
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button(action: openMe) {
+                MeAvatar().contentShape(Circle())
             }
+            .buttonStyle(PressScale())
+            .accessibilityLabel(Text("我：全部功能"))
+            .accessibilityIdentifier("today.me")
         }
-        .padding(.horizontal, Theme.Space.screen)
-        .padding(.vertical, Theme.Space.tight)
+        .sharedBackgroundVisibility(.hidden)
+        ToolbarItem(placement: .principal) { dayButton }
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(action: search) {
+                Image(systemName: Theme.Symbol.search)
+            }
+            .accessibilityLabel(Text("搜索"))
+            .accessibilityIdentifier("today.search")
+        }
     }
 
     /// 现在看的那天（看别的日子时写那天，不一直写「今天」）；点一下展开、收起一周
     private var dayButton: some View {
-        let title = Self.short(model.shownDay, today: model.today)
-        return Button {
+        Button {
             withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) { weekOpen.toggle() }
         } label: {
             HStack(spacing: Theme.Space.snug) {

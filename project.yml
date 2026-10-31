@@ -89,6 +89,20 @@ targets:
         NSHealthShareUsageDescription: Pour 读你的步数、睡眠和锻炼，放在画布上，算进目标和回顾。只读，不往健康里写。
         # 日历（docs/模块/产品优化.md R6）：只读，日程只在手机上
         NSCalendarsFullAccessUsageDescription: Pour 读今天的日程，放进待办那张卡里。只读，不改日历，不送到电脑上。
+        # 按住主屏幕上的图标（docs/3.0/06-交互细节.md 第 1 节）：说一句 · 记一笔 · 加待办 · 记心情（App/Sources/Shell/QuickActions.swift）
+        UIApplicationShortcutItems:
+          - UIApplicationShortcutItemType: pour.say
+            UIApplicationShortcutItemTitle: 说一句
+            UIApplicationShortcutItemIconSymbolName: bubble.left.and.bubble.right
+          - UIApplicationShortcutItemType: pour.money
+            UIApplicationShortcutItemTitle: 记一笔
+            UIApplicationShortcutItemIconSymbolName: yensign.circle
+          - UIApplicationShortcutItemType: pour.todo
+            UIApplicationShortcutItemTitle: 加待办
+            UIApplicationShortcutItemIconSymbolName: checklist
+          - UIApplicationShortcutItemType: pour.mood
+            UIApplicationShortcutItemTitle: 记心情
+            UIApplicationShortcutItemIconSymbolName: face.smiling
         # pour:// 打开这个 App：服务器推到 Bark 的提醒，点一下回到 Pour；pour://open?path=/review/2026-10-18 打开那一页
         CFBundleURLTypes:
           - CFBundleURLName: $(POUR_BUNDLE_ID)

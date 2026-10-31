@@ -92,7 +92,7 @@ struct DailyReviewView: View {
             ReviewFoot {
                 Text("来自这一天的 \(review.notes) 段话 · ")
                 WebTextButton("看这一天的画布", font: Web.caption, color: Web.fgSecondary) {
-                    model.page = .canvas
+                    model.goHome()
                     model.show(day)
                 }
                 if let weekly = page.weekly {

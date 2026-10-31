@@ -11,10 +11,7 @@ final class LibraryUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
         app.launch()
-        let menu = app.descendants(matching: .any)["today.menu"]
-        XCTAssertTrue(menu.waitForExistence(timeout: 5), "画布没打开")
-        menu.tap()
-        app.buttons["笔记库"].firstMatch.tap()
+        app.openTile("library")
         XCTAssertTrue(app.buttons["看这一天 →"].firstMatch.waitForExistence(timeout: 5), "原话没出来")
         settle()
         audit(app, "笔记库-原话")

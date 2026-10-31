@@ -2,7 +2,9 @@ import SwiftUI
 
 @main
 struct PourApp: App {
+    @UIApplicationDelegateAdaptor(PourAppDelegate.self) private var appDelegate
     @State private var model = AppModel.launch()
+    @State private var quickActions = QuickActions.shared
 
     var body: some Scene {
         WindowGroup {
@@ -28,7 +30,14 @@ struct PourApp: App {
                         let path = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
                             .first(where: { $0.name == "path" })?.value, path.hasPrefix("/")
                     else { return }
-                    model.open(path)
+                    model.openLink(path)
+                }
+                // 按住图标的快捷操作（QuickActions）：回到画布，打开对话、填好开头
+                .onChange(of: quickActions.pending, initial: true) { _, type in
+                    guard let type, let start = QuickActions.starts[type] else { return }
+                    quickActions.pending = nil
+                    model.goHome()
+                    model.startSaying(start)
                 }
         }
     }

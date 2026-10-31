@@ -10,7 +10,11 @@ extension AppModel {
         let arguments = ProcessInfo.processInfo.arguments
         CanvasSamples.readArguments(arguments)
         // 界面测试每次从头开始：上一个测试没发出去的话不留到这一个
-        if arguments.contains("-uiTest") { UserDefaults.standard.removeObject(forKey: OutboxStore.key) }
+        if arguments.contains("-uiTest") {
+            // 界面测试每次从干净的开始：上一个测试没发出去的话、写操作不带过来
+            UserDefaults.standard.removeObject(forKey: OutboxStore.key)
+            UserDefaults.standard.removeObject(forKey: WriteStore.key)
+        }
         let model = AppModel(
             client: ServerConfiguration.client(arguments: arguments),
             health: HealthLink(source: healthSource(arguments)),
@@ -19,6 +23,10 @@ extension AppModel {
         // 开发时对照演示数据：-day 2026-10-15 直接打开那一天
         if let index = arguments.firstIndex(of: "-day"), index + 1 < arguments.count {
             model.show(arguments[index + 1])
+        }
+        // 开发时截图、界面测试：-open /me 直接打开那一页（和 pour://open?path= 一样，只是不弹「在 Pour 中打开？」）
+        if let index = arguments.firstIndex(of: "-open"), index + 1 < arguments.count {
+            model.openLink(arguments[index + 1])
         }
         if openChatOnLaunch {
             openChatOnLaunch = false

@@ -202,7 +202,7 @@ struct PeriodReviewView: View {
                             if let note = quote.noteId {
                                 model.open("/library?note=\(note)")
                             } else {
-                                model.page = .canvas
+                                model.goHome()
                                 model.show(quote.day)
                             }
                         } label: {

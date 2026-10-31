@@ -216,7 +216,7 @@ private struct MeMomentBars: View {
                                 if let note = moment.noteId {
                                     model.open("/library?note=\(note)")
                                 } else {
-                                    model.page = .canvas
+                                    model.goHome()
                                     model.show(moment.day)
                                 }
                             } label: {
@@ -248,7 +248,8 @@ private struct MeFeelingsView: View {
                 let tag = Web.tag(Self.colors[word.group] ?? "gray")
                 HStack(alignment: .firstTextBaseline, spacing: Web.space1) {
                     Text(word.word).font(Self.fonts[min(4, max(1, word.size)) - 1])
-                    Text("\(word.count)").font(Web.caption).opacity(0.7)
+                    // 数字和字一个颜色：淡一点（不透明度 0.7）在黄底上对比度不够（2026-10-31 审计查出来的）
+                    Text("\(word.count)").font(Web.caption)
                 }
                 .foregroundStyle(tag.fg)
                 .padding(.vertical, Web.space2).padding(.horizontal, Web.space3)
