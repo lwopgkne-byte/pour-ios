@@ -33,6 +33,11 @@ extension Theme {
         public static let statFill = one(0xFFFFFF, opacity: 0.62)
         public static let good = one(0x1A683D)
         public static let warn = one(0x7D5500)
+        /// 过了时间的待办胶囊：浅黄底、深一档的琥珀字（小字画出来淡一点，留意色本身在浅黄底上差一点到 4.5）
+        public static let warnFill = one(0xF6ECD8)
+        public static let warnInk = one(0x6B4700)
+        /// 到点提醒的待办胶囊：比气泡浅一点的蓝底，上面是强调色的字
+        public static let remindFill = one(0xEEF3FC)
         public static let bad = one(0xAA3831)
 
         /// 一个颜色（只有一种样子：亮、暗用同一个值）
@@ -60,6 +65,9 @@ extension Theme {
         public static let statFill = Tokens.statFill.color
         public static let good = Tokens.good.color
         public static let warn = Tokens.warn.color
+        public static let warnFill = Tokens.warnFill.color
+        public static let warnInk = Tokens.warnInk.color
+        public static let remindFill = Tokens.remindFill.color
         public static let bad = Tokens.bad.color
         /// 卡片的两层影子（只在亮色）
         public static let shadowNear = Color.black.opacity(0.04)

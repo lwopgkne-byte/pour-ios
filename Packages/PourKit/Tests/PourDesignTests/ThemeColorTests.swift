@@ -31,6 +31,13 @@ struct ThemeColorTests {
         #expect(contrast(token, on: Theme.Tokens.background) >= 3, "\(name) 在页面底上不够")
     }
 
+    /// 3.0 待办的时间胶囊：浅蓝底上的蓝字（到点提醒）、浅黄底上的琥珀字（过了时间、以前没做完的），小字都 ≥ 4.5
+    @Test func timeCapsules() {
+        #expect(contrast(Theme.Tokens.accent, on: Theme.Tokens.remindFill, ink: Self.smallText) >= 4.5, "提醒")
+        #expect(contrast(Theme.Tokens.warnInk, on: Theme.Tokens.warnFill, ink: Self.smallText) >= 4.5, "过了")
+        #expect(contrast(Theme.Tokens.warnInk, on: Theme.Tokens.background, ink: Self.smallText) >= 4.5, "页面底上")
+    }
+
     /// 3.0「我的」功能格子：彩色方块上的白色图标（图形 ≥ 3:1）
     @Test func hubTileIcons() {
         for token in Theme.Tile.tokens {

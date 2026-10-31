@@ -136,7 +136,8 @@ struct HubPage: View {
 
     private func quick(_ title: String, symbol: String, color: Color, start: String) -> some View {
         Button {
-            model.startSaying(start)
+            // 加待办是正式的弹层（第 2 步）；别的第 3–5 步换
+            if start == "待办：" { model.todoSheet = .add("") } else { model.startSaying(start) }
         } label: {
             QuickActionLabel(title, symbol: symbol, color: color)
         }

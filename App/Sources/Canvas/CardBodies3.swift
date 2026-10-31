@@ -150,11 +150,19 @@ struct TodoBody: View {
             ShowFirst(items: agenda.rows, first: 5) { row, _ in
                 switch row {
                 case .todo(let entry):
-                    if case .todo(let todo) = entry.data {
+                    // 和待办页同一套（3.0 第 2 步，01 需求文档 4.6）：同样的圆圈和胶囊、按住同样的菜单、点了同一个详情
+                    if let todo = API.TodoRow(entry: entry, today: model.today) {
                         HStack(alignment: .top, spacing: Theme.Space.tight) {
-                            TodoCheck(done: todo.done, label: todo.content) { model.setDone(entry.id, !todo.done) }
-                            CardRow(entry: entry, quiet: repeatsQuestion(todos, todos.firstIndex(of: entry) ?? 0)) {
-                                TodoLine(todo: todo)
+                            TodoCircle(done: todo.done, label: todo.content) { model.setDone(entry.id, !todo.done) }
+                                .padding(.leading, -Theme.Space.medium + Theme.Space.hairline)
+                            CardRow(
+                                entry: entry, quiet: repeatsQuestion(todos, todos.firstIndex(of: entry) ?? 0),
+                                todo: todo
+                            ) {
+                                TodoLabel(
+                                    Show.spaced(todo.content), done: todo.done,
+                                    capsule: TodoBoard.capsule(
+                                        todo, today: model.today, now: PourDate.localDateTime(Date(), in: .current)))
                             }
                         }
                     }
@@ -163,57 +171,6 @@ struct TodoBody: View {
                 }
             }
         }
-    }
-}
-
-/// 待办的字：做完的变淡划掉；没做完的有提醒时间（提醒过的写「已提醒」）
-private struct TodoLine: View {
-    let todo: API.TodoData
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
-            Text(Show.spaced(todo.content)).font(Theme.Typeface.body)
-                .foregroundStyle(todo.done ? Theme.Palette.secondaryLabel : Theme.Palette.label)
-                .strikethrough(todo.done, color: Theme.Palette.secondaryLabel)
-            Spacer(minLength: 0)
-            if let remind = todo.remindAt, !todo.done {
-                // 时间不折开（字大时让事项折行）
-                Label("\(Show.clock(remind))\(todo.reminded == true ? " 已提醒" : "")", systemImage: "bell")
-                    .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit()
-                    .fixedSize()
-            }
-        }
-        .padding(.vertical, Theme.Space.tight)
-    }
-}
-
-/// 圆圈勾选：勾上时填满、对勾弹出来，轻轻一震
-private struct TodoCheck: View {
-    let done: Bool
-    let label: String
-    let toggle: () -> Void
-
-    var body: some View {
-        Button(action: toggle) {
-            ZStack {
-                Circle().strokeBorder(done ? Theme.Palette.accentFill : Theme.Palette.tertiaryLabel, lineWidth: 1.6)
-                if done {
-                    Circle().fill(Theme.Palette.accentFill)
-                    Image(systemName: "checkmark").font(Theme.Typeface.glyph).foregroundStyle(Theme.Palette.onAccent)
-                        .themeTransition(.scale.combined(with: .opacity))
-                }
-            }
-            .frame(width: Theme.Size.check, height: Theme.Size.check)
-            .frame(width: Theme.Size.touch, height: Theme.Size.touch)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .padding(.leading, -Theme.Space.medium + Theme.Space.hairline)
-        .animation(Theme.Motion.quick, value: done)
-        .sensoryFeedback(Theme.Haptics.check, trigger: done)
-        .accessibilityLabel(Text(label))
-        .accessibilityValue(Text(done ? "已完成" : "未完成"))
-        .accessibilityIdentifier("todo.check")
     }
 }
 

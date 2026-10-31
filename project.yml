@@ -90,6 +90,9 @@ targets:
         # 日历（docs/模块/产品优化.md R6）：只读，日程只在手机上
         NSCalendarsFullAccessUsageDescription: Pour 读今天的日程，放进待办那张卡里。只读，不改日历，不送到电脑上。
         # 按住主屏幕上的图标（docs/3.0/06-交互细节.md 第 1 节）：说一句 · 记一笔 · 加待办 · 记心情（App/Sources/Shell/QuickActions.swift）
+        # 后台刷新提醒（docs/3.0/07-开发任务清单.md 2.15：每次打开、收到推送、后台刷新都重排）
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [pour.reminders.refresh]
         UIApplicationShortcutItems:
           - UIApplicationShortcutItemType: pour.say
             UIApplicationShortcutItemTitle: 说一句

@@ -76,7 +76,7 @@ custom_rules:
     # 设计系统只留一套（ADR A26）：重做过的页、外壳、Theme 自己只用 Theme；Web.* 只留给还没重做的页。
     # 重做一块就把那一块的目录加进来（第 2 步加待办、第 3 步加钱……）
     regex: '\bWeb\.|\bWeb[A-Z][A-Za-z]*\('
-    included: 'App/Sources/(Hub|Shell)/|Packages/PourKit/Sources/PourDesign/Theme/'
+    included: 'App/Sources/(Hub|Shell|Todos)/|Packages/PourKit/Sources/PourDesign/Theme/'
     excluded_match_kinds: [comment, doccomment, string]
     message: '3.0 重做过的页只用 Theme 的令牌和组件（ADR A26）；Web.* 只留给还没重做的页'
     severity: error

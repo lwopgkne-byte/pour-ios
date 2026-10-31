@@ -138,7 +138,8 @@ private struct CardHeader: View {
             if quick == nil || size == .full || card.template == .mood { side }
             if let quick {
                 Button {
-                    model.startSaying(quick.start)
+                    // 加待办是正式的弹层（第 2 步）；记一笔、记心情第 3、4 步换
+                    if card.template == .todo { model.todoSheet = .add("") } else { model.startSaying(quick.start) }
                 } label: {
                     Label(quick.title, systemImage: "plus")
                         .labelStyle(QuickCapsule(iconOnly: quick.title == "加待办" || size == .half))
@@ -159,8 +160,8 @@ private struct CardHeader: View {
         .layoutPriority(1)
     }
 
-    /// 标题点进哪一页（待办页第 2 步做；心情页第 4 步做，先是关于我里的心情）
-    private static let page: [CanvasPlan.Template: String] = [.money: "/money", .mood: "/about/mood"]
+    /// 标题点进哪一页（心情页第 4 步做，先是关于我里的心情）
+    private static let page: [CanvasPlan.Template: String] = [.todo: "/todos", .money: "/money", .mood: "/about/mood"]
 
     /// 右上角直接记什么、对话里先填好的开头
     private static let quick: [CanvasPlan.Template: (title: String, start: String)] = [
@@ -219,6 +220,8 @@ struct CardRow<Content: View>: View {
     let entry: API.Entry
     /// 追问和上一行一样：问的话不再写一遍，只在这一行末尾放一个「对」
     var quiet = false
+    /// 待办（3.0）：点了打开待办的详情、按住是待办的菜单（和待办页一样）
+    var todo: API.TodoRow?
     @ViewBuilder let content: () -> Content
 
     var body: some View {
@@ -226,10 +229,14 @@ struct CardRow<Content: View>: View {
             HStack(spacing: Theme.Space.small) {
                 content().frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
-                    .onTapGesture { model.detail = .init(id: entry.id) }
+                    .onTapGesture {
+                        if let todo { model.todoSheet = .detail(todo) } else { model.detail = .init(id: entry.id) }
+                    }
                     .contextMenu {
-                        // 健康 App 记的只能看（改、删在健康 App 里）
-                        if entry.fromHealthApp {
+                        if let todo {
+                            TodoMenu(row: todo)
+                        } else if entry.fromHealthApp {
+                            // 健康 App 记的只能看（改、删在健康 App 里）
                             Button("查看", systemImage: "heart.text.square") { model.detail = .init(id: entry.id) }
                         } else {
                             Button("修改", systemImage: "pencil") { model.detail = .init(id: entry.id) }

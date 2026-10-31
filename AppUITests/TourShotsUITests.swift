@@ -47,6 +47,7 @@ final class TourShotsUITests: XCTestCase {
     private func tourPaths(_ days: TourDays) -> [(String, String)] {
         var paths: [(String, String)] = [
             ("05-我的", "/me"),
+            ("06-待办", "/todos"),
             ("10-回顾-列表", "/review"),
             ("11-回顾-昨天", "/review/\(days.yesterday)"),
             ("12-回顾-周报", "/review/week/\(days.lastWeekMonday)"),

@@ -5,6 +5,7 @@ struct PourApp: App {
     @UIApplicationDelegateAdaptor(PourAppDelegate.self) private var appDelegate
     @State private var model = AppModel.launch()
     @State private var quickActions = QuickActions.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -37,8 +38,22 @@ struct PourApp: App {
                     guard let type, let start = QuickActions.starts[type] else { return }
                     quickActions.pending = nil
                     model.goHome()
-                    model.startSaying(start)
+                    // 加待办是正式的弹层（第 2 步）；记一笔、记心情第 3、4 步换
+                    if type == "pour.todo" { model.todoSheet = .add("") } else { model.startSaying(start) }
                 }
+                // App 没开着时点了提醒的通知：打开待办
+                .onChange(of: quickActions.pendingPath, initial: true) { _, path in
+                    guard let path else { return }
+                    quickActions.pendingPath = nil
+                    model.openLink(path)
+                }
+        }
+        // 进后台时约一次后台刷新：系统挑时候叫醒 App 重排提醒（07 开发任务清单 2.15）
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background, model.remindersOn { TodoNotifications.schedule() }
+        }
+        .backgroundTask(.appRefresh(TodoNotifications.refreshTask)) {
+            await TodoNotifications.refreshInBackground()
         }
     }
 }

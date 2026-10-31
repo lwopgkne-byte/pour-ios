@@ -121,6 +121,7 @@ final class ShellUITests: XCTestCase {
             ("/review", "回顾"), ("/money", "遮住金额"), ("/money/watch", "留意的"), ("/money/renqing", "和谁来往"),
             ("/about", "你的生活由什么组成"), ("/about/mood", "心情和精力"), ("/goals", "添加目标"),
             ("/library?view=insights", "感悟"), ("/settings", "大模型"), ("/settings#data", "数据"),
+            ("/todos", "今天的时间线"),
         ]
         for (path, sign) in links {
             open(path, in: app)

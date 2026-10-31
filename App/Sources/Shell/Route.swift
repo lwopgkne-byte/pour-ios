@@ -7,6 +7,8 @@ import PourAPI
 enum Route: Hashable {
     /// 我的 = 全部功能（画布左上角「我」）
     case hub
+    /// 待办（3.0 第 2 步：画布待办卡的标题、我的 → 待办、点了通知）
+    case todos
     /// 回顾：nil 是列表
     case review(ReviewRoute?)
     case money(MoneyRoute)
@@ -35,7 +37,7 @@ enum Route: Hashable {
         case "about": AboutRoute(base).map { .about($0, ask: KnownAsk(path: base)) }
         default:
             [
-                "/me": .hub, "/goals": .goals, "/library": .library(LibraryAsk(path: base)),
+                "/me": .hub, "/todos": .todos, "/goals": .goals, "/library": .library(LibraryAsk(path: base)),
                 "/settings": .settings(anchor),
             ][head]
         }
@@ -45,6 +47,7 @@ enum Route: Hashable {
     var title: String {
         switch self {
         case .hub: "我的"
+        case .todos: "待办"
         case .review(nil): "回顾"
         case .review(.daily?): "每日回顾"
         case .review(.period(let kind, _)?): kind == "monthly" ? "月报" : "周报"
@@ -63,7 +66,7 @@ enum Route: Hashable {
         case (.review(.daily?), .review(.daily?)), (.review(.period?), .review(.period?)): true
         case (.money(let left), .money(let right)): left.kind == right.kind
         case (.about(let left, _), .about(let right, _)): left.kind == right.kind && left.kind != "home"
-        case (.library, .library), (.settings, .settings), (.goals, .goals), (.hub, .hub): true
+        case (.library, .library), (.settings, .settings), (.goals, .goals), (.hub, .hub), (.todos, .todos): true
         default: false
         }
     }

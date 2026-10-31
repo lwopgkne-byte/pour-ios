@@ -10,6 +10,7 @@ struct RouteTests {
     /// 全部链接的对照表：地址 → 推哪一页（服务器和对话里出现过的样子都在这里）
     @Test(arguments: [
         ("/me", Route.hub),
+        ("/todos", .todos),
         ("/review", .review(nil)),
         ("/review/2026-10-18", .review(.daily("2026-10-18"))),
         ("/review/week/2026-10-12", .review(.period("weekly", "2026-10-12"))),
@@ -109,6 +110,7 @@ struct RouteTests {
         #expect(Route.about(.mood, ask: nil).title == "心情")
         #expect(Route.review(.period("monthly", "2026-09-01")).title == "月报")
         #expect(Route.hub.title == "我的")
+        #expect(Route.todos.title == "待办")
     }
 
     /// 「我的」里每个格子都有样子、点了有地方去（键和服务器 HUB_TILES 一样）

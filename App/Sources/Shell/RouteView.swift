@@ -23,6 +23,7 @@ struct RouteView: View {
     @ViewBuilder private var page: some View {
         switch route {
         case .hub: HubPage()
+        case .todos: TodosPage()
         case .review(let review): ReviewPage(route: review)
         case .money(let money): MoneyPage(route: money)
         case .about(let about, let ask): AboutPage(route: about, ask: ask)
@@ -41,7 +42,9 @@ struct RouteView: View {
 extension Route {
     /// 还没按 3.0 重做的页（自己画标题、用 Web 的样子）
     var legacy: Bool {
-        if case .hub = self { return false }
-        return true
+        switch self {
+        case .hub, .todos: false
+        default: true
+        }
     }
 }

@@ -11,6 +11,8 @@ final class QuickActions {
 
     /// 刚点的那一个（做完清掉）
     var pending: String?
+    /// App 没开着时点了提醒的通知：外壳起来以后打开这一页（「/todos」）
+    var pendingPath: String?
 
     /// 菜单里的四样：类型 → 对话里先填好的开头（说一句是空的）
     static let starts = ["pour.say": "", "pour.money": "/记 ", "pour.todo": "待办：", "pour.mood": "心情："]
@@ -18,6 +20,15 @@ final class QuickActions {
 
 /// App 的代理：只为了把场景的代理换成认得快捷操作的那个
 final class PourAppDelegate: NSObject, UIApplicationDelegate {
+    /// 通知上的按钮要在启动完以前接上（App 没开着时系统在后台叫醒 App 来做，TodoNotifications）
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+    ) -> Bool {
+        TodoNotifications.listen()
+        return true
+    }
+
     func application(
         _ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession,
         options: UIScene.ConnectionOptions

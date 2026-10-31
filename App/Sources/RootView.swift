@@ -13,6 +13,15 @@ struct RootView: View {
     /// 底部那一整块（轻提示、整理到哪的小条、输入框）有多高：每一页底下留出这么高，滚到底最后一行也露在它上面
     @State private var barHeight: CGFloat = 0
 
+    /// 要删的重复待办：问「只删这一次 / 以后都不要了」
+    private var deletingRepeat: Binding<Bool> {
+        Binding {
+            model.todoDeleting != nil
+        } set: {
+            if !$0 { model.todoDeleting = nil }
+        }
+    }
+
     var body: some View {
         // 看得见的高度（键盘弹出时是键盘上面那一截）：对话面板占它的 55%
         GeometryReader { proxy in
@@ -90,6 +99,24 @@ struct RootView: View {
         .animation(Web.panel, value: model.notice)
         .sheet(item: $model.detail) { ref in EntryPeek(entryId: ref.id, day: ref.day) }
         .sheet(item: $model.goalDetail) { ref in GoalPeek(goalId: ref.id) }
+        // 待办的弹层（3.0 第 2 步）：加待办、详情、推迟到哪——待办页、画布、「我的」、通知都打开这几个
+        .sheet(item: $model.todoSheet) { sheet in
+            switch sheet {
+            case .add(let text): TodoAddSheet(text: text)
+            case .detail(let row): TodoDetailSheet(row: row)
+            case .snooze(let row): TodoSnoozeSheet(row: row)
+            }
+        }
+        // 重复的待办删的时候问一句（01 需求文档 4.4）
+        .confirmationDialog(
+            "这是重复的待办", isPresented: deletingRepeat, titleVisibility: .visible, presenting: model.todoDeleting
+        ) { row in
+            Button("只删这一次", role: .destructive) { model.deleteTodo(row, onlyThisTime: true) }
+            Button("以后都不要了", role: .destructive) { model.deleteTodo(row, onlyThisTime: false) }
+            Button("不删了", role: .cancel) {}
+        } message: { row in
+            Text(row.repeatText.map { "「\(row.content)」\($0)都会有" } ?? row.content)
+        }
         // 画布右上角的搜索、「/找 三体」：浮在页面上面，后面压暗
         .overlay {
             if let search = model.search {

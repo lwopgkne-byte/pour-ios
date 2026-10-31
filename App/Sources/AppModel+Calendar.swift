@@ -29,6 +29,18 @@ extension AppModel {
         }
     }
 
+    /// 待办页：读今天的日程（穿插在「今天」里、今天的时间线；画布在看别的日子时也要今天的）
+    func loadTodayEvents() {
+        let day = today
+        let boundary = dayBoundary
+        if calendar.demo {
+            let client = self.client
+            Task { await calendar.loadDemo(day, from: client) }
+        } else {
+            Task { await calendar.load(day, boundary: boundary) }
+        }
+    }
+
     /// 正在看的那天的日程（没接日历是空的；演示数据时是演示的）
     var shownEvents: [CalendarItem] { calendar.items[shownDay] ?? [] }
 }

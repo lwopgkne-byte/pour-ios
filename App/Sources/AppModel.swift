@@ -86,8 +86,22 @@ final class AppModel {
     private var noticeAction: (() -> Void)?
     private let network = NWPathMonitor()
     private(set) var remindersOn = false
-    /// 看过的日子里要提醒的待办（按日子存，换着看也不丢）
-    var reminders: [String: [Reminder]] = [:]
+    /// 3.0 待办页的单子（AppModel+Todos）：先用存下的画出来再拿新的；勾、推迟、带到今天都先改这里再发
+    var todoPage: API.TodoPage?
+    /// 待办页拿不到、又没有存下的：说一句（有单子时不挡）
+    var todoProblem: String?
+    /// 这一次看着勾掉的（编号 → 原来在哪一组）：划线留在原地，离开待办页再回来才收进「已完成」
+    var todoHeld: [Int: String] = [:]
+    /// 新加的、刚挪过来的那一行：亮一下再变回去
+    var todoFlash: Int?
+    /// 开着的待办弹层（加待办、详情、推迟到哪）
+    var todoSheet: TodoSheet?
+    /// 要删的是重复的待办：先问「只删这一次 / 以后都不要了」
+    var todoDeleting: API.TodoRow?
+    /// 排提醒（AppModel+Reminders）：一会儿内连着变了几次只排最后一次
+    var reminderSync: Task<Void, Never>?
+    /// 排完的样子（待办页底下那一行）：排上了几条、通知开着没有；没排过是 nil
+    var reminderState: ReminderState?
 
     init(client: APIClient, health: HealthLink, calendar: CalendarLink) {
         self.client = client
@@ -153,7 +167,7 @@ final class AppModel {
             day = loadedView
             dayNotes = loadedNotes
             offline = nil
-            noteReminders(loadedView)
+            syncReminders()
         } catch let error as APIError {
             offline = error.message
         } catch {
@@ -272,6 +286,13 @@ final class AppModel {
         day = view
     }
 
+    /// 先改界面：正在看的这一天里拿掉某一条（删了待办）
+    func removeEntry(_ id: Int) {
+        guard var view = day, let index = view.entries.firstIndex(where: { $0.id == id }) else { return }
+        view.entries.remove(at: index)
+        day = view
+    }
+
     /// 输入框里先填好一段（「14:00 到 15:30，」），弹出键盘接着说
     func compose(_ text: String) {
         draft = text
@@ -334,8 +355,11 @@ extension AppModel {
         Task { await client.onStale(report) }
         // 界面测试不排通知（会弹「允许通知」把界面挡住）；对照演示数据时（-serverURL）、看画布样张时也不排
         let arguments = ProcessInfo.processInfo.arguments
-        remindersOn = !arguments.contains("-uiTest") && !arguments.contains("-serverURL") && !CanvasSamples.isOn
-        if remindersOn { Reminders.showWhileOpen() }
+        // 界面测试「-remindersCheck」：也排（看提醒真的排上了，01 需求文档 4.8 第 1 条）
+        remindersOn =
+            (!arguments.contains("-uiTest") || arguments.contains("-remindersCheck"))
+            && !arguments.contains("-serverURL") && !CanvasSamples.isOn
+        TodoNotifications.model = self
         network.pathUpdateHandler = { [weak self] path in
             guard path.status == .satisfied else { return }
             Task { @MainActor in await self?.reconnected() }

@@ -58,7 +58,10 @@
         struct State {
             var notes: [[String: Any]] = []
             /// 平时是空的；「-canvasSample 带孩子」时是那个人的今天（StubServer+Canvas）
-            var entries: [[String: Any]] = Self.sampleEntries(today: PourDate.logicalDay(Date(), in: .current))
+            var entries: [[String: Any]] =
+                Self.sampleEntries(today: PourDate.logicalDay(Date(), in: .current))
+                + (ProcessInfo.processInfo.arguments.contains("-todoSample")
+                    ? Self.sampleTodos(today: PourDate.logicalDay(Date(), in: .current)) : [])
             var trash: [[String: Any]] = []
             var nextId = 1
             /// 对话里的系统消息：今天早上来的「昨天的回顾好了」
@@ -89,6 +92,7 @@
                 let body = Self.body(request)
                 if let reply = offlineReply(body) { return reply }
                 if let reply = basic(method, url, body) { return reply }
+                if let value = todoReply(method, url, body) { return ok(value) }
                 let parts = url.path.split(separator: "/").map(String.init)
                 if parts.count == 3, parts[1] == "day" {
                     let health = healthOf(parts[2])
@@ -261,37 +265,6 @@
                 {
                     result["undone"] = true
                     notes[index]["result"] = result
-                }
-                return ["ok": true]
-            }
-
-            private mutating func patch(entry id: Int, _ body: [String: Any]) -> [String: Any] {
-                guard let index = entries.firstIndex(where: { $0["id"] as? Int == id }) else { return [:] }
-                if body["confirm"] as? Bool == true {
-                    entries[index]["status"] = "ok"
-                    entries[index]["question"] = nil
-                }
-                if let done = body["done"] as? Bool, var data = entries[index]["data"] as? [String: Any] {
-                    data["done"] = done
-                    entries[index]["data"] = data
-                }
-                if let fields = body["fields"] as? [String: Any], var data = entries[index]["data"] as? [String: Any] {
-                    if let label = fields["label"] as? String { data["label"] = label }
-                    entries[index]["data"] = data
-                }
-                return entries[index]
-            }
-
-            private mutating func delete(entry id: Int) -> [String: Any] {
-                if let index = entries.firstIndex(where: { $0["id"] as? Int == id }) {
-                    trash.append(entries.remove(at: index))
-                }
-                return ["ok": true]
-            }
-
-            private mutating func restore(entry id: Int) -> [String: Any] {
-                if let index = trash.firstIndex(where: { $0["id"] as? Int == id }) {
-                    entries.append(trash.remove(at: index))
                 }
                 return ["ok": true]
             }
