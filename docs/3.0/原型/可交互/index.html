@@ -564,9 +564,9 @@ function TodayPage() {
     </div>
     ${app.intro && html`<div class="intro mx" style=${{ marginTop: '14px' }}>
       <button class="iconbtn" aria-label="关掉说明" style=${{ position: 'absolute', right: '8px', top: '8px', width: '30px', height: '30px', color: '#fff', background: 'rgba(255,255,255,.14)' }} onClick=${app.hideIntro}><${I} n="close" s=${18}/></button>
-      <div style=${{ fontSize: '16px', fontWeight: 700, paddingRight: '34px' }}>这是 3.0 要做成的样子（第四版）</div>
+      <div style=${{ fontSize: '16px', fontWeight: 700, paddingRight: '34px' }}>这是 3.0 要做成的样子（第五版）</div>
       <div style=${{ fontSize: '14px', lineHeight: 1.65, marginTop: '6px', opacity: 0.93 }}>数据是假的，点得动。<b>手机和模拟器上是现在的 App</b>。没有底部标签栏了：左上角「我」是全部功能，卡片标题点了进那一块，底部只有「说一句」。每一页右上角「看现在」是现在 App 里这一页。</div>
-      <div style=${{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}><button class="chip" style=${{ background: '#fff', color: '#1F3F7A', fontWeight: 650 }} onClick=${() => app.go('check')}>功能核对：现在的 ${AUDIT.flatMap((g) => g.items).length} 项在 3.0 哪里 ›</button><button class="chip" style=${{ background: 'rgba(255,255,255,.16)', color: '#fff', fontWeight: 650 }} onClick=${() => app.push('goals')}>目标（10月28日按新方案换过）›</button></div>
+      <div style=${{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}><button class="chip" style=${{ background: '#fff', color: '#1F3F7A', fontWeight: 650 }} onClick=${() => app.go('check')}>功能核对：现在的 ${AUDIT.flatMap((g) => g.items).length} 项在 3.0 哪里 ›</button><button class="chip" style=${{ background: 'rgba(255,255,255,.16)', color: '#fff', fontWeight: 650 }} onClick=${() => app.push('goals')}>目标（第五版按新方案重做）›</button></div>
     </div>`}
     <button class="card mx press" style=${{ display: 'flex', alignItems: 'center', gap: '10px', width: 'calc(100% - 32px)', marginTop: '12px', padding: '12px 14px', border: 0, textAlign: 'left', cursor: 'pointer' }} onClick=${() => app.openStory('r26', 'day')}><span class="cico" style=${{ background: '#4F5FD0', width: '30px', height: '30px', borderRadius: '9px' }}><${I} n="menu_book" s=${18} f/></span><span style=${{ flex: 1, fontSize: '15px', fontWeight: 600 }}>昨天的回顾好了</span><${I} n="chevron_right" s=${18} c="var(--ink3)"/></button>
     <div class="card mx" style=${{ marginTop: '12px', padding: '0 0 6px' }}>
@@ -1807,9 +1807,16 @@ const remTxt = (r) => (r[1] === '地点' ? `${r[0]}提醒你` : `${r[0]} ${r[1]}
 const isHabit = (g) => ['daily', 'weekly', 'times', 'night'].includes(g.kind);
 const gTone = (g) => (g.paused || g.st === 'ok' || g.st === 'new' ? 'var(--ink2)' : '#8A5A00');
 /* 目标首页：这周一句话 → 我在乎的 → 进行中（按在乎的分组）→ 坚持 → 做到的 · 放下的 */
+// 环中间写什么：做完就算写做完几步，大目标写几个在正轨上，还谈不上的是空心圈（01 第 9.1 节）
+function ringLabel(g, goals) {
+  if (g.kind === 'done') return `${msDone(g)}/${g.ms.length}`;
+  if (g.kind === 'parent') { const subs = g.subs.map((id) => goals.find((x) => x.id === id)).filter(Boolean); return subs.every((x) => x.st === 'new') ? `${subs.length} 个` : `${subs.filter((x) => x.st === 'ok').length}/${subs.length}`; }
+  if (g.kind === 'book' || (g.st === 'new' && !gFill(g, goals))) return '';
+  return undefined;
+}
 function GRing({ g, goals, size = 40, w = 5, spin, label }) {
-  const f = clamp(gFill(g, goals), 0, 1);
-  const txt = label !== undefined ? label : Math.round(f * 100) + '%';
+  const f = clamp(gFill(g, goals), 0, 1); const auto = ringLabel(g, goals);
+  const txt = label !== undefined ? label : auto !== undefined ? auto : Math.round(f * 100) + '%';
   return html`<span class=${spin ? 'gspin' : ''} style=${{ position: 'relative', width: size + 'px', height: size + 'px', flex: 'none', display: 'inline-block' }}><${Ring} v=${f} t=${1} size=${size} w=${w} color=${gColor(g)}/>${txt && html`<span class="num" style=${{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size >= 80 ? '20px' : size >= 48 ? '12.5px' : '11px', fontWeight: 700, letterSpacing: '-.2px' }}>${txt}</span>`}</span>`;
 }
 function GLabel({ t, ic, c, right, m }) {
@@ -1966,7 +1973,7 @@ function GoalHead({ g, goals }) {
   const BIG = { count: () => [`${g.v}`, ` / ${g.t} ${g.unit}`], avg: () => [hm(g.vMin), ''], cap: () => (g.unit === '元' ? [`¥${g.v}`, ` / ¥${g.t} 已用`] : [`${g.v}`, ` / ${g.t} 次 · 这周`]), down: () => [`${g.v}`, ` → ${g.t} 公斤`], done: () => [`${msDone(g)}`, ` / ${g.ms.length} 部分`], parent: () => [`${g.subs.length}`, ' 个子目标'], daily: () => [`${STEPS.ok}`, ' / 30 天做到'], weekly: () => [`${g.v}`, ` / ${g.t} 次 · 这周`], times: () => [`${g.v}`, ` / ${g.t} 次 · 这个月`], night: () => [`${g.v}`, ' / 7 天做到'], book: () => ['0', ' 部分看完'], total: () => [`${g.v}`, ` / ${g.t} ${g.unit}`], limit: () => [`${g.v}`, ` / ${g.t} ${g.unit} 已用`] };
   const big = (BIG[g.kind] || (() => ['', '']))();
   const subsOf = g.kind === 'parent' ? g.subs.map((id) => goals.find((x) => x.id === id)).filter(Boolean) : [];
-  const ringTxt = g.kind === 'daily' ? '26 天' : g.kind === 'parent' ? (subsOf.every((x) => x.st === 'new') ? `${subsOf.length} 个` : `${subsOf.filter((x) => x.st === 'ok').length}/${subsOf.length}`) : undefined;
+  const ringTxt = g.kind === 'daily' ? '26 天' : undefined;
   let status = gLine(g, goals), more = null;
   if (g.id === 'g1' && g.t === 500 && !g.paused) more = `照最近的速度，年底在 ${RUN.yearSlow}–${RUN.yearFast} 公里之间`;
   if (g.kind === 'avg') more = `这周两晚都是 6 小时 50 分，目标每晚 ${hm(g.tMin)}`;
@@ -2307,8 +2314,8 @@ function GoalAddSheet({ close, preset, path }) {
       <input id="goal-add" value=${text} onInput=${(e) => setText(e.target.value)} onKeyDown=${(e) => { if (e.key === 'Enter' && text.trim()) go(text); }} placeholder="说一句你想做到的" class="serif" style=${{ flex: 1, minWidth: 0, border: 0, outline: 'none', fontSize: '18px', padding: '10px 0', background: 'none' }}/>
       ${text.trim() ? html`<button class="iconbtn press" aria-label="好了" style=${{ background: 'var(--accent)', color: '#fff' }} onClick=${() => go(text)}><${I} n="arrow_upward" s=${22}/></button>` : html`<button class="iconbtn press" aria-label="说话" style=${{ background: 'var(--accent-soft)', color: 'var(--accent)' }} onClick=${() => go('我想多带儿子去游泳')}><${I} n="mic" s=${22}/></button>`}
     </div>
-    <div class="cmt" style=${{ margin: '16px 20px 8px' }}>常用的</div>
-    <div style=${{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '0 16px' }}>${['每天走 8000 步', '平均睡 7.5 小时', '每月外卖不超过 300', '读完一本书'].map((s) => html`<button class="chip press" style=${{ height: '38px', fontSize: '15px', background: '#fff' }} onClick=${() => go(s)}>${s}</button>`)}</div>
+    <div class="cmt" style=${{ margin: '16px 20px 8px' }}>常用的（已经有的不列，不够的从你说过的话里找）</div>
+    <div style=${{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '0 16px' }}>${[...['每天走 8000 步', '平均睡 7.5 小时', '每月外卖不超过 300', '读完一本书'], ...['每天 11 点前睡', '每周陪儿子出去玩 2 次', '每周运动 3 次']].filter((s) => { const u = gUnderstand(s); return !(u.k === 'dup' && app.goals.some((x) => x.id === u.id)); }).slice(0, 4).map((s) => html`<button class="chip press" style=${{ height: '38px', fontSize: '15px', background: '#fff' }} onClick=${() => go(s)}>${s}</button>`)}</div>
     <div class="cmt" style=${{ margin: '18px 20px 8px' }}>原型里试试这几句（三条路走的是同一张理解卡）</div>
     <div style=${{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '0 16px' }}>${[['我想多带儿子去游泳', '说得具体，但没说多久一次：问一句'], ['我想变健康', '说得模糊：先问一句，再拆开'], ['少吃外卖', '「不要」的：顺手建议换成「去做」的']].map(([s, d]) => html`<button class="card press" style=${{ border: 0, textAlign: 'left', padding: '12px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', fontFamily: 'inherit', color: 'inherit' }} onClick=${() => go(s)}><div style=${{ flex: 1, minWidth: 0 }}><div class="serif" style=${{ fontSize: '17px' }}>「${s}」</div><div class="cmt">${d}</div></div><${I} n="chevron_right" s=${18} c="var(--ink3)"/></button>`)}</div>
     <button class="link" style=${{ margin: '14px 20px 0' }} onClick=${() => setStep('form')}>或者一项一项填<${I} n="chevron_right" s=${18}/></button>`;
