@@ -107,6 +107,8 @@ struct RootView: View {
             case .snooze(let row): TodoSnoozeSheet(row: row)
             }
         }
+        // 记一笔的数字键盘（3.0 第 3 步）：钱的主页、「我的」、画布的钱卡、按住图标都打开它
+        .sheet(isPresented: $model.keypadOpen) { MoneyKeypadSheet() }
         // 重复的待办删的时候问一句（01 需求文档 4.4）
         .confirmationDialog(
             "这是重复的待办", isPresented: deletingRepeat, titleVisibility: .visible, presenting: model.todoDeleting

@@ -38,6 +38,10 @@ struct MoneyHomePage: View {
         .refreshable { await load() }
         .task(id: "\(month)-\(model.dataVersion)") { await load() }
         .onChange(of: month) { picked = nil }
+        // 刚用数字键盘记了一笔：月历选到今天，下面那一行「整理中」看得见
+        .onChange(of: model.moneyPending.count) { before, now in
+            if now > before, month == String(model.today.prefix(7)) { picked = model.today }
+        }
     }
 
     @ViewBuilder private func content(_ home: API.MoneyHome) -> some View {

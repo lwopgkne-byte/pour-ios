@@ -37,7 +37,9 @@ extension AppModel {
     func flushOutbox() async {
         for item in outbox {
             do {
-                try await client.send(item.text, clientId: item.clientId, day: item.day, context: item.context)
+                let note = try await client.send(
+                    item.text, clientId: item.clientId, day: item.day, context: item.context)
+                posted(item.clientId, note: note)
                 outbox.removeAll { $0.clientId == item.clientId }
                 offline = nil
             } catch {

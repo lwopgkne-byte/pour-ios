@@ -103,6 +103,40 @@ final class MoneyUITests: XCTestCase {
         audit(app, "和小李的来往")
     }
 
+    /// 记一笔（01 需求文档 5.4、验收 5.8 第 1 条）：数字键盘、「你常买的」点一下连名字带价钱填好、记下；
+    /// 键盘按 5、8，选「能报销」，原话就是「58 能报销」
+    @MainActor func testRecordWithKeypad() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTest"]
+        app.launch()
+        app.openTile("money")
+        let record = app.buttons["money.record"]
+        XCTAssertTrue(record.waitForExistence(timeout: 5), "钱没打开")
+        record.tap()
+        let amount = app.staticTexts["keypad.amount"]
+        XCTAssertTrue(amount.waitForExistence(timeout: 3), "数字键盘没打开")
+        app.buttons["午饭 25"].tap()
+        XCTAssertEqual(amount.label, "¥25", "点「午饭 25」没填好价钱")
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '「午饭 25」'")).firstMatch.exists)
+        settle()
+        audit(app, "记一笔")
+        app.buttons["keypad.save"].tap()
+        XCTAssertTrue(app.staticTexts["记下了：午饭 ¥25"].waitForExistence(timeout: 3), "记下了没说")
+        XCTAssertTrue(app.buttons["undoToast"].exists, "没有撤销")
+        // 再记一笔：键盘按 5、8，能报销
+        record.tap()
+        XCTAssertTrue(amount.waitForExistence(timeout: 3))
+        app.buttons["keypad.5"].tap()
+        app.buttons["keypad.8"].tap()
+        XCTAssertEqual(amount.label, "¥58")
+        app.buttons["能报销"].tap()
+        XCTAssertTrue(
+            app.staticTexts.matching(NSPredicate(format: "label CONTAINS '「58 能报销」'")).firstMatch.exists,
+            "原话不是「58 能报销」")
+        app.buttons["取消"].tap()
+        XCTAssertTrue(amount.waitForNonExistence(timeout: 3))
+    }
+
     @MainActor func testMoneyThing() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]

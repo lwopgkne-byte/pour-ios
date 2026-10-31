@@ -43,7 +43,10 @@ struct MoneyMonthCalendar: View {
     private var blanks: Int { PourDate.weekdayMon0("\(page.month)-01") }
 
     private var days: [MoneyCalendarGrid.Day] {
-        let spent = Dictionary(page.days.map { ($0.day, $0.spent) }, uniquingKeysWith: +)
+        // 刚用数字键盘记下、还在整理的日常的：那一格先加上
+        let pending = model.moneyPending.filter { $0.kind == "daily" && $0.day.hasPrefix(page.month) }
+        let spent = Dictionary(
+            page.days.map { ($0.day, $0.spent) } + pending.map { ($0.day, $0.amount) }, uniquingKeysWith: +)
         let most = max(1, spent.values.max() ?? 1)
         let count = MoneyHero.days(in: page.month)
         return (1...count).map { number in
@@ -76,7 +79,15 @@ struct MoneyMonthCalendar: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("money.pickedDay")
-            if items.isEmpty {
+            ForEach(model.moneyPending.filter { $0.day == day }) { pending in
+                MoneyRowLabel(
+                    Show.spaced(pending.name), tags: [.pending], sub: pending.time,
+                    amount: Show.yuan(pending.amount, hide: hide)
+                ) {
+                    IconTile(symbol: "yensign", emoji: "", color: Theme.tag("gray"))
+                }
+            }
+            if items.isEmpty, !model.moneyPending.contains(where: { $0.day == day }) {
                 Text("那天没说到钱（没说 ≠ 没花）").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                     .padding(.bottom, Theme.Space.small)
             }

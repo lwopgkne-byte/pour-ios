@@ -17,10 +17,12 @@ struct MoneyHero: View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             Text(page.current ? "\(name)到今天，日常花的" : "\(name)，日常花的").font(Theme.Typeface.subheadline)
                 .foregroundStyle(Theme.Palette.secondaryLabel)
-            Text(Show.yuan(page.spent, hide: hide)).font(Theme.Typeface.bigNumber).monospacedDigit()
+            // 刚用数字键盘记下、还在整理的日常的先加上（整理完换成服务器算的）
+            let spent = page.spent + model.pendingSpent(month: page.month)
+            Text(Show.yuan(spent, hide: hide)).font(Theme.Typeface.bigNumber).monospacedDigit()
                 .foregroundStyle(Theme.Palette.label)
-                .contentTransition(.numericText(value: page.spent))
-                .animation(Theme.Motion.standard, value: page.spent)
+                .contentTransition(.numericText(value: spent))
+                .animation(Theme.Motion.standard, value: spent)
                 .accessibilityIdentifier("money.spent")
             Text(countLine(page, name: name)).font(Theme.Typeface.subheadline).monospacedDigit()
                 .foregroundStyle(Theme.Palette.secondaryLabel)

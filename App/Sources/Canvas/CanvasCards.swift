@@ -139,7 +139,11 @@ private struct CardHeader: View {
             if let quick {
                 Button {
                     // 加待办是正式的弹层（第 2 步）；记一笔、记心情第 3、4 步换
-                    if card.template == .todo { model.todoSheet = .add("") } else { model.startSaying(quick.start) }
+                    switch card.template {
+                    case .todo: model.todoSheet = .add("")
+                    case .money: model.recordMoney()
+                    default: model.startSaying(quick.start)
+                    }
                 } label: {
                     Label(quick.title, systemImage: "plus")
                         .labelStyle(QuickCapsule(iconOnly: quick.title == "加待办" || size == .half))

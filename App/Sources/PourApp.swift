@@ -39,7 +39,11 @@ struct PourApp: App {
                     quickActions.pending = nil
                     model.goHome()
                     // 加待办是正式的弹层（第 2 步）；记一笔、记心情第 3、4 步换
-                    if type == "pour.todo" { model.todoSheet = .add("") } else { model.startSaying(start) }
+                    switch type {
+                    case "pour.todo": model.todoSheet = .add("")
+                    case "pour.money": model.recordMoney()
+                    default: model.startSaying(start)
+                    }
                 }
                 // App 没开着时点了提醒的通知：打开待办
                 .onChange(of: quickActions.pendingPath, initial: true) { _, path in
