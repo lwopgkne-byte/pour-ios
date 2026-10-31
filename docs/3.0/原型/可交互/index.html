@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Pour 3.0 交互原型</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0&icon_names=add,arrow_forward,arrow_upward,auto_awesome,backspace,badge,balance,bedtime,block,book,calendar_month,category,chat,check,checklist,chevron_left,chevron_right,cleaning_services,close,cloud_off,content_copy,currency_yuan,delete,description,directions_run,diversity_3,dock,domain,done,done_all,edit,error,event,expand_more,feedback,flag,format_quote,forum,grid_view,group,hide,history,info,input,insights,inventory_2,ios_share,key,lan,lightbulb,link,list,local_fire_department,local_taxi,lock,menu,menu_book,mic,money,monitor_heart,mood,more_horiz,mouse,movie,note,notifications,pause,pause_circle,people,person,pets,photo_library,pie_chart,pill,place,play_arrow,psychology,push_pin,receipt_long,record_voice_over,redeem,refresh,repeat,report,restaurant,savings,schedule,school,search,self_improvement,send,sentiment_dissatisfied,sentiment_neutral,sentiment_satisfied,sentiment_very_dissatisfied,sentiment_very_satisfied,serif,settings,share,shopping_bag,sleep,snooze,star,start,swap_horiz,swipe,switch,tag,thumb_up,timeline,title,toast,today,trending_down,trip,tune,update,verified,visibility,visibility_off,wallet,warning,watch,wb_sunny,weekend,widgets,work&display=block">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,0..1,0&icon_names=add,arrow_forward,arrow_upward,auto_awesome,backspace,badge,balance,bedtime,block,book,calendar_month,category,chat,check,checklist,chevron_left,chevron_right,cleaning_services,close,cloud_off,content_copy,currency_yuan,delete,description,directions_run,diversity_3,dock,domain,done,done_all,edit,error,event,expand_more,feedback,flag,format_quote,forum,grid_view,group,hide,history,info,input,insights,inventory_2,ios_share,key,lan,lightbulb,link,list,local_fire_department,local_taxi,lock,menu,menu_book,mic,money,monitor_heart,mood,more_horiz,mouse,movie,note,notifications,pause,pause_circle,people,person,pets,photo_library,pie_chart,pill,place,play_arrow,psychology,push_pin,receipt_long,record_voice_over,redeem,refresh,repeat,report,restaurant,savings,schedule,school,search,self_improvement,send,sentiment_dissatisfied,sentiment_neutral,sentiment_satisfied,sentiment_very_dissatisfied,sentiment_very_satisfied,serif,settings,share,shopping_bag,sleep,snooze,star,start,swap_horiz,swipe,switch,tag,thumb_up,timeline,title,toast,today,trending_down,trip,tune,update,verified,visibility,visibility_off,wallet,warning,watch,wb_sunny,weekend,weight,widgets,work&display=block">
 <style>
 /* Pour 3.0 交互原型：一台 iPhone 15（390×844）里的 App。电脑上居中一台手机，手机上铺满屏幕。
    只有一种亮色（产品主人 2026-10-21 定的），颜色、字体都从下面这组令牌来，和 App 里生活画布 2.0 的 Theme 一致 */
@@ -229,6 +229,7 @@ html:not(.icons-ready) .ms{visibility:hidden}
 .wspan2{grid-column:span 2}
 .pushed{z-index:7}
 .lt{text-wrap:balance}
+.swc{touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* 目标（2026-10-28）：定好时环转一下；系统通知 */
 .gspin{display:inline-block;animation:gspin 1.1s var(--ease) both}
 @keyframes gspin{from{transform:rotate(-300deg) scale(.7);opacity:.25}to{transform:none;opacity:1}}
@@ -532,7 +533,7 @@ function Swipe({ onRight, rightLabel = '完成', rightIcon = 'check', actions = 
   return html`<div class="swipe">
     ${onRight && dx > 0 && html`<div class="sw-left"><${I} n=${rightIcon} s=${22}/>${rightLabel}</div>`}
     ${dx < 0 && html`<div class="sw-right">${actions.map((a) => html`<button class="sa" style=${{ background: a.c }} onClick=${() => { setAnim(true); setDx(0); a.fn(); }}><${I} n=${a.i} s=${22}/>${a.t}</button>`)}</div>`}
-    <div onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up} style=${{ transform: `translateX(${dx}px)`, transition: anim ? 'transform .35s cubic-bezier(.32,.72,0,1)' : 'none', position: 'relative', background: '#fff' }}>${children}</div>
+    <div class="swc" onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up} style=${{ transform: `translateX(${dx}px)`, transition: anim ? 'transform .35s cubic-bezier(.32,.72,0,1)' : 'none', position: 'relative', background: '#fff' }}>${children}</div>
   </div>`;
 }
 function AnimNum({ v, masked, pre = '¥' }) {
@@ -573,8 +574,8 @@ function TodayPage() {
       ${todos.map((t, i) => html`${i > 0 && html`<div class="sep" style=${{ marginLeft: '52px' }}/>`}<${TodoRow} t=${t} compact/>`)}
     </div>
     <div style=${{ display: 'flex', gap: '12px', margin: '12px 16px 0' }}>
-      <div class="card" style=${{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}><${Ring} v=${410} t=${450} size=${42} w=${6} color=${G_WARN}/><div><div class="num" style=${{ fontSize: '17px', fontWeight: 700 }}>6.8 小时</div><div style=${{ fontSize: '12px', color: 'var(--ink2)' }}>平均睡 7.5 小时</div></div></div>
-      <div class="card" style=${{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center', gap: '12px' }}><${Ring} v=${4493} t=${8000} size=${42} w=${6} color=${G_OK}/><div><div class="num" style=${{ fontSize: '17px', fontWeight: 700 }}>4,493 步</div><div style=${{ fontSize: '12px', color: 'var(--ink2)' }}>每天走 8000 步</div></div></div>
+      <button class="card press" aria-label="打开目标：平均睡 7.5 小时" onClick=${() => app.push('goal', { id: 'g2' })} style=${{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center', gap: '12px', border: 0, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', color: 'inherit' }}><${Ring} v=${410} t=${450} size=${42} w=${6} color=${G_WARN}/><div><div class="num" style=${{ fontSize: '17px', fontWeight: 700 }}>6.8 小时</div><div style=${{ fontSize: '12px', color: 'var(--ink2)' }}>平均睡 7.5 小时</div></div></button>
+      <button class="card press" aria-label="打开目标：每天走 8000 步" onClick=${() => app.push('goal', { id: 'g4' })} style=${{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center', gap: '12px', border: 0, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', color: 'inherit' }}><${Ring} v=${4493} t=${8000} size=${42} w=${6} color=${G_OK}/><div><div class="num" style=${{ fontSize: '17px', fontWeight: 700 }}>4,493 步</div><div style=${{ fontSize: '12px', color: 'var(--ink2)' }}>每天走 8000 步</div></div></button>
     </div>
     <div class="card mx" style=${{ marginTop: '12px', padding: '0 0 12px' }}>
       <div style=${hdr}><button style=${ttl} onClick=${() => app.push('mood')}>心情<${I} n="chevron_right" s=${20} c="var(--ink3)"/></button><span style=${{ display: 'flex', alignItems: 'center', gap: '10px' }}><span style=${{ fontSize: '13px', color: 'var(--ink2)' }}>有起有落</span><button class="chip press" style=${{ ...act, background: 'var(--mood-soft)', color: 'var(--mood)' }} onClick=${() => app.openSheet('checkin', { lv: 4 })}>记心情</button></span></div>
@@ -1723,8 +1724,8 @@ const GROW_OPTS = (() => {
   while (wk <= RUN.end && !hit) { cum += 8; if (cum >= goalB) hit = wk; else { cum += 8; if (cum >= goalB) hit = gadd(wk, 1); } wk = gadd(wk, 7); }
   const cYear = Math.round(RUN.actual + (14 / 7) * RUN.rest), cDone = gadd(G_TODAY, Math.ceil(left / 2));
   return [
-    { k: 'down', t: '降到 200 公里', how: '每周 13 公里：周三 3 公里，周六、周日各 5 公里', when: `${gmd(a)}能到`, cost: '目标小了一大截', target: 200, title: '今年跑 200 公里', line: `从 11月2日重新开始 · ${gmd(a)}能到`, ifthen: '如果周六早上没安排，就先出门跑 5 公里', remind: ['周六', '08:00'] },
-    { k: 'weekend', t: '改成周末长跑', how: '每个周六、周日各跑 8 公里；目标改成 230 公里', when: `${gmd(hit)}能到 230`, cost: '工作日不再要求跑', target: 230, title: '今年跑 230 公里', line: `周末长跑 · ${gmd(hit)}能到`, ifthen: '如果周六早上没安排，就先出门跑 8 公里', remind: ['周六', '08:00'] },
+    { k: 'down', t: '降到 200 公里', how: '每周 13 公里：周三 3 公里，周六、周日各 5 公里', when: `照每周 13 公里，${gmd(a)}能到`, cost: '目标小了一大截', target: 200, title: '今年跑 200 公里', line: `从 11月2日重新开始 · 照每周 13 公里，${gmd(a)}能到`, ifthen: '如果周六早上没安排，就先出门跑 5 公里', remind: ['周六', '08:00'] },
+    { k: 'weekend', t: '改成周末长跑', how: '每个周六、周日各跑 8 公里；目标改成 230 公里', when: `照周末各 8 公里，${gmd(hit)}能到 230`, cost: '工作日不再要求跑', target: 230, title: '今年跑 230 公里', line: `周末长跑 · ${gmd(hit)}能到`, ifthen: '如果周六早上没安排，就先出门跑 8 公里', remind: ['周六', '08:00'] },
     { k: 'ifthen', t: '换个「如果就」，目标不变', how: '周末照旧；再加周二、周四早上各跑 3 公里，每周约 14 公里', when: `年底约 ${cYear} 公里；500 公里要到明年 ${cDone.getMonth() + 1} 月`, cost: '目标不变，还是落后，但每周多两次', target: 500, ifthen: '如果周二、周四早上 7 点前醒了，就先在小区跑 3 公里', remind: ['周二、周四', '06:50'] },
     { k: 'pause', t: '先停一个月', how: '到 11月27日；这期间不提醒、不算落后', when: '11月27日回来再定', cost: '这一个月不算进度', target: 500 },
   ];
@@ -1787,6 +1788,8 @@ function gLine(g, goals) {
   if (g.kind === 'weekly') return g.habit ? `成习惯了 · 连续 ${WORDS_WEEKS.length} 周都做到` : g.v >= g.t ? `这周 ${g.v} 次，做到了` : `这周 ${g.v} 次，还差 ${g.t - g.v} 次`;
   if (g.kind === 'times') return g.v >= g.t ? `这个月 ${g.v} 次，做到了` : `这个月 ${g.v} 次，还差 ${g.t - g.v} 次`;
   if (g.kind === 'night') return `最近 7 天做到 ${g.v} 天`;
+  if (g.kind === 'total') return g.v ? `已经 ${g.v} ${g.unit}，还差 ${r1(g.t - g.v)} ${g.unit}` : `刚定的 · 还差 ${g.t} ${g.unit}`;
+  if (g.kind === 'limit') return `${g.per || '这个月'}还能 ${r1(g.t - g.v)} ${g.unit}`;
   if (g.kind === 'book') return '刚定的，看完一部分说一声';
   return '';
 }
@@ -1843,7 +1846,7 @@ function GoalCard({ g, goals, wide }) {
 function HabitRow({ g, goals, i }) {
   const app = useApp(); const daily = g.kind === 'daily';
   const sub = g.paused ? gLine(g, goals) : daily ? `30 天做到 ${STEPS.ok} 天` : g.habit ? `这周 ${g.v} 次，还差 ${g.t - g.v} 次` : gLine(g, goals);
-  const sub2 = !g.paused && daily && STEPS.usedThisWeek ? `用了 ${STEPS.usedThisWeek} 次补假` : null;
+  const sub2 = !g.paused && daily && STEPS.usedThisWeek ? `这周用了 ${STEPS.usedThisWeek} 次补假` : null;
   return html`${i > 0 && html`<div class="sep"/>`}<${Swipe} onTap=${() => app.push('goal', { id: g.id })} onLong=${() => app.setGoalMenu(g.id)} actions=${pauseAct(app, g)}>
     <div style=${{ padding: '11px 14px 11px 16px', display: 'flex', alignItems: 'center', gap: '10px', opacity: g.paused ? 0.62 : 1 }}>
       <div style=${{ flex: 1, minWidth: 0 }}>
@@ -1885,10 +1888,11 @@ function GoalsHome() {
   const grid = { display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '10px', margin: '0 16px' };
   return html`<${Page} title="目标" right=${right}>
     <div style=${{ margin: '-2px 20px 0', fontSize: '15.5px', lineHeight: 1.55 }}>这周 ${live.length} 个目标里 ${onTrack} 个在正轨上${behind ? html`；「${behind.title}」落后两周了，<button class="link" style=${{ fontSize: '15.5px', padding: 0, display: 'inline' }} onClick=${() => app.openSheet('grow', { id: behind.id })}>聊聊怎么调？</button>` : '。'}</div>
+    ${!app.weeklyDone && html`<button class="link" style=${{ margin: '2px 20px 0', fontSize: '14.5px', padding: '2px 0' }} onClick=${() => app.openSheet('weekly', {})}><${I} n="event" s=${17}/>上周的回顾还没看 · 3 分钟<${I} n="chevron_right" s=${17}/></button>`}
     <${GLabel} t="我在乎的"/>
-    <div class="hscroll">${CARE.map(([n, ic, c]) => { const all = live.filter((g) => g.dom === n); const list = all.filter((g) => !g.paused); const f = list.length ? list.reduce((a, g) => a + clamp(gFill(g, goals), 0, 1), 0) / list.length : 0; const col = !list.length ? G_PAUSE : list.every((g) => g.st === 'ok' || g.st === 'new') ? G_OK : G_WARN; return html`<button class="card press" onClick=${() => app.push('domain', { name: n })} style=${{ border: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 14px 7px 7px', borderRadius: '23px', flex: 'none', fontFamily: 'inherit', color: 'inherit' }}>
-      <span style=${{ position: 'relative', width: '32px', height: '32px', display: 'inline-block' }}><${Ring} v=${f} t=${1} size=${32} w=${4} color=${col}/><span style=${{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><${I} n=${ic} s=${15} c=${c} f/></span></span>
-      <span style=${{ textAlign: 'left', lineHeight: 1.25 }}><b style=${{ fontSize: '14.5px', display: 'block' }}>${n}</b><span class="num" style=${{ fontSize: '11.5px', color: 'var(--ink3)' }}>${all.length ? `${all.length} 个目标${all.length > list.length ? ` · ${all.length - list.length} 个暂停` : ''}` : '还没有目标'}</span></span></button>`; })}</div>
+    <div class="carerow" role="group" aria-label="我在乎的" style=${{ display: 'grid', gridTemplateColumns: `repeat(${CARE.length},minmax(0,1fr))`, gap: '6px', margin: '0 16px' }}>${CARE.map(([n, ic, c]) => { const all = live.filter((g) => g.dom === n); const list = all.filter((g) => !g.paused); const f = list.length ? list.reduce((a, g) => a + clamp(gFill(g, goals), 0, 1), 0) / list.length : 0; const col = !list.length ? G_PAUSE : list.every((g) => g.st === 'ok' || g.st === 'new') ? G_OK : G_WARN; return html`<button class="card press" aria-label=${`${n}：${all.length ? all.length + ' 个目标' : '还没有目标'}`} onClick=${() => app.push('domain', { name: n })} style=${{ border: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 4px 6px 6px', borderRadius: '22px', minWidth: 0, fontFamily: 'inherit', color: 'inherit' }}>
+      <span style=${{ position: 'relative', width: '28px', height: '28px', display: 'inline-block', flex: 'none' }}><${Ring} v=${f} t=${1} size=${28} w=${3.5} color=${col}/><span style=${{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><${I} n=${ic} s=${13} c=${c} f/></span></span>
+      <span style=${{ textAlign: 'left', lineHeight: 1.2, minWidth: 0 }}><b style=${{ fontSize: '14px', display: 'block', whiteSpace: 'nowrap' }}>${n}</b><span class="num" style=${{ fontSize: '11px', color: 'var(--ink3)', whiteSpace: 'nowrap' }}>${all.length ? all.length + ' 个' : '还没有'}</span></span></button>`; })}</div>
     ${blocks.map((b) => (b.single ? (b.pair ? html`<div style=${{ ...grid, marginTop: '14px' }}>${[b, b.pair].map((x) => html`<div style=${{ display: 'flex', flexDirection: 'column', minWidth: 0 }}><${GLabel} t=${x.n} ic=${x.ic} c=${x.c} m="0 4px 6px"/><div style=${{ flex: 1, display: 'grid' }}><${GoalCard} key=${x.g.id} g=${x.g} goals=${goals}/></div></div>`)}</div>`
       : html`<${GLabel} t=${b.n} ic=${b.ic} c=${b.c}/><div style=${grid}><${GoalCard} key=${b.g.id} g=${b.g} goals=${goals} wide/></div>`)
       : html`<${GLabel} t=${b.n} ic=${b.ic} c=${b.c}/><div style=${grid}>${(() => { const halves = b.list.filter((g) => !g.grow); return b.list.map((g) => html`<${GoalCard} key=${g.id} g=${g} goals=${goals} wide=${g.grow || (halves.length % 2 === 1 && g === halves[halves.length - 1])}/>`); })()}</div>`))}
@@ -1917,13 +1921,33 @@ function GoalsEmpty() {
       <div style=${{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '10px' }}>${CARE.map(([n, ic, c]) => html`<span class="chip" style=${{ background: 'var(--fill2)', cursor: 'default' }}><${I} n=${ic} s=${16} c=${c} f/>${n}</span>`)}</div>
       <div style=${{ display: 'flex', gap: '8px', marginTop: '12px' }}><button class="chip press" style=${{ background: 'var(--accent)', color: '#fff', fontWeight: 600 }} onClick=${() => setCare(true)}>对</button><button class="chip press" onClick=${() => app.toast('改名、删掉、加一个（最多 6 个）')}>改一下</button></div>`}</div>`;
 }
+// 长按出菜单：手指松开的那一下不算点（不然会点到菜单里正好在手指下面的那一项，或者把菜单直接关掉）
 function GoalMenu() {
-  const app = useApp(); const g = app.goals.find((x) => x.id === app.goalMenu); if (!g) return null;
+  const app = useApp(); const armed = useRef(false); const g = app.goals.find((x) => x.id === app.goalMenu); if (!g) return null;
   const close = () => app.setGoalMenu(null);
-  return html`<div class="menuwrap" onClick=${close}>
-    <div class="menuprev" onClick=${(e) => e.stopPropagation()} style=${{ background: '#fff', maxWidth: '250px' }}><${GoalCardBody} g=${g} goals=${app.goals}/></div>
-    <div class="menu" onClick=${(e) => e.stopPropagation()}>${[['改', 'edit', () => app.push('goal', { id: g.id, edit: true })], [g.paused ? '继续' : '暂停', g.paused ? 'play_arrow' : 'pause', () => (g.paused ? app.resumeGoal(g.id) : app.pauseGoal(g.id))], ['标记完成', 'check', () => app.doneGoal(g.id)], ['删除', 'delete', () => app.deleteGoal(g.id), true]].map(([n, ic, fn, red]) => html`<button class=${red ? 'red' : ''} onClick=${() => { close(); fn(); }}>${n}<${I} n=${ic} s=${20}/></button>`)}</div>
+  const only = (fn) => (e) => { e.stopPropagation(); if (armed.current) fn(); };
+  return html`<div class="menuwrap" onPointerDown=${() => { armed.current = true; }} onClick=${only(close)}>
+    <div class="menuprev" style=${{ background: '#fff', maxWidth: '250px', pointerEvents: 'none' }}><${GoalCardBody} g=${g} goals=${app.goals}/></div>
+    <div class="menu" onClick=${(e) => e.stopPropagation()}>${[['改', 'edit', () => app.push('goal', { id: g.id, edit: true })], [g.paused ? '继续' : '暂停', g.paused ? 'play_arrow' : 'pause', () => (g.paused ? app.resumeGoal(g.id) : app.pauseGoal(g.id))], ['标记完成', 'check', () => app.doneGoal(g.id)], ['删除', 'delete', () => app.deleteGoal(g.id), true]].map(([n, ic, fn, red]) => html`<button class=${red ? 'red' : ''} onClick=${only(() => { close(); fn(); })}>${n}<${I} n=${ic} s=${20}/></button>`)}</div>
   </div>`;
+}
+// 我的 → 坚持：只看坚持的那几个
+function StreakPage() {
+  const app = useApp(); const habits = app.goals.filter((g) => !g.parent && isHabit(g));
+  return html`<${Page} title="坚持" sub="不看连续天数，看最近 30 天做到几天；每天都要做的，每周有 2 次补假">
+    <div class="card mx" style=${{ overflow: 'hidden', borderRadius: '18px' }}>${habits.map((g, i) => html`<${HabitRow} key=${g.id} g=${g} goals=${app.goals} i=${i}/>`)}</div>
+    <div class="cmt" style=${{ display: 'flex', gap: '12px', margin: '8px 24px 0' }}><span>实心 = 做到</span><span>空心带点 = 用了补假</span><span>留白 = 没做到</span></div>
+    <button class="link" style=${{ margin: '14px 20px 0' }} onClick=${() => app.push('goals')}>全部目标<${I} n="chevron_right" s=${18}/></button>
+  <//>`;
+}
+// 我的 → 预算：说过的「不超过」
+function BudgetPage() {
+  const app = useApp(); const caps = app.goals.filter((g) => g.kind === 'cap' || g.kind === 'limit');
+  return html`<${Page} title="预算" sub="你说过的「不超过」：还能花多少、还能几次">
+    <div style=${{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', margin: '0 16px' }}>${caps.map((g) => html`<${GoalCard} key=${g.id} g=${g} goals=${app.goals} wide/>`)}</div>
+    ${caps.some((g) => g.parent) && html`<${Foot}>「每周外卖不超过 2 次」是「三个月瘦 5 斤」的子目标。<//>`}
+    <button class="link" style=${{ margin: '14px 20px 0' }} onClick=${() => app.push('money')}>钱的明细在「钱」里<${I} n="chevron_right" s=${18}/></button>
+  <//>`;
 }
 /* 一个目标：大环和一句状态 → 三句话 → 应达和实际（预测带）→ 什么时候最容易做到 → 原话 → 每个月 → 日子和心情 → 设置 */
 function ThreeCard({ g }) {
@@ -1939,12 +1963,13 @@ function ThreeCard({ g }) {
 }
 function GoalHead({ g, goals }) {
   const app = useApp(); const f = clamp(gFill(g, goals), 0, 1);
-  const BIG = { count: () => [`${g.v}`, ` / ${g.t} ${g.unit}`], avg: () => [hm(g.vMin), ''], cap: () => (g.unit === '元' ? [`¥${g.v}`, ` / ¥${g.t} 已用`] : [`${g.v}`, ` / ${g.t} 次 · 这周`]), down: () => [`${g.v}`, ` → ${g.t} 公斤`], done: () => [`${msDone(g)}`, ` / ${g.ms.length} 部分`], parent: () => [`${g.subs.length}`, ' 个子目标'], daily: () => [`${STEPS.ok}`, ' / 30 天做到'], weekly: () => [`${g.v}`, ` / ${g.t} 次 · 这周`], times: () => [`${g.v}`, ` / ${g.t} 次 · 这个月`], night: () => [`${g.v}`, ' / 7 天做到'], book: () => ['0', ' 部分看完'] };
+  const BIG = { count: () => [`${g.v}`, ` / ${g.t} ${g.unit}`], avg: () => [hm(g.vMin), ''], cap: () => (g.unit === '元' ? [`¥${g.v}`, ` / ¥${g.t} 已用`] : [`${g.v}`, ` / ${g.t} 次 · 这周`]), down: () => [`${g.v}`, ` → ${g.t} 公斤`], done: () => [`${msDone(g)}`, ` / ${g.ms.length} 部分`], parent: () => [`${g.subs.length}`, ' 个子目标'], daily: () => [`${STEPS.ok}`, ' / 30 天做到'], weekly: () => [`${g.v}`, ` / ${g.t} 次 · 这周`], times: () => [`${g.v}`, ` / ${g.t} 次 · 这个月`], night: () => [`${g.v}`, ' / 7 天做到'], book: () => ['0', ' 部分看完'], total: () => [`${g.v}`, ` / ${g.t} ${g.unit}`], limit: () => [`${g.v}`, ` / ${g.t} ${g.unit} 已用`] };
   const big = (BIG[g.kind] || (() => ['', '']))();
-  const ringTxt = g.kind === 'daily' ? '26 天' : g.kind === 'parent' ? `${g.subs.map((id) => goals.find((x) => x.id === id)).filter((x) => x && x.st === 'ok').length}/${g.subs.length}` : undefined;
+  const subsOf = g.kind === 'parent' ? g.subs.map((id) => goals.find((x) => x.id === id)).filter(Boolean) : [];
+  const ringTxt = g.kind === 'daily' ? '26 天' : g.kind === 'parent' ? (subsOf.every((x) => x.st === 'new') ? `${subsOf.length} 个` : `${subsOf.filter((x) => x.st === 'ok').length}/${subsOf.length}`) : undefined;
   let status = gLine(g, goals), more = null;
   if (g.id === 'g1' && g.t === 500 && !g.paused) more = `照最近的速度，年底在 ${RUN.yearSlow}–${RUN.yearFast} 公里之间`;
-  if (g.kind === 'avg') more = '这周两晚都是 6 小时 50 分，目标每晚 7 小时 30 分';
+  if (g.kind === 'avg') more = `这周两晚都是 6 小时 50 分，目标每晚 ${hm(g.tMin)}`;
   if (g.kind === 'down') more = `比应达重 ${r1(g.v - (72.0 - (2.5 * 26) / 91))} 公斤 · 10月1日起轻了 ${r1(g.from - g.v)} 公斤`;
   if (g.kind === 'cap' && g.unit === '元') more = `还剩 5 天，每天能花 ¥${Math.floor((g.t - g.v) / 5)}`;
   if (g.kind === 'cap' && g.unit === '次') more = '这周还剩 6 天';
@@ -2053,20 +2078,23 @@ function MoodTogether() {
   const good = (list) => list.filter(([, v]) => v >= 4).length;
   return html`<${Finding} title=${`跑了的 ${on.length} 天，${good(on) === on.length ? '都' : good(on) + ' 天'}是挺好以上；别的日子 ${off.length} 天里 ${good(off)} 天。`} a=${['跑了的日子', `${on.length} 天里 ${good(on)} 天`, (good(on) / on.length) * 100]} b=${['别的日子', `${off.length} 天里 ${good(off)} 天`, (good(off) / off.length) * 100]} good foot="10 月只有 3 天跑了，天数还少，多跑几次再看。"/>`;
 }
+// 推进目标的原话：每一条都能点开那条记录（同一个「一条记录」弹层）
+const rec = (k, x) => () => ['record', { k, x }];
+const runRec = (r) => rec('run', { rows: [['距离', `${r[2]} 公里`], ['什么时候', r[3] ? '晚上' : '早上'], ['地方', /小区/.test(r[4]) ? '小区' : '没说']], said: r[4], at: `${r[0]}月${r[1]}日 ${r[3] ? '19:40' : '07:40'}`, trend: Array.from({ length: 7 }, (_, i) => { const d = gadd(GD(r[0], r[1]), i - 6); const q = RUNS.find((z) => z[0] === d.getMonth() + 1 && z[1] === d.getDate()); return q ? q[2] : 0; }), goal: `今年跑 500 公里 · +${r[2]} 公里`, gid: 'g1' });
 const G_WORDS = {
-  g2: [['10月27日 05:05', '又过了12点才睡 12点10分 早上7点起的 继续168', () => ['record', { k: 'sleep' }]]],
-  g10: [['10月25日 21:40', '晚上看了 40 页人类简史 第二部分看完了'], ['10月22日 22:10', '睡前看了会儿人类简史 看到 180 页'], ['10月16日 21:30', '人类简史第一部分看完了']],
-  g3: [['10月26日 07:50', '地铁上背了 25 分钟单词'], ['10月24日 08:05', '背单词 20 分钟'], ['10月23日 07:55', '地铁上背单词']],
-  g6: [['10月27日 07:10', '称了一下 71.4 公斤'], ['10月20日 07:15', '体重 71.6 比上周少了一点']],
+  g2: [['10月27日 05:05', '又过了12点才睡 12点10分 早上7点起的 继续168', rec('sleep')]],
+  g10: [['10月25日 21:40', '晚上看了 40 页人类简史 第二部分看完了', rec('read', { rows: [['书', '《人类简史》'], ['页数', '40 页'], ['看到', '第 220 页']], said: '晚上看了 40 页人类简史 第二部分看完了', at: '10月25日 21:40', trend: [35, 40, 0, 50, 40, 68, 40] }), '+40 页'], ['10月22日 22:10', '睡前看了会儿人类简史 看到 180 页', rec('read', { rows: [['书', '《人类简史》'], ['看到', '第 180 页']], said: '睡前看了会儿人类简史 看到 180 页', at: '10月22日 22:10', trend: [20, 0, 30, 35, 40, 0, 50] })], ['10月16日 21:30', '人类简史第一部分看完了', rec('read', { rows: [['书', '《人类简史》'], ['看完', '第一部分 认知革命']], said: '人类简史第一部分看完了', at: '10月16日 21:30', trend: [0, 30, 25, 0, 40, 30, 45] })]],
+  g3: [['10月26日 07:50', '地铁上背了 25 分钟单词', rec('words', { rows: [['时长', '25 分钟'], ['地方', '地铁']], said: '地铁上背了 25 分钟单词', at: '10月26日 07:50', trend: [0, 20, 25, 20, 20, 0, 25] }), '+1 次'], ['10月24日 08:05', '背单词 20 分钟', rec('words', { rows: [['时长', '20 分钟']], said: '背单词 20 分钟', at: '10月24日 08:05', trend: [0, 20, 0, 20, 25, 20, 20] }), '+1 次'], ['10月23日 07:55', '地铁上背单词', rec('words', { rows: [['时长', '没说'], ['地方', '地铁']], said: '地铁上背单词', at: '10月23日 07:55', trend: [20, 0, 20, 0, 20, 25, 20] }), '+1 次']],
+  g6: [['10月27日 07:10', '称了一下 71.4 公斤', rec('weight', { rows: [['体重', '71.4 公斤']], said: '称了一下 71.4 公斤', at: '10月27日 07:10', trend: [71.6, 71.5, 71.6, 71.5, 71.4, 71.5, 71.4] })], ['10月20日 07:15', '体重 71.6 比上周少了一点', rec('weight', { rows: [['体重', '71.6 公斤']], said: '体重 71.6 比上周少了一点', at: '10月20日 07:15', trend: [71.8, 71.7, 71.7, 71.8, 71.6, 71.7, 71.6] })]],
 };
 function GoalWords({ g }) {
   const app = useApp(); const [all, setAll] = useState(false);
   if (g.kind === 'daily') return html`<${Sec} t="最近每一天" meta="来自健康 App，不用说"/><div class="card mx" style=${{ overflow: 'hidden' }}>${STEPS.days.slice(-7).reverse().map((x, i) => html`${i > 0 && html`<div class="sep"/>`}<div class="row" style=${{ minHeight: '46px' }}><span class="num" style=${{ width: '96px', color: 'var(--ink2)', fontSize: '14px' }}>${gmd(x.dt)} ${gwk(x.dt)}</span><span class="num" style=${{ flex: 1, fontSize: '15.5px' }}>${x.n.toLocaleString()} 步</span><span class="tag" style=${{ background: x.st === 'ok' ? 'var(--good-soft)' : 'var(--fill2)', color: x.st === 'ok' ? 'var(--good)' : 'var(--ink2)' }}>${{ ok: '做到', rest: '用了补假', miss: '没做到', today: '今天还没完' }[x.st]}</span></div>`)}</div>`;
   let list = [];
-  if (g.id === 'g1') list = RUNS.slice().reverse().map((r) => [`${r[0]}月${r[1]}日 ${r[3] ? '晚上' : '早上'}`, r[4], r[0] === 10 && r[1] === 24 ? () => ['record', { k: 'run' }] : null, `+${r[2]} 公里`]);
+  if (g.id === 'g1') list = RUNS.slice().reverse().map((r) => [`${r[0]}月${r[1]}日 ${r[3] ? '晚上' : '早上'}`, r[4], r[0] === 10 && r[1] === 24 ? rec('run') : runRec(r), `+${r[2]} 公里`]);
   else if (g.kind === 'cap') list = app.money.filter((x) => /外卖/.test(x.name) && x.m === 10 && x.day >= (g.unit === '次' ? 19 : 8)).sort((a, b) => b.day - a.day).map((x) => [`${x.m}月${x.day}日 ${x.time}${x.said ? '' : ' · 记的一笔'}`, x.said || x.name, () => ['moneyItem', { id: x.id }], `¥${x.amt}`, !x.said]);
-  else if (g.swim) list = [['10月25日 13:40', '下午3点带儿子去游泳 游了一个小时', () => ['record', { k: 'swim' }], '+1 次'], ['10月11日 07:40', '早上在小区跑了 7 公里 下午带儿子游泳', null, '+1 次']];
-  else list = (G_WORDS[g.id] || []).map(([d, t, fn]) => [d, t, fn || null, '']);
+  else if (g.swim) list = [['10月25日 13:40', '下午3点带儿子去游泳 游了一个小时', rec('swim', { goal: `${g.title} · +1 次`, gid: g.id }), '+1 次'], ['10月11日 07:40', '早上在小区跑了 7 公里 下午带儿子游泳', rec('swim', { rows: [['和谁', '儿子'], ['地方', '游泳馆'], ['时长', '没说']], said: '早上在小区跑了 7 公里 下午带儿子游泳', at: '10月11日 07:40', trend: [0, 0, 0, 0, 0, 0, 1], tlabel: '游泳的次数', goal: `${g.title} · +1 次`, gid: g.id }), '+1 次']];
+  else list = (G_WORDS[g.id] || []).map(([d, t, fn, plus]) => [d, t, fn || null, plus || '']);
   if (!list.length) return html`<${Sec} t="最近推进它的"/><div class="card mx empty" style=${{ padding: '18px 16px' }}>还没有。说一句就会算进来，比如「${g.title.replace(/^每周|^每月|^每天/, '')}」。</div>`;
   const shown = all ? list : list.slice(0, 4);
   return html`<${Sec} t="最近推进它的" meta=${`一共 ${list.length} 条 · 你说的原话`}/>
@@ -2111,6 +2139,13 @@ function AskGoal({ g }) {
     <div class="cmt" style=${{ marginTop: '8px' }}>答了以后程序记住，下次这样的话不再问。</div>
   </div>`;
 }
+function EditRow({ i, t, v, val, unit, num, onSave }) {
+  const [ed, setEd] = useState(false); const [d, setD] = useState(''); const focused = useRef(null);
+  if (!ed) return html`<${L} i=${i} t=${t} v=${v} chev onClick=${() => { setD(String(val)); focused.current = null; setEd(true); }}/>`;
+  const save = () => { const x = num ? Math.round(+d * 10) / 10 : d.trim(); setEd(false); if ((num ? x > 0 : x) && x !== val) onSave(x); };
+  return html`${i > 0 && html`<div class="sep"/>`}<div class="row" style=${{ gap: '8px' }}><span style=${{ fontSize: '16px', flex: 'none' }}>${t}</span><input id=${'edit-' + i} value=${d} type=${num ? 'number' : 'text'} inputmode=${num ? 'decimal' : 'text'} enterkeyhint="done" ref=${(el) => { if (el && focused.current !== el) { focused.current = el; el.focus(); el.select && el.select(); } }} onInput=${(e) => setD(e.target.value)} onKeyDown=${(e) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEd(false); }} style=${{ flex: 1, minWidth: 0, height: '36px', borderRadius: '10px', border: '1.5px solid var(--accent)', padding: '0 10px', fontSize: '16px', fontFamily: num ? 'var(--round)' : 'inherit', boxSizing: 'border-box', textAlign: num ? 'right' : 'left' }}/>${unit && html`<span style=${{ flex: 'none', fontSize: '15px', color: 'var(--ink2)' }}>${unit}</span>`}<button class="chip blue press" style=${{ height: '34px', flex: 'none' }} onPointerDown=${(e) => e.preventDefault()} onClick=${save}>好</button></div>`;
+}
+const G_TARGET = ['count', 'avg', 'cap', 'weekly', 'times', 'total', 'limit'];
 function GoalPage({ id = 'g1', edit }) {
   const app = useApp(); const goals = app.goals; const g = goals.find((x) => x.id === id); const ref = useRef(null); const setRef = useRef(null);
   useEffect(() => { if ((edit || app.shot === 'goal-settings') && setRef.current && ref.current) setTimeout(() => { ref.current.scrollTop = setRef.current.offsetTop - 110; }, 80); }, []);
@@ -2131,7 +2166,7 @@ function GoalPage({ id = 'g1', edit }) {
     ${g.id === 'g1' && html`<${Sec} t="应达和实际" meta="按住拖动看每一天"/><${RunChart} g=${g}/>`}
     ${g.kind === 'avg' && html`<${Sec} t="每周平均" meta="按住拖动看每一周"/><${WeekBars} rows=${SLEEP_WEEKS.map(([n, v], i) => [n, v, i === SLEEP_WEEKS.length - 1 ? '这周到今天' : ''])} line=${g.tMin} lineLabel="目标" fmtV=${hm} color="#7A68C8"/>`}
     ${g.id === 'g3' && html`<${Sec} t="每周几次" meta="按住拖动看每一周"/><${WeekBars} rows=${[...WORDS_WEEKS.map(([n, v]) => [n, v, '']), ['10月26日', g.v, '这周到今天']]} line=${g.t} lineLabel="目标" fmtV=${(v) => v + ' 次'}/>`}
-    ${g.id === 'g8' && html`<${Sec} t="每周花了多少" meta="10月8日起 · 按住拖动"/><${WeekBars} rows=${[['10月8日', 63, '10月8日–11日'], ['10月12日', 65, ''], ['10月19日', 70, ''], ['10月26日', 38, '这周到今天']]} line=${88} lineLabel="平均每周能花" fmtV=${(v) => '¥' + v} color="#C27E12"/>`}
+    ${g.id === 'g8' && html`<${Sec} t="每周花了多少" meta="10月8日起 · 按住拖动"/><${WeekBars} rows=${[['10月8日', 63, '10月8日–11日'], ['10月12日', 65, ''], ['10月19日', 70, ''], ['10月26日', 38, '这周到今天']]} line=${Math.round((g.t / 24) * 7)} lineLabel="平均每周能花" fmtV=${(v) => '¥' + v} color="#C27E12"/>`}
     ${g.id === 'g7' && html`<${Sec} t="每周几次" meta="按住拖动看每一周"/><${WeekBars} rows=${[['10月5日', 2, ''], ['10月12日', 2, ''], ['10月19日', 2, ''], ['10月26日', g.v, '这周到今天']]} line=${g.t} lineLabel="最多" fmtV=${(v) => v + ' 次'} color="#C27E12"/>`}
     ${g.kind === 'down' && html`<${Sec} t="每周平均"/><${ChangeCard} t="10月1日 72.0 公斤，这周平均 71.4" a="72.0" b="71.4" data=${[72.0, 71.9, 71.7, 71.6, 71.4]} sub="每个点是一周的平均 · 目标 12月30日 69.5 公斤" color=${G_WARN}/>`}
     ${g.kind === 'daily' && html`<${Sec} t="最近 30 天" meta=${`做到 ${STEPS.ok} · 补假 ${STEPS.rest} · 没做到 ${STEPS.miss}`}/><${StepMonth}/><${Sec} t="补假"/><${RestCard} g=${g}/>`}
@@ -2142,12 +2177,13 @@ function GoalPage({ id = 'g1', edit }) {
     ${g.id === 'g1' && html`<${Sec} t="推进的日子和心情"/><${MoodTogether}/>`}
     <div ref=${setRef}/>
     <${G} t="设置">
-      <${L} i=${0} t="名称" v=${g.title} chev onClick=${() => app.toast('改名称（原型里不展开）')}/>
-      ${g.kind !== 'parent' && html`<${L} i=${1} t="目标值" v=${g.kind === 'done' ? `${g.ms.length} 个里程碑` : g.kind === 'daily' ? '每天 8000 步' : `${g.t} ${g.unit}`} chev onClick=${() => app.toast('改目标值')}/>`}
-      ${g.cat && html`<${L} i=${2} t="类别" v=${g.cat} sub="子类别的记录也算进上级" chev onClick=${() => app.toast('选类别')}/>`}
-      ${g.only && html`<${L} i=${3} t="只算" v=${g.only} chev onClick=${() => app.toast('改关键词')}/>`}
-      <${L} i=${4} t="周期" v=${g.period.split(' · ')[0]} chev onClick=${() => app.toast('改周期')}/>
-      <${L} i=${5} t="从哪天算" v=${g.start || '今天'} chev onClick=${() => app.toast('改开始日期')}/>
+      <${EditRow} i=${0} t="名称" v=${g.title} val=${g.title} onSave=${(x) => { const keep = { ...g }; app.updateGoal(g.id, { title: x }); app.toast(`名称改成「${x}」`, () => app.replaceGoal(keep)); }}/>
+      ${g.kind !== 'parent' && (G_TARGET.includes(g.kind) ? html`<${EditRow} i=${1} t="目标值" v=${`${g.t} ${g.unit}`} val=${g.t} unit=${g.unit} num onSave=${(x) => { const keep = { ...g }; const old = String(g.t); app.updateGoal(g.id, { t: x, title: g.title.includes(old) ? g.title.replace(old, String(x)) : g.title, line: null, ...(g.kind === 'avg' ? { tMin: Math.round(x * 60) } : {}) }); app.toast(`目标值改成 ${x} ${g.unit}，月和周跟着重新分`, () => app.replaceGoal(keep)); }}/>`
+        : html`<${L} i=${1} t="目标值" v=${g.kind === 'done' ? `${g.ms.length} 个里程碑` : g.kind === 'daily' ? '每天 8000 步' : g.kind === 'night' ? '每天做到' : '做完就算'} chev onClick=${() => app.toast(g.kind === 'done' ? '在上面「几个里程碑」里改' : '这种目标在名称里写清楚就行，比如「每天走 10000 步」')}/>`)}
+      ${g.cat && html`<${L} i=${2} t="类别" v=${g.cat} sub="子类别的记录也算进上级" chev onClick=${() => app.toast('会弹出类别列表选一个（原型里不展开）')}/>`}
+      ${g.only && html`<${L} i=${3} t="只算" v=${g.only} chev onClick=${() => app.toast('会让你改「名称里带哪些字」（原型里不展开）')}/>`}
+      <${L} i=${4} t="周期" v=${g.period.split(' · ')[0]} chev onClick=${() => app.toast('会弹出「今年 · 每月 · 每周 · 每天」选一个（原型里不展开）')}/>
+      <${L} i=${5} t="从哪天算" v=${g.start || '今天'} chev onClick=${() => app.toast('会弹出日历选一天（原型里不展开）')}/>
       ${!g.parent && html`<${L} i=${6} t="我在乎的" v=${domName} chev onClick=${cycleDom}/>`}
       ${g.remind && html`<${L} i=${7} t="提醒" v=${g.remind[1] === '地点' ? g.remind[0] : `${g.remind[0]} ${g.remind[1]}`} chev onClick=${() => app.openSheet('woop', { id: g.id, step: 2 })}/>`}
     <//>
@@ -2187,13 +2223,20 @@ function gUnderstand(text) {
   if (/做饭/.test(t)) return { k: 'plan', p: 'cook4' };
   return { k: 'generic', t };
 }
+// 自己说的一句：猜放进哪个「我在乎的」、从哪个词算；数字和单位不当成要找的词
+const domGuess = (t) => (/水|喝|睡|跑|走|步|运动|健身|吃|饭|体重|瘦|血压|游泳|骑|瑜伽|冥想/.test(t) ? '健康' : /书|读|学|单词|课|练|写|英语|吉他|钢琴/.test(t) ? '成长' : /钱|存|花|买|攒|理财|预算/.test(t) ? '钱' : /儿子|女儿|老婆|妈|爸|朋友|家|陪/.test(t) ? '关系' : '其他');
+const NUM_RE = /(\d+(?:\.\d+)?)\s*(次|杯|公里|页|本|小时|分钟|步|元|块|斤|公斤|个)?/;
 function genericPlan(t, freq) {
-  const m = t.match(/(\d+)\s*(次|天|本|公里|页)?/); const n = m ? +m[1] : freq === '每天' ? 7 : freq === '每月 4 次' ? 4 : 3;
-  const word = t.replace(/^(我想|我要|想|要)/, '').replace(/每天|每周|每月|\d+\s*次?/g, '').trim() || t;
-  const period = freq || (/每天/.test(t) ? '每天' : /每月/.test(t) ? '每月' : '每周');
-  const title = /每天|每周|每月/.test(t) ? t.replace(/^(我想|我要|想|要)/, '') : `${period.slice(0, 2)}${word} ${period === '每天' ? '' : n + ' 次'}`.trim();
-  return { title, kind: period === '每天' ? 'night' : period.startsWith('每月') ? 'times' : 'weekly', type: '坚持', v: 0, t: period === '每天' ? 7 : n, unit: '次', period: period.slice(0, 2) + ' · 今天起', cat: '先不绑类别', from: `从你说的「${word}」算`, counted: '还没找到相关的记录，从今天开始算', quotes: [], dom: '其他', days: [] };
+  const body = t.replace(/^(我想|我要|想要|想|要)/, '').trim(); const m = body.match(NUM_RE);
+  const period = freq ? freq.slice(0, 2) : /每天|天天/.test(body) ? '每天' : /每月|一个月/.test(body) ? '每月' : '每周';
+  const word = body.replace(/每天|天天|每周|每月|每年|今年|一周|一个月/g, '').replace(new RegExp(NUM_RE.source, 'g'), '').replace(/[，。,.\s]/g, '') || body;
+  const daily = period === '每天'; const n = m && (!m[2] || m[2] === '次') ? +m[1] : freq === '每月 4 次' ? 4 : 3;
+  const title = /每天|天天|每周|每月/.test(body) ? body : daily ? `每天${word}` : `${period}${word} ${n} 次`;
+  const from = `从你说的「${word}」算${daily && m && m[2] && m[2] !== '次' ? `，一天够 ${m[1]} ${m[2]}算做到` : ''}`;
+  return { title, kind: daily ? 'night' : period === '每月' ? 'times' : 'weekly', type: '坚持', v: 0, t: daily ? 7 : n, unit: daily ? '天' : '次', period: `${period} · 今天起`, cat: '先不绑类别', from, counted: '还没找到相关的记录，从今天开始算', quotes: [], dom: domGuess(body), days: [] };
 }
+// 一项一项填的和已有的目标是同一件事：说已经有了，数不一样就问要不要改
+const FORM_DUP = [[(f) => f.type === '到一个数' && /跑步|运动/.test(f.cat) && f.unit === '公里', 'g1'], [(f) => f.cat === '睡眠' && f.how === '平均', 'g2'], [(f) => f.type === '不超过' && f.cat === '饮食' && f.unit === '元' && f.period === '每月', 'g8']];
 function PlanCard({ p, onOk, onEdit, dom, setDom, note, children }) {
   const [open, setOpen] = useState(false);
   return html`<div class="card mx" style=${{ padding: '16px', marginTop: '6px' }}>
@@ -2218,19 +2261,19 @@ function AskCard({ q, opts, onPick, sub }) {
 }
 function GoalAddSheet({ close, preset, path }) {
   const app = useApp();
-  const init = { swimAsk: ['ask', { k: 'swim' }, '我想多带儿子去游泳'], swimCard: ['card', 'swim4', '我想多带儿子去游泳'], swimDone: ['card', 'swim4', '我想多带儿子去游泳'], vague: ['ask', { k: 'vague' }, '我想变健康'], vagueSplit: ['split', '动起来', '我想变健康'], takeout: ['takeout', null, '少吃外卖'], form: ['form', null, ''], dup: ['dup', 'g4', '每天走 8000 步'] }[path];
+  const init = { swimAsk: ['ask', { k: 'swim' }, '我想多带儿子去游泳'], swimCard: ['card', 'swim4', '我想多带儿子去游泳'], swimDone: ['card', 'swim4', '我想多带儿子去游泳'], vague: ['ask', { k: 'vague' }, '我想变健康'], vagueSplit: ['split', '动起来', '我想变健康'], takeout: ['takeout', null, '少吃外卖'], form: ['form', null, ''], dup: ['dup', 'g4', '每天走 8000 步'], own: ['input', null, '我想每天喝 8 杯水'], offer: ['input', null, '我今年想跑 1000 公里'] }[path];
   const [step, setStep] = useState(init ? init[0] : 'input'); const [text, setText] = useState(init ? init[2] : preset || '');
   const [plan, setPlan] = useState(init && typeof init[1] === 'string' && ADD_PLANS[init[1]] ? ADD_PLANS[init[1]] : null);
   const [ask, setAsk] = useState(init && typeof init[1] === 'object' ? init[1] : null); const [dupId, setDupId] = useState(init && init[0] === 'dup' ? init[1] : null);
   const [split, setSplit] = useState(init && init[0] === 'split' ? init[1] : null); const [picks, setPicks] = useState({}); const [dom, setDom] = useState(plan ? plan.dom : '其他');
   const [made, setMade] = useState(null); const [takeAns, setTakeAns] = useState(null);
-  const [f, setF] = useState({ type: '坚持', period: '每周', cat: '运动', how: '次数', look: '数量', val: '3', unit: '次', only: '', from: '今天', dom: '健康' });
+  const [f, setF] = useState({ type: '坚持', period: '每周', cat: '运动', how: '次数', look: '数量', val: '3', unit: '次', only: '', from: '今天', dom: '健康', unitTouched: false }); const [offer, setOffer] = useState(null);
   const usePlan = (p) => { setPlan(p); setDom(p.dom); setStep('card'); };
   const toForm = (p) => { const per = p.period.split(' · ')[0]; setF({ type: p.type, period: ['今年', '每月', '每周', '每天'].includes(per) ? per : '每周', cat: (p.cat || '运动').split(/[ （→]/)[0], how: '次数', look: '数量', val: String(p.t), unit: p.unit || '次', only: p.only || '', from: '今天', dom: dom }); setStep('form'); };
-  useEffect(() => { if (path === 'swimDone') create([ADD_PLANS.swim4]); }, []);
+  useEffect(() => { if (path === 'swimDone') create([ADD_PLANS.swim4]); else if (path === 'own' || path === 'offer') go(text); else if (preset && !path) go(preset); }, []);
   const go = (t) => {
     const u = gUnderstand(t); setText(t);
-    if (u.k === 'dup') { setDupId(u.id); setStep('dup'); return; }
+    if (u.k === 'dup') { const m = t.match(NUM_RE); const g0 = app.goals.find((x) => x.id === u.id); setOffer(m && g0 && g0.t && +m[1] !== g0.t && (!m[2] || m[2] === g0.unit || (m[2] === '块' && g0.unit === '元')) ? +m[1] : null); setDupId(u.id); setStep('dup'); return; }
     if (u.k === 'swim' || u.k === 'vague' || u.k === 'book') { setAsk(u); setStep('think'); setTimeout(() => setStep('ask'), 650); return; }
     if (u.k === 'takeout') { setStep('think'); setTimeout(() => setStep('takeout'), 650); return; }
     if (u.k === 'plan') { setStep('think'); setTimeout(() => usePlan(ADD_PLANS[u.p]), 650); return; }
@@ -2244,8 +2287,16 @@ function GoalAddSheet({ close, preset, path }) {
     app.addGoals(all); try { navigator.vibrate && navigator.vibrate(12); } catch (_) {}
     setMade(all); setStep('done');
   };
-  const form = () => { const tt = f.type === '做完就算' ? `读完《${f.only || '一本书'}》` : `${f.period}${f.cat}${f.type === '不超过' ? '不超过 ' : ' '}${f.val} ${f.unit}`; return { title: tt, kind: f.type === '做完就算' ? 'book' : f.period === '每天' ? 'night' : f.period === '每月' ? 'times' : 'weekly', type: f.type, v: 0, t: +f.val || 1, unit: f.unit, period: `${f.period} · ${f.from}起`, cat: f.cat + '（子类别也算）', only: f.only, from: `从「${f.cat}」类别的记录算${f.only ? `，只算名称里带「${f.only}」的` : ''}`, counted: f.cat === '运动' && f.period === '每周' ? '这周还没有；上周 3 次：跑步、力量、游泳' : '从' + f.from + '开始算', quotes: [], dom: f.dom, days: [] }; };
-  const seg = (k, opts) => html`<div style=${{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>${opts.map((o) => html`<button class="chip ${f[k] === o ? 'on' : ''}" style=${{ height: '30px' }} onClick=${() => setF({ ...f, [k]: o })}>${o}</button>`)}</div>`;
+  const UNIT_OF = { 时长: '小时', 数量: '次', 距离: '公里', 花了多少: '元' };
+  const form = () => {
+    const done = f.type === '做完就算'; const per = { 今年: '今年', 每月: '这个月', 每周: '这周', 每天: '今天' }[f.period];
+    const tt = done ? (f.cat === '学习' ? `读完《${f.only || '一本书'}》` : `做完「${f.only || '一件事'}」`) : `${f.period}${f.cat}${f.type === '不超过' ? '不超过 ' : ' '}${f.val} ${f.unit}`;
+    const kind = done ? 'book' : f.type === '到一个数' ? 'total' : f.type === '不超过' ? 'limit' : f.period === '每天' ? 'night' : f.period === '每月' ? 'times' : 'weekly';
+    return { title: tt, kind, type: f.type, v: 0, t: kind === 'night' ? 7 : +f.val || 1, unit: kind === 'night' ? '天' : f.unit, per, period: `${f.period} · ${f.from}起`, cat: f.cat + '（子类别也算）', only: f.only, from: `从「${f.cat}」类别的记录算${f.only && !done ? `，只算名称里带「${f.only}」的` : ''}`, counted: f.cat === '运动' && f.period === '每周' && f.type === '坚持' ? '这周还没有；上周 3 次：跑步、力量、游泳' : '从' + f.from + '开始算', quotes: [], dom: f.dom, days: [] };
+  };
+  const pick = (k, o) => { const n = { ...f, [k]: o }; if (!f.unitTouched && k === 'look') n.unit = UNIT_OF[o]; if (!f.unitTouched && k === 'how' && o === '次数') n.unit = '次'; setF(n); };
+  const formNext = () => { const hit = FORM_DUP.find(([fn]) => fn(f)); const g0 = hit && app.goals.find((x) => x.id === hit[1]); if (g0) { setText(form().title); setOffer(+f.val && +f.val !== g0.t ? +f.val : null); setDupId(g0.id); setStep('dup'); return; } usePlan(form()); };
+  const seg = (k, opts) => html`<div style=${{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>${opts.map((o) => html`<button class="chip ${f[k] === o ? 'on' : ''}" style=${{ height: '30px' }} onClick=${() => pick(k, o)}>${o}</button>`)}</div>`;
   const row = (n, el) => html`<div style=${{ padding: '10px 16px', borderTop: '.5px solid var(--line)' }}><div class="cmt" style=${{ marginBottom: '6px' }}>${n}</div>${el}</div>`;
   const SPLITS = { 动起来: [['move3', 'strength1'], '变健康 · 先动起来', '「每天走 8000 步」已经有了，不重复建'], 睡得更好: [['sleep23'], '变健康 · 睡得更好', '「平均睡 7.5 小时」已经有了，不重复建'], 吃得清淡: [['cook4'], '变健康 · 吃得清淡', '「每周外卖不超过 2 次」已经有了，不重复建'] };
   const head = html`<div class="shead"><h2>${step === 'done' ? '定好了' : step === 'form' ? '一项一项填' : '定个目标'}</h2><button class="closex" aria-label="关闭" onClick=${close}><${I} n="close" s=${20}/></button></div>`;
@@ -2292,7 +2343,8 @@ function GoalAddSheet({ close, preset, path }) {
     body = html`${said}<div class="card mx" style=${{ padding: '16px', marginTop: '6px' }}>
       <div style=${{ fontSize: '13px', color: 'var(--ink3)' }}>已经有了，不重复建</div>
       ${g ? html`<div style=${{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '10px' }}><${GRing} g=${g} goals=${app.goals} size=${48} w=${6}/><div style=${{ flex: 1, minWidth: 0 }}><div style=${{ fontSize: '17px', fontWeight: 700 }}>${g.title}</div><div class="num" style=${{ fontSize: '14px', color: gTone(g), marginTop: '2px' }}>${gLine(g, app.goals)}</div></div></div>` : html`<div style=${{ marginTop: '8px' }}>这个目标已经做到或放下了。</div>`}
-      <div style=${{ display: 'flex', gap: '8px', marginTop: '14px' }}><button class="chip press" style=${{ background: 'var(--accent)', color: '#fff', fontWeight: 600 }} onClick=${() => { close(); if (g) setTimeout(() => app.push('goal', { id: g.id }), 200); }}>去看看</button><button class="chip press" onClick=${() => { setText(''); setStep('input'); }}>换个说法</button></div>
+      ${g && offer && html`<div style=${{ fontSize: '15px', lineHeight: 1.55, marginTop: '12px' }}>你这次说的是 ${offer} ${g.unit}，要把它改成 ${offer} ${g.unit}吗？</div>`}
+      <div style=${{ display: 'flex', gap: '8px', marginTop: '14px', flexWrap: 'wrap' }}>${g && offer ? html`<button class="chip press" style=${{ background: 'var(--accent)', color: '#fff', fontWeight: 600 }} onClick=${() => { const keep = { ...g }; const old = String(g.t); app.updateGoal(g.id, { t: offer, title: g.title.includes(old) ? g.title.replace(old, String(offer)) : g.title, line: null, ...(g.kind === 'avg' ? { tMin: Math.round(offer * 60) } : {}) }); close(); app.toast(`改成 ${offer} ${g.unit}了，月和周跟着重新分`, () => app.replaceGoal(keep)); }}>改成 ${offer} ${g.unit}</button><button class="chip press" onClick=${() => { close(); setTimeout(() => app.push('goal', { id: g.id }), 200); }}>不改，去看看</button>` : html`<button class="chip press" style=${{ background: 'var(--accent)', color: '#fff', fontWeight: 600 }} onClick=${() => { close(); if (g) setTimeout(() => app.push('goal', { id: g.id }), 200); }}>去看看</button>`}<button class="chip press" onClick=${() => { setText(''); setOffer(null); setStep('input'); }}>换个说法</button></div>
     </div>`; }
   else if (step === 'form') body = html`<div class="grp" style=${{ marginTop: '4px', background: '#fff' }}>
       <div style=${{ padding: '12px 16px' }}><div class="cmt">名称（按下面的选择自动生成，也能直接改）</div><div style=${{ fontSize: '18px', fontWeight: 650, marginTop: '4px' }}>${form().title}</div></div>
@@ -2301,12 +2353,12 @@ function GoalAddSheet({ close, preset, path }) {
         ${row('类别（子类别的记录也算进上级）', seg('cat', ['运动', '跑步', '睡眠', '学习', '饮食', '家人朋友']))}
         ${row('怎么算', seg('how', ['累计', '平均', '次数', '连续天数']))}
         ${row('看什么', seg('look', ['时长', '数量', '距离', '花了多少']))}
-        ${row('目标值', html`<div style=${{ display: 'flex', gap: '8px' }}><input id="goal-val" value=${f.val} inputmode="decimal" onInput=${(e) => setF({ ...f, val: e.target.value })} style=${{ width: '90px', height: '36px', borderRadius: '10px', border: '1px solid var(--line)', padding: '0 10px', fontSize: '16px', fontFamily: 'var(--round)' }}/><input id="goal-unit" value=${f.unit} onInput=${(e) => setF({ ...f, unit: e.target.value })} placeholder="单位：公里、页、元" style=${{ flex: 1, height: '36px', borderRadius: '10px', border: '1px solid var(--line)', padding: '0 10px', fontSize: '16px', fontFamily: 'inherit', minWidth: 0 }}/></div>`)}`}
+        ${row('目标值', html`<div style=${{ display: 'flex', gap: '8px' }}><input id="goal-val" value=${f.val} inputmode="decimal" onInput=${(e) => setF({ ...f, val: e.target.value })} style=${{ width: '90px', height: '36px', borderRadius: '10px', border: '1px solid var(--line)', padding: '0 10px', fontSize: '16px', fontFamily: 'var(--round)' }}/><input id="goal-unit" value=${f.unit} onInput=${(e) => setF({ ...f, unit: e.target.value, unitTouched: true })} placeholder="单位：公里、页、元" style=${{ flex: 1, height: '36px', borderRadius: '10px', border: '1px solid var(--line)', padding: '0 10px', fontSize: '16px', fontFamily: 'inherit', minWidth: 0 }}/></div>`)}`}
       ${row(f.type === '做完就算' ? '书名或者事情' : '只算名称里带这些字的（可以不填）', html`<input id="goal-only" value=${f.only} onInput=${(e) => setF({ ...f, only: e.target.value })} placeholder=${f.type === '做完就算' ? '比如：置身事内' : '比如：外卖'} style=${{ width: '100%', height: '36px', borderRadius: '10px', border: '1px solid var(--line)', padding: '0 10px', fontSize: '16px', fontFamily: 'inherit', boxSizing: 'border-box' }}/>`)}
       ${row('从哪天开始算', seg('from', ['今天', '这个月 1 日', '1 月 1 日']))}
       ${row('我在乎的', seg('dom', [...CARE.map((c) => c[0]), '其他']))}
     </div>
-    <div style=${{ padding: '16px 16px 0' }}><button class="primary press" onClick=${() => usePlan(form())}>下一步：看理解卡</button></div>`;
+    <div style=${{ padding: '16px 16px 0' }}><button class="primary press" onClick=${formNext}>下一步：看理解卡</button></div>`;
   else if (step === 'done' && made) { const top = made[0]; const big = top.kind === 'parent' || top.big;
     body = html`<div style=${{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '18px 24px 6px', textAlign: 'center' }}>
       <${GRing} g=${top} goals=${made} size=${104} w=${11} spin label=${top.kind === 'parent' ? `${top.subs.length} 个` : top.kind === 'book' ? '0%' : `${top.v}/${top.t}`}/>
@@ -2354,7 +2406,7 @@ function WoopSheet({ id, step: s0, at, demo, close }) {
   const [rem, setRem] = useState(g && g.remind ? g.remind.join(' ') : null);
   if (!g) return html`<div class="shead"><h2>花 1 分钟想清楚</h2><button class="closex" aria-label="关闭" onClick=${close}><${I} n="close" s=${20}/></button></div><div class="empty">这个目标已经不在了。</div>`;
   const cur = set[step]; const k = keys[step]; const v = vals[k];
-  const finish = (nv, nr) => { const keep = { three: g.three, remind: g.remind }; const three = { ...(g.three || {}), ...nv }; const remind = nr ? nr.split(' ') : nr === null ? g.remind : null; app.updateGoal(g.id, { three, remind: remind && remind.length === 2 ? remind : null }); close(); app.toast(one ? '改好了' : `三句话写在目标页最上面了${remind && remind.length === 2 ? ` · ${remind[0]} ${remind[1]}提醒你` : ''}`, () => app.updateGoal(g.id, keep)); };
+  const finish = (nv, nr) => { const keep = { three: g.three, remind: g.remind }; const three = { ...(g.three || {}), ...nv }; const remind = nr ? nr.split(' ') : nr === null ? g.remind : null; app.updateGoal(g.id, { three, remind: remind && remind.length === 2 ? remind : null }); close(); app.toast(one ? '改好了' : `三句话写在目标页最上面了${remind && remind.length === 2 ? ` · ${remTxt(remind)}` : ''}`, () => app.updateGoal(g.id, keep)); };
   const next = () => { if (one && step !== 2) return finish({ [k]: v }, null); if (step < 2) { setStep(step + 1); setOwn(''); setSrc(null); } else finish(vals, rem); };
   return html`<div class="shead"><h2 style=${{ display: 'flex', alignItems: 'center', gap: '8px' }}>花 1 分钟想清楚<span class="num" style=${{ fontSize: '13px', color: 'var(--ink3)', fontWeight: 600 }}>${one ? '改一句' : `${step + 1} / 3`}</span></h2><button class="link" style=${{ fontSize: '15px', color: 'var(--ink2)' }} onClick=${close}>${one ? '取消' : '跳过'}</button></div>
     <div class="sbody">
@@ -2466,7 +2518,7 @@ function WeeklySheet({ close, step: s0 }) {
       <div style=${{ display: 'flex', gap: '4px', margin: '0 16px 6px' }}>${screens.map((n, i) => html`<button style=${{ flex: 1, minWidth: 0, border: 0, background: 'none', padding: '0', cursor: 'pointer', fontFamily: 'inherit' }} onClick=${() => setStep(i)}><i style=${{ height: '3px', borderRadius: '2px', background: i <= step ? 'var(--accent)' : 'var(--fill2)', display: 'block' }}/><div style=${{ fontSize: '11.5px', color: i <= step ? 'var(--accent)' : 'var(--ink3)', marginTop: '4px', fontWeight: 600 }}>${i + 1} · ${n}</div></button>`)}</div>
       <div style=${{ fontSize: '22px', fontWeight: 700, margin: '10px 20px 12px' }}>${screens[step]}</div>
       ${body}
-      <div style=${{ padding: '18px 16px 0' }}>${step < 2 ? html`<button class="primary press" onClick=${() => setStep(step + 1)}>下一屏</button>` : html`<button class="primary press" onClick=${() => { close(); app.addTodo(next[pick][2], `每周回顾 · 10月25日 20:00 从「${next[pick][0]}」来的`); }}>放进待办，看完了</button>`}</div>
+      <div style=${{ padding: '18px 16px 0' }}>${step < 2 ? html`<button class="primary press" onClick=${() => setStep(step + 1)}>下一屏</button>` : html`<button class="primary press" onClick=${() => { close(); app.setWeeklyDone(true); app.addTodo(next[pick][2], `每周回顾 10月25日 20:00：下周最重要的一件，从「${next[pick][0]}」来的`); }}>放进待办，看完了</button>`}</div>
       <div class="cmt" style=${{ textAlign: 'center', marginTop: '8px' }}>3 分钟 · 周日晚上 8 点 · 在设置里能改时间、能关</div>
     </div>`;
 }
@@ -2753,9 +2805,12 @@ const RECORDS = {
   run: { cat: '运动 → 跑步', ic: 'directions_run', c: '#2E9A6B', title: '跑步', rows: [['距离', '8.4 公里'], ['时长', '49 分钟'], ['地方', '小区']], said: '早上在小区跑了8.4公里 配速5分50', at: '10月24日 07:40', trend: [6.9, 0, 0, 0, 0, 0, 8.4], tlabel: '跑步的距离', goal: '今年跑 500 公里 · +8.4 公里', gid: 'g1' },
   sleep: { cat: '睡眠', ic: 'bedtime', c: '#7A68C8', title: '睡觉', rows: [['开始', '0:10'], ['结束', '7:00'], ['时长', '6 小时 50 分']], said: '又过了12点才睡 12点10分 早上7点起的 继续168', at: '10月27日 05:05', trend: [7.2, 6.8, 7.5, 8, 7, 6.9, 6.8], tlabel: '睡眠的时长', goal: '平均睡 7.5 小时', gid: 'g2', health: true },
   swim: { cat: '运动 → 游泳', ic: 'directions_run', c: '#2E9A6B', title: '游泳', rows: [['时长', '60 分钟'], ['和谁', '儿子'], ['地方', '游泳馆']], said: '下午3点带儿子去游泳 游了一个小时', at: '10月25日 13:40', trend: [0, 0, 0, 0, 0, 0, 60], tlabel: '游泳的时长', goal: null },
+  read: { cat: '学习 → 看书', ic: 'menu_book', c: '#3E8E7E', title: '看书', rows: [['书', '《人类简史》']], said: '', at: '', trend: [0, 0, 0, 0, 0, 0, 0], tlabel: '看书的页数（所有的书）', goal: '读完《人类简史》', gid: 'g10' },
+  words: { cat: '学习 → 背单词', ic: 'school', c: '#3E8E7E', title: '背单词', rows: [], said: '', at: '', trend: [0, 0, 0, 0, 0, 0, 0], tlabel: '背单词的分钟数', goal: '每周背单词 4 次 · +1 次', gid: 'g3' },
+  weight: { cat: '健康 → 称体重', ic: 'monitor_heart', c: '#2E9A6B', title: '称体重', rows: [], said: '', at: '', trend: [0, 0, 0, 0, 0, 0, 0], tlabel: '体重（公斤）', goal: '体重降到 69.5 公斤', gid: 'g6' },
 };
-function RecordSheet({ k = 'work', close }) {
-  const app = useApp(); const r = RECORDS[k] || RECORDS.work; const [ok, setOk] = useState(null);
+function RecordSheet({ k = 'work', x, close }) {
+  const app = useApp(); const r = { ...(RECORDS[k] || RECORDS.work), ...(x || {}) }; const [ok, setOk] = useState(null);
   return html`<div class="shead"><span style=${{ display: 'flex', alignItems: 'center', gap: '8px' }}><span class="cico" style=${{ background: r.c, width: '30px', height: '30px', borderRadius: '9px' }}><${I} n=${r.ic} s=${18} f/></span><span class="cmt">${r.cat}</span></span><button class="closex" aria-label="关闭" onClick=${close}><${I} n="close" s=${20}/></button></div>
     <div class="sbody">
       <div style=${{ fontSize: '24px', fontWeight: 700, margin: '0 20px' }}>${r.title}</div>
@@ -3125,7 +3180,7 @@ const PAGES = {
   settings: SettingsPage, aiSet: AiSetPage, accuracy: AccuracyPage, remindSet: RemindSetPage, categories: CategoriesPage, dataSet: DataSetPage, connect: ConnectPage, device: DevicePage,
   aboutPour: AboutPourPage, check: CheckPage, sysEntry: SysEntryPage, health: HealthPage, calendar: CalendarPage,
   moneyList: MoneyListPage, watch: WatchPage, renqing: RenqingPage, renqingPerson: RenqingPersonPage, thing: ThingPage, worth: WorthPage, fixed: WatchPage,
-  finds: AboutPage, streak: GoalsHome, budget: GoalsHome,
+  finds: AboutPage, streak: StreakPage, budget: BudgetPage,
 };
 const SHEETS = { todoAdd: [TodoAddSheet, 'tall'], todo: [TodoSheet, 'tall'], snooze: [SnoozeSheet, ''], keypad: [KeypadSheet, 'tall'], moneyItem: [MoneyItemSheet, 'tall'], checkin: [CheckinSheet, 'tall'], insightAdd: [InsightAddSheet, ''], share: [ShareSheet, 'tall'], chat: [ChatSheet, 'tall'], feedback: [FeedbackSheet, ''], goalAdd: [GoalAddSheet, 'tall'], woop: [WoopSheet, 'tall'], grow: [GrowSheet, 'tall'], weekly: [WeeklySheet, 'tall'], now: [NowSheet, 'tall'], moodEntry: [MoodEntrySheet, 'tall'], insight: [InsightSheet, 'tall'], record: [RecordSheet, 'tall'], libFilter: [LibFilterSheet, 'tall'], category: [CategorySheet, 'tall'] };
 
@@ -3141,7 +3196,7 @@ const G_DEEP = (() => {
   const H = [['goals']]; const o = { 'goals-empty': { stack: H, empty: true }, 'goals-swipe': { stack: H }, 'goals-menu': { stack: H, menu: 'g1' }, 'goals-done': { stack: H }, 'goals-notice': { stack: H, notice: true }, 'goal-settings': { stack: [...H, ['goal', { id: 'g1' }]] }, 'goal-months': { stack: [...H, ['goal', { id: 'g1' }]] } };
   ['g1', 'g2', 'g3', 'g4', 'g6', 'g7', 'g8', 'g10', 'g11'].forEach((id) => (o['goal-' + id] = { stack: [...H, ['goal', { id }]] }));
   [['health', '健康'], ['money', '钱'], ['growth', '成长'], ['family', '关系']].forEach(([k, n]) => (o['care-' + k] = { stack: [...H, ['domain', { name: n }]] }));
-  [['start', null], ['swim', 'swimAsk'], ['card', 'swimCard'], ['done', 'swimDone'], ['vague', 'vague'], ['split', 'vagueSplit'], ['takeout', 'takeout'], ['form', 'form'], ['dup', 'dup']].forEach(([k, p]) => (o['goaladd-' + k] = { stack: H, sheet: ['goalAdd', p ? { path: p } : {}] }));
+  [['start', null], ['swim', 'swimAsk'], ['card', 'swimCard'], ['done', 'swimDone'], ['vague', 'vague'], ['split', 'vagueSplit'], ['takeout', 'takeout'], ['form', 'form'], ['dup', 'dup'], ['own', 'own'], ['offer', 'offer']].forEach(([k, p]) => (o['goaladd-' + k] = { stack: H, sheet: ['goalAdd', p ? { path: p } : {}] }));
   [1, 2, 3].forEach((n) => (o['woop-' + n] = { stack: [...H, ['goal', { id: 'g1' }]], sheet: ['woop', { id: 'g1', at: n - 1, demo: true }] }));
   [1, 2, 3, 4].forEach((n) => (o['grow-' + n] = { stack: H, sheet: ['grow', { id: 'g1', step: n - 1 }] }));
   o['grow-letgo'] = { stack: H, sheet: ['grow', { id: 'g1', step: 'letgo' }] };
@@ -3160,7 +3215,7 @@ function App() {
   const [masked, setMasked] = useState(false); const [chat, setChat] = useState(CHAT0); const [sayHidden, setSayHidden] = useState(false); const [libF, setLibF] = useState({}); const [intro, setIntro] = useState(true);
   const toastT = useRef(null);
   const [goals, setGoals] = useState(G_INIT); const [goalsDone, setGoalsDone] = useState(G_DONE0); const [goalsLetgo, setGoalsLetgo] = useState(G_LETGO0);
-  const [goalMenu, setGoalMenu] = useState((gdeep && gdeep.menu) || null); const [goalsEmpty, setGoalsEmpty] = useState(!!(gdeep && gdeep.empty)); const [notice, setNotice] = useState(!!(gdeep && gdeep.notice)); const gStash = useRef({});
+  const [goalMenu, setGoalMenu] = useState((gdeep && gdeep.menu) || null); const [goalsEmpty, setGoalsEmpty] = useState(!!(gdeep && gdeep.empty)); const [notice, setNotice] = useState(!!(gdeep && gdeep.notice)); const [weeklyDone, setWeeklyDone] = useState(false); const gStash = useRef({});
   const toast = (text, undo) => { clearTimeout(toastT.current); setToastS({ id: uid(), text, undo }); toastT.current = setTimeout(() => setToastS(null), 4200); };
   const push = (name, props = {}) => { setStack((s) => [...s, { id: uid(), name, props }]); setSayHidden(false); };
   const pop = () => { setStack((s) => (s.length ? s.map((p, i) => (i === s.length - 1 ? { ...p, leaving: true } : p)) : s)); setTimeout(() => setStack((s) => s.filter((p) => !p.leaving)), 300); setSayHidden(false); };
@@ -3215,7 +3270,7 @@ function App() {
   const undos = useRef({});
   const undoChat = (id) => { const f = undos.current[id]; if (f) f(); setChat((cs) => cs.map((m) => (m.id === id ? { ...m, title: '撤销了', sub: '这段话没有记成任何东西', undo: false, kind: 'note' } : m))); };
   const openTile = (k) => { if (k === 'todos' || k === 'money') return setTab(k); if (k === 'moneyList') return push('moneyList', { month: 10 }); push(k); };
-  const openMenu = (m) => setMenu(m);
+  const menuArmed = useRef(false); const openMenu = (m) => { menuArmed.current = false; setMenu(m); };
   const openStory = (id, kind = 'day') => setStory({ id, kind });
   const go = (t, props = {}) => {
     if (t === 'today') return home();
@@ -3228,7 +3283,7 @@ function App() {
   const onScrollDir = (d) => { if (d === 'down') setSayHidden(true); if (d === 'up') setSayHidden(false); };
   const lastY = useRef(0);
   const onScrollY = (e) => { const y = e.currentTarget.scrollTop; onScrollDir(y > lastY.current + 4 && y > 90 ? 'down' : y < lastY.current - 4 ? 'up' : null); lastY.current = y; };
-  const app = { tab, setTab, push, pop, openSheet, toast, todos, updateTodo, toggleTodo, deleteTodo, moveTodo, bringAll, snooze, addTodo, money, dayTotal, monthTotal, catTotals, whoTotals, addMoney, deleteMoney, settleMoney, watch, doneWatch, moods, addMood, insights, addInsight, starInsight, fav, setFav, masked, toggleMask: () => setMasked(!masked), chat, addChat, applyChat, undoChat, openTile, openMenu, openStory, onScrollDir, onScrollY, home, go, libF, setLibF, intro, hideIntro: () => setIntro(false), updateMood, deleteMood, updateInsight, deleteInsight, answerAsk, goals, goalsDone, goalsLetgo, updateGoal, replaceGoal, addGoals, pauseGoal, resumeGoal, doneGoal, deleteGoal, letgoGoal, reopenGoal, toggleMilestone, goalMenu, setGoalMenu, goalsEmpty, setGoalsEmpty, showNotice: () => setNotice(true), shot: hash };
+  const app = { tab, setTab, push, pop, openSheet, toast, todos, updateTodo, toggleTodo, deleteTodo, moveTodo, bringAll, snooze, addTodo, money, dayTotal, monthTotal, catTotals, whoTotals, addMoney, deleteMoney, settleMoney, watch, doneWatch, moods, addMood, insights, addInsight, starInsight, fav, setFav, masked, toggleMask: () => setMasked(!masked), chat, addChat, applyChat, undoChat, openTile, openMenu, openStory, onScrollDir, onScrollY, home, go, libF, setLibF, intro, hideIntro: () => setIntro(false), updateMood, deleteMood, updateInsight, deleteInsight, answerAsk, goals, goalsDone, goalsLetgo, updateGoal, replaceGoal, addGoals, pauseGoal, resumeGoal, doneGoal, deleteGoal, letgoGoal, reopenGoal, toggleMilestone, goalMenu, setGoalMenu, goalsEmpty, setGoalsEmpty, showNotice: () => setNotice(true), weeklyDone, setWeeklyDone, shot: hash };
   const placeholder = { today: '今天做了什么？比如：跑步 1 小时', todos: '说一句待办：明天三点取快递', money: '记一笔，比如：午饭 25', moneyList: '记一笔，比如：午饭 25', keypad: '记一笔，比如：午饭 25', mood: '现在心情怎么样？说一句', insights: '想明白了什么？说一句' }[tab] || '说一句……';
   const menuTodo = menu && menu.kind === 'todo' ? todos.find((t) => t.id === menu.id) : null;
   return html`<${Ctx.Provider} value=${app}>
@@ -3241,9 +3296,9 @@ function App() {
     </div>
     ${story && html`<${Story} id=${story.id} kind=${story.kind} leaving=${story.leaving} close=${closeStory}/>`}
     ${sheets.map((s) => html`<${SheetBox} key=${s.id} s=${s} close=${() => closeSheet(s.id)}/>`)}
-    ${menuTodo && html`<div class="menuwrap" onClick=${() => setMenu(null)}>
+    ${menuTodo && html`<div class="menuwrap" onPointerDown=${() => { menuArmed.current = true; }} onClick=${() => { if (menuArmed.current) setMenu(null); }}>
       <div class="menuprev" onClick=${(e) => e.stopPropagation()}><div class="trow" style=${{ borderRadius: '18px' }}><span class="ck"><i/></span><div style=${{ flex: 1 }}><div class="tt">${menuTodo.title}</div>${menuTodo.said && html`<div class="tsub">${menuTodo.said.split('：')[0]}</div>`}</div>${menuTodo.time && html`<span class="pill num" style=${{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>${menuTodo.time}</span>`}</div></div>
-      <div class="menu" onClick=${(e) => e.stopPropagation()}>${[['完成', 'check', () => toggleTodo(menuTodo.id)], ['推迟到…', 'snooze', () => openSheet('snooze', { id: menuTodo.id })], ['改时间', 'schedule', () => openSheet('todo', { id: menuTodo.id })], ['复制', 'content_copy', () => toast('拷贝好了')], ['看原话', 'format_quote', () => openSheet('todo', { id: menuTodo.id })], ['删除', 'delete', () => deleteTodo(menuTodo.id), true]].map(([n, ic, fn, red]) => html`<button class=${red ? 'red' : ''} onClick=${() => { setMenu(null); fn(); }}>${n}<${I} n=${ic} s=${20}/></button>`)}</div>
+      <div class="menu" onClick=${(e) => e.stopPropagation()}>${[['完成', 'check', () => toggleTodo(menuTodo.id)], ['推迟到…', 'snooze', () => openSheet('snooze', { id: menuTodo.id })], ['改时间', 'schedule', () => openSheet('todo', { id: menuTodo.id })], ['复制', 'content_copy', () => toast('拷贝好了')], ['看原话', 'format_quote', () => openSheet('todo', { id: menuTodo.id })], ['删除', 'delete', () => deleteTodo(menuTodo.id), true]].map(([n, ic, fn, red]) => html`<button class=${red ? 'red' : ''} onClick=${() => { if (!menuArmed.current) return; setMenu(null); fn(); }}>${n}<${I} n=${ic} s=${20}/></button>`)}</div>
     </div>`}
     ${goalMenu && html`<${GoalMenu}/>`}
     ${notice && html`<${NoticeBanner} onOpen=${() => { setNotice(false); openSheet('weekly'); }} onClose=${() => setNotice(false)}/>`}
