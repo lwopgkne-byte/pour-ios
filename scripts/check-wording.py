@@ -52,7 +52,7 @@ def self_test():
 def main():
     self_test()
     root = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
-    files = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "App", "Gallery",
+    files = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "App",
                             "Packages/PourKit/Sources"], cwd=root, capture_output=True, text=True, check=True).stdout
     found = []
     for name in filter(None, files.split("\0")):

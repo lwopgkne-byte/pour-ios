@@ -1,5 +1,5 @@
 public import Foundation
-public import PourData
+public import PourCore
 import UserNotifications
 
 /// 待办的提醒：手机自己排系统通知，到点不用连网、不靠服务器（docs/归档/03 第 5.5 节「本地排好」）。
@@ -53,5 +53,18 @@ private final class ForegroundBanner: NSObject, UNUserNotificationCenterDelegate
         _ center: UNUserNotificationCenter, willPresent notification: UNNotification
     ) async -> UNNotificationPresentationOptions {
         [.banner, .sound, .list]
+    }
+}
+
+/// 一条要提醒的待办：哪条、提醒什么、几点（本地钟点）
+public struct Reminder: Hashable, Sendable {
+    public var id: String
+    public var content: String
+    public var time: LocalDateTime
+
+    public init(id: String, content: String, time: LocalDateTime) {
+        self.id = id
+        self.content = content
+        self.time = time
     }
 }

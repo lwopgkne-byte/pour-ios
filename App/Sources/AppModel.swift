@@ -3,7 +3,6 @@ import Network
 import Observation
 import PourAPI
 import PourCore
-import PourData
 import PourPlatform
 
 /// App 的状态（产品主人 2026-10-19 选 B）：数据、业务规则和 AI 全在 Pour 服务器上，手机读写它的接口。
@@ -298,6 +297,8 @@ final class AppModel {
 
     /// 打开一个页面地址（对话里的回顾、周报月报链接，pour://open?path=…）：换到那一页，收起对话
     func open(_ path: String) {
+        if path == "/" { page = .canvas }
+        if path.hasPrefix("/goals") { page = .goals }
         if path.hasPrefix("/review") { page = .review }
         if path.hasPrefix("/money") { page = .money }
         if path.hasPrefix("/library") { page = .library }

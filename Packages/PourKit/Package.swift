@@ -18,45 +18,29 @@ let package = Package(
     platforms: [.iOS("27.0"), .macOS(.v26)],  // iOS 跟 App 一样（ADR A03）；macOS 是这台 Mac 跑规则测试用的
     products: [
         .library(name: "PourCore", targets: ["PourCore"]),
-        .library(name: "PourData", targets: ["PourData"]),
-        .library(name: "PourAI", targets: ["PourAI"]),
         .library(name: "PourDesign", targets: ["PourDesign"]),
         .library(name: "PourPlatform", targets: ["PourPlatform"]),
         .library(name: "PourAPI", targets: ["PourAPI"]),
     ],
-    // 第三方库：每一个都先写进 ADR（A18），scripts/check-deps.py 核对
-    dependencies: [
-        // 本机数据库（ADR A05）：MIT 许可证；钉在一个版本上，升级先看更新说明、跑全部数据测试
-        .package(url: "https://github.com/groue/GRDB.swift.git", exact: "7.11.1")
-    ],
+    // 第三方库：每一个都先写进 ADR（A18），scripts/check-deps.py 核对。现在一个都没有
+    // （3.0 第 0 步删掉了第一阶段手机上的本机数据库和它用的第三方库：数据都在服务器上，ADR A22）
+    dependencies: [],
     targets: [
         // 领域：规则和计算、格式化。只用 Foundation
         .target(name: "PourCore", swiftSettings: swiftSettings),
-        // 数据：表结构、迁移、仓储、同步（M2 起）。预置类别放在 Resources/categories.json（网关的测试也读它）
-        .target(
-            name: "PourData",
-            dependencies: ["PourCore", .product(name: "GRDB", package: "GRDB.swift")],
-            resources: [.process("Resources")],
-            swiftSettings: swiftSettings),
-        // AI：网关客户端、理解服务、问答、端侧语音和向量（M2 起）
-        .target(name: "PourAI", dependencies: ["PourCore", "PourData"], swiftSettings: swiftSettings),
         // 设计系统：令牌、组件。只用 SwiftUI，不认识业务
         .target(name: "PourDesign", swiftSettings: swiftSettings),
-        // 系统能力：通知、后台任务、钥匙串、Face ID（以后）
-        .target(name: "PourPlatform", dependencies: ["PourCore", "PourData"], swiftSettings: swiftSettings),
+        // 系统能力：通知、后台任务、钥匙串、健康、日历、语音
+        .target(name: "PourPlatform", dependencies: ["PourCore"], swiftSettings: swiftSettings),
         // 服务器的接口（产品主人 2026-10-19 选 B：业务规则和 AI 用 Pour 服务器，手机只做界面）：只用系统框架
         .target(name: "PourAPI", dependencies: ["PourCore"], swiftSettings: swiftSettings),
 
         .testTarget(name: "PourCoreTests", dependencies: ["PourCore"], swiftSettings: swiftSettings),
-        .testTarget(name: "PourDataTests", dependencies: ["PourData", "PourCore"], swiftSettings: swiftSettings),
-        .testTarget(
-            name: "PourAITests", dependencies: ["PourAI", "PourData", "PourCore"], swiftSettings: swiftSettings),
         .testTarget(name: "PourDesignTests", dependencies: ["PourDesign"], swiftSettings: swiftSettings),
         .testTarget(
             name: "PourAPITests", dependencies: ["PourAPI"], resources: [.copy("Fixtures")],
             swiftSettings: swiftSettings),
-        .testTarget(
-            name: "PourPlatformTests", dependencies: ["PourPlatform", "PourData"], swiftSettings: swiftSettings),
+        .testTarget(name: "PourPlatformTests", dependencies: ["PourPlatform"], swiftSettings: swiftSettings),
     ],
     swiftLanguageModes: [.v6]
 )

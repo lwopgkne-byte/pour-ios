@@ -1,6 +1,5 @@
 import Foundation
 import PourAPI
-import PourData
 import PourPlatform
 
 // MARK: - 提醒

@@ -19,16 +19,15 @@ PACKAGE = pathlib.Path(__file__).resolve().parent.parent / "Packages" / "PourKit
 ALLOWED = {
     "PourCore": set(),
     "PourDesign": set(),
-    "PourData": {"PourCore", "GRDB"},
-    "PourAI": {"PourCore", "PourData"},
-    "PourPlatform": {"PourCore", "PourData"},
+    "PourPlatform": {"PourCore"},
     # 服务器的接口（产品主人 2026-10-19 选 B）：日期换算用 PourCore 的
     "PourAPI": {"PourCore"},
 }
 LAYERS = set(ALLOWED)
 
 # 写进了 ADR 的第三方库（包的身份 → ADR 编号）。加一个库：先写 ADR，再加到这里
-APPROVED_THIRD_PARTY: dict[str, str] = {"grdb.swift": "A05"}
+# （3.0 第 0 步删掉了第一阶段的本机数据库和它用的第三方库，现在一个都没有）
+APPROVED_THIRD_PARTY: dict[str, str] = {}
 
 
 def target_deps(target: dict) -> set[str]:

@@ -50,8 +50,6 @@ targets:
       - package: PourKit
         product: PourCore
       - package: PourKit
-        product: PourData
-      - package: PourKit
         product: PourAPI
       - package: PourKit
         product: PourPlatform
@@ -215,52 +213,6 @@ targets:
         TEST_TARGET_NAME: Pour
         GENERATE_INFOPLIST_FILE: YES
 
-  PourGallery:
-    type: application
-    platform: iOS
-    sources:
-      - Gallery/Sources
-      - Gallery/Resources
-    dependencies:
-      - package: PourKit
-        product: PourDesign
-    info:
-      path: Gallery/Info.plist # 生成的文件，不提交
-      properties:
-        CFBundleDisplayName: Pour 画廊
-        CFBundleShortVersionString: $(MARKETING_VERSION)
-        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        CFBundleDevelopmentRegion: zh-Hans
-        LSRequiresIPhoneOS: true
-        UILaunchScreen:
-          UIColorName: Canvas
-        UIApplicationSceneManifest:
-          UIApplicationSupportsMultipleScenes: false
-        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
-        ITSAppUsesNonExemptEncryption: false
-    settings:
-      base:
-        # 设计画廊不上架，只在开发时装（02 C4）
-        PRODUCT_BUNDLE_IDENTIFIER: $(POUR_BUNDLE_ID).gallery
-        PRODUCT_NAME: PourGallery
-        TARGETED_DEVICE_FAMILY: "1"
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES: IconPour IconLine
-        ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: YES
-        CODE_SIGN_STYLE: Automatic
-
-  GalleryUITests:
-    type: bundle.ui-testing
-    platform: iOS
-    sources: [GalleryUITests]
-    dependencies:
-      - target: PourGallery
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: $(POUR_BUNDLE_ID).gallery.uitests
-        TEST_TARGET_NAME: PourGallery
-        GENERATE_INFOPLIST_FILE: YES
-
 schemes:
   Pour:
     build:
@@ -277,14 +229,3 @@ schemes:
         - PourUITests
     archive:
       config: Release
-  PourGallery:
-    build:
-      targets:
-        PourGallery: all
-        GalleryUITests: [test]
-    run:
-      config: Debug
-    test:
-      config: Debug
-      targets:
-        - GalleryUITests

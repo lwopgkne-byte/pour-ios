@@ -138,14 +138,3 @@ extension ColorToken.Appearance {
         }
     #endif
 }
-
-/// 一个生活领域的六个颜色（规范 01 第 3.1 节）
-public struct DomainPalette: Sendable, Hashable {
-    public let name: String
-    public let solidLight: RGB
-    public let solidDark: RGB
-    public let bgLight: RGB
-    public let bgDark: RGB
-    public let textLight: RGB
-    public let textDark: RGB
-}
