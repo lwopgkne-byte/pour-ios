@@ -23,9 +23,8 @@ struct CanvasView: View {
                         VStack(alignment: .trailing, spacing: 0) {
                             CanvasWeek()
                             // 跳到更早的哪一天（3.0 的日历页第 10 步做；这里先用系统的月历选）
-                            Button("跳到某一天") { picking = true }
-                                .font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.accent)
-                                .buttonStyle(.plain).frame(minHeight: Theme.Size.touch)
+                            // 能点的范围撑在按钮里面（外面加的尺寸不算，2026-10-31 审计查出来的）
+                            ThemeTextButton("跳到某一天") { picking = true }
                                 .accessibilityIdentifier("today.pickDay")
                         }
                         .padding(.bottom, Theme.Space.small)

@@ -164,6 +164,8 @@ enum AppAudit {
     private static let bottomFade: CGFloat = 64
     /// 顶栏 48 点高，菜单按钮 44 点、上下各空 2 点
     private static let headerPadding: CGFloat = 2
+    /// 导航栏下沿往下淡出的那一截（系统的 scrollEdgeEffect）：滚到这里的字也只露出一半（2026-10-31 上班族的画布第 3 屏）
+    private static let navigationFade: CGFloat = 16
 
     /// 屏幕上系统的栏在哪
     struct Place {
@@ -232,7 +234,7 @@ enum AppAudit {
             return "在顶栏后面"
         }
         // 3.0 外壳：推进来的页往上滚，内容从导航栏、状态栏底下滑过去（系统把那一截淡化了）：露出来的那一截量不准
-        if let bottom = place.navigation.map(\.maxY).max(), frame.minY < bottom {
+        if let bottom = place.navigation.map(\.maxY).max(), frame.minY < bottom + Self.navigationFade {
             return "在导航栏后面"
         }
         // 对话开着时，面板里往上滚出面板上沿的（整个在上沿上面，被面板裁掉、看不见）：后面的页面压暗了、读屏不读

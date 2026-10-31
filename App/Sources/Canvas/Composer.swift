@@ -18,15 +18,19 @@ struct Composer: View {
     @State private var intro = false
     /// 按住说的时候往上滑过了（松开就不要了）
     @State private var cancelling = false
-    /// 斜杠命令列表有多高：对话面板让出这么多（输入框这一块往上长，对话被顶上去），
-    /// 不然键盘弹着时输入框会被挤到键盘后面
+    /// 斜杠命令列表、上面那一排快捷有多高：对话面板让出这么多（输入框这一块往上长，对话被顶上去），
+    /// 不然键盘弹着时输入框会被挤到键盘后面。两样各量各的：打「/」时快捷收起、命令出来，
+    /// 共用一个数时快捷消失那一下把命令刚量好的高度清成 0，输入框就被挤到键盘后面了（2026-10-31 界面测试查出来的）
     @State private var menuHeight: CGFloat = 0
+    @State private var chipsHeight: CGFloat = 0
 
     var body: some View {
         @Bindable var model = model
         let open = model.chatOpen
         VStack(spacing: open ? 0 : Theme.Space.small) {
-            let chatHeight = visibleHeight * 0.55 - menuHeight
+            let commands = Show.slashMenu(model.draft)
+            let chips = open && commands.isEmpty && model.draft.isEmpty && !voice.active
+            let chatHeight = visibleHeight * 0.55 - (commands.isEmpty ? (chips ? chipsHeight : 0) : menuHeight)
             if open, chatHeight >= Theme.Size.touch {
                 ChatPanel(drag: $drag)
                     .frame(height: chatHeight)
@@ -34,7 +38,6 @@ struct Composer: View {
             }
             if !open { ComposerStatus() }
             voiceExtras
-            let commands = Show.slashMenu(model.draft)
             if !commands.isEmpty {
                 SlashMenu(commands: commands, open: open) { command in
                     model.draft = "\(command.cmd) "
@@ -45,9 +48,8 @@ struct Composer: View {
                 } action: {
                     menuHeight = $0
                 }
-                .onDisappear { menuHeight = 0 }
             }
-            if open, commands.isEmpty, model.draft.isEmpty, !voice.active {
+            if chips {
                 SayChips { prefix in
                     model.draft = prefix
                     focused = true
@@ -55,9 +57,8 @@ struct Composer: View {
                 .onGeometryChange(for: CGFloat.self) {
                     $0.size.height
                 } action: {
-                    menuHeight = $0
+                    chipsHeight = $0
                 }
-                .onDisappear { menuHeight = 0 }
             }
             if voice.active, voice.mode == .tap {
                 VoiceCard { words, send in use(words, send: send) }
