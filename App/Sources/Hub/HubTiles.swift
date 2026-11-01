@@ -22,7 +22,7 @@ struct HubTile: Identifiable, Hashable {
 
     private static let paths = [
         "todos": "/todos", "money": "/money", "mood": "/mood", "insights": "/library?view=insights",
-        "health": "/settings#health", "review": "/review", "library": "/library", "moments": "/library?view=moments",
+        "health": "/settings#health", "review": "/review", "library": "/library", "moments": "/mood/moments",
         "year": "/about/year", "about": "/about", "finds": "/about", "people": "/about/people", "talk": "/about/talk",
         "watch": "/money/watch", "budget": "/money/watch", "renqing": "/money/renqing", "worth": "/money",
         "goals": "/goals", "streak": "/goals",

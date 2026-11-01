@@ -24,6 +24,7 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 | `App/Sources/Hub/` | 「我的」= 全部功能：头、四个快捷、常用（管理、长按）、五组格子、下拉搜功能；格子表 `HubTiles.swift`（键和服务器的 `HUB_TILES` 一样） |
 | `App/Sources/Todos/`、`AppModel+Todos.swift` | 3.0 待办：待办页（系统的 `List`：左右滑、按住的菜单）、今天的时间线、加待办 / 详情 / 推迟到三个弹层（挂在外壳上，`model.todoSheet`）；`TodoBoard` 照服务器的规矩分组、挪行，勾掉的留在原地（`todoHeld`）；通知上的按钮和后台刷新（`TodoNotifications`） |
 | `App/Sources/Money/`、`AppModel+Money.swift` | 3.0 钱：主页（`Home/MoneyHomePage`，`/api/money/home` 一次拿全）、记一笔（数字键盘弹层，`model.keypadOpen`）、一笔的详情（弹层，挂在外壳上，`model.moneyDetail`）、每一笔（系统的 `List`：搜索、左滑、按住的菜单）、留意的、人情往来、和 TA 的来往、一样东西、一天的钱；数字键盘记了、还在整理的几笔（`moneyPending`，先显示「整理中」）；打开钱要面容 ID（`MoneyLock`） |
+| `App/Sources/Mood/`、`AppModel+Mood.swift` | 3.0 心情：心情页（`/mood`，`/api/mood/page` 一次拿全）、记心情和一条心情两个弹层（挂在外壳上，`model.mood`）、心情分析（`/mood/analysis`，以前的 `/about/mood`）、好时刻（`/mood/moments`）；晚上问一句（`MoodEvening` + PourPlatform 的 `EveningMood`）；小组件「记心情」在 `Extensions/WidgetViews/MoodCheckinIntent.swift` |
 | `App/Sources/Canvas/` | 生活画布、输入框（斜杠命令）、对话面板、记录详情（原地改、最近 7 天、相关目标、来源原话）、时间轴、类别卡片 |
 | `App/Sources/Review/`、`About/`、`Goals/`、`Library/`、`Search/`、`Settings/` | 各页（还没重做的用 `Web.*`；`About/AboutLegacyParts.swift` 是钱的旧部件，第 8 步一起换掉） |
 | `App/Sources/PinGate.swift`、`ServerConfiguration.swift` | 要 PIN 时整个 App 先显示的那一页；服务器地址（设置里改过的存在钥匙串，没有就用 Info.plist 的 `PourServerURL`） |

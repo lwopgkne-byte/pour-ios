@@ -65,8 +65,10 @@ final class TourShotsUITests: XCTestCase {
             paths.append(("26-钱-和一个人", "/money/renqing/\(person)"))
         }
         paths += [
+            ("27-心情", "/mood"),
+            ("28-心情-分析", "/mood/analysis"),
+            ("29-心情-好时刻", "/mood/moments"),
             ("30-关于我-主页", "/about"),
-            ("31-关于我-心情", "/about/mood"),
             ("32-关于我-人", "/about/people"),
             ("33-关于我-你说的话", "/about/talk"),
             ("34-关于我-你的一年", "/about/year"),
