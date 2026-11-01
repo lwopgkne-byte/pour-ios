@@ -41,7 +41,7 @@ struct RootView: View {
     private static let widgetSamples = ProcessInfo.processInfo.arguments.contains("-widgetSamples")
 
     private var barHidden: Bool {
-        model.sayBarHidden && !model.chatOpen && model.draft.isEmpty && model.notice == nil
+        (model.sayBarHidden || model.pageSearching) && !model.chatOpen && model.draft.isEmpty && model.notice == nil
     }
 
     private var shell: some View {

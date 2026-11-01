@@ -5,13 +5,17 @@ import SwiftUI
 
 /// 打开的那一笔钱（钱的主页、每一笔、一天的钱点一行）
 struct MoneyDetailRef: Identifiable, Hashable {
+    /// 打开就改的那一样（每一笔长按「改金额」「改给谁」）
+    enum Start: Hashable { case amount, fact(MoneyFact) }
+
     let item: API.MoneyItem
+    var start: Start?
     var id: String { "\(item.entryId)-\(item.index)" }
 }
 
 /// 一笔的详情（01 需求文档 5.5、06 交互细节 3.5）：顶上领域图标、名字、大金额、种类标签；一段话里好几样先写合计、再一样一行；
 /// **只列有的**（地方、时间、给谁、和谁、你说的值不值、回来的钱、谁给的、人情、固定的），没说的不写「没说」，缺的放进「补充」；
-/// 原话和说的时刻；对应的按钮（已报销 · 已经还了 · 不再算固定的 · 用了几次）；删除带撤销。改了马上生效（交给服务器改）
+/// 点大金额就能改；原话和说的时刻；对应的按钮（已报销 · 已经还了 · 不再算固定的 · 用了几次）；删除带撤销。改了马上生效（交给服务器改）
 struct MoneyDetailSheet: View {
     @Environment(AppModel.self) var model
     @Environment(\.dismiss) var dismiss
@@ -22,6 +26,9 @@ struct MoneyDetailSheet: View {
     @State var editing: MoneyFact?
     @State var draft = ""
     @FocusState var focused: Bool
+    /// 正在改的金额（nil 是没在改）
+    @State var amountDraft: String?
+    @FocusState var amountFocused: Bool
 
     var item: API.MoneyItem { ref.item }
 
@@ -55,6 +62,7 @@ struct MoneyDetailSheet: View {
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .task(id: model.dataVersion) { await load() }
+        .task { await begin() }
     }
 
     var event: API.EventData? {
@@ -76,9 +84,7 @@ struct MoneyDetailSheet: View {
                 Text(Show.spaced(item.name)).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label)
                     .accessibilityAddTraits(.isHeader)
             }
-            Text(Show.yuan(item.amount, hide: hide, plus: ["income", "back", "gift"].contains(item.kind)))
-                .font(Theme.Typeface.bigNumber).monospacedDigit().foregroundStyle(Theme.Palette.label)
-                .accessibilityIdentifier("moneyDetail.amount")
+            amountRow
             HStack(spacing: Theme.Space.snug) {
                 ForEach(tags, id: \.self) { MoneyKindTagView($0) }
                 Text(item.domain.name).font(Theme.Typeface.caption).foregroundStyle(Theme.Palette.secondaryLabel)
@@ -183,7 +189,8 @@ struct MoneyDetailSheet: View {
         case .verdict: return (event?.verdict ?? item.verdict).map { "「\($0.quote)」\($0.tone == "good" ? "值" : "后悔")" }
         case .from:
             guard item.kind == "gift" else { return nil }
-            return (metric?.from ?? item.who).flatMap { $0.isEmpty ? nil : $0 }
+            let from = metric?.from ?? item.who
+            return from.isEmpty ? nil : from
         }
     }
 
@@ -205,7 +212,8 @@ struct MoneyDetailSheet: View {
         }
     }
 
-    private func start(_ fact: MoneyFact) {
+    func start(_ fact: MoneyFact) {
+        amountDraft = nil
         editing = fact
         draft =
             value(of: fact).map { text in
@@ -216,7 +224,7 @@ struct MoneyDetailSheet: View {
 }
 
 /// 一笔钱的一样（只列有的、补充的）
-enum MoneyFact: CaseIterable {
+enum MoneyFact: CaseIterable, Hashable {
     case time, places, forWhom, people, from, verdict
 
     var title: String {

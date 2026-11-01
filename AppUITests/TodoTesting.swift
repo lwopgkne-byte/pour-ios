@@ -1,6 +1,6 @@
 import XCTest
 
-/// 待办的界面测试共用的（TodosUITests、TodoSheetsUITests）：打开待办页、找一行、等一个值、拉开弹层、截图
+/// 待办、钱的界面测试共用的（TodosUITests、TodoSheetsUITests、MoneyEachUITests）：打开待办页、找一行、等一个值、拉开弹层、截图
 @MainActor
 protocol TodoTesting: XCTestCase {}
 

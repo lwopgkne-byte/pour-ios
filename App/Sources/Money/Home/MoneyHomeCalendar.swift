@@ -79,14 +79,7 @@ struct MoneyMonthCalendar: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("money.pickedDay")
-            ForEach(model.moneyPending.filter { $0.day == day }) { pending in
-                MoneyRowLabel(
-                    Show.spaced(pending.name), tags: [.pending], sub: pending.time,
-                    amount: Show.yuan(pending.amount, hide: hide)
-                ) {
-                    IconTile(symbol: "yensign", emoji: "", color: Theme.tag("gray"))
-                }
-            }
+            ForEach(model.moneyPending.filter { $0.day == day }) { MoneyPendingRow(pending: $0) }
             if items.isEmpty, !model.moneyPending.contains(where: { $0.day == day }) {
                 Text("那天没说到钱（没说 ≠ 没花）").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                     .padding(.bottom, Theme.Space.small)

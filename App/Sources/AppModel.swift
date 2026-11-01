@@ -52,6 +52,8 @@ final class AppModel {
     var stack: [Route] = [] { didSet { sayBarHidden = false } }
     /// 往下翻页面时「说一句」收起，往上翻再出来（docs/3.0/01-需求文档.md 2.2；换一页总是出来）
     var sayBarHidden = false
+    /// 页面里的搜索框在输入（每一笔；离开那一页就放下）：「说一句」让开，键盘上面只有一个输入框
+    var pageSearching = false
     /// 别处要画布打开「跳到某一天」（「我的」里的日历格子）：加一就开
     var dayPickerRequest = 0
     /// 要搜什么（右上角的搜索、「/找 三体」）：不是 nil 就打开搜索

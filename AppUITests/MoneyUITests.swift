@@ -151,7 +151,7 @@ final class MoneyUITests: XCTestCase {
         let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '给儿子买运动鞋'")).firstMatch
         scroll(app, to: row)
         row.tap()
-        let amount = app.staticTexts["moneyDetail.amount"]
+        let amount = app.buttons["moneyDetail.amount"]
         XCTAssertTrue(amount.waitForExistence(timeout: 3), "一笔的详情没打开")
         XCTAssertEqual(amount.label, "¥259")
         // 旧的详情里没填的写「没说」：新的一行都不该有（后面钱主页页脚「没说的不算」那句不算）

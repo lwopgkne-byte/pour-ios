@@ -13,7 +13,7 @@ struct MoneyPage: View {
         switch route {
         case .month(let month): MoneyHomePage(month: month ?? String(model.today.prefix(7)))
         case .day(let day): MoneyDayView(day: day, navigate: navigate)
-        case .list(let month, let filter): MoneyListView(month: month, filter: filter, navigate: navigate)
+        case .list(let month, let filter): MoneyEachPage(month: month, filter: filter)
         case .watch: MoneyWatchView(navigate: navigate)
         case .thing(let id): MoneyThingView(id: id, navigate: navigate)
         case .renqing: RenqingView(navigate: navigate)

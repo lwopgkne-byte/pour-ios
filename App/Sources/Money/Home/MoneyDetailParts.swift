@@ -66,10 +66,68 @@ extension MoneyDetailSheet {
     }
 
     /// 改这一笔钱（给谁、谁给的）：整件事的每一样钱照旧发回去，只换这一样
-    private func saveMetric(_ change: (inout API.Metric) -> Void) {
+    func saveMetric(_ change: (inout API.Metric) -> Void) {
         guard var metrics = event?.metrics, item.index < metrics.count else { return }
         change(&metrics[item.index])
         model.update(item.entryId, ["metrics": .array(metrics.map { $0.json(value: $0.value) })])
+    }
+
+    // MARK: - 改金额
+
+    /// 大金额：点一下就能改（改的是说的那个数；有回来的钱照旧扣掉）
+    @ViewBuilder var amountRow: some View {
+        let plus = ["income", "back", "gift"].contains(item.kind)
+        if amountDraft != nil {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
+                Text("¥").font(Theme.Typeface.section).foregroundStyle(Theme.Palette.secondaryLabel)
+                // 不用 Binding($amountDraft)：改完变回 nil 时它会强行解开，闪退
+                TextField("金额", text: amountText)
+                    .font(Theme.Typeface.bigNumber).monospacedDigit().keyboardType(.decimalPad).focused($amountFocused)
+                    .accessibilityIdentifier("moneyDetail.amountField")
+                ThemeTextButton("好") { saveAmount() }.accessibilityIdentifier("moneyDetail.amountSave")
+            }
+        } else {
+            Button(action: startAmount) {
+                Text(Show.yuan(amount, hide: hide, plus: plus)).font(Theme.Typeface.bigNumber).monospacedDigit()
+                    .foregroundStyle(Theme.Palette.label).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text("点了改金额"))
+            .accessibilityIdentifier("moneyDetail.amount")
+        }
+    }
+
+    private var amountText: Binding<String> {
+        Binding(get: { amountDraft ?? "" }, set: { amountDraft = $0 })
+    }
+
+    /// 现在的金额：拿到整条记录以后用记录里的（改了马上看得到）
+    private var amount: Double {
+        guard let metric else { return item.amount }
+        return (max(0, metric.value - (metric.returned?.amount ?? 0)) * 100).rounded() / 100
+    }
+
+    private func startAmount() {
+        editing = nil
+        amountDraft = Show.amount(metric?.value ?? item.amount)
+        amountFocused = true
+    }
+
+    private func saveAmount() {
+        let value = Double(amountDraft ?? "") ?? 0
+        amountDraft = nil
+        guard value > 0, value != metric?.value else { return }
+        saveMetric { $0.value = (value * 100).rounded() / 100 }
+    }
+
+    /// 每一笔长按「改金额」「改给谁」打开的：等弹层出来再进到那一样
+    func begin() async {
+        guard let start = ref.start else { return }
+        try? await Task.sleep(for: .milliseconds(450))
+        switch start {
+        case .amount: startAmount()
+        case .fact(let fact): self.start(fact)
+        }
     }
 
     // MARK: - 原话

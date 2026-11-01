@@ -51,6 +51,22 @@ struct MoneyItemRow: View {
     }
 }
 
+/// 刚记下、还在整理的一笔（数字键盘记的）：右边小字「整理中」，整理完变成正式的一行
+struct MoneyPendingRow: View {
+    @AppStorage(MoneyHidden.key) private var hide = false
+    let pending: PendingMoney
+
+    var body: some View {
+        MoneyRowLabel(
+            Show.spaced(pending.name), tags: [.pending], sub: pending.time,
+            amount: Show.yuan(pending.amount, hide: hide, plus: pending.kind == "income"),
+            tone: pending.kind == "income" ? .income : ["reimburse", "lend"].contains(pending.kind) ? .muted : .normal
+        ) {
+            IconTile(symbol: "yensign", emoji: "", color: Theme.tag("gray"))
+        }
+    }
+}
+
 /// 领域的图标小方块（饮食、出行、购物……）：线条图标，认不出的用它自己的颜色写第一个字
 struct MoneyDomainIcon: View {
     let domain: API.MoneyDomainRef
