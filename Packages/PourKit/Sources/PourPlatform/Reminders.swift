@@ -97,16 +97,22 @@ public enum Reminders {
 
     /// 启动时：App 开着的时候到点也弹出来（系统默认不弹）；注册通知上的四个按钮；
     /// 点了按钮、点了通知交给 handler（App 没开着时系统在后台叫醒 App 来做，要在启动完以前设好）
+    /// mood 是晚上问心情的通知上选了什么（EveningMood）
     @MainActor
-    public static func listen(_ handler: @escaping @Sendable (Action, Int) async -> Void) {
+    public static func listen(
+        _ handler: @escaping @Sendable (Action, Int) async -> Void,
+        mood: @escaping @Sendable (EveningMood.Answer) async -> Void = { _ in }
+    ) {
         let buttons = Action.allCases.compactMap { action in
             action.title.map { UNNotificationAction(identifier: action.rawValue, title: $0, options: []) }
         }
         let center = UNUserNotificationCenter.current()
         center.setNotificationCategories([
-            UNNotificationCategory(identifier: category, actions: buttons, intentIdentifiers: [], options: [])
+            UNNotificationCategory(identifier: category, actions: buttons, intentIdentifiers: [], options: []),
+            EveningMood.category(),
         ])
         NotificationDelegate.shared.handler.withLock { $0 = handler }
+        NotificationDelegate.shared.mood.withLock { $0 = mood }
         center.delegate = NotificationDelegate.shared
     }
 }
@@ -116,6 +122,7 @@ public enum Reminders {
 private final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate, Sendable {
     static let shared = NotificationDelegate()
     let handler = Mutex<(@Sendable (Reminders.Action, Int) async -> Void)?>(nil)
+    let mood = Mutex<(@Sendable (EveningMood.Answer) async -> Void)?>(nil)
 
     func userNotificationCenter(
         _ center: UNUserNotificationCenter, willPresent notification: UNNotification,
@@ -129,6 +136,15 @@ private final class NotificationDelegate: NSObject, UNUserNotificationCenterDele
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let identifier = response.notification.request.identifier
+        if identifier.hasPrefix(EveningMood.prefix), let mood = mood.withLock({ $0 }) {
+            let answer = EveningMood.answer(response)
+            nonisolated(unsafe) let done = completionHandler
+            Task { @MainActor in
+                await mood(answer)
+                done()
+            }
+            return
+        }
         guard identifier.hasPrefix(Reminders.prefix), let id = Int(identifier.dropFirst(Reminders.prefix.count)),
             let action = Reminders.Action(rawValue: response.actionIdentifier),
             let handler = handler.withLock({ $0 })

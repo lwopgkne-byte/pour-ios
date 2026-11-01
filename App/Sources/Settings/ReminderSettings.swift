@@ -51,6 +51,7 @@ private struct ReminderRows: View {
             SettingsHeading(title: "提醒").padding(.top, Web.space2)
             timed("morning", label: "每日回顾", hint: "早上把昨天整理成一页回顾，连同今天的安排一起推送", status.morning)
             timed("evening", label: "晚上的倾倒提醒", hint: "今天还没记录时。好几天没记的时候会自己变少，一记就恢复", status.evening)
+            MoodEveningRow(evening: status.evening) { save($0) }
             timed("warning", label: "预警", hint: "目标落后、状态变差", status.warning)
             SettingRow(label: "目标入睡时间", hint: "连续 3 天晚于它会预警") {
                 if let bedtime = status.bedtime {

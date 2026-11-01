@@ -16,6 +16,7 @@ extension AppModel {
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else { return }
             await TodoNotifications.sync(client)
+            await syncEveningMood()
             reminderState = ReminderState(
                 permission: await Reminders.permission(), scheduled: await Reminders.pending().count)
         }

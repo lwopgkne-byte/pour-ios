@@ -114,6 +114,27 @@ final class MoodUITests: XCTestCase, TodoTesting {
         audit(app, "好时刻")
     }
 
+    /// 晚上问问心情（设置 → 提醒和推送，默认关）：打开以后手机上排好几个晚上（真的系统通知）
+    @MainActor func testEveningQuestion() throws {
+        allowNotifications()
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTest", "-open", "/settings"]
+        app.launch()
+        // 设置页的开关（WebSwitch）是带「开关」特征的按钮：读屏念「开 / 关」
+        let kinds = [XCUIElement.ElementType.button.rawValue, XCUIElement.ElementType.switch.rawValue]
+        let row = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label == '晚上问问心情' AND elementType IN %@", kinds)).firstMatch
+        app.reveal(row)
+        XCTAssertTrue(row.exists, "设置里没有「晚上问问心情」")
+        XCTAssertEqual(row.value as? String, "关", "晚上问问心情默认要关着")
+        row.tap()
+        app.tap()  // 让通知权限的弹窗被接住
+        let scheduled = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '手机上排好了'")).firstMatch
+        XCTAssertTrue(scheduled.waitForExistence(timeout: 8), "打开以后没排上晚上的通知")
+        pause()
+        shot("设置-晚上问问心情", of: app.screenshot())
+    }
+
     // MARK: - 共用
 
     /// 我的 → 心情

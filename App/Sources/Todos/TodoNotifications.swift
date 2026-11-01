@@ -16,7 +16,8 @@ enum TodoNotifications {
     /// 启动时（App 的代理）：注册按钮、接住点了什么
     @MainActor
     static func listen() {
-        Reminders.listen { action, id in await handle(action, id) }
+        Reminders.listen(
+            { action, id in await handle(action, id) }, mood: { answer in await MoodEvening.handle(answer) })
     }
 
     static func handle(_ action: Reminders.Action, _ id: Int) async {

@@ -16,6 +16,8 @@ extension AppModel {
             UserDefaults.standard.removeObject(forKey: WriteStore.key)
             // 上一个测试开的「打开钱要面容 ID」不带过来（不然后面的测试进钱都是锁着的）
             UserDefaults.standard.removeObject(forKey: MoneyLock.key)
+            UserDefaults.standard.removeObject(forKey: MoodEvening.key)
+            UserDefaults.standard.removeObject(forKey: MoodEvening.mergedKey)
         }
         let model = AppModel(
             client: ServerConfiguration.client(arguments: arguments),
