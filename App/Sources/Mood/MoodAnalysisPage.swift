@@ -36,7 +36,7 @@ struct MoodAnalysisPage: View {
         if let feelings = page.feelings { MoodFeelingsCard(feelings: feelings) }
         MoodSourcesCard()
         if !page.changes.isEmpty { MoodChangesCard(changes: page.changes) }
-        Text("只是同时出现，不一定是因为它 · 全部在你的电脑上").font(Theme.Typeface.footnote)
+        Text("只是同时出现，不一定和它有关 · 全部在你的电脑上").font(Theme.Typeface.footnote)
             .foregroundStyle(Theme.Palette.secondaryLabel).frame(maxWidth: .infinity)
     }
 
