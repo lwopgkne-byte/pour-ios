@@ -143,7 +143,6 @@ extension AboutRoute {
     var title: String {
         switch self {
         case .home, .domain: "关于我"
-        case .mood: "心情"
         case .people: "人"
         case .talk: "你说的话"
         case .year: "你的一年"
@@ -153,7 +152,6 @@ extension AboutRoute {
     var kind: String {
         switch self {
         case .home: "home"
-        case .mood: "mood"
         case .people: "people"
         case .talk: "talk"
         case .year: "year"

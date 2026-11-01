@@ -90,6 +90,30 @@ final class MoodUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(app.staticTexts["已删除"].waitForExistence(timeout: 3), "删了没说")
     }
 
+    /// 心情分析（以前「关于我 → 心情」的全部）和好时刻（按月分组）：打得开、每一屏跑审计
+    @MainActor func testAnalysisAndMoments() throws {
+        let app = openMood()
+        let link = app.buttons["mood.analysis"]
+        app.reveal(link)
+        link.tap()
+        XCTAssertTrue(app.navigationBars["心情分析"].waitForExistence(timeout: 5), "心情分析没打开")
+        XCTAssertTrue(app.staticTexts["心情和精力"].waitForExistence(timeout: 5), "没有心情和精力")
+        pause()
+        audit(app, "心情分析")
+        for name in ["心情分析-下面", "心情分析-再下面"] {
+            app.swipeUp(velocity: .slow)
+            pause()
+            audit(app, name)
+        }
+        app.goBack()
+        let all = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '全部 15 个'")).firstMatch
+        app.reveal(all)
+        all.tap()
+        XCTAssertTrue(app.navigationBars["好时刻"].waitForExistence(timeout: 5), "好时刻没打开")
+        pause()
+        audit(app, "好时刻")
+    }
+
     // MARK: - 共用
 
     /// 我的 → 心情

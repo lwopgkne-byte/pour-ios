@@ -18,7 +18,6 @@ struct AboutPage: View {
     var body: some View {
         switch route {
         case .home: AboutHome(navigate: navigate, ask: $ask)
-        case .mood: AboutMoodView(navigate: navigate)
         case .people: AboutPeopleView(navigate: navigate)
         case .talk: AboutTalkView(navigate: navigate)
         case .year(let year): AboutYearView(year: year ?? Int(model.today.prefix(4)) ?? 2026, navigate: navigate)
@@ -34,19 +33,19 @@ struct AboutPage: View {
 
 /// 关于我里的一页
 enum AboutRoute: Hashable {
-    case home, mood, people, talk
+    case home, people, talk
     /// nil 是今年
     case year(Int?)
     case domain(String)
 
-    /// 「/about」「/about/mood」「/about/people」「/about/talk」「/about/year」「/about/domain/diet」
+    /// 「/about」「/about/people」「/about/talk」「/about/year」「/about/domain/diet」
+    /// （「/about/mood」3.0 第 4 步起是心情分析，Route 里先认了）
     init?(_ path: String) {
         let clean = path.split(separator: "?").first.map(String.init) ?? path
         let parts = clean.split(separator: "/").map { String($0).removingPercentEncoding ?? String($0) }
         guard parts.first == "about" else { return nil }
         switch (parts.count, parts.dropFirst().first) {
         case (1, _): self = .home
-        case (2, "mood"): self = .mood
         case (2, "people"): self = .people
         case (2, "talk"): self = .talk
         case (2, "year"): self = .year(nil)

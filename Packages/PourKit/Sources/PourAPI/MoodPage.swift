@@ -85,3 +85,15 @@ extension APIClient {
 
     public func moodWords() async throws(APIError) -> API.MoodWords { try await get("/api/mood/words") }
 }
+
+extension API.MoodMoment {
+    /// 好时刻（全部，`/api/moments`）的一条：从一条心情记录来（不是心情的是 nil）
+    public init?(moment: API.Moment) {
+        guard case .mood(let data) = moment.entry.data else { return nil }
+        let level = min(5, max(1, Int(data.mood.rounded())))
+        self.init(
+            entryId: moment.entry.id, day: moment.entry.day, time: nil, mood: data.mood,
+            word: Show.moodWords[level - 1], emotions: data.emotions, energy: data.energy, moment: data.moment,
+            byYou: data.byYou == true, noteId: moment.noteId)
+    }
+}
