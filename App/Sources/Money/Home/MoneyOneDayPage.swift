@@ -133,6 +133,8 @@ struct MoneyOneDayPage: View {
     }
 
     private func load() async {
+        // 先出上次存的；换了一天先清掉前一天的
+        if page?.day != day { page = model.client.cached("/api/money/day/\(day)") }
         do throws(APIError) {
             page = try await model.client.moneyDay(day)
             problem = nil

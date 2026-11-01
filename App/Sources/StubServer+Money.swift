@@ -40,6 +40,7 @@
         /// 3.0 钱的主页（服务器 /api/money/home）：这个月、每天累计、预算、留意的几条（带上按钮办的是哪几笔）、
         /// 花给了谁、值不值、钱和你的日子
         static func home() -> [String: Any] {
+            if ProcessInfo.processInfo.arguments.contains("-moneyEarly") { return earlyHome() }
             let month = json(Self.month) as? [String: Any] ?? [:]
             let days = (month["days"] as? [[String: Any]]) ?? []
             let spent = Dictionary(

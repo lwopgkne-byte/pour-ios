@@ -82,7 +82,8 @@ struct MoneyMonthRuler: View {
 
     let marks: [Mark]
     let days: Int
-    let today: Int
+    /// 今天几号；看的不是这个月（以前的月份）是 nil，不画「今天」
+    let today: Int?
 
     var body: some View {
         let lineY = Theme.Space.xLarge + Theme.Space.medium
@@ -92,11 +93,12 @@ struct MoneyMonthRuler: View {
                 let place = { (day: Int) in CGFloat(day - 1) / CGFloat(max(1, days - 1)) * width }
                 ZStack(alignment: .topLeading) {
                     Capsule().fill(Theme.Palette.fill).frame(width: width, height: Theme.Space.tight).offset(y: lineY)
-                    Capsule().fill(Theme.Palette.accent).frame(
-                        width: Theme.Space.hairline * 2, height: Theme.Space.large
-                    )
-                    // 从线往下，指着下面的「今天 20 日」（名字都在线上面，不会压到）
-                    .offset(x: place(today) - Theme.Space.hairline, y: lineY)
+                    if let today {
+                        // 从线往下，指着下面的「今天 20 日」（名字都在线上面，不会压到）
+                        Capsule().fill(Theme.Palette.accent)
+                            .frame(width: Theme.Space.hairline * 2, height: Theme.Space.large)
+                            .offset(x: place(today) - Theme.Space.hairline, y: lineY)
+                    }
                     ForEach(Array(marks.enumerated()), id: \.offset) { index, mark in
                         let size = Theme.Space.small + Theme.Space.tight
                         Circle().fill(mark.paid ? Theme.Palette.tertiaryLabel : Theme.Palette.label)
@@ -113,11 +115,11 @@ struct MoneyMonthRuler: View {
             }
             .frame(height: lineY + Theme.Space.large)
             GeometryReader { proxy in
-                let at = CGFloat(today - 1) / CGFloat(max(1, days - 1)) * proxy.size.width
+                let at = CGFloat((today ?? 1) - 1) / CGFloat(max(1, days - 1)) * proxy.size.width
                 ZStack(alignment: .topLeading) {
                     Text("1日").frame(maxWidth: .infinity, alignment: .leading)
                     Text("\(days)日").frame(maxWidth: .infinity, alignment: .trailing)
-                    if today > 3, today < days - 3 {
+                    if let today, today > 3, today < days - 3 {
                         Text("今天 \(today) 日").font(Theme.Typeface.footnoteSemibold).foregroundStyle(
                             Theme.Palette.accent
                         )
@@ -131,7 +133,9 @@ struct MoneyMonthRuler: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
-            Text("一个月里固定的钱在哪几天扣：\(marks.map { "\($0.day)日\($0.name)" }.joined(separator: "，"))；今天是\(today)日"))
+            Text(
+                "一个月里固定的钱在哪几天扣：\(marks.map { "\($0.day)日\($0.name)" }.joined(separator: "，"))"
+                    + (today.map { "；今天是\($0)日" } ?? "")))
     }
 
     /// 一段字放在 at 的正下方；挨着两头的不出界
@@ -178,7 +182,7 @@ struct MoneyPacksSection: View {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("\(pack.pack) \(unit)里你说到上过 \(pack.used.count) \(unit)"))
-            Text(Show.spaced("\(Show.monthDay(pack.day))买的，每\(unit) \(each) · \(said) · 还剩 \(left) \(unit)"))
+            Text("\(Show.monthDay(pack.day))买的，每\(unit) \(each) · \(said) · 还剩 \(left) \(unit)")
                 .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
         .padding(.vertical, Theme.Space.small)
@@ -226,7 +230,7 @@ struct MoneyFrequentSection: View {
             Text(LocalizedStringKey(row.next >= today ? "按平常，**\(next)前后**又该买了" : "按平常，**\(next)**就该买了"))
                 .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
             if let price = row.price {
-                Text(Show.spaced(Show.maskYuan(price, hide: hide))).font(Theme.Typeface.footnote)
+                Text(Show.maskYuan(price, hide: hide)).font(Theme.Typeface.footnote)
                     .foregroundStyle(Theme.Palette.secondaryLabel)
             }
         }

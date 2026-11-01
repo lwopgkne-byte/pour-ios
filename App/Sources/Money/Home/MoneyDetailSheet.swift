@@ -146,7 +146,7 @@ struct MoneyDetailSheet: View {
         if !rows.isEmpty || renqingLine != nil || fixedDay != nil {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(rows, id: \.0) { fact, text in
-                    factRow(fact.title, text, edit: fact == .time ? nil : { start(fact) })
+                    factRow(fact.title, text, spaced: fact != .time, edit: fact == .time ? nil : { start(fact) })
                 }
                 if let returned = metric?.returned {
                     let actual = max(0, ((item.amount + returned.amount) * 100).rounded() / 100)
@@ -161,11 +161,12 @@ struct MoneyDetailSheet: View {
         }
     }
 
-    func factRow(_ title: String, _ text: String, edit: (() -> Void)? = nil) -> some View {
+    /// spaced：中文和数字之间留一点空；日子、时刻不留（「10月18日 21:50」和别处一样）
+    func factRow(_ title: String, _ text: String, spaced: Bool = true, edit: (() -> Void)? = nil) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: Theme.Space.medium) {
             Text(title).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
                 .frame(minWidth: Theme.Size.touch + Theme.Space.regular, alignment: .leading)
-            Text(Show.spaced(text)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+            Text(spaced ? Show.spaced(text) : text).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if let edit { ThemeTextButton("改", action: edit) }
         }

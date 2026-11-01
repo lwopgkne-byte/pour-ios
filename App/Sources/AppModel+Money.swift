@@ -78,3 +78,38 @@ extension AppModel {
         moneyDetail = MoneyDetailRef(item: item)
     }
 }
+
+extension AppModel {
+    /// 「都报销了」「已经还了」：办完那几笔就不在「留意」里了，弹一句带「撤销」。不算「你改过的地方」
+    func settle(_ refs: [API.MoneyRef], settled: Bool, said: String?) {
+        moneyAct(said) { client in
+            try await client.settle(refs, settled: settled)
+        } undo: { [weak self] in
+            self?.settle(refs, settled: !settled, said: nil)
+        }
+    }
+
+    /// 「不再算固定的」（再点一次改回来）
+    func endFixed(_ ref: API.MoneyRef, ended: Bool, said: String?) {
+        moneyAct(said) { client in
+            try await client.endFixed(ref, ended: ended)
+        } undo: { [weak self] in
+            self?.endFixed(ref, ended: !ended, said: nil)
+        }
+    }
+
+    private func moneyAct(
+        _ said: String?, _ work: @escaping @Sendable (APIClient) async throws -> Void, undo: @escaping () -> Void
+    ) {
+        let client = client
+        Task {
+            do {
+                try await work(client)
+                dataChanged()
+                if let said { toast(said, action: "撤销", perform: undo) }
+            } catch {
+                toast(error.readable)
+            }
+        }
+    }
+}

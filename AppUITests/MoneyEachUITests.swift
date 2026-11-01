@@ -125,6 +125,47 @@ final class MoneyEachUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(app.staticTexts["钱锁上了"].exists, "验不过也打开了")
     }
 
+    /// 最大字号（xxxLarge，App 的上限）：主页、记一笔、每一笔、一笔的详情、留意的截图，核实不截字、不重叠
+    @MainActor func testLargestTextSize() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTest", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryXXXL"]
+        app.launch()
+        app.openTile("money")
+        XCTAssertTrue(app.buttons["money.hide"].waitForExistence(timeout: 8), "钱没打开")
+        pause()
+        shot("大字-钱", of: app.screenshot())
+        app.swipeUp(velocity: .slow)
+        pause()
+        shot("大字-钱-月历", of: app.screenshot())
+        let record = app.buttons["money.record"]
+        app.reveal(record)
+        record.tap()
+        XCTAssertTrue(app.staticTexts["keypad.amount"].waitForExistence(timeout: 3), "记一笔没打开")
+        pause()
+        shot("大字-记一笔", of: app.screenshot())
+        app.buttons["取消"].tap()
+        let list = app.buttons["money.list"]
+        app.reveal(list)
+        list.tap()
+        XCTAssertTrue(app.navigationBars["每一笔"].waitForExistence(timeout: 5), "每一笔没打开")
+        pause()
+        shot("大字-每一笔", of: app.screenshot())
+        let shoes = moneyRow(app, "给儿子买运动鞋")
+        XCTAssertTrue(find(shoes, in: app), "没有给儿子买运动鞋")
+        shoes.tap()
+        XCTAssertTrue(app.buttons["moneyDetail.amount"].waitForExistence(timeout: 3), "一笔的详情没打开")
+        expandSheet(app, from: app.buttons["关闭"])
+        shot("大字-一笔的详情", of: app.screenshot())
+        app.buttons["关闭"].tap()
+        app.goBack()
+        let watch = app.buttons["money.watch"]
+        app.reveal(watch)
+        watch.tap()
+        XCTAssertTrue(app.navigationBars["留意的"].waitForExistence(timeout: 5), "留意的没打开")
+        pause()
+        shot("大字-留意的", of: app.screenshot())
+    }
+
     // MARK: - 共用
 
     /// 钱 → 每一笔

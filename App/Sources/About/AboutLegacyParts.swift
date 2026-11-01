@@ -3,8 +3,9 @@ import PourDesign
 import SwiftUI
 
 /*
- * 「关于我」那几页（第 8 步重做以前）还在用的几样：能点的一行、一列（上面一条细线、每行下面一条细线）、
- * 名字和一句小字、灰色小标签、几段拼成一句；钱办完一件事（带撤销）
+ * 「关于我」那几页（第 8 步重做以前）还在用的几样，原来是钱的旧页面的部件（第 3 步钱重做以后搬到这里）：
+ * 能点的一行、一列（上面一条细线、每行下面一条细线）、名字和一句小字、灰色小标签（笔记库、搜索也用）、
+ * 几段拼成一句、一页的外框。第 8 步重做「关于我」时一起换掉
  */
 
 /// 一列：上面一条细线，每一行自己在下面画线
@@ -104,37 +105,9 @@ func rich(_ parts: [Segment]) -> AttributedString {
     }
 }
 
-extension AppModel {
-    /// 「都报销了」「已经还了」：办完那几笔就不在「留意」里了，弹一句带「撤销」。不算「你改过的地方」
-    func settle(_ refs: [API.MoneyRef], settled: Bool, said: String?) {
-        moneyAct(said) { client in
-            try await client.settle(refs, settled: settled)
-        } undo: { [weak self] in
-            self?.settle(refs, settled: !settled, said: nil)
-        }
-    }
-
-    /// 「不再算固定的」（再点一次改回来）
-    func endFixed(_ ref: API.MoneyRef, ended: Bool, said: String?) {
-        moneyAct(said) { client in
-            try await client.endFixed(ref, ended: ended)
-        } undo: { [weak self] in
-            self?.endFixed(ref, ended: !ended, said: nil)
-        }
-    }
-
-    private func moneyAct(
-        _ said: String?, _ work: @escaping @Sendable (APIClient) async throws -> Void, undo: @escaping () -> Void
-    ) {
-        let client = client
-        Task {
-            do {
-                try await work(client)
-                dataChanged()
-                if let said { toast(said, action: "撤销", perform: undo) }
-            } catch {
-                toast(error.readable)
-            }
-        }
+extension View {
+    /// 一页的外框（「关于我」那几页）：能上下滚，左右滑翻上一页（往右滑）、下一页（往左滑）；和回顾一样
+    func moneyPage(prev: (() -> Void)? = nil, next: (() -> Void)? = nil) -> some View {
+        reviewPage(prev: prev, next: next)
     }
 }

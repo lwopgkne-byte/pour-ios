@@ -66,7 +66,7 @@ struct FindingCardView: View {
 
     private var main: some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
-            Text(Show.spaced(mask(finding.sentence))).font(Theme.Typeface.bodySemibold)
+            Text(mask(finding.sentence)).font(Theme.Typeface.bodySemibold)
                 .foregroundStyle(Theme.Palette.label).fixedSize(horizontal: false, vertical: true)
             ForEach(finding.bars, id: \.label) { bar in
                 HStack(spacing: Theme.Space.small) {
@@ -81,7 +81,7 @@ struct FindingCardView: View {
                         .foregroundStyle(Theme.Palette.secondaryLabel).fixedSize()
                 }
             }
-            Text(Show.spaced(finding.sub)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+            Text(finding.sub).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
     }
 
@@ -153,7 +153,12 @@ struct MoneyFixedCard: View {
         } label: {
             VStack(alignment: .leading, spacing: Theme.Space.small) {
                 MoneyCardHeader("每个月固定的 · \(Show.yuan(page.fixed.monthly, hide: hide))")
-                ruler(series, days: days, today: today)
+                // 和「留意的」同一把月尺：扣钱的几天是点、上面写名字，今天一根蓝线
+                MoneyMonthRuler(
+                    marks: series.map { .init(day: $0.dayOfMonth, name: $0.name, paid: $0.dayOfMonth <= today) },
+                    days: days, today: page.current ? today : nil
+                )
+                .accessibilityHidden(true)
                 if let next = page.current
                     ? series.filter({ $0.dayOfMonth > today }).min(by: { $0.dayOfMonth < $1.dayOfMonth }) : nil
                 {
@@ -168,31 +173,6 @@ struct MoneyFixedCard: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
             Text("每个月固定的：\(series.map { "\($0.dayOfMonth)日\($0.name)" }.joined(separator: "，"))；今天是\(today)日"))
-    }
-
-    /// 灰线是整个月，深一点的是已经过去的；每一样在扣钱那天一个点（扣过的浅），名字在下面一高一低错开
-    private func ruler(_ series: [API.FixedSeries], days: Int, today: Int) -> some View {
-        GeometryReader { proxy in
-            let width = proxy.size.width
-            let place = { (day: Int) in CGFloat(day - 1) / CGFloat(max(1, days - 1)) * width }
-            ZStack(alignment: .topLeading) {
-                Capsule().fill(Theme.Palette.fill).frame(width: width, height: Theme.Space.tight)
-                Capsule().fill(Theme.Palette.tertiaryLabel).frame(width: place(today), height: Theme.Space.tight)
-                ForEach(Array(series.enumerated()), id: \.offset) { index, item in
-                    let paid = item.dayOfMonth <= today
-                    Circle().fill(paid ? Theme.Tile.gold.opacity(0.45) : Theme.Tile.gold)
-                        .frame(width: Theme.Space.medium, height: Theme.Space.medium)
-                        .offset(x: place(item.dayOfMonth) - Theme.Space.snug, y: -Theme.Space.tight)
-                    Text(item.name).font(Theme.Typeface.caption).foregroundStyle(Theme.Palette.secondaryLabel)
-                        .fixedSize()
-                        .offset(
-                            x: min(max(0, place(item.dayOfMonth) - Theme.Space.regular), width - Theme.Size.touch),
-                            y: index % 2 == 0 ? Theme.Space.medium : Theme.Space.section - Theme.Space.tight)
-                }
-            }
-        }
-        .frame(height: Theme.Space.section + Theme.Space.regular)
-        .accessibilityHidden(true)
     }
 }
 
@@ -212,7 +192,7 @@ struct MoneyLaterCard: View {
                 ForEach(rows, id: \.0) { name, when in
                     VStack(alignment: .leading, spacing: Theme.Space.hairline) {
                         Text(name).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
-                        Text(Show.spaced(when)).font(Theme.Typeface.footnote).foregroundStyle(
+                        Text(when).font(Theme.Typeface.footnote).foregroundStyle(
                             Theme.Palette.secondaryLabel)
                     }
                     .accessibilityElement(children: .combine)

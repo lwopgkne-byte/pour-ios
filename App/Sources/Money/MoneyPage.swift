@@ -78,10 +78,3 @@ enum MoneyRoute: Hashable {
 struct MoneyHidden {
     static let key = "pour.money.hidden"
 }
-
-extension View {
-    /// 钱的一页的外框：能上下滚，左右滑翻上一页（往右滑）、下一页（往左滑）；和回顾一样
-    func moneyPage(prev: (() -> Void)? = nil, next: (() -> Void)? = nil) -> some View {
-        reviewPage(prev: prev, next: next)
-    }
-}

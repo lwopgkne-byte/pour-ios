@@ -94,10 +94,12 @@ public struct PaceChart: View {
 
     /// 上面那一行：按住时写那一天，平时写最后一天和图例
     private var caption: String {
-        guard let index = shown, index < current.count else { return "━ 这个月每天累计 · ┅ 上个月同日" }
+        // 图例：没有上个月的线（刚开始用、上个月没说到钱）就不写「上个月同日」
+        let legend = previous == nil ? "━ 这个月每天累计" : "━ 这个月每天累计 · ┅ 上个月同日"
+        guard let index = shown, index < current.count else { return legend }
         var text = "\(dayName(index)) \(money(current[index]))"
         if let previous, index < previous.count { text += " · 上个月同日 \(money(previous[index]))" }
-        return picked == nil ? "━ 这个月每天累计 · ┅ 上个月同日" : text
+        return picked == nil ? legend : text
     }
 
     private var shown: Int? { picked ?? (current.isEmpty ? nil : current.count - 1) }

@@ -24,8 +24,11 @@ struct MoneyHero: View {
                 .contentTransition(.numericText(value: spent))
                 .animation(Theme.Motion.standard, value: spent)
                 .accessibilityIdentifier("money.spent")
-            Text(countLine(page, name: name)).font(Theme.Typeface.subheadline).monospacedDigit()
-                .foregroundStyle(Theme.Palette.secondaryLabel)
+            // 一笔都没有就不写「0 笔」：下面那句说清楚
+            if page.count >= 1 {
+                Text(countLine(page, name: name)).font(Theme.Typeface.subheadline).monospacedDigit()
+                    .foregroundStyle(Theme.Palette.secondaryLabel)
+            }
             compare(page, name: name)
             if !page.days.isEmpty || home.pace.previous != nil {
                 PaceChart(
@@ -64,22 +67,22 @@ struct MoneyHero: View {
                     .background(compare.diff < 0 ? Theme.Palette.goodFill : Theme.Palette.warnFill, in: Capsule())
                     .fixedSize()
                 }
-                Text(
-                    Show.spaced(
-                        Show.maskYuan(same ? compare.text : (parts.count > 1 ? parts[1] : "比上个月这时候"), hide: hide))
-                )
-                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-                .lineLimit(whyOpen ? nil : 2)
-                .onTapGesture { withAnimation(Theme.Motion.standard) { whyOpen.toggle() } }
+                Text(Show.maskYuan(same ? compare.text : (parts.count > 1 ? parts[1] : "比上个月这时候"), hide: hide))
+                    .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .lineLimit(whyOpen ? nil : 2)
+                    .onTapGesture { withAnimation(Theme.Motion.standard) { whyOpen.toggle() } }
             }
             .accessibilityElement(children: .combine)
         } else if let why = explanation(page, name: name) {
-            Text(Show.spaced(why)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+            Text(why).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
     }
 
     private func explanation(_ page: API.MoneyMonth, name: String) -> String? {
-        if page.counts.values.reduce(0, +) == 0 { return "\(name)还没说到钱。" }
+        // 这个月还没说到钱：说怎么开始；以前的月份：没说 ≠ 没花
+        if page.counts.values.reduce(0, +) == 0 {
+            return page.current ? "\(name)还没说到钱。点「记一笔」，或者说一句「午饭 25」。" : "\(name)没说到钱（没说 ≠ 没花）。"
+        }
         guard page.current, let from = page.compareFrom else { return nil }
         return "\(Show.monthDay(from))起，就能和上个月比了。"
     }

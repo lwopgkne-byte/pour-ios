@@ -76,7 +76,7 @@ struct RenqingHomePage: View {
                 VStack(alignment: .leading, spacing: Theme.Space.hairline) {
                     Text(person.relation.map { "\(person.name) · \($0)" } ?? person.name).font(Theme.Typeface.body)
                         .foregroundStyle(Theme.Palette.label)
-                    let last = Show.spaced(Show.maskYuan(person.last.text, hide: hide))
+                    let last = Show.maskYuan(person.last.text, hide: hide)
                     Text("\(Show.monthDay(person.last.day)) · \(last)")
                         .font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
                         .lineLimit(2)
@@ -168,7 +168,7 @@ struct RenqingPersonPage: View {
                     .foregroundStyle(Theme.Palette.secondaryLabel)
                     .frame(minWidth: Theme.Size.touch + Theme.Space.regular, alignment: .leading)
                 VStack(alignment: .leading, spacing: Theme.Space.tight) {
-                    Text(Show.spaced(Show.maskYuan(row.text, hide: hide))).font(Theme.Typeface.body)
+                    Text(Show.maskYuan(row.text, hide: hide)).font(Theme.Typeface.body)
                         .foregroundStyle(Theme.Palette.label)
                     if !row.together.isEmpty {
                         Text("和\(row.together.joined(separator: "、"))一起").font(Theme.Typeface.footnote)
@@ -188,6 +188,10 @@ struct RenqingPersonPage: View {
     }
 
     private func load() async {
+        let path = name.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed.subtracting(["/"])) ?? name
+        if page == nil, let saved: API.RenqingPersonPage = model.client.cached("/api/money/renqing/\(path)") {
+            page = saved
+        }
         do throws(APIError) {
             page = try await model.client.renqing(person: name)
             problem = nil

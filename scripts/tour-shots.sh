@@ -23,6 +23,11 @@ TODAY="$(json 'd["today"]' <<<"${META}")"
 MONTH="${TODAY:0:7}"
 THING="$(curl -fsS -m 10 "${SERVER}/api/money/${MONTH}" \
   | json 'next((str(i["entryId"]) for i in d.get("items",[]) if i.get("things")), "")')"
+# 月初这个月还没有买东西：从「值不值」里挑第一样（一样东西那一页就是它点进去的）
+if [[ -z "${THING}" ]]; then
+  THING="$(curl -fsS -m 10 "${SERVER}/api/money/overview" \
+    | json 'next((str(w["entryId"]) for w in (d.get("worth") or {}).get("good", []) + (d.get("worth") or {}).get("regret", [])), "")')"
+fi
 PERSON="$(curl -fsS -m 10 "${SERVER}/api/money/renqing" | json '(d.get("people") or [{}])[0].get("name","")')"
 echo "服务器 ${SERVER}（演示数据，今天 ${TODAY}）；一样东西：记录 ${THING:-没有}；人情：${PERSON:-没有}"
 

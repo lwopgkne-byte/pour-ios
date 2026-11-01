@@ -160,6 +160,8 @@ struct MoneyThingPage: View {
     }
 
     private func load() async {
+        // 先出上次存的（不出现整页转圈）
+        if page == nil, let saved: API.MoneyThingPage = model.client.cached("/api/money/thing/\(id)") { page = saved }
         do throws(APIError) {
             page = try await model.client.moneyThing(id)
             problem = nil

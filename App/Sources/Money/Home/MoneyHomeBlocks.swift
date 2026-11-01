@@ -94,7 +94,7 @@ struct MoneyWatchCard: View {
                         VStack(alignment: .leading, spacing: Theme.Space.hairline) {
                             Text("\(Show.spaced(line.name)) \(Show.yuan(line.amount, hide: hide))")
                                 .font(Theme.Typeface.body).monospacedDigit().foregroundStyle(Theme.Palette.label)
-                            Text(Show.spaced(Show.maskYuan(line.sub, hide: hide))).font(Theme.Typeface.footnote)
+                            Text(Show.maskYuan(line.sub, hide: hide)).font(Theme.Typeface.footnote)
                                 .foregroundStyle(Theme.Palette.secondaryLabel)
                         }
                         .frame(maxWidth: .infinity, minHeight: Theme.Size.touch, alignment: .leading)
@@ -156,7 +156,7 @@ struct MoneyDomainsCard: View {
                     .buttonStyle(PressScale())
                 }
                 if let note = page.domainNote {
-                    Text(Show.spaced(Show.maskYuan(note, hide: hide))).font(Theme.Typeface.footnote)
+                    Text(Show.maskYuan(note, hide: hide)).font(Theme.Typeface.footnote)
                         .foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
@@ -221,7 +221,7 @@ struct MoneyWhoCard: View {
                 .accessibilityElement(children: .combine)
             }
             if let sentence = who.sentence {
-                Text(Show.spaced(Show.maskYuan(sentence, hide: hide))).font(Theme.Typeface.footnote)
+                Text(Show.maskYuan(sentence, hide: hide)).font(Theme.Typeface.footnote)
                     .foregroundStyle(Theme.Palette.secondaryLabel)
             }
         }
@@ -262,7 +262,7 @@ struct MoneyWorthStrip: View {
                 .foregroundStyle(Theme.Palette.label)
             Text(good ? "你说值" : "你说后悔").font(Theme.Typeface.caption)
                 .foregroundStyle(good ? Theme.Palette.good : Theme.Palette.warnInk)
-            Text(Show.spaced(Show.maskYuan(thing.sub, hide: hide))).font(Theme.Typeface.footnote)
+            Text(Show.maskYuan(thing.sub, hide: hide)).font(Theme.Typeface.footnote)
                 .foregroundStyle(Theme.Palette.secondaryLabel).lineLimit(2)
         }
         .frame(width: Theme.Size.goalCard, alignment: .leading)

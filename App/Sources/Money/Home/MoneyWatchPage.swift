@@ -155,7 +155,7 @@ struct MoneyWatchPage: View {
                     model.openGoal(budget.id)
                 } label: {
                     BudgetRow(
-                        Show.spaced(budget.title), text: Show.spaced(budget.headline), pct: budget.pct,
+                        Show.spaced(budget.title), text: budget.headline, pct: budget.pct,
                         over: budget.tone == "bad" || budget.tone == "warn"
                     )
                     .contentShape(Rectangle())
