@@ -137,6 +137,47 @@ final class MoneyUITests: XCTestCase {
         XCTAssertTrue(amount.waitForNonExistence(timeout: 3))
     }
 
+    /// 一笔的详情（01 需求文档 5.5、验收 5.8 第 3 条）：只列有的、没有一行「没说」；缺的在「补充」里点了原地加；
+    /// 这样东西用了几次；删除带撤销
+    @MainActor func testMoneyDetail() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTest"]
+        app.launch()
+        app.openTile("money")
+        XCTAssertTrue(app.buttons["遮住金额"].waitForExistence(timeout: 5), "钱没打开")
+        let day = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '10月18日'")).firstMatch
+        scroll(app, to: day)
+        day.tap()
+        let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '给儿子买运动鞋'")).firstMatch
+        scroll(app, to: row)
+        row.tap()
+        let amount = app.staticTexts["moneyDetail.amount"]
+        XCTAssertTrue(amount.waitForExistence(timeout: 3), "一笔的详情没打开")
+        XCTAssertEqual(amount.label, "¥259")
+        // 旧的详情里没填的写「没说」：新的一行都不该有（后面钱主页页脚「没说的不算」那句不算）
+        XCTAssertFalse(
+            app.staticTexts.matching(NSPredicate(format: "label == '没说' OR label BEGINSWITH '没说'")).firstMatch.exists,
+            "详情里有一行「没说」")
+        XCTAssertTrue(app.staticTexts["儿子"].exists, "给谁、和谁没列出来")
+        XCTAssertTrue(app.buttons["＋ 地方"].exists, "没说的地方不在「补充」里")
+        XCTAssertTrue(app.buttons["moneyDetail.thing"].exists, "没有「用了几次、每次多少钱」")
+        // 拉到全屏再审（半屏的系统画得略小一点，审计量字会以为被截了）
+        amount.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(
+            forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
+        settle()
+        audit(app, "一笔的详情")
+        app.buttons["＋ 地方"].tap()
+        let field = app.textFields["moneyDetail.edit"]
+        XCTAssertTrue(field.waitForExistence(timeout: 3), "补充地方没出来输入框")
+        field.typeText("运动品牌店")
+        app.buttons["好"].tap()
+        let delete = app.buttons["moneyDetail.delete"]
+        app.reveal(delete)
+        delete.tap()
+        XCTAssertTrue(app.staticTexts["已删除"].waitForExistence(timeout: 3), "删了没说")
+        XCTAssertTrue(app.buttons["undoToast"].exists, "删除没有撤销")
+    }
+
     @MainActor func testMoneyThing() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]

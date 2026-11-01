@@ -33,6 +33,9 @@ extension API {
         public var renqing: Renqing?
         public var returned: Metric.Returned?
         public var people: [String]?
+        /// 提到的东西、地方（一笔的详情里「地方」、值不值的「这样东西」）
+        public var things: [String]?
+        public var places: [String]?
     }
 
     public struct MoneyDomain: Codable, Hashable, Sendable {

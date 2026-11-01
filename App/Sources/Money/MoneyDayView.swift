@@ -221,9 +221,8 @@ struct MoneyListView: View {
 }
 
 extension AppModel {
-    /// 点一笔钱：打开那条记录的详情；是每个月固定扣的，详情里多一行「固定的 · 每个月几日 · 不再算固定的」
+    /// 点一笔钱：打开一笔的详情（3.0：只列有的、补充缺的；固定的多一行「每个月几日 · 不再算固定的」）
     func openMoney(_ item: API.MoneyItem) {
-        let fixed = item.kind == "fixed" ? FixedPay(dayOfMonth: Int(item.day.suffix(2)) ?? 1, index: item.index) : nil
-        openEntry(item.entryId, day: item.day, fixed: fixed)
+        moneyDetail = MoneyDetailRef(item: item)
     }
 }

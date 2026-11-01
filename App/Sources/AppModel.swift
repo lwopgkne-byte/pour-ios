@@ -100,6 +100,8 @@ final class AppModel {
     var todoDeleting: API.TodoRow?
     /// 记一笔的数字键盘开着没有（3.0 第 3 步，AppModel+Money）
     var keypadOpen = false
+    /// 打开的那一笔钱（3.0 一笔的详情）
+    var moneyDetail: MoneyDetailRef?
     /// 刚用数字键盘记下、服务器还没整理完的几笔：钱的主页上先显示（「整理中」），整理完换成正式的
     var moneyPending: [PendingMoney] = []
     /// 排提醒（AppModel+Reminders）：一会儿内连着变了几次只排最后一次
