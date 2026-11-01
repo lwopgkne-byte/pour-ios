@@ -134,3 +134,36 @@ struct QuoteWidgetView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
     }
 }
+
+/// 桌面中号的「记心情」（3.0 第 4 步）：五个表情，点一个就记下（不用打开 App）；记过了上面写「刚记下：挺好 21:30」
+struct MoodWidgetView: View {
+    /// 今天刚记下的那一档（MoodCheckinMark）
+    let last: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            HStack {
+                Text("现在心情怎么样？").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                Spacer()
+                if let last {
+                    Text("刚记下：\(last)").font(Theme.Typeface.footnote).monospacedDigit()
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                }
+            }
+            HStack(spacing: 0) {
+                ForEach(1...5, id: \.self) { level in
+                    Button(intent: MoodCheckinIntent(level: level)) {
+                        VStack(spacing: Theme.Space.tight) {
+                            MoodBadge(level: level, size: Theme.Size.touch - Theme.Space.tight)
+                            Text(Show.moodWords[level - 1]).font(Theme.Typeface.caption)
+                                .foregroundStyle(Theme.Palette.secondaryLabel)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("记心情：\(Show.moodWords[level - 1])"))
+                }
+            }
+        }
+    }
+}

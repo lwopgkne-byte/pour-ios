@@ -101,7 +101,8 @@ public struct MoodFace: View {
             context.fill(Path(ellipseIn: eye), with: .color(ink))
         }
         // 嘴：很差往下弯得最多，一般是平的，很好往上弯得最多
-        let bend = CGFloat(level - 3) * face.height * 0.09
+        // 弯得太多，很差那张嘴的弧顶会碰到眼睛（小表情上看着像个叉）
+        let bend = CGFloat(level - 3) * face.height * 0.06
         var mouth = Path()
         let mouthY = face.minY + face.height * 0.66
         mouth.move(to: CGPoint(x: face.minX + face.width * 0.3, y: mouthY))

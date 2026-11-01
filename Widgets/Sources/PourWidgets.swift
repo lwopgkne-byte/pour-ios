@@ -12,6 +12,7 @@ struct PourWidgets: WidgetBundle {
         TodayWidget()
         NextTodoWidget()
         QuoteWidget()
+        MoodWidget()
         SayControl()
     }
 }
@@ -119,6 +120,18 @@ struct QuoteWidget: Widget {
 }
 
 /// 控制中心（还有锁屏底下、操作按钮）的「说一句」：点了打开 Pour 直接开始听
+/// 桌面中号的「记心情」（3.0 第 4 步）：五个表情，点一个就记下
+struct MoodWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "pour.mood", provider: GlanceProvider()) { _ in
+            MoodWidgetView(last: MoodCheckinMark.today()).containerBackground(Theme.Palette.card, for: .widget)
+        }
+        .configurationDisplayName("记心情")
+        .description("点一个表情就记下现在的心情，不用打开 Pour。")
+        .supportedFamilies([.systemMedium])
+    }
+}
+
 struct SayControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(kind: "pour.say.control") {
