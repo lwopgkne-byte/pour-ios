@@ -3,31 +3,9 @@ import PourDesign
 import SwiftUI
 
 /*
- * 「钱」几页共用的几样：一页的开头、能点的一行、一笔钱的一行、
- * 一列（上面一条细线、每行下面一条细线）、办完一件事（带撤销）
+ * 「关于我」那几页（第 8 步重做以前）还在用的几样：能点的一行、一列（上面一条细线、每行下面一条细线）、
+ * 名字和一句小字、灰色小标签、几段拼成一句；钱办完一件事（带撤销）
  */
-
-/// 子页面的开头：大标题、下面一句小字。3.0 外壳（第 1 步）起返回用导航栏的返回按钮，页面里不再画「‹ 钱」
-/// （back、backTo 留着：第 3 步重做钱的时候一起删）
-struct MoneyHead<Sub: View>: View {
-    var back = "‹ 钱"
-    let title: String
-    let backTo: () -> Void
-    @ViewBuilder var sub: () -> Sub
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Web.space2) {
-            Text(Show.spaced(title)).font(Web.title).foregroundStyle(Web.fg).accessibilityAddTraits(.isHeader)
-            sub()
-        }
-    }
-}
-
-extension MoneyHead where Sub == EmptyView {
-    init(back: String = "‹ 钱", title: String, backTo: @escaping () -> Void) {
-        self.init(back: back, title: title, backTo: backTo) { EmptyView() }
-    }
-}
 
 /// 一列：上面一条细线，每一行自己在下面画线
 struct MoneyList<Content: View>: View {
@@ -87,49 +65,6 @@ struct MoneyMainSub: View {
     }
 }
 
-/// 一笔钱的一行：时间、名目、给谁、标签、你说的值不值（原话）、多少钱。点开是那条记录的详情
-struct MoneyRow: View {
-    @AppStorage(MoneyHidden.key) private var hide = false
-    let item: API.MoneyItem
-    let open: () -> Void
-
-    var body: some View {
-        let muted = item.kind == "reimburse" || item.kind == "lend"
-        let plus = ["income", "back", "gift"].contains(item.kind)
-        Button(action: open) {
-            HStack(alignment: .firstTextBaseline, spacing: Web.space2) {
-                Text(item.time ?? "").font(Web.caption).foregroundStyle(Web.fgTertiary).monospacedDigit()
-                    .fixedSize().frame(minWidth: Web.space12, alignment: .leading)
-                VStack(alignment: .leading, spacing: Web.space1) {
-                    PourFlowLayout(spacing: Web.space2, lineSpacing: Web.space1) {
-                        Text(Show.spaced(item.name)).font(Web.body).foregroundStyle(Web.fg)
-                        if let tag = Show.kindTag(item) { MoneyTag(text: tag) }
-                        if let returned = item.returned {
-                            MoneyTag(text: Show.maskYuan(Show.returnedNote(returned), hide: hide))
-                        }
-                    }
-                    // 给谁在名目下面一行
-                    if !Show.whoLabel(item).isEmpty {
-                        Text(Show.whoLabel(item)).font(Web.caption).foregroundStyle(Web.fgTertiary)
-                            .padding(.top, -Web.space1)
-                    }
-                    if let verdict = item.verdict { VerdictLine(verdict: verdict) }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                Text(Show.yuan(item.amount, hide: hide, plus: plus))
-                    .font(muted ? Web.body : Web.bodySemibold).foregroundStyle(muted ? Web.fgTertiary : Web.fg)
-                    .monospacedDigit().fixedSize()
-            }
-            .padding(.vertical, Web.space3)
-            .frame(minHeight: Web.space12)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(WebPressStyle(radius: 0))
-        .moneyRule()
-        .accessibilityElement(children: .combine)
-    }
-}
-
 /// 灰色的小标签（「固定的」「等报销」「人情」）
 struct MoneyTag: View {
     let text: String
@@ -138,20 +73,6 @@ struct MoneyTag: View {
         Text(text).font(Web.caption).foregroundStyle(Web.tag("gray").fg).fixedSize()
             .padding(.horizontal, Web.space2)
             .background(Capsule().fill(Web.tag("gray").bg))
-    }
-}
-
-/// 你说的值不值：原话用宋体，后面「你说值」（绿）、「你说后悔」（黄）
-struct VerdictLine: View {
-    let verdict: API.Verdict
-
-    var body: some View {
-        let good = verdict.tone == "good"
-        Text(
-            rich([
-                .init("「\(verdict.quote)」", font: Web.quote),
-                .init("  \(good ? "你说值" : "你说后悔")", font: Web.caption, color: Web.tag(good ? "green" : "yellow").fg),
-            ]))
     }
 }
 

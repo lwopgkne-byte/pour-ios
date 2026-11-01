@@ -133,6 +133,7 @@ struct RootView: View {
         .tint(Theme.Palette.accent)
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { model.becameActive() }
+            if phase == .background { model.moneyUnlocked = false }
         }
     }
 }

@@ -14,6 +14,8 @@ extension AppModel {
             // 界面测试每次从干净的开始：上一个测试没发出去的话、写操作不带过来
             UserDefaults.standard.removeObject(forKey: OutboxStore.key)
             UserDefaults.standard.removeObject(forKey: WriteStore.key)
+            // 上一个测试开的「打开钱要面容 ID」不带过来（不然后面的测试进钱都是锁着的）
+            UserDefaults.standard.removeObject(forKey: MoneyLock.key)
         }
         let model = AppModel(
             client: ServerConfiguration.client(arguments: arguments),

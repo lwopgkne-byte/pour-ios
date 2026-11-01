@@ -47,6 +47,7 @@ struct SettingsPage: View {
                 SettingsSection(title: "数据") { DataSettings() }.id("data")
                 SettingsSection(title: "健康") { HealthSettings() }.id("health")
                 SettingsSection(title: "日历") { CalendarSettings() }
+                SettingsSection(title: "隐私") { PrivacySettings() }.id("privacy")
                 SettingsSection(title: "这台手机") { PhoneSettings() }
             }
             .padding(.horizontal, Web.space4)
@@ -54,6 +55,21 @@ struct SettingsPage: View {
             .padding(.bottom, Web.space12)
         }
         .scrollDismissesKeyboard(.interactively)
+    }
+}
+
+/// 隐私（只管这台手机）：打开钱要面容 ID（01 需求文档 5.6）。遮住金额在钱页右上角的眼睛
+private struct PrivacySettings: View {
+    @AppStorage(MoneyLock.key) private var moneyLock = false
+
+    var body: some View {
+        SettingRow(
+            label: "打开钱要面容 ID",
+            hint: MoneyLock.available ? "只在这台手机上验；App 退到后台再回来要重新验" : "这台手机没设密码，开了也锁不上"
+        ) {
+            Toggle("打开钱要面容 ID", isOn: $moneyLock).labelsHidden().tint(Theme.Palette.accentFill)
+                .accessibilityIdentifier("settings.moneyLock")
+        }
     }
 }
 

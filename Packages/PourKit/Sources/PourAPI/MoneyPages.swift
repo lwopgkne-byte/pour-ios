@@ -295,3 +295,14 @@ extension Show {
         return "\(monthDay(row.lastDay))又扣了；\(monthDay(unused.lastMention))以后没说到\(unused.key)"
     }
 }
+
+extension API.MoneyItem {
+    /// 每个月固定的那一样最近扣的一笔（「留意的」里点一行，打开一笔的详情；不知道是哪一块生活，详情里不写）
+    public init(fixed row: API.FixedRow) {
+        self.init(
+            entryId: row.lastEntryId, index: row.lastIndex, day: row.lastDay, time: nil, name: row.name,
+            amount: row.amount, kind: "fixed", domain: .init(key: "", name: "", color: "gray"), who: "", verdict: nil,
+            settled: nil, flag: nil, label: row.name, pack: nil, ended: nil, monthly: true, renqing: nil,
+            returned: nil, people: nil, things: nil, places: nil)
+    }
+}

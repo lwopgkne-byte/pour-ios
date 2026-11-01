@@ -58,13 +58,21 @@ final class MoneyUITests: XCTestCase {
         let picked = app.buttons["money.pickedDay"]
         XCTAssertTrue(picked.waitForExistence(timeout: 3), "点一天下面没出来那天的每一笔")
         XCTAssertTrue(picked.label.contains("花了 ¥609"), "那天花了多少不对：\(picked.label)")
+        // 3.13a：那天的每一笔上面一行「那天和谁在一起 · 你说的感受」+「那天你还说了」
+        let context = app.descendants(matching: .any)["money.dayContext"]
+        XCTAssertTrue(context.waitForExistence(timeout: 3), "点一天上面没有那天的事")
+        XCTAssertTrue(context.label.contains("那天和老婆、儿子在一起"), "那天和谁在一起不对：\(context.label)")
+        XCTAssertTrue(context.label.contains("那天你还说了"), "没有那天你还说了")
         settle()
         audit(app, "钱-点了一天")
         scroll(app, to: picked)
         picked.tap()
-        XCTAssertTrue(app.navigationBars.buttons["钱"].waitForExistence(timeout: 5), "一天的钱没打开")
+        XCTAssertTrue(app.navigationBars["10月18日"].waitForExistence(timeout: 5), "一天的钱没打开")
         settle()
         audit(app, "一天的钱")
+        // 右上角 › 到后一天有钱的日子（换掉这一页，返回还是回到钱）
+        app.buttons["moneyDay.next"].tap()
+        XCTAssertTrue(app.navigationBars["10月19日"].waitForExistence(timeout: 5), "没换到后一天")
         app.navigationBars.buttons["钱"].tap()
     }
 
@@ -84,21 +92,27 @@ final class MoneyUITests: XCTestCase {
         let all = app.buttons["全部 ›"]
         scroll(app, to: all)
         all.tap()
-        XCTAssertTrue(app.staticTexts["留意的"].waitForExistence(timeout: 5), "留意的没打开")
+        XCTAssertTrue(app.navigationBars["留意的"].waitForExistence(timeout: 5), "留意的没打开")
+        XCTAssertTrue(app.buttons["watch.reimburseAll"].exists, "等报销没有「都报销了」")
+        XCTAssertTrue(app.buttons["watch.repaid"].exists, "借出去的没有「已经还了」")
         settle()
         audit(app, "留意的")
-        app.swipeUp(velocity: .slow)
+        let ruler = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH '一个月里固定的钱'"))
+            .firstMatch
+        app.reveal(ruler)
+        XCTAssertTrue(ruler.exists, "每个月固定的没有月尺")
         settle()
         audit(app, "留意的-下面")
-        app.swipeDown(velocity: .fast)
-        app.swipeDown(velocity: .fast)
+        app.swipeUp(velocity: .slow)
+        settle()
+        audit(app, "留意的-最下面")
         app.navigationBars.buttons["钱"].tap()
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH '人情往来'")).firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["和谁来往"].waitForExistence(timeout: 5), "人情往来没打开")
+        XCTAssertTrue(app.navigationBars["人情往来"].waitForExistence(timeout: 5), "人情往来没打开")
         settle()
         audit(app, "人情往来")
         app.buttons.matching(NSPredicate(format: "label BEGINSWITH '小李'")).firstMatch.tap()
-        XCTAssertTrue(app.navigationBars.buttons["人情往来"].waitForExistence(timeout: 5), "和小李的来往没打开")
+        XCTAssertTrue(app.navigationBars["和小李的来往"].waitForExistence(timeout: 5), "和小李的来往没打开")
         settle()
         audit(app, "和小李的来往")
     }
@@ -187,9 +201,13 @@ final class MoneyUITests: XCTestCase {
         let thing = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '空气炸锅'")).firstMatch
         scroll(app, to: thing)
         thing.tap()
-        XCTAssertTrue(app.staticTexts["你怎么说它"].waitForExistence(timeout: 5), "一样东西没打开")
+        XCTAssertTrue(app.navigationBars["一样东西"].waitForExistence(timeout: 5), "一样东西没打开")
+        XCTAssertTrue(app.staticTexts["每次 ¥33"].waitForExistence(timeout: 3), "没写每次多少钱")
         settle()
         audit(app, "一样东西")
+        app.swipeUp(velocity: .slow)
+        settle()
+        audit(app, "一样东西-下面")
     }
 
     @MainActor

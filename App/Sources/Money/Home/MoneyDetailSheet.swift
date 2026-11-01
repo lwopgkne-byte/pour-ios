@@ -87,9 +87,11 @@ struct MoneyDetailSheet: View {
             amountRow
             HStack(spacing: Theme.Space.snug) {
                 ForEach(tags, id: \.self) { MoneyKindTagView($0) }
-                Text(item.domain.name).font(Theme.Typeface.caption).foregroundStyle(Theme.Palette.secondaryLabel)
-                    .padding(.horizontal, Theme.Space.snug).padding(.vertical, Theme.Space.hairline)
-                    .background(Theme.Palette.fill, in: Capsule())
+                if !item.domain.name.isEmpty {
+                    Text(item.domain.name).font(Theme.Typeface.caption).foregroundStyle(Theme.Palette.secondaryLabel)
+                        .padding(.horizontal, Theme.Space.snug).padding(.vertical, Theme.Space.hairline)
+                        .background(Theme.Palette.fill, in: Capsule())
+                }
             }
         }
     }

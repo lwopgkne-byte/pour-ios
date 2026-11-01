@@ -114,7 +114,7 @@ extension MoneyRoute {
         case .watch: "留意的"
         case .thing: "一样东西"
         case .renqing: "人情往来"
-        case .person(let name): name
+        case .person(let name): "和\(name)的来往"
         }
     }
 

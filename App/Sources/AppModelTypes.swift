@@ -21,8 +21,6 @@ extension AppModel {
         let id: Int
         /// 这条记录是哪一天的（回顾里打开别的日子的记录）；nil 是画布正在看的那一天
         var day: String?
-        /// 从「钱」里点开的每个月固定扣的那一笔：详情里多一行「固定的 · 每个月几日 · 不再算固定的」
-        var fixed: FixedPay?
     }
 
     struct GoalRef: Identifiable, Hashable {
@@ -64,10 +62,4 @@ enum OutboxStore {
         items.append(AppModel.Outbox(clientId: UUID().uuidString, text: text, createdAt: Date()))
         save(items, to: serverKey)
     }
-}
-
-/// 每个月固定扣的一笔：每个月几日扣、记录里的第几个数
-struct FixedPay: Hashable {
-    let dayOfMonth: Int
-    let index: Int
 }

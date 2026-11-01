@@ -105,6 +105,26 @@ final class MoneyEachUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(app.buttons["undoToast"].exists, "不算固定的没有撤销")
     }
 
+    /// 打开钱要面容 ID（01 需求文档 5.6；设置 → 隐私）：设置里打开，进钱先是锁着的；验不过（-moneyAuth fail）停在锁着的这一页
+    @MainActor func testMoneyLock() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTest", "-moneyAuth", "fail", "-open", "/settings"]
+        app.launch()
+        let toggle = app.switches["settings.moneyLock"]
+        app.reveal(toggle)
+        XCTAssertTrue(toggle.exists, "设置里没有「打开钱要面容 ID」")
+        toggle.tap()
+        XCTAssertTrue(waitFor(toggle, value: "1"), "开关没打开")
+        app.openTile("money")
+        XCTAssertTrue(app.staticTexts["钱锁上了"].waitForExistence(timeout: 5), "开了面容 ID，钱没锁")
+        XCTAssertFalse(app.buttons["money.list"].exists, "锁着还看得见钱")
+        pause()
+        audit(app, "钱锁上了")
+        app.buttons["moneyLock.open"].tap()
+        pause()
+        XCTAssertTrue(app.staticTexts["钱锁上了"].exists, "验不过也打开了")
+    }
+
     // MARK: - 共用
 
     /// 钱 → 每一笔

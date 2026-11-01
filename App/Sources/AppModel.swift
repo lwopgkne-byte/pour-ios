@@ -106,6 +106,8 @@ final class AppModel {
     var moneyDetail: MoneyDetailRef?
     /// 刚用数字键盘记下、服务器还没整理完的几笔：钱的主页上先显示（「整理中」），整理完换成正式的
     var moneyPending: [PendingMoney] = []
+    /// 打开钱要面容 ID（MoneyLock）：这次打开 App 以后验过了没有；退到后台就作废
+    var moneyUnlocked = false
     /// 排提醒（AppModel+Reminders）：一会儿内连着变了几次只排最后一次
     var reminderSync: Task<Void, Never>?
     /// 排完的样子（待办页底下那一行）：排上了几条、通知开着没有；没排过是 nil

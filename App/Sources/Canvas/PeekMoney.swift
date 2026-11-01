@@ -39,18 +39,6 @@ struct MetricMoneyRows: View {
             }
         }
         if metric.flag == "reimburse" || metric.flag == "lend" { settleRow }
-        if let fixed = model.detail?.fixed, fixed.index == index {
-            PeekRow(label: "固定的") {
-                HStack(spacing: Web.space2) {
-                    Text("每个月 \(fixed.dayOfMonth) 日")
-                    WebTextButton(metric.ended == true ? "已不再算 · 改回来" : "不再算固定的") {
-                        model.endFixed(
-                            .init(entryId: entry.id, index: index), ended: metric.ended != true,
-                            said: metric.ended == true ? nil : "不再算固定的了")
-                    }
-                }
-            }
-        }
     }
 
     private var settleRow: some View {

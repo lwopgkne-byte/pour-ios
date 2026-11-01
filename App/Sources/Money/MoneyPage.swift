@@ -10,20 +10,19 @@ struct MoneyPage: View {
     let route: MoneyRoute
 
     var body: some View {
-        switch route {
-        case .month(let month): MoneyHomePage(month: month ?? String(model.today.prefix(7)))
-        case .day(let day): MoneyDayView(day: day, navigate: navigate)
-        case .list(let month, let filter): MoneyEachPage(month: month, filter: filter)
-        case .watch: MoneyWatchView(navigate: navigate)
-        case .thing(let id): MoneyThingView(id: id, navigate: navigate)
-        case .renqing: RenqingView(navigate: navigate)
-        case .person(let name): RenqingPersonView(name: name, navigate: navigate)
-        }
+        MoneyLockGate { page }
     }
 
-    /// 换到一个页面地址（钱里互相跳、去别处）
-    private func navigate(_ path: String) {
-        model.open(path)
+    @ViewBuilder private var page: some View {
+        switch route {
+        case .month(let month): MoneyHomePage(month: month ?? String(model.today.prefix(7)))
+        case .day(let day): MoneyOneDayPage(day: day)
+        case .list(let month, let filter): MoneyEachPage(month: month, filter: filter)
+        case .watch: MoneyWatchPage()
+        case .thing(let id): MoneyThingPage(id: id)
+        case .renqing: RenqingHomePage()
+        case .person(let name): RenqingPersonPage(name: name)
+        }
     }
 }
 

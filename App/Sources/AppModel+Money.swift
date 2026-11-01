@@ -71,3 +71,10 @@ extension AppModel {
         moneyPending.filter { $0.kind == "daily" && $0.day.hasPrefix(month) }.map(\.amount).reduce(0, +)
     }
 }
+
+extension AppModel {
+    /// 点一笔钱：打开一笔的详情（3.0：只列有的、补充缺的；固定的多一行「每个月几日 · 不再算固定的」）
+    func openMoney(_ item: API.MoneyItem) {
+        moneyDetail = MoneyDetailRef(item: item)
+    }
+}

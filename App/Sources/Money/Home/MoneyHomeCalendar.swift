@@ -79,6 +79,7 @@ struct MoneyMonthCalendar: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("money.pickedDay")
+            MoneyDayContext(day: day)
             ForEach(model.moneyPending.filter { $0.day == day }) { MoneyPendingRow(pending: $0) }
             if items.isEmpty, !model.moneyPending.contains(where: { $0.day == day }) {
                 Text("那天没说到钱（没说 ≠ 没花）").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
@@ -116,5 +117,41 @@ struct MoneyCardHeader: View {
             Spacer()
             if let link, let open { ThemeTextButton(link, action: open) }
         }
+    }
+}
+
+/// 点一天时，那天的每一笔上面一行（06 交互细节 10.2）：「那天和老婆、儿子在一起 · 你说开心」+ 宋体「那天你还说了：『……』」。
+/// 那天没和谁、没说心情、没说别的，就不出这一行
+struct MoneyDayContext: View {
+    @Environment(AppModel.self) private var model
+    let day: String
+    @State private var page: API.MoneyDayPage?
+
+    var body: some View {
+        let people = page?.people ?? []
+        let feelings = page?.feelings ?? []
+        let line =
+            (people.isEmpty ? [] : ["那天和\(people.joined(separator: "、"))在一起"])
+            + (feelings.isEmpty ? [] : ["你说\(feelings.joined(separator: "、"))"])
+        let said = page?.notes.first?.text
+        // 用 VStack 不用 Group：空的 Group 上的 .task 不跑
+        VStack(alignment: .leading, spacing: 0) {
+            if page?.day == day, !line.isEmpty || said != nil {
+                VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                    if !line.isEmpty {
+                        Text(line.joined(separator: " · ")).font(Theme.Typeface.footnote)
+                            .foregroundStyle(Theme.Palette.secondaryLabel)
+                    }
+                    if let said {
+                        Text("那天你还说了：「\(said)」").font(Theme.Typeface.quote)
+                            .foregroundStyle(Theme.Palette.secondaryLabel).lineLimit(2)
+                    }
+                }
+                .padding(.bottom, Theme.Space.small)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("money.dayContext")
+            }
+        }
+        .task(id: "\(day)-\(model.dataVersion)") { page = try? await model.client.moneyDay(day) }
     }
 }

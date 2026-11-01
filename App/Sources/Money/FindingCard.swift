@@ -96,3 +96,20 @@ struct FindingCard: View {
         .accessibilityLabel(Text("这条说得怎么样"))
     }
 }
+
+/// 一根横条：浅灰的底，按几分之几画
+struct MoneyBar: View {
+    let share: Double
+    let color: Color
+
+    var body: some View {
+        Capsule().fill(Web.bgHover).frame(height: Web.space2)
+            .overlay(alignment: .leading) {
+                GeometryReader { proxy in
+                    Capsule().fill(color).frame(width: proxy.size.width * min(1, max(0, share)))
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .accessibilityHidden(true)
+    }
+}

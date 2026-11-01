@@ -199,6 +199,54 @@ public struct MoneyCalendarGrid: View {
     }
 }
 
+/// 一样东西每次多少钱的台阶线（06 交互细节 10.2）：横着是买的那天到今天，竖着是每次多少钱；
+/// 每说到用一次往下走一阶，每个点是说到用它的一天。左右两头写什么（「¥899 买的时候」「现在每次 ¥180」）由调用的地方写在图外面
+public struct PerUseChart: View {
+    /// 买的时候花了多少
+    let total: Double
+    /// 每次说到用它是买了以后第几天（从早到晚）
+    let uses: [Int]
+    /// 买的那天到今天一共几天
+    let span: Int
+
+    public init(total: Double, uses: [Int], span: Int) {
+        self.total = total
+        self.uses = uses
+        self.span = span
+    }
+
+    public var body: some View {
+        Chart {
+            ForEach(Array(steps.enumerated()), id: \.offset) { _, step in
+                LineMark(x: .value("第几天", step.day), y: .value("每次", step.value))
+                    .interpolationMethod(.stepEnd)
+                    .foregroundStyle(Theme.Palette.accent)
+                    .lineStyle(StrokeStyle(lineWidth: 2, lineJoin: .round))
+            }
+            ForEach(Array(uses.enumerated()), id: \.offset) { index, day in
+                PointMark(x: .value("第几天", day), y: .value("每次", total / Double(index + 1)))
+                    .foregroundStyle(Theme.Palette.accent)
+                    .symbolSize(36)
+            }
+        }
+        .chartXScale(domain: 0...max(1, span))
+        .chartYScale(domain: 0...max(1, total))
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .frame(height: Theme.Size.curve * 2)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("每次多少钱的台阶线"))
+    }
+
+    /// 买的那天是原价；说到用第 k 次，每次就是 原价 ÷ k；一直画到今天
+    private var steps: [(day: Int, value: Double)] {
+        var points = [(day: 0, value: total)]
+        for (index, day) in uses.enumerated() { points.append((day, total / Double(index + 1))) }
+        points.append((max(span, uses.last ?? 0), total / Double(max(1, uses.count))))
+        return points
+    }
+}
+
 #Preview("累计曲线、月历") {
     let current: [Double] = [28, 46, 744, 1074, 1074, 1290, 1600, 2400, 3100, 3300, 3600, 3800]
     let previous: [Double] = (1...31).map { Double($0) * 260 }
@@ -215,6 +263,7 @@ public struct MoneyCalendarGrid: View {
         .themeCard()
         MoneyCalendarGrid(blanks: 3, days: days, today: "2026-10-12", selected: "2026-10-04") { _ in }
             .themeCard()
+        PerUseChart(total: 899, uses: [2, 9, 13, 16, 30], span: 33).themeCard()
     }
     .padding()
     .background(Theme.Palette.background)
