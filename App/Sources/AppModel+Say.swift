@@ -40,6 +40,7 @@ extension AppModel {
                 let note = try await client.send(
                     item.text, clientId: item.clientId, day: item.day, context: item.context)
                 posted(item.clientId, note: note)
+                postedMood(item.clientId, note: note)
                 outbox.removeAll { $0.clientId == item.clientId }
                 offline = nil
             } catch {

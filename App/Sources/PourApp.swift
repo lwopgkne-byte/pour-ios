@@ -38,10 +38,11 @@ struct PourApp: App {
                     guard let type, let start = QuickActions.starts[type] else { return }
                     quickActions.pending = nil
                     model.goHome()
-                    // 加待办是正式的弹层（第 2 步）；记一笔、记心情第 3、4 步换
+                    // 加待办、记一笔、记心情是正式的弹层（第 2–4 步）；说一句打开对话
                     switch type {
                     case "pour.todo": model.todoSheet = .add("")
                     case "pour.money": model.recordMoney()
+                    case "pour.mood": model.checkinMood()
                     default: model.startSaying(start)
                     }
                 }

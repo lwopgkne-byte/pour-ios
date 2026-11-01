@@ -5,7 +5,7 @@
         /// 目标、回顾、钱、笔记库、搜索这几页各自的接口
         func pageReply(_ method: String, _ path: String) -> Any? {
             goalsReply(method, path) ?? reviewReply(method, path) ?? moneyReply(method, path)
-                ?? libraryReply(method, path) ?? searchReply(method, path)
+                ?? moodReply(method, path) ?? libraryReply(method, path) ?? searchReply(method, path)
                 ?? aboutReply(method, path)
         }
 

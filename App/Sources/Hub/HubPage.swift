@@ -136,10 +136,11 @@ struct HubPage: View {
 
     private func quick(_ title: String, symbol: String, color: Color, start: String) -> some View {
         Button {
-            // 加待办是正式的弹层（第 2 步）；别的第 3–5 步换
+            // 加待办、记一笔、记心情是正式的弹层（第 2–4 步）；记一句第 5 步换
             switch start {
             case "待办：": model.todoSheet = .add("")
             case "/记 ": model.recordMoney()
+            case "心情：": model.checkinMood()
             default: model.startSaying(start)
             }
         } label: {

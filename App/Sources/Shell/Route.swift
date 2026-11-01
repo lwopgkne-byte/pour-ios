@@ -12,6 +12,8 @@ enum Route: Hashable {
     /// 回顾：nil 是列表
     case review(ReviewRoute?)
     case money(MoneyRoute)
+    /// 心情（3.0 第 4 步）：心情页、心情分析、好时刻
+    case mood(MoodRoute)
     case about(AboutRoute, ask: KnownAsk?)
     case goals
     case library(LibraryAsk)
@@ -34,6 +36,9 @@ enum Route: Hashable {
         case "review":
             if head == "/review" { .review(nil) } else { ReviewRoute(head).map { .review($0) } }
         case "money": MoneyRoute(base).map { .money($0) }
+        case "mood": MoodRoute(base).map { .mood($0) }
+        // 以前的「关于我 → 心情」搬进了心情分析
+        case "about" where head == "/about/mood": .mood(.analysis)
         case "about": AboutRoute(base).map { .about($0, ask: KnownAsk(path: base)) }
         default:
             [
@@ -52,6 +57,7 @@ enum Route: Hashable {
         case .review(.daily?): "每日回顾"
         case .review(.period(let kind, _)?): kind == "monthly" ? "月报" : "周报"
         case .money(let money): money.title
+        case .mood(let mood): mood.title
         case .about(let about, _): about.title
         case .goals: "目标"
         case .library: "笔记库"
@@ -65,6 +71,7 @@ enum Route: Hashable {
         switch (self, other) {
         case (.review(.daily?), .review(.daily?)), (.review(.period?), .review(.period?)): true
         case (.money(let left), .money(let right)): left.kind == right.kind
+        case (.mood(let left), .mood(let right)): left.kind == right.kind
         case (.about(let left, _), .about(let right, _)): left.kind == right.kind && left.kind != "home"
         case (.library, .library), (.settings, .settings), (.goals, .goals), (.hub, .hub), (.todos, .todos): true
         default: false

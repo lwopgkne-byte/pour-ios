@@ -42,7 +42,7 @@ extension AppModel {
         switch stack.last {
         case .money?: "money"
         case .goals?: "goals"
-        case .about(.mood, _)?: "mood"
+        case .mood?: "mood"
         case .library(let ask)? where ask.view == "insights": "insights"
         default: nil
         }

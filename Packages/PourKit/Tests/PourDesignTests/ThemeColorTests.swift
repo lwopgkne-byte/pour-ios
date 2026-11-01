@@ -46,6 +46,16 @@ struct ThemeColorTests {
         #expect(contrast(Theme.Tokens.badInk, on: Theme.Tokens.badFill, ink: Self.smallText) >= 4.5, "人情")
     }
 
+    /// 3.0 心情的五档表情：这一档的粉色圆上画的脸（图形 ≥ 3:1）；深的那档还当选中的圈、点亮的小点，在卡片上 ≥ 3
+    @Test func moodBadges() {
+        for level in 1...5 {
+            let fill = Theme.Mood.fillToken(level).resolved(dark: false).rgb
+            let ink = Theme.Mood.inkToken(level).resolved(dark: false).rgb
+            #expect(ink.contrast(with: fill) >= 3, "第 \(level) 档的脸在底上不够")
+        }
+        #expect(contrast(Theme.Mood.fillToken(5), on: Theme.Tokens.card) >= 3, "点亮的小点")
+    }
+
     /// 3.0「我的」功能格子：彩色方块上的白色图标（图形 ≥ 3:1）
     @Test func hubTileIcons() {
         for token in Theme.Tile.tokens {

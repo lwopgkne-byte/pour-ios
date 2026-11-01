@@ -91,6 +91,34 @@ public struct MoodFace: View {
 
     public static let names = ["很差", "不太好", "一般", "挺好", "很好"]
 
+    /// 画脸（眼睛、嘴、很差时的眉毛）：线条表情和带颜色的表情（MoodBadge）共用
+    static func draw(
+        level: Int, in face: CGRect, ink: Color, line: CGFloat, context: GraphicsContext, brows: Bool = true
+    ) {
+        let eyeY = face.minY + face.height * 0.4
+        for eyeX in [face.minX + face.width * 0.35, face.minX + face.width * 0.65] {
+            let eye = CGRect(x: eyeX - line, y: eyeY - line, width: line * 2, height: line * 2)
+            context.fill(Path(ellipseIn: eye), with: .color(ink))
+        }
+        // 嘴：很差往下弯得最多，一般是平的，很好往上弯得最多
+        let bend = CGFloat(level - 3) * face.height * 0.09
+        var mouth = Path()
+        let mouthY = face.minY + face.height * 0.66
+        mouth.move(to: CGPoint(x: face.minX + face.width * 0.3, y: mouthY))
+        mouth.addQuadCurve(
+            to: CGPoint(x: face.minX + face.width * 0.7, y: mouthY),
+            control: CGPoint(x: face.midX, y: mouthY + bend * 2))
+        context.stroke(mouth, with: .color(ink), style: StrokeStyle(lineWidth: line, lineCap: .round))
+        // 眉毛：只有很差的时候皱起来（带颜色的小表情不画：挤在眼睛上看着像个叉）
+        guard level == 1, brows else { return }
+        for (start, end) in [(0.26, 0.42), (0.74, 0.58)] {
+            var brow = Path()
+            brow.move(to: CGPoint(x: face.minX + face.width * start, y: face.minY + face.height * 0.24))
+            brow.addLine(to: CGPoint(x: face.minX + face.width * end, y: face.minY + face.height * 0.3))
+            context.stroke(brow, with: .color(ink), style: StrokeStyle(lineWidth: line, lineCap: .round))
+        }
+    }
+
     public var body: some View {
         Canvas { context, canvas in
             let side = min(canvas.width, canvas.height)
@@ -98,30 +126,7 @@ public struct MoodFace: View {
             let face = CGRect(x: line, y: line, width: side - line * 2, height: side - line * 2)
             let ink = selected ? Theme.Palette.accent : Theme.Palette.secondaryLabel
             context.stroke(Path(ellipseIn: face), with: .color(ink), lineWidth: line)
-            // 眼睛
-            let eyeY = face.minY + face.height * 0.4
-            for eyeX in [face.minX + face.width * 0.35, face.minX + face.width * 0.65] {
-                let eye = CGRect(x: eyeX - line, y: eyeY - line, width: line * 2, height: line * 2)
-                context.fill(Path(ellipseIn: eye), with: .color(ink))
-            }
-            // 嘴：很差往下弯得最多，一般是平的，很好往上弯得最多
-            let bend = CGFloat(level - 3) * face.height * 0.09
-            var mouth = Path()
-            let mouthY = face.minY + face.height * 0.66
-            mouth.move(to: CGPoint(x: face.minX + face.width * 0.3, y: mouthY))
-            mouth.addQuadCurve(
-                to: CGPoint(x: face.minX + face.width * 0.7, y: mouthY),
-                control: CGPoint(x: face.midX, y: mouthY + bend * 2))
-            context.stroke(mouth, with: .color(ink), style: StrokeStyle(lineWidth: line, lineCap: .round))
-            // 眉毛：只有很差的时候皱起来
-            if level == 1 {
-                for (start, end) in [(0.26, 0.42), (0.74, 0.58)] {
-                    var brow = Path()
-                    brow.move(to: CGPoint(x: face.minX + face.width * start, y: face.minY + face.height * 0.24))
-                    brow.addLine(to: CGPoint(x: face.minX + face.width * end, y: face.minY + face.height * 0.3))
-                    context.stroke(brow, with: .color(ink), style: StrokeStyle(lineWidth: line, lineCap: .round))
-                }
-            }
+            Self.draw(level: level, in: face, ink: ink, line: line, context: context)
         }
         .frame(width: size, height: size)
         .background(selected ? Theme.Palette.bubble : Color.clear, in: Circle())

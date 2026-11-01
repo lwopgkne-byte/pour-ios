@@ -138,10 +138,11 @@ private struct CardHeader: View {
             if quick == nil || size == .full || card.template == .mood { side }
             if let quick {
                 Button {
-                    // 加待办是正式的弹层（第 2 步）；记一笔、记心情第 3、4 步换
+                    // 加待办、记一笔、记心情是正式的弹层（第 2–4 步）
                     switch card.template {
                     case .todo: model.todoSheet = .add("")
                     case .money: model.recordMoney()
+                    case .mood: model.checkinMood()
                     default: model.startSaying(quick.start)
                     }
                 } label: {
@@ -165,7 +166,7 @@ private struct CardHeader: View {
     }
 
     /// 标题点进哪一页（心情页第 4 步做，先是关于我里的心情）
-    private static let page: [CanvasPlan.Template: String] = [.todo: "/todos", .money: "/money", .mood: "/about/mood"]
+    private static let page: [CanvasPlan.Template: String] = [.todo: "/todos", .money: "/money", .mood: "/mood"]
 
     /// 右上角直接记什么、对话里先填好的开头
     private static let quick: [CanvasPlan.Template: (title: String, start: String)] = [

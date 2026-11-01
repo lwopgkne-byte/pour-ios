@@ -46,6 +46,7 @@ struct RootView: View {
 
     private var shell: some View {
         @Bindable var model = model
+        @Bindable var mood = model.mood
         return NavigationStack(path: $model.stack) {
             CanvasView()
                 .hiddenWhenCovered()
@@ -111,6 +112,8 @@ struct RootView: View {
         .sheet(isPresented: $model.keypadOpen) { MoneyKeypadSheet() }
         // 一笔钱的详情（3.0 第 3 步）：钱的主页、每一笔、一天的钱点一行
         .sheet(item: $model.moneyDetail) { MoneyDetailSheet(ref: $0) }
+        .sheet(item: $mood.checkin) { MoodCheckinSheet(start: $0) }
+        .sheet(item: $mood.detail) { MoodDetailSheet(moment: $0) }
         // 重复的待办删的时候问一句（01 需求文档 4.4）
         .confirmationDialog(
             "这是重复的待办", isPresented: deletingRepeat, titleVisibility: .visible, presenting: model.todoDeleting

@@ -26,6 +26,7 @@ struct RouteView: View {
         case .todos: TodosPage()
         case .review(let review): ReviewPage(route: review)
         case .money(let money): MoneyPage(route: money)
+        case .mood(let mood): MoodPage(route: mood)
         case .about(let about, let ask): AboutPage(route: about, ask: ask)
         case .goals: GoalsPage()
         case .library(let ask): LibraryPage(ask: ask)
@@ -43,7 +44,7 @@ extension Route {
     /// 还没按 3.0 重做的页（自己画标题、用 Web 的样子）
     var legacy: Bool {
         switch self {
-        case .hub, .todos, .money: false
+        case .hub, .todos, .money, .mood(.home): false
         default: true
         }
     }

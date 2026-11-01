@@ -28,7 +28,11 @@ struct RouteTests {
         ("/about", .about(.home, ask: nil)),
         ("/about?find=老地方", .about(.home, ask: KnownAsk(item: nil, find: "老地方"))),
         ("/about?item=person:小王", .about(.home, ask: KnownAsk(item: "person:小王", find: nil))),
-        ("/about/mood", .about(.mood, ask: nil)),
+        ("/about/mood", .mood(.analysis)),
+        ("/mood", .mood(.home(nil))),
+        ("/mood/2026-10", .mood(.home("2026-10"))),
+        ("/mood/analysis", .mood(.analysis)),
+        ("/mood/moments", .mood(.moments)),
         ("/about/people", .about(.people, ask: nil)),
         ("/about/talk", .about(.talk, ask: nil)),
         ("/about/year", .about(.year(nil), ask: nil)),
@@ -95,6 +99,8 @@ struct RouteTests {
         #expect(model.sayContext == "money")
         model.open("/goals")
         #expect(model.sayContext == "goals")
+        model.open("/mood")
+        #expect(model.sayContext == "mood")
         model.open("/about/mood")
         #expect(model.sayContext == "mood")
         model.open("/library?view=insights")
@@ -107,7 +113,8 @@ struct RouteTests {
 
     @Test func backButtonsSayThePreviousPage() {
         #expect(Route.money(.renqing).title == "人情往来")
-        #expect(Route.about(.mood, ask: nil).title == "心情")
+        #expect(Route.mood(.home(nil)).title == "心情")
+        #expect(Route.mood(.analysis).title == "心情分析")
         #expect(Route.review(.period("monthly", "2026-09-01")).title == "月报")
         #expect(Route.hub.title == "我的")
         #expect(Route.todos.title == "待办")
