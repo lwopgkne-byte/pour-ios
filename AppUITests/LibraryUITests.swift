@@ -7,12 +7,14 @@ final class LibraryUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// 3.0（第 9 步）：按天分组的卡片、组头「看这一天 ›」；点一段展开、删除带撤销；左滑重新整理；筛选弹层带条数；好时刻
     @MainActor func testLibraryViews() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
         app.launch()
         app.openTile("library")
-        XCTAssertTrue(app.buttons["看这一天 →"].firstMatch.waitForExistence(timeout: 5), "原话没出来")
+        let day = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'library.day.'")).firstMatch
+        XCTAssertTrue(day.waitForExistence(timeout: 5), "原话没出来")
         settle()
         audit(app, "笔记库-原话")
         app.swipeUp(velocity: .slow)
@@ -21,11 +23,31 @@ final class LibraryUITests: XCTestCase {
         app.swipeDown(velocity: .fast)
         app.swipeDown(velocity: .fast)
 
-        // 一段原话的「…」：修改、删除
-        app.buttons["更多操作"].firstMatch.tap()
-        XCTAssertTrue(app.buttons["删除"].waitForExistence(timeout: 3), "菜单没打开")
-        app.buttons["删除"].tap()
+        // 点一段原话：展开全文和能做的；删除带撤销
+        let note = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH 'library.note.'")
+        )
+        .firstMatch
+        XCTAssertTrue(note.waitForExistence(timeout: 3), "没有原话")
+        note.buttons.firstMatch.tap()
+        XCTAssertTrue(app.buttons["library.delete"].waitForExistence(timeout: 3), "没展开")
+        settle()
+        audit(app, "笔记库-展开")
+        app.buttons["library.delete"].tap()
         XCTAssertTrue(app.staticTexts["已删除这段话和它的记录"].waitForExistence(timeout: 3), "没删")
+        XCTAssertTrue(app.buttons["undoToast"].exists, "删除没有撤销")
+
+        // 左滑：删除、重新整理
+        app.cells.element(boundBy: 2).swipeLeft()
+        XCTAssertTrue(app.buttons["重新整理"].waitForExistence(timeout: 3), "左滑没有重新整理")
+        app.swipeDown(velocity: .slow)
+
+        // 筛选：时间、类别、人、状态，带条数
+        app.buttons["library.filter"].tap()
+        XCTAssertTrue(app.buttons["filter.done"].waitForExistence(timeout: 5), "筛选没打开")
+        settle()
+        audit(app, "笔记库-筛选")
+        app.buttons["filter.done"].tap()
 
         app.buttons["好时刻"].firstMatch.tap()
         XCTAssertTrue(
@@ -35,7 +57,7 @@ final class LibraryUITests: XCTestCase {
 
         // 「原话」：回到原话那一栏，从那一段开始看
         app.buttons.matching(identifier: "原话").element(boundBy: 1).tap()
-        XCTAssertTrue(app.buttons["看最新的"].waitForExistence(timeout: 5), "没跳到那段原话")
+        XCTAssertTrue(app.buttons["library.latest"].waitForExistence(timeout: 5), "没跳到那段原话")
         settle()
         audit(app, "笔记库-来源原话")
     }

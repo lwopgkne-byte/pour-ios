@@ -7,6 +7,21 @@
             switch (method, path) {
             case ("GET", "/api/library"): return LibraryStub.json(LibraryStub.notes)
             case ("GET", "/api/library/people"): return LibraryStub.json(LibraryStub.people)
+            // 3.0 第 9 步：筛选弹层的条数
+            case ("GET", "/api/library/facets"):
+                return [
+                    "total": 30,
+                    "categories": [
+                        ["key": "diet", "name": "饮食", "emoji": "🍽", "count": 12],
+                        ["key": "work", "name": "工作", "emoji": "💼", "count": 8],
+                        ["key": "exercise", "name": "运动", "emoji": "🏃", "count": 5],
+                        ["key": "insight", "name": "感悟", "emoji": "💡", "count": 3],
+                    ],
+                    "status": [
+                        ["key": "done", "label": "已整理", "count": 26], ["key": "confirm", "label": "待确认", "count": 2],
+                        ["key": "pending", "label": "待处理", "count": 1], ["key": "failed", "label": "失败", "count": 1],
+                    ],
+                ] as [String: Any]
             case ("GET", "/api/moments"): return LibraryStub.json(LibraryStub.moments)
             case ("PATCH", let other) where other.hasPrefix("/api/notes/"): return ["ok": true]
             case ("DELETE", let other) where other.hasPrefix("/api/notes/"): return ["ok": true]

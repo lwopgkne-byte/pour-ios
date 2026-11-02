@@ -93,7 +93,7 @@ struct LibraryMonth: View {
 
 /// 好时刻（docs/prd-mood.md 5.7）：你说过觉得好的那一刻，按月分组、新的在前。不显示总数、不排名。
 /// 点那一刻打开这条心情的详情；「原话」打开那一整段原话。不好的时刻不单独列
-private struct MomentsView: View {
+struct MomentsView: View {
     @Environment(AppModel.self) private var model
     let openNote: (Int) -> Void
     @State private var moments: [API.Moment]?

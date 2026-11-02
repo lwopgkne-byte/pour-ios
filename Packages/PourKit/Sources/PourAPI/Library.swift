@@ -128,26 +128,65 @@ extension API {
         public var category = ""
         public var tag = ""
         public var from = ""
+        /// 3.0 第 9 步：done 已整理、confirm 待确认、pending 待处理、failed 失败；空是全部
+        public var status = ""
 
-        public init(text: String = "", category: String = "", tag: String = "", from: String = "") {
+        public init(text: String = "", category: String = "", tag: String = "", from: String = "", status: String = "")
+        {
             self.text = text
             self.category = category
             self.tag = tag
             self.from = from
+            self.status = status
         }
 
-        public var isEmpty: Bool { text.isEmpty && category.isEmpty && tag.isEmpty && from.isEmpty }
+        public var isEmpty: Bool { text.isEmpty && category.isEmpty && tag.isEmpty && from.isEmpty && status.isEmpty }
+
+        /// 地址后面的查询（「q=跑步&category=exercise」）
+        var query: [URLQueryItem] {
+            var out: [URLQueryItem] = []
+            if !text.isEmpty { out.append(.init(name: "q", value: text)) }
+            if !category.isEmpty { out.append(.init(name: "category", value: category)) }
+            if !tag.isEmpty { out.append(.init(name: "tag", value: tag)) }
+            if !from.isEmpty { out.append(.init(name: "from", value: from)) }
+            if !status.isEmpty { out.append(.init(name: "status", value: status)) }
+            return out
+        }
+    }
+
+    /// 筛选弹层的条数（GET /api/library/facets）
+    public struct LibraryFacets: Codable, Hashable, Sendable {
+        public struct Category: Codable, Hashable, Sendable {
+            public var key: String
+            public var name: String
+            public var emoji: String
+            public var count: Int
+        }
+
+        public struct Status: Codable, Hashable, Sendable {
+            public var key: String
+            public var label: String
+            public var count: Int
+        }
+
+        public var total: Int
+        public var categories: [Category]
+        public var status: [Status]
     }
 }
 
 extension APIClient {
+    /// 筛选弹层的条数：照别的筛选条件算，每个类别、每种状态各有几段
+    public func libraryFacets(_ filter: API.LibraryFilter) async throws(APIError) -> API.LibraryFacets {
+        var parts = URLComponents()
+        parts.queryItems = filter.query
+        let query = filter.query.isEmpty ? "" : "?\(parts.percentEncodedQuery ?? "")"
+        return try await get("/api/library/facets\(query)")
+    }
+
     /// 一页原话（新的在前）；before 是往前翻：比这一段早的
     public func library(_ filter: API.LibraryFilter, before: Int?) async throws(APIError) -> API.LibraryPage {
-        var query: [URLQueryItem] = []
-        if !filter.text.isEmpty { query.append(.init(name: "q", value: filter.text)) }
-        if !filter.category.isEmpty { query.append(.init(name: "category", value: filter.category)) }
-        if !filter.tag.isEmpty { query.append(.init(name: "tag", value: filter.tag)) }
-        if !filter.from.isEmpty { query.append(.init(name: "from", value: filter.from)) }
+        var query = filter.query
         if let before { query.append(.init(name: "before", value: String(before))) }
         var parts = URLComponents()
         parts.queryItems = query

@@ -95,11 +95,14 @@ struct LibraryAsk: Hashable {
     var view = "notes"
     var note: Int?
     var tag = ""
+    /// 「/library?q=儿子」：一进来就搜这个（一个人那一页的「在笔记库看和他有关的原话」）
+    var query = ""
 
-    init(view: String = "notes", note: Int? = nil, tag: String = "") {
+    init(view: String = "notes", note: Int? = nil, tag: String = "", query: String = "") {
         self.view = view
         self.note = note
         self.tag = tag
+        self.query = query
     }
 
     init(path: String) {
@@ -108,6 +111,7 @@ struct LibraryAsk: Hashable {
         view = value("view").flatMap { ["insights", "moments"].contains($0) ? $0 : nil } ?? "notes"
         note = value("note").flatMap(Int.init)
         tag = value("tag") ?? ""
+        self.query = value("q") ?? ""
     }
 }
 
