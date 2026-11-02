@@ -17,8 +17,12 @@ struct AboutPage: View {
 
     var body: some View {
         switch route {
-        case .home: AboutHome(navigate: navigate, ask: $ask)
-        case .people: AboutPeopleView(navigate: navigate)
+        // 「/about?item=person:小王」（对话里「记住了」的链接）：Pour 认识的那一页打开那一条
+        case .home where ask != nil: AboutKnownPage(anchor: nil, ask: ask)
+        case .home: AboutHomePage()
+        case .known(let anchor): AboutKnownPage(anchor: anchor, ask: ask)
+        case .person(let name): AboutPersonPage(name: name)
+        case .people: AboutPeoplePage()
         case .talk: AboutTalkView(navigate: navigate)
         case .year(let year): AboutYearView(year: year ?? Int(model.today.prefix(4)) ?? 2026, navigate: navigate)
         case .domain(let key): AboutDomainView(key: key, navigate: navigate)
@@ -37,10 +41,14 @@ enum AboutRoute: Hashable {
     /// nil 是今年
     case year(Int?)
     case domain(String)
+    /// 一个人（3.0 第 8 步）
+    case person(String)
+    /// Pour 认识的（3.0 第 8 步，以前摊在主页上）；带着要滚到的那一块（「/about/known#people」）
+    case known(String?)
 
     /// 「/about」「/about/people」「/about/talk」「/about/year」「/about/domain/diet」
     /// （「/about/mood」3.0 第 4 步起是心情分析，Route 里先认了）
-    init?(_ path: String) {
+    init?(_ path: String, anchor: String? = nil) {
         let clean = path.split(separator: "?").first.map(String.init) ?? path
         let parts = clean.split(separator: "/").map { String($0).removingPercentEncoding ?? String($0) }
         guard parts.first == "about" else { return nil }
@@ -51,164 +59,9 @@ enum AboutRoute: Hashable {
         case (2, "year"): self = .year(nil)
         case (3, "year"): self = .year(Int(parts[2]))
         case (3, "domain"): self = .domain(parts[2])
+        case (3, "person"): self = .person(parts[2])
+        case (2, "known"): self = .known(anchor)
         default: return nil
-        }
-    }
-}
-
-/// 「关于我」主页：你的生活由什么组成、时间去向、这周的新发现、换个角度看你、好日子的配方、
-/// 你没注意到的变化、说的和做的、还在攒的、你的一年。数字、句子都是服务器算好的
-private struct AboutHome: View {
-    @Environment(AppModel.self) private var model
-    let navigate: (String) -> Void
-    @Binding var ask: KnownAsk?
-    @State private var page: API.MeHomePage?
-    @State private var care: API.MeCare?
-    @State private var known = KnownStore()
-    @State private var problem: String?
-
-    var body: some View {
-        Group {
-            if let page {
-                content(page)
-            } else if let problem {
-                WebErrorState(problem) { Task { await load() } }
-            } else {
-                ReviewSkeleton()
-            }
-        }
-        .moneyPage()
-        .task(id: model.dataVersion) { await load() }
-        .task(id: model.dataVersion) { await known.load(model.client) }
-        .sheet(item: $known.opened) { KnownPeek(store: known, key: $0.id) }
-        // 地址里要打开的那一条：等「Pour 认识的」拿回来再打开；找不到就只停在主页
-        .onChange(of: "\(ask?.item ?? "")|\(ask?.find ?? "")|\(known.about != nil)", initial: true) {
-            guard let wanted = ask, known.about != nil else { return }
-            ask = nil
-            if let key = wanted.item ?? wanted.find.flatMap(known.find) { known.open(key) }
-        }
-    }
-
-    @ViewBuilder private func content(_ page: API.MeHomePage) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: Web.space1) {
-                Text("关于我").font(Web.title).foregroundStyle(Web.fg).accessibilityAddTraits(.isHeader)
-                if !page.caption.isEmpty { MeNote(page.caption) }
-            }
-            if page.composition.total == 0 {
-                Text("Pour 还在认识你。多说几天，这里会慢慢长出来：你的生活由什么组成、你和谁在一起、什么样的日子心情好。")
-                    .font(Web.body).foregroundStyle(Web.fg).padding(.top, Web.space8)
-            } else {
-                MeComposition(composition: page.composition, navigate: navigate)
-                TimeGone()
-            }
-            if !page.findings.isEmpty {
-                LegacySection(title: "这周的新发现") {
-                    VStack(spacing: Web.space3) {
-                        ForEach(page.findings, id: \.key) { finding in
-                            FindingCard(
-                                finding: finding,
-                                openDay: { day in
-                                    model.goHome()
-                                    model.show(day)
-                                }, vote: { vote(finding.key, $0) })
-                        }
-                    }
-                }
-            }
-            if !page.angles.isEmpty {
-                LegacySection(title: "换个角度看你") { MeAngles(angles: page.angles, navigate: navigate) }
-            }
-            if let recipe = page.recipe { LegacySection(title: "好日子的配方") { MeRecipeView(recipe: recipe) } }
-            if !page.changes.isEmpty {
-                LegacySection(title: "你没注意到的变化") { MeChanges(changes: page.changes, navigate: navigate) }
-            }
-            if let care { MeCareView(care: care) { await load() } }
-            knownSection
-            KnownQuotes()
-            KnownNames()
-            if !page.waiting.isEmpty { waiting(page.waiting) }
-            yearLink
-            MeFoot()
-        }
-    }
-
-    /// Pour 认识的：说过是谁的人、常去的地方、你的说法（有一样才出现）
-    @ViewBuilder private var knownSection: some View {
-        if let about = known.about,
-            !about.sayings.isEmpty || !about.places.isEmpty
-                || about.people.contains(where: { $0.relation != nil && !$0.titled })
-        {
-            LegacySection(title: "Pour 认识的") {
-                VStack(alignment: .leading, spacing: Web.space6) {
-                    KnownPeople(store: known, onlyRelations: true)
-                    KnownPlaces(store: known)
-                    KnownSayings(store: known)
-                }
-            }
-        }
-    }
-
-    /// 还在攒的：每样什么时候能看
-    private func waiting(_ items: [API.MeWaiting]) -> some View {
-        LegacySection(title: "还在攒的") {
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(items.enumerated()), id: \.element.key) { index, item in
-                    VStack(alignment: .leading, spacing: Web.space1) {
-                        Text(item.name).font(Web.body).foregroundStyle(Web.fg)
-                        MeNote(item.text)
-                    }
-                    .padding(.vertical, Web.space2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .overlay(alignment: .bottom) {
-                        if index < items.count - 1 { Rectangle().fill(Web.line).frame(height: 1) }
-                    }
-                    .accessibilityElement(children: .combine)
-                }
-            }
-        }
-    }
-
-    /// 你的一年：入口一直在，记得够不够由那一页自己说
-    private var yearLink: some View {
-        Button {
-            navigate("/about/year")
-        } label: {
-            HStack(alignment: .firstTextBaseline, spacing: Web.space3) {
-                Text("你的 \(model.today.prefix(4))").font(Web.bodySemibold).foregroundStyle(Web.fg)
-                Spacer(minLength: 0)
-                Text("一年每天一格、说得最多的、和谁在一起最多").font(Web.caption).foregroundStyle(Web.fgTertiary)
-                    .multilineTextAlignment(.trailing)
-            }
-            .padding(.horizontal, Web.space3).padding(.vertical, Web.space2)
-            .frame(minHeight: Web.touch)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(WebPressStyle(radius: Web.radiusCard))
-        .overlay(RoundedRectangle(cornerRadius: Web.radiusCard).strokeBorder(Web.line, lineWidth: 1))
-        .padding(.top, Web.space6)
-        .accessibilityElement(children: .combine)
-    }
-
-    private func vote(_ key: String, _ vote: String?) {
-        let client = model.client
-        Task {
-            do {
-                try await client.vote(about: key, vote)
-                await load()
-            } catch {
-                model.toast(error.readable)
-            }
-        }
-    }
-
-    private func load() async {
-        do {
-            page = try await model.client.meHome()
-            problem = nil
-            care = try? await model.client.meCare()
-        } catch {
-            problem = error.readable
         }
     }
 }

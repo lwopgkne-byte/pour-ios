@@ -14,13 +14,13 @@ struct KnownQuotes: View {
         VStack(alignment: .leading, spacing: 0) {
             if !quotes.isEmpty {
                 LegacySection(title: "我的语录") {
-                    VStack(alignment: .leading, spacing: Web.space3) {
+                    VStack(alignment: .leading, spacing: Theme.Space.medium) {
                         ForEach(all ? quotes : Array(quotes.prefix(5))) { quote in row(quote) }
                         if !all && quotes.count > 5 {
-                            WebTextButton("看全部 \(quotes.count) 句", font: Web.caption) { all = true }
+                            LinkButton("看全部 \(quotes.count) 句") { all = true }
                         }
                         Text("说「记一句：……」、在感悟里点 ★ 就记进来；只放你说过的话")
-                            .font(Web.caption).foregroundStyle(Web.fgTertiary)
+                            .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                     }
                 }
             }
@@ -31,14 +31,14 @@ struct KnownQuotes: View {
     }
 
     private func row(_ quote: API.MyQuote) -> some View {
-        VStack(alignment: .leading, spacing: Web.space1) {
-            Text(Show.spaced("「\(quote.text)」")).font(Web.body).foregroundStyle(Web.fg).lineSpacing(
-                Web.quoteLineSpacing)
-            HStack(spacing: Web.space2) {
+        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+            Text(Show.spaced("「\(quote.text)」")).font(Theme.Typeface.quote).foregroundStyle(Theme.Palette.label)
+                .lineSpacing(Theme.Leading.quote)
+            HStack(spacing: Theme.Space.small) {
                 Text("\(Show.dayTitle(quote.day, today: model.today))\(quote.asked ? " · 语录 ★" : " · 感悟里的")")
-                    .font(Web.caption).foregroundStyle(Web.fgTertiary)
+                    .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                 Spacer(minLength: 0)
-                WebTextButton("不放进语录", font: Web.caption, color: Web.fgSecondary) { hide(quote) }
+                LinkButton("不放进语录") { hide(quote) }
                     .accessibilityLabel(Text("不放进语录：\(quote.text)"))
             }
         }

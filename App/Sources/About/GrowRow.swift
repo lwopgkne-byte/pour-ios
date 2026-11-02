@@ -4,7 +4,7 @@ import SwiftUI
 /// 一行几块，宽窄按分量分，但再小也放得下自己的字
 struct GrowRow: Layout {
     let weights: [Double]
-    var spacing = Web.space1
+    var spacing = Theme.Space.tight
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         CGSize(width: proposal.width ?? 0, height: proposal.height ?? 0)

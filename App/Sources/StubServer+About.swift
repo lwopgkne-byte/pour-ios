@@ -11,6 +11,9 @@
             guard method == "GET" else { return nil }
             if path.hasPrefix("/api/about/year/") { return AboutStub.json(AboutStub.year) }
             if path.hasPrefix("/api/about/domain/") { return AboutStub.json(AboutStub.domain) }
+            if path.hasPrefix("/api/about/person/") {
+                return AboutStub.person(String(path.dropFirst("/api/about/person/".count)))
+            }
             return AboutStub.pages[path].map(AboutStub.json)
         }
     }

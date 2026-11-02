@@ -132,6 +132,11 @@ extension Theme {
         public static let whenCell: CGFloat = 30
         public static let goalChart: CGFloat = 176
         public static let weekBars: CGFloat = 120
+        /// 3.0 关于我（第 8 步）：ⓘ 弹出来的说明有多宽；一行一个领域左边名字至少多宽；人的星图多高；2×2 小卡至少多高
+        public static let popover: CGFloat = 300
+        public static let label: CGFloat = 64
+        public static let starMap: CGFloat = 340
+        public static let angleCard: CGFloat = 116
         /// 一周条的日子圆
         public static let dayCircle: CGFloat = 38
         /// 骨架灰条：一行字、一张卡

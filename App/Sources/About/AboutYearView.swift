@@ -22,28 +22,29 @@ struct AboutYearView: View {
             if let page {
                 content(page)
             } else if let problem {
-                WebErrorState(problem) { Task { await load() } }
+                ErrorState(problem.contains("连") ? .serverOff : .other) { Task { await load() } }
             } else {
-                ReviewSkeleton()
+                ProgressView().frame(maxWidth: .infinity, minHeight: Theme.Size.goalCard)
             }
         }
-        .moneyPage()
+        .aboutPage()
+        .navigationTitle("你的 \(year)")
         .task(id: "\(year)-\(model.dataVersion)") { await load() }
     }
 
     @ViewBuilder private func content(_ page: API.MeYear) -> some View {
         let notes = [page.streak.map { "连着记了 \($0.days) 天" }, bestMonth(page.bestMonth)].compactMap { $0 }
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Theme.Space.cardGap) {
             MeHead(title: "你的 \(page.year)") {
                 navigate("/about")
             } sub: {
-                Text(Show.spaced(page.sentence)).font(Web.body).foregroundStyle(Web.fg)
+                Text(Show.spaced(page.sentence)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                 if !notes.isEmpty { MeNote(notes.joined(separator: " · ")) }
             }
-            LegacySection(title: "一年每天一格") { YearHeat(year: $year) }
+            AboutCardSection(title: "一年每天一格") { YearHeat(year: $year) }
             if !page.enough, let waiting = page.waiting {
-                Text(Show.spaced("\(waiting)。这一页要记满小半年才看得出一年的样子，现在只有热力图。")).font(Web.body)
-                    .foregroundStyle(Web.fg).padding(.top, Web.space6)
+                Text(Show.spaced("\(waiting)。这一页要记满小半年才看得出一年的样子，现在只有热力图。")).font(Theme.Typeface.body)
+                    .foregroundStyle(Theme.Palette.label).padding(.top, Theme.Space.xLarge)
             }
             if page.enough { enough(page) }
             MeFoot()
@@ -60,35 +61,36 @@ struct AboutYearView: View {
 
     @ViewBuilder private func tiles(_ page: API.MeYear) -> some View {
         if !page.tiles.isEmpty {
-            LegacySection(title: "这一年你说得最多的") {
-                PourFlowLayout(spacing: Web.space1, lineSpacing: Web.space1) {
+            AboutCardSection(title: "这一年你说得最多的", info: "按说到它的段数算，不看花了多少时间；点一块到那一页。") {
+                PourFlowLayout(spacing: Theme.Space.tight, lineSpacing: Theme.Space.tight) {
                     ForEach(page.tiles, id: \.key) { tile in
                         Button {
                             navigate("/about/domain/\(tile.key)")
                         } label: {
                             VStack(alignment: .leading, spacing: 0) {
-                                Text("\(tile.share)%").font(Web.sectionBold).monospacedDigit()
-                                Text(tile.name).font(Web.captionMedium)
+                                Text("\(tile.share)%").font(Theme.Typeface.section).monospacedDigit()
+                                Text(tile.name).font(Theme.Typeface.footnoteSemibold)
                             }
-                            .foregroundStyle(Web.tag(tile.color).fg)
-                            .padding(.horizontal, Web.space3).padding(.vertical, Web.space2)
+                            .foregroundStyle(Theme.tag(tile.color).solid)
+                            .padding(.horizontal, Theme.Space.medium).padding(.vertical, Theme.Space.small)
                             .frame(
-                                minWidth: Web.space16 + Web.space12, minHeight: Web.space16, alignment: .bottomLeading
+                                minWidth: (Theme.Space.section * 2) + (Theme.Size.touch + Theme.Space.tight),
+                                minHeight: (Theme.Space.section * 2), alignment: .bottomLeading
                             )
-                            .background(RoundedRectangle(cornerRadius: Web.radiusCard).fill(Web.tag(tile.color).bg))
+                            .background(
+                                RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(Theme.tag(tile.color).tint))
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel(Text("\(tile.name)，说到的话里占 \(tile.share)%"))
                     }
                 }
-                MeNote("按说到它的段数算，不看花了多少时间 · 点一块到那一页")
             }
         }
     }
 
     @ViewBuilder private func people(_ page: API.MeYear) -> some View {
         if let first = page.people.first {
-            LegacySection(title: "这一年和你在一起最多的") {
+            AboutCardSection(title: "这一年和你在一起最多的", info: "有几天说到他：一天说十次也算一天；点一行到「人」那一页。") {
                 VStack(spacing: 0) {
                     ForEach(page.people, id: \.name) { person in
                         Button {
@@ -96,33 +98,33 @@ struct AboutYearView: View {
                         } label: {
                             MeBarRow(
                                 name: Text(person.name), share: Double(person.days) / Double(max(1, first.days)),
-                                color: Web.lineStrong, value: "\(person.days) 天"
+                                color: Theme.Palette.separator, value: "\(person.days) 天"
                             )
-                            .frame(minHeight: Web.touch).contentShape(Rectangle())
+                            .frame(minHeight: Theme.Size.touch).contentShape(Rectangle())
                         }
-                        .buttonStyle(WebPressStyle(radius: 0))
+                        .buttonStyle(.plain)
                         .accessibilityElement(children: .combine)
                     }
                 }
-                MeNote("有几天说到他 · 一天说十次也算一天 · 点一行到「人」那一页")
             }
         }
     }
 
     @ViewBuilder private func months(_ page: API.MeYear) -> some View {
         if !page.months.isEmpty {
-            LegacySection(title: "一年的心情") {
-                HStack(spacing: Web.space1) {
+            AboutCardSection(title: "一年的心情", info: "一个月一格，颜色越深心情越好；没说过心情的月份不上色。") {
+                HStack(spacing: Theme.Space.tight) {
                     ForEach(page.months, id: \.month) { month in
-                        VStack(spacing: Web.space1) {
-                            RoundedRectangle(cornerRadius: Web.radiusControl)
-                                .fill(month.mood.map { MeStyle.moodShade($0) } ?? Web.bgSubtle)
+                        VStack(spacing: Theme.Space.tight) {
+                            RoundedRectangle(cornerRadius: Theme.Corner.tile)
+                                .fill(month.mood.map { MeStyle.moodShade($0) } ?? Theme.Palette.fill)
                                 .overlay(
-                                    RoundedRectangle(cornerRadius: Web.radiusControl).strokeBorder(
-                                        Web.line, lineWidth: 1)
+                                    RoundedRectangle(cornerRadius: Theme.Corner.tile).strokeBorder(
+                                        Theme.Palette.separator, lineWidth: 1)
                                 )
-                                .frame(height: Web.space8)
-                            Text(month.name).font(Web.caption).foregroundStyle(Web.fgTertiary).lineLimit(1)
+                                .frame(height: Theme.Space.section)
+                            Text(month.name).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                                .lineLimit(1)
                                 .minimumScaleFactor(0.7)
                         }
                         .frame(maxWidth: .infinity)
@@ -135,22 +137,22 @@ struct AboutYearView: View {
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityLabel(Text("一年每个月心情的平均"))
-                MeNote("一个月一格，颜色越深心情越好；没说过心情的月份不上色")
             }
         }
     }
 
     @ViewBuilder private func emotions(_ page: API.MeYear) -> some View {
         if !page.emotions.isEmpty {
-            LegacySection(title: "这一年你说出过的感受") {
-                PourFlowLayout(spacing: Web.space2, lineSpacing: Web.space2) {
+            AboutCardSection(title: "这一年你说出过的感受") {
+                PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) {
                     ForEach(page.emotions, id: \.word) { emotion in
-                        HStack(alignment: .firstTextBaseline, spacing: Web.space1) {
-                            Text(emotion.word).font(Web.body).foregroundStyle(Web.fg)
-                            Text("\(emotion.times)").font(Web.caption).foregroundStyle(Web.fgTertiary)
+                        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.tight) {
+                            Text(emotion.word).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                            Text("\(emotion.times)").font(Theme.Typeface.footnote).foregroundStyle(
+                                Theme.Palette.secondaryLabel)
                         }
-                        .padding(.horizontal, Web.space4).frame(minHeight: Web.touch)
-                        .background(Capsule().fill(Web.bgSubtle))
+                        .padding(.horizontal, Theme.Space.regular).frame(minHeight: Theme.Size.touch)
+                        .background(Capsule().fill(Theme.Palette.fill))
                         .accessibilityElement(children: .combine)
                     }
                 }
@@ -161,7 +163,7 @@ struct AboutYearView: View {
     @ViewBuilder private func firstLast(_ page: API.MeYear) -> some View {
         let said = [page.first, page.last].compactMap { $0 }
         if !said.isEmpty {
-            LegacySection(title: "这一年的第一句和最近一句") {
+            AboutCardSection(title: "这一年的第一句和最近一句") {
                 MeQuotes(quotes: said.map { API.MeQuote(text: $0.text, day: $0.day, noteId: $0.noteId) })
             }
         }
@@ -190,31 +192,29 @@ private struct YearHeat: View {
     @State private var page: API.YearHeatPage?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space3) {
-            HStack(spacing: Web.space1) {
+        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+            HStack(spacing: Theme.Space.tight) {
                 arrow("chevron.left", "前一年", disabled: false) { year -= 1 }
-                Text("\(String(year))").font(Web.bodyMedium).foregroundStyle(Web.fg).monospacedDigit()
+                Text("\(String(year))").font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.label)
+                    .monospacedDigit()
                 arrow("chevron.right", "后一年", disabled: year >= Int(model.today.prefix(4)) ?? year) { year += 1 }
                 Spacer()
                 if let page {
-                    Text("有 \(page.days.filter { $0.value > 0 }.count) 天").font(Web.caption).foregroundStyle(
-                        Web.fgSecondary)
+                    Text("有 \(page.days.filter { $0.value > 0 }.count) 天").font(Theme.Typeface.footnote)
+                        .foregroundStyle(
+                            Theme.Palette.secondaryLabel)
                 }
             }
             ScrollView(.horizontal) {
-                HStack(spacing: Web.space2) {
+                HStack(spacing: Theme.Space.small) {
                     ForEach(options, id: \.key) { option in
-                        WebChip(selected: coloring == option.key) {
-                            coloring = option.key
-                        } label: {
-                            Text(option.label)
-                        }
+                        FilterChip(option.label, selected: coloring == option.key) { coloring = option.key }
                     }
                 }
-                .padding(.vertical, (Web.touch - Web.control) / 2)
+                .padding(.vertical, (Theme.Size.touch - Theme.Size.capsule) / 2)
             }
             .scrollIndicators(.hidden)
-            .padding(.vertical, -(Web.touch - Web.control) / 2)
+            .padding(.vertical, -(Theme.Size.touch - Theme.Size.capsule) / 2)
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text("按什么着色"))
             if let page {
@@ -224,7 +224,7 @@ private struct YearHeat: View {
                     MeNote("颜色从浅到深：很差 → 很好，是那天几条心情的平均；没有心情的天不上色。")
                 }
             } else {
-                WebSkeleton(height: Web.space16 * 2)
+                SkeletonBlock(height: (Theme.Space.section * 2) * 2)
             }
         }
         .task(id: "\(year)-\(coloring)-\(model.dataVersion)") {
@@ -246,10 +246,12 @@ private struct YearHeat: View {
 
     private func arrow(_ icon: String, _ label: String, disabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: icon).font(Web.body).foregroundStyle(disabled ? Web.lineStrong : Web.fgSecondary)
-                .frame(width: Web.touch, height: Web.touch).contentShape(Rectangle())
+            Image(systemName: icon).font(Theme.Typeface.body).foregroundStyle(
+                disabled ? Theme.Palette.separator : Theme.Palette.secondaryLabel
+            )
+            .frame(width: Theme.Size.touch, height: Theme.Size.touch).contentShape(Rectangle())
         }
-        .buttonStyle(WebPressStyle(radius: Web.radiusControl))
+        .buttonStyle(.plain)
         .disabled(disabled)
         .accessibilityLabel(Text(label))
     }

@@ -12,10 +12,11 @@ struct PersonDetail: View {
     let leave: (String) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space6) {
+        VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
             if !person.titled { relation }
             PeekSection(title: "最近 90 天") {
-                Text(Show.spaced(Show.personSummary(person))).font(Web.body).foregroundStyle(Web.fg)
+                Text(Show.spaced(Show.personSummary(person))).font(Theme.Typeface.body).foregroundStyle(
+                    Theme.Palette.label)
             }
             if !person.recent.isEmpty {
                 PeekSection(title: "最近的记录") {
@@ -25,14 +26,14 @@ struct PersonDetail: View {
                                 day: $0.day, text: "\(Show.monthDay($0.day)) · \($0.label)", side: $0.domain,
                                 entryId: $0.entryId)
                         }, first: 5, unit: "条", open: openEntry)
-                    WebTextButton("在笔记库看和\(person.name)有关的原话", font: Web.caption) {
+                    LinkButton("在笔记库看和\(person.name)有关的原话") {
                         let tag = person.name.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
                         leave("/library?tag=\(tag)")
                     }
-                    .padding(.top, Web.space2)
+                    .padding(.top, Theme.Space.small)
                 }
             }
-            WebTextButton("不用列出\(person.name)", color: Web.fgSecondary) { wrong() }
+            LinkButton("不用列出\(person.name)", font: Theme.Typeface.subheadline) { wrong() }
         }
     }
 
@@ -42,11 +43,11 @@ struct PersonDetail: View {
                 InlineEdit(label: "关系", value: person.relation?.meaning ?? "", placeholder: "添加") { save($0) }
             }
             if let relation = person.relation, let note = relation.note {
-                HStack(spacing: Web.space1) {
+                HStack(spacing: Theme.Space.tight) {
                     let clause = Show.saidClause(note.text, name: person.name, meaning: relation.meaning)
                     MeNote("你在 \(KnownStore.isoDay(note.at))说「\(clause)」 ·")
                     if let noteId = relation.noteId {
-                        WebTextButton("原话", font: Web.caption) { leave("/library?note=\(noteId)") }
+                        LinkButton("原话") { leave("/library?note=\(noteId)") }
                     }
                 }
             } else if let relation = person.relation {
@@ -97,13 +98,13 @@ struct PlaceDetail: View {
     let openEntry: (String, Int) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space6) {
+        VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
             Text(
                 Show.spaced(
                     "\(place.name)：最近 90 天去过 \(place.days) 天"
                         + (place.doing.isEmpty ? "" : "，多是\(place.doing.joined(separator: "、"))") + "。")
             )
-            .font(Web.body).foregroundStyle(Web.fg)
+            .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
             PeekSection(title: "最近的 \(place.recent.count) 次") {
                 KnownEvidence(
                     items: place.recent.map {
@@ -113,7 +114,7 @@ struct PlaceDetail: View {
                     }, first: 5, unit: "次", open: openEntry)
             }
             MeNote("整理你的话时，Pour 用它认出「又去面馆了」说的是哪儿。")
-            WebTextButton("不用列出\(place.name)", color: Web.fgSecondary) {
+            LinkButton("不用列出\(place.name)", font: Theme.Typeface.subheadline) {
                 dismiss()
                 store.mark(place.key, "wrong", basis: place.basis, sentence: place.name, model)
                 model.toast("不再显示「\(place.name)」", action: "撤销") {
@@ -133,7 +134,7 @@ struct SayingDetail: View {
     let leave: (String) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space6) {
+        VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
             VStack(alignment: .leading, spacing: 0) {
                 PeekRow(label: "说法") {
                     InlineEdit(
@@ -150,17 +151,17 @@ struct SayingDetail: View {
             PeekSection(title: "从哪学来的") {
                 if let note = saying.note {
                     QuoteText(text: note.text)
-                    HStack(spacing: Web.space1) {
+                    HStack(spacing: Theme.Space.tight) {
                         MeNote("\(KnownStore.isoDay(note.at)) \(KnownStore.isoClock(note.at)) ·")
                         if let noteId = saying.noteId {
-                            WebTextButton("原话", font: Web.caption) { leave("/library?note=\(noteId)") }
+                            LinkButton("原话") { leave("/library?note=\(noteId)") }
                         }
                     }
                 } else {
                     MeNote("你 \(KnownStore.isoDay(saying.updatedAt))自己加的")
                 }
             }
-            WebTextButton("删除这个说法", color: Web.danger) { remove() }
+            Button("删除这个说法", role: .destructive) { remove() }.frame(minHeight: Theme.Size.touch)
         }
     }
 
@@ -223,21 +224,23 @@ struct KnownEvidence: View {
                 Button {
                     open(item.day, item.entryId)
                 } label: {
-                    HStack(spacing: Web.space3) {
-                        Text(Show.spaced(item.text)).font(Web.body).foregroundStyle(Web.fg)
+                    HStack(spacing: Theme.Space.medium) {
+                        Text(Show.spaced(item.text)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        if let side = item.side { Text(side).font(Web.caption).foregroundStyle(Web.fgTertiary) }
+                        if let side = item.side {
+                            Text(side).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                        }
                     }
-                    .padding(.vertical, Web.space2)
-                    .frame(minHeight: Web.touch)
+                    .padding(.vertical, Theme.Space.small)
+                    .frame(minHeight: Theme.Size.touch)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(WebPressStyle(radius: 0))
+                .buttonStyle(.plain)
                 .moneyRule()
                 .accessibilityElement(children: .combine)
             }
             if !all && items.count > first {
-                WebTextButton("看全部 \(items.count) \(unit)", font: Web.caption) { all = true }.padding(.top, Web.space2)
+                LinkButton("看全部 \(items.count) \(unit)") { all = true }.padding(.top, Theme.Space.small)
             }
         }
     }

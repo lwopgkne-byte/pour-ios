@@ -15,15 +15,17 @@ struct KnownSayings: View {
         let sayings = store.about?.sayings ?? []
         KnownBlock(title: "你的说法") {
             if adding {
-                VStack(alignment: .leading, spacing: Web.space2) {
-                    WebTextField("说法", placeholder: "老路线", text: $phrase)
-                    WebTextField("意思", placeholder: "小区绕圈 5 公里", text: $meaning)
-                    HStack(spacing: Web.space4) {
-                        WebButton("记住", variant: .primary, disabled: phrase.isBlank || meaning.isBlank) { save() }
-                        WebTextButton("取消", color: Web.fgSecondary) { cancel() }
+                VStack(alignment: .leading, spacing: Theme.Space.small) {
+                    TextField("说法（老路线）", text: $phrase).textFieldStyle(.roundedBorder).accessibilityLabel(Text("说法"))
+                    TextField("意思（小区绕圈 5 公里）", text: $meaning).textFieldStyle(.roundedBorder).accessibilityLabel(
+                        Text("意思"))
+                    HStack(spacing: Theme.Space.regular) {
+                        Button("记住") { save() }.buttonStyle(.borderedProminent).disabled(
+                            phrase.isBlank || meaning.isBlank)
+                        Button("取消") { cancel() }.buttonStyle(.bordered)
                     }
                 }
-                .padding(.vertical, Web.space2)
+                .padding(.vertical, Theme.Space.small)
             }
             ForEach(all ? sayings : Array(sayings.prefix(10)), id: \.key) { saying in
                 KnownRow(
@@ -32,10 +34,10 @@ struct KnownSayings: View {
                 ) { store.open(saying.key) }
             }
             if !all && sayings.count > 10 {
-                WebTextButton("看全部 \(sayings.count) 个", font: Web.caption) { all = true }.padding(.top, Web.space2)
+                LinkButton("看全部 \(sayings.count) 个") { all = true }
             }
         } foot: {
-            WebTextButton("添加一个说法", font: Web.caption) { adding = true }
+            LinkButton("＋ 添加一个说法", font: Theme.Typeface.body, identifier: "known.saying.add") { adding = true }
             Text("· 也可以直接说「168 就是 16:8 轻断食」")
         }
     }

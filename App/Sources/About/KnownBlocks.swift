@@ -45,7 +45,8 @@ final class KnownStore {
     }
 }
 
-/// 一块：小标题、每条两行、块底一行灰字（根据什么，加上「你说不对的 1 条已经不显示 · 看看」）
+/// 一块（3.0 第 8 步换成卡片）：标题在卡片上面，每条两行在卡片里，卡片下面一行灰字（根据什么，
+/// 加上「你说不对的 1 条已经不显示 · 看看」）
 struct KnownBlock<Content: View, Foot: View>: View {
     @Environment(AppModel.self) private var model
     let title: String
@@ -58,27 +59,26 @@ struct KnownBlock<Content: View, Foot: View>: View {
     @State private var showHidden = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(title).font(Web.captionMedium).foregroundStyle(Web.fgSecondary).padding(.bottom, Web.space1)
-                .accessibilityAddTraits(.isHeader)
-            content()
-            HStack(spacing: Web.space1) {
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            AboutSection(title: title)
+            VStack(alignment: .leading, spacing: 0) { content() }
+                .padding(.horizontal, Theme.Space.inset).padding(.vertical, Theme.Space.tight)
+                .themeCard(padding: 0)
+            HStack(spacing: Theme.Space.tight) {
                 foot()
                 if !hidden.isEmpty {
                     Text("\(hiddenWord) \(hidden.count) \(hiddenWord == "你说不对的" ? "条" : "个")已经不显示 ·")
-                    WebTextButton(showHidden ? "收起" : "看看", font: Web.caption) { showHidden.toggle() }
+                    LinkButton(showHidden ? "收起" : "看看") { showHidden.toggle() }
                 }
             }
-            .font(Web.caption).foregroundStyle(Web.fgTertiary)
-            .padding(.top, Web.space2)
+            .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             if showHidden {
                 ForEach(hidden, id: \.key) { item in
-                    HStack(spacing: Web.space3) {
+                    HStack(spacing: Theme.Space.medium) {
                         Text(item.text).frame(maxWidth: .infinity, alignment: .leading)
-                        WebTextButton("恢复", font: Web.caption) { store?.restore(item, model) }
+                        LinkButton("恢复") { store?.restore(item, model) }
                     }
-                    .font(Web.caption).foregroundStyle(Web.fgSecondary)
-                    .frame(minHeight: Web.touch)
+                    .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
         }
@@ -95,19 +95,24 @@ struct KnownRow: View {
 
     var body: some View {
         Button(action: open) {
-            VStack(alignment: .leading, spacing: Web.space1) {
-                Text(title + (confirmed ? AttributedString(" ✓") : AttributedString())).font(Web.body).foregroundStyle(
-                    Web.fg)
-                if let meta, !meta.isEmpty {
-                    Text(meta).font(Web.caption).foregroundStyle(Web.fgTertiary).monospacedDigit()
+            HStack(spacing: Theme.Space.small) {
+                VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+                    Text(title + (confirmed ? AttributedString(" ✓") : AttributedString())).font(Theme.Typeface.body)
+                        .foregroundStyle(Theme.Palette.label).multilineTextAlignment(.leading)
+                    if let meta, !meta.isEmpty {
+                        Text(meta).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                            .monospacedDigit().multilineTextAlignment(.leading)
+                    }
                 }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
+                    .foregroundStyle(Theme.Palette.tertiaryLabel)
             }
-            .padding(Web.space2)
-            .frame(maxWidth: .infinity, minHeight: Web.touch, alignment: .leading)
+            .padding(.vertical, Theme.Space.small)
+            .frame(maxWidth: .infinity, minHeight: Theme.Size.touch, alignment: .leading)
             .contentShape(Rectangle())
         }
-        .buttonStyle(WebPressStyle(radius: Web.radiusControl))
-        .padding(.horizontal, -Web.space2)
+        .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text(confirmed ? "你确认过" : ""))
     }
@@ -159,11 +164,13 @@ struct KnownSleep: View {
 struct KnownHabits: View {
     @Environment(AppModel.self) private var model
     let store: KnownStore
-    let domain: String
+    /// 只列这个领域的；nil 是全部（「Pour 认识的」那一页）
+    var domain: String?
 
     var body: some View {
-        let habits = store.about?.habits.filter { $0.domain == domain } ?? []
-        let hidden = store.about?.hidden.filter { $0.block == "habits" && $0.domain == domain } ?? []
+        let habits = store.about?.habits.filter { domain == nil || $0.domain == domain } ?? []
+        let hidden =
+            store.about?.hidden.filter { $0.block == "habits" && (domain == nil || $0.domain == domain) } ?? []
         if !habits.isEmpty || !hidden.isEmpty {
             KnownBlock(title: "常做的事", hidden: hidden, store: store) {
                 ForEach(habits, id: \.key) { habit in
@@ -212,7 +219,7 @@ struct KnownPeople: View {
         var text = AttributedString(person.name)
         if let relation = person.relation, !person.titled {
             var rest = AttributedString(" · \(Show.relationShort(relation.meaning))")
-            rest.foregroundColor = Web.fgSecondary
+            rest.foregroundColor = Theme.Palette.secondaryLabel
             text += rest
         }
         return text

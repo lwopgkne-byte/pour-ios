@@ -45,7 +45,7 @@ extension Route {
     /// 还没按 3.0 重做的页（自己画标题、用 Web 的样子）
     var legacy: Bool {
         switch self {
-        case .hub, .todos, .money, .mood, .insights, .review, .goals: false
+        case .hub, .todos, .money, .mood, .insights, .review, .goals, .about: false
         default: true
         }
     }
@@ -57,7 +57,7 @@ private struct RouteTitle: ViewModifier {
 
     func body(content: Content) -> some View {
         switch route {
-        case .goals(.goal), .goals(.care): content
+        case .goals(.goal), .goals(.care), .about(.domain, _), .about(.person, _), .about(.year, _): content
         default: content.navigationTitle(route.title)
         }
     }

@@ -15,7 +15,8 @@ struct KnownNames: View {
                     VStack(alignment: .leading, spacing: 0) {
                         ForEach(rules) { rule in row(rule) }
                         Text("原话没有改；画布上的「说到的」、关于我、笔记库都照这里算")
-                            .font(Web.caption).foregroundStyle(Web.fgTertiary).padding(.top, Web.space2)
+                            .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).padding(
+                                .top, Theme.Space.small)
                     }
                 }
             }
@@ -26,18 +27,18 @@ struct KnownNames: View {
     }
 
     private func row(_ rule: API.NameRule) -> some View {
-        HStack(spacing: Web.space3) {
-            VStack(alignment: .leading, spacing: Web.space1) {
-                Text(Self.title(rule)).font(Web.body).foregroundStyle(Web.fg)
+        HStack(spacing: Theme.Space.medium) {
+            VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                Text(Self.title(rule)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                 Text("\(Self.kindWord[rule.kind] ?? "") · \(KnownStore.isoDay(rule.updatedAt))")
-                    .font(Web.caption).foregroundStyle(Web.fgTertiary)
+                    .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
-            WebTextButton("恢复", font: Web.caption) { restore(rule) }
+            LinkButton("恢复") { restore(rule) }
                 .accessibilityLabel(Text("恢复\(rule.name)"))
         }
-        .frame(minHeight: Web.touch)
+        .frame(minHeight: Theme.Size.touch)
     }
 
     static let kindWord = ["person": "人", "thing": "东西", "place": "地方", "tag": "话题"]

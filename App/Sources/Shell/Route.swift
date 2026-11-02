@@ -42,7 +42,7 @@ enum Route: Hashable {
         case "mood": MoodRoute(base).map { .mood($0) }
         // 以前的「关于我 → 心情」搬进了心情分析
         case "about" where head == "/about/mood": .mood(.analysis)
-        case "about": AboutRoute(base).map { .about($0, ask: KnownAsk(path: base)) }
+        case "about": AboutRoute(base, anchor: anchor).map { .about($0, ask: KnownAsk(path: base)) }
         // 以前「笔记库 → 感悟」搬成了自己的一页
         case "library" where LibraryAsk(path: base).view == "insights": .insights
         case "goals": GoalRoute(head).map { .goals($0) }
@@ -156,6 +156,8 @@ extension AboutRoute {
         case .people: "人"
         case .talk: "你说的话"
         case .year: "你的一年"
+        case .person(let name): name
+        case .known: "Pour 认识的"
         }
     }
 
@@ -166,6 +168,8 @@ extension AboutRoute {
         case .talk: "talk"
         case .year: "year"
         case .domain: "domain"
+        case .person: "person"
+        case .known: "known"
         }
     }
 }

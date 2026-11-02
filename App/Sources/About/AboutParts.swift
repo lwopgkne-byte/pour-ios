@@ -12,7 +12,7 @@ enum MeStyle {
     static let shades = [0.12, 0.26, 0.42, 0.64, 1.0]
 
     static func moodShade(_ level: Double) -> Color {
-        Web.accent.opacity(shades[min(5, max(1, Int(level.rounded()))) - 1])
+        Theme.Palette.accent.opacity(shades[min(5, max(1, Int(level.rounded()))) - 1])
     }
 
     static let weekHead = ["一", "二", "三", "四", "五", "六", "日"]
@@ -23,15 +23,14 @@ enum MeStyle {
     /// 那些日子的心情：好一些绿、差一些黄、差不多或还太少灰
     static func tone(_ mood: String) -> Color {
         switch mood {
-        case "better": Web.status("good")
-        case "worse": Web.status("warn")
-        default: Web.tag("gray").solid
+        case "better": Theme.Palette.status("good")
+        case "worse": Theme.Palette.status("warn")
+        default: Theme.tag("gray").solid
         }
     }
 }
 
-/// 子页面的开头：标题（领域页前面一个领域色的点）、下面一句。3.0 外壳（第 1 步）起返回用导航栏的返回按钮，
-/// 页面里不再画「‹ 关于我」（back 留着：第 8 步重做关于我的时候一起删）
+/// 子页面的开头（3.0 第 8 步）：名字在导航栏的大标题上，这里只剩下面一句
 struct MeHead<Sub: View>: View {
     let title: String
     var color: String?
@@ -39,18 +38,7 @@ struct MeHead<Sub: View>: View {
     @ViewBuilder var sub: () -> Sub
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space1) {
-            HStack(spacing: Web.space2) {
-                if let color {
-                    Circle().fill(Web.tag(color).solid).frame(width: Web.space3, height: Web.space3)
-                        .accessibilityHidden(true)
-                }
-                Text(title).font(Web.title).foregroundStyle(Web.fg)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityAddTraits(.isHeader)
-            sub()
-        }
+        sub().frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -60,19 +48,19 @@ struct MeNote: View {
 
     init(_ text: String) { self.text = text }
 
-    var body: some View { Text(Show.spaced(text)).font(Web.caption).foregroundStyle(Web.fgTertiary) }
+    var body: some View {
+        Text(Show.spaced(text)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+    }
 }
 
-/// 浅灰底的一块面板（大数字、日历、星图）
+/// 一块卡片（大数字、日历、星图）
 struct MePanel<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space1) { content() }
-            .padding(Web.space4)
+        VStack(alignment: .leading, spacing: Theme.Space.tight) { content() }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: Web.radiusPanel).fill(Web.bgSubtle))
-            .padding(.top, Web.space4)
+            .themeCard()
     }
 }
 
@@ -86,16 +74,16 @@ struct MeExpand<Summary: View, Body: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button {
-                withAnimation(Web.fast) { open.toggle() }
+                withAnimation(Theme.Motion.standard) { open.toggle() }
             } label: {
-                summary().frame(maxWidth: .infinity, minHeight: Web.touch, alignment: .leading).contentShape(
+                summary().frame(maxWidth: .infinity, minHeight: Theme.Size.touch, alignment: .leading).contentShape(
                     Rectangle())
             }
-            .buttonStyle(WebPressStyle(radius: 0))
+            .buttonStyle(.plain)
             .accessibilityElement(children: label == nil ? .combine : .ignore)
             .accessibilityLabel(label.map { Text($0) } ?? Text(""))
             .accessibilityValue(Text(open ? "展开了" : "收着"))
-            if open { content().padding(.bottom, Web.space2) }
+            if open { content().padding(.bottom, Theme.Space.small) }
         }
     }
 }
@@ -111,19 +99,24 @@ struct DayLinks: View {
         VStack(alignment: .leading, spacing: 0) {
             MoneyList {
                 ForEach(shown, id: \.self) { day in
-                    MoneyLinkRow(minHeight: Web.touch) {
+                    MoneyLinkRow(minHeight: Theme.Size.touch) {
                         model.goHome()
                         model.show(day)
                     } label: {
-                        HStack(spacing: Web.space2) {
-                            Text(MeStyle.dayLabel(day)).font(Web.body).foregroundStyle(Web.fg)
+                        HStack(spacing: Theme.Space.small) {
+                            Text(MeStyle.dayLabel(day)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                            if let text { Text(text(day)).font(Web.caption).foregroundStyle(Web.fgTertiary) }
+                            if let text {
+                                Text(text(day)).font(Theme.Typeface.footnote).foregroundStyle(
+                                    Theme.Palette.secondaryLabel)
+                            }
                         }
                     }
                 }
             }
-            if days.count > shown.count { MeNote("还有 \(days.count - shown.count) 天更早的").padding(.top, Web.space1) }
+            if days.count > shown.count {
+                MeNote("还有 \(days.count - shown.count) 天更早的").padding(.top, Theme.Space.tight)
+            }
         }
     }
 }
@@ -134,7 +127,7 @@ func boldWords(_ text: String, _ words: [String]) -> AttributedString {
     for word in words where !word.isEmpty {
         var from = out.startIndex
         while let found = out[from...].range(of: word) {
-            out[found].font = Web.bodySemibold
+            out[found].font = Theme.Typeface.bodySemibold
             from = found.upperBound
         }
     }
@@ -147,18 +140,19 @@ struct MeQuotes: View {
     let quotes: [API.MeQuote]
 
     var body: some View {
-        VStack(spacing: Web.space3) {
+        VStack(spacing: Theme.Space.medium) {
             ForEach(quotes, id: \.noteId) { quote in
                 Button {
                     model.open("/library?note=\(quote.noteId)")
                 } label: {
-                    VStack(alignment: .leading, spacing: Web.space1) {
-                        Text(Show.spaced("「\(quote.text)」")).font(Web.body).foregroundStyle(Web.fg)
+                    VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                        Text(Show.spaced("「\(quote.text)」")).font(Theme.Typeface.body).foregroundStyle(
+                            Theme.Palette.label)
                         MeNote(MeStyle.dayLabel(quote.day))
                     }
-                    .padding(Web.space4)
+                    .padding(Theme.Space.regular)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: Web.radiusPanel).fill(Web.bgSubtle))
+                    .background(RoundedRectangle(cornerRadius: Theme.Corner.chip).fill(Theme.Palette.fill))
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -174,7 +168,7 @@ struct MeFindings: View {
     let findings: [API.FindingView]
 
     var body: some View {
-        VStack(spacing: Web.space3) {
+        VStack(spacing: Theme.Space.medium) {
             ForEach(findings, id: \.key) { finding in
                 FindingCard(
                     finding: finding,
@@ -199,7 +193,7 @@ struct CountBars: View {
                 MeExpand {
                     MeBarRow(
                         name: Text(Show.spaced(item.name)), share: Double(item.count) / most,
-                        color: color.map { Web.tag($0).solid } ?? Web.lineStrong, value: "\(item.count)")
+                        color: color.map { Theme.tag($0).solid } ?? Theme.Palette.separator, value: "\(item.count)")
                 } content: {
                     DayLinks(days: item.days)
                 }
@@ -216,13 +210,13 @@ struct MeBarRow: View {
     let value: String
 
     var body: some View {
-        HStack(spacing: Web.space3) {
-            name.font(Web.body).foregroundStyle(Web.fg)
+        HStack(spacing: Theme.Space.medium) {
+            name.font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                 .containerRelativeFrame(.horizontal, alignment: .leading) { width, _ in width * 0.4 }
                 .fixedSize(horizontal: false, vertical: true)
             MeTrack(share: share, color: color)
-            Text(value).font(Web.caption).foregroundStyle(Web.fgSecondary).monospacedDigit()
-                .frame(minWidth: Web.space8, alignment: .trailing)
+            Text(value).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit()
+                .frame(minWidth: Theme.Space.section, alignment: .trailing)
         }
     }
 }
@@ -230,13 +224,13 @@ struct MeBarRow: View {
 /// 一条浅灰的轨道，上面一段颜色
 struct MeTrack: View {
     let share: Double
-    var color: Color = Web.lineStrong
+    var color: Color = Theme.Palette.separator
 
     var body: some View {
-        Capsule().fill(Web.bgHover).frame(height: Web.space2)
+        Capsule().fill(Theme.Palette.fill).frame(height: Theme.Space.small)
             .overlay(alignment: .leading) {
                 GeometryReader { proxy in
-                    Capsule().fill(color).frame(width: max(Web.space1, proxy.size.width * min(1, max(0, share))))
+                    Capsule().fill(color).frame(width: max(Theme.Space.tight, proxy.size.width * min(1, max(0, share))))
                 }
             }
             .frame(maxWidth: .infinity)
@@ -255,15 +249,16 @@ struct MeChanges: View {
                 let target =
                     change.domain.map { "/about/domain/\($0)" }
                     ?? (change.person != nil ? "/about/people" : change.color == "mood" ? "/about/mood" : nil)
-                let row = VStack(alignment: .leading, spacing: Web.space2) {
-                    Text(Show.spaced(change.text)).font(Web.bodySemibold).foregroundStyle(Web.fg)
+                let row = VStack(alignment: .leading, spacing: Theme.Space.small) {
+                    Text(Show.spaced(change.text)).font(Theme.Typeface.bodySemibold).foregroundStyle(
+                        Theme.Palette.label)
                     MeSpark(change: change)
                     MeNote(change.sub)
                 }
-                .padding(.vertical, Web.space3)
+                .padding(.vertical, Theme.Space.medium)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .overlay(alignment: .bottom) {
-                    if index < changes.count - 1 { Rectangle().fill(Web.line).frame(height: 1) }
+                    if index < changes.count - 1 { Rectangle().fill(Theme.Palette.separator).frame(height: 1) }
                 }
                 if let target {
                     Button {
@@ -271,7 +266,7 @@ struct MeChanges: View {
                     } label: {
                         row.contentShape(Rectangle())
                     }
-                    .buttonStyle(WebPressStyle(radius: 0))
+                    .buttonStyle(.plain)
                     .accessibilityElement(children: .combine)
                 } else {
                     row.accessibilityElement(children: .combine)
@@ -287,13 +282,15 @@ struct MeSpark: View {
 
     var body: some View {
         let color =
-            change.color == "mood" ? Web.accent : change.color == "gray" ? Web.fgTertiary : Web.tag(change.color).solid
-        HStack(spacing: Web.space3) {
+            change.color == "mood"
+            ? Theme.Palette.accent
+            : change.color == "gray" ? Theme.Palette.secondaryLabel : Theme.tag(change.color).solid
+        HStack(spacing: Theme.Space.medium) {
             Text(change.from)
-            MeLine(points: change.points.map { $0 }, color: color).frame(height: Web.space8)
+            MeLine(points: change.points.map { $0 }, color: color).frame(height: Theme.Space.section)
             Text(change.to)
         }
-        .font(Web.caption).foregroundStyle(Web.fgTertiary).monospacedDigit()
+        .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit()
     }
 }
 
@@ -316,7 +313,8 @@ struct MeLine: View {
                 }
                 let point = CGPoint(
                     x: size.width * CGFloat(index) / CGFloat(max(1, points.count - 1)),
-                    y: size.height - Web.space1 / 2 - (size.height - Web.space1) * CGFloat((value - low) / span))
+                    y: size.height - Theme.Space.tight / 2 - (size.height - Theme.Space.tight)
+                        * CGFloat((value - low) / span))
                 if drawing { path.addLine(to: point) } else { path.move(to: point) }
                 drawing = true
             }
@@ -329,10 +327,10 @@ struct MeLine: View {
 /// 页脚：说清楚是怎么来的
 struct MeFoot: View {
     var body: some View {
-        Text("全部由你说过的话算出来，只在你的电脑上").font(Web.caption).foregroundStyle(Web.fgTertiary)
+        Text("全部由你说过的话算出来，只在你的电脑上").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, Web.space4)
-            .overlay(alignment: .top) { Rectangle().fill(Web.line).frame(height: 1) }
-            .padding(.top, Web.space12)
+            .padding(.top, Theme.Space.regular)
+            .overlay(alignment: .top) { Rectangle().fill(Theme.Palette.separator).frame(height: 1) }
+            .padding(.top, (Theme.Size.touch + Theme.Space.tight))
     }
 }
