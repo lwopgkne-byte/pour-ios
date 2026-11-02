@@ -79,7 +79,6 @@ final class AppModel {
     private(set) var answers: [Int: String] = [:]
     /// 别处改了设置（电脑上、另一台手机）就加一：设置页看到就重新拿
     private(set) var settingsVersion = 0
-
     private var events: Task<Void, Never>?
     /// 换了数据来源（画布样张开、关）：PourApp 看到它就换一个新的 AppModel
     var replaced = false
@@ -105,8 +104,9 @@ final class AppModel {
     var moneyDetail: MoneyDetailRef?
     /// 刚用数字键盘记下、服务器还没整理完的几笔：钱的主页上先显示（「整理中」），整理完换成正式的
     var moneyPending: [PendingMoney] = []
-    /// 心情：记心情的弹层、打开的那一条、刚记下还在整理的几刻（3.0 第 4 步，AppModel+Mood）
+    /// 心情、感悟（3.0 第 4、5 步，AppModel+Mood、AppModel+Insights）：弹层、打开的那一条、刚记下还在整理的
     let mood = MoodState()
+    let insight = InsightState()
     /// 打开钱要面容 ID（MoneyLock）：这次打开 App 以后验过了没有；退到后台就作废
     var moneyUnlocked = false
     /// 排提醒（AppModel+Reminders）：一会儿内连着变了几次只排最后一次

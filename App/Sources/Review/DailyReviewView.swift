@@ -105,13 +105,14 @@ struct DailyReviewView: View {
         }
     }
 
-    /// 最后一句「你说过」：自己说过的一句话，服务器按日子轮着挑（docs/模块/产品优化.md R4）
+    /// 最后一句「你说过」：自己说过的一句话，服务器按日子轮着挑（docs/模块/产品优化.md R4）；
+    /// 3.0 起语录（「记一句」记的、感悟里收藏的）先挑，写「记进语录的」
     private func saidSection(_ quote: API.MyQuote) -> some View {
         ReviewSection(title: "你说过") {
             VStack(alignment: .leading, spacing: Web.space1) {
                 Text(Show.spaced("「\(quote.text)」")).font(Web.body).foregroundStyle(Web.fg)
                     .lineSpacing(Web.quoteLineSpacing)
-                Text("\(Show.dayTitle(quote.day, today: model.today))\(quote.asked ? "让记下的" : "说的")")
+                Text("\(Show.dayTitle(quote.day, today: model.today))\(quote.asked ? "记进语录的" : "说的")")
                     .font(Web.caption).foregroundStyle(Web.fgTertiary)
             }
             .accessibilityElement(children: .combine)

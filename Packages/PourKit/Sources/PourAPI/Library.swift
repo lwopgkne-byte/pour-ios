@@ -55,6 +55,26 @@ extension API {
         public var quote: String
         public var tags: [String]
         public var noteId: Int?
+        /// 3.0 语录 ★：收藏的或者「记一句」记的（服务器 2.13.0 起才有）
+        public var starred: Bool?
+        /// 「记一句」记的
+        public var saying: Bool?
+
+        public var isStarred: Bool { starred == true }
+
+        public init(
+            id: Int, day: String, title: String, quote: String, tags: [String], noteId: Int?, starred: Bool? = nil,
+            saying: Bool? = nil
+        ) {
+            self.id = id
+            self.day = day
+            self.title = title
+            self.quote = quote
+            self.tags = tags
+            self.noteId = noteId
+            self.starred = starred
+            self.saying = saying
+        }
     }
 
     public struct InsightsPage: Codable, Hashable, Sendable {
@@ -65,6 +85,23 @@ extension API {
 
         public var insights: [InsightItem]
         public var tags: [TagCount]
+        /// 语录几句（「语录 ★」胶囊后面的数）
+        public var starred: Int?
+
+        public init(insights: [InsightItem], tags: [TagCount] = [], starred: Int? = nil) {
+            self.insights = insights
+            self.tags = tags
+            self.starred = starred
+        }
+    }
+
+    /// 3.0 一句感悟带着你当时说的整段话、以前也说过类似的：今天重温（翻过来看）、一条感悟弹层都是它；
+    /// ago 是「16 天前你说」。今天重温一句都没有时 insight 是 nil
+    public struct InsightDetail: Codable, Hashable, Sendable {
+        public var insight: InsightItem?
+        public var ago: String?
+        public var said: String?
+        public var related: [Related]
     }
 
     /// 好时刻：一条心情记录，带着它来自哪段原话
@@ -122,9 +159,27 @@ extension APIClient {
         return page.items
     }
 
-    public func insights(tag: String?) async throws(APIError) -> API.InsightsPage {
-        let path = tag.flatMap { $0.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) }
-        return try await get("/api/insights\(path.map { "?tag=\($0)" } ?? "")")
+    /// 3.0 感悟页：全部感悟（标签、语录在手机上筛）；query 是搜（关键词 + 按意思，服务器的本地向量）
+    public func insights(query: String = "") async throws(APIError) -> API.InsightsPage {
+        try await get(Self.insightsPath(query: query))
+    }
+
+    /// 「/api/insights」「/api/insights?q=专注」（缓存也按这个地址存）
+    public static func insightsPath(query: String = "") -> String {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "/api/insights" }
+        let allowed = CharacterSet.urlQueryAllowed.subtracting(CharacterSet(charactersIn: "&+=?#"))
+        return "/api/insights?q=\(trimmed.addingPercentEncoding(withAllowedCharacters: allowed) ?? trimmed)"
+    }
+
+    /// 今天重温的一句；next 是「换一句」
+    public func insightToday(next: Bool = false) async throws(APIError) -> API.InsightDetail {
+        try await get(next ? "/api/insights/today?next=1" : "/api/insights/today")
+    }
+
+    /// 一条感悟：原话、以前也说过类似的
+    public func insight(_ id: Int) async throws(APIError) -> API.InsightDetail {
+        try await get("/api/insights/\(id)")
     }
 
     public func moments() async throws(APIError) -> [API.Moment] {

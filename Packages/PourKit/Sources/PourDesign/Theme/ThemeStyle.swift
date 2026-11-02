@@ -244,6 +244,8 @@ extension Theme {
         /// 弹层滑出 0.5 秒、收回 0.3 秒
         public static let sheetIn = Animation.smooth(duration: 0.5)
         public static let sheetOut = Animation.smooth(duration: 0.3)
+        /// 3.0 感悟「换一句」：这张往左滑走（新的用 spring 进来）
+        public static let swapOut = Animation.easeIn(duration: 0.25)
         /// 管理常用时格子轻轻抖
         public static let jiggle = Animation.easeInOut(duration: 0.32).repeatForever(autoreverses: true)
 

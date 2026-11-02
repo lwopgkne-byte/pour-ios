@@ -56,6 +56,21 @@ struct ThemeColorTests {
         #expect(contrast(Theme.Mood.fillToken(5), on: Theme.Tokens.card) >= 3, "点亮的小点")
     }
 
+    /// 3.0 感悟：纸（正面、背面）上的字 ≥ 4.5；标签浅黄底上的字 ≥ 4.5；收藏了的星在卡片、纸上 ≥ 3
+    @Test func insightPaper() {
+        for paper in [Theme.Idea.paperToken, Theme.Idea.paperBackToken] {
+            for (name, token) in [
+                ("正文", Theme.Tokens.label), ("次要", Theme.Tokens.secondaryLabel),
+                ("今天重温", Theme.Tokens.warnInk), ("能点的", Theme.Tokens.accent),
+            ] {
+                #expect(contrast(token, on: paper, ink: Self.smallText) >= 4.5, "\(name) 在纸上不够")
+            }
+            #expect(contrast(Theme.Idea.starToken, on: paper) >= 3, "星在纸上")
+        }
+        #expect(contrast(Theme.Idea.starToken, on: Theme.Tokens.card) >= 3, "星在卡片上")
+        #expect(contrast(Theme.Tokens.warnInk, on: Theme.Tokens.warnFill, ink: Self.smallText) >= 4.5, "标签")
+    }
+
     /// 3.0「我的」功能格子：彩色方块上的白色图标（图形 ≥ 3:1）
     @Test func hubTileIcons() {
         for token in Theme.Tile.tokens {

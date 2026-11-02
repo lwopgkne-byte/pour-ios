@@ -43,7 +43,7 @@ extension AppModel {
         case .money?: "money"
         case .goals?: "goals"
         case .mood?: "mood"
-        case .library(let ask)? where ask.view == "insights": "insights"
+        case .insights?: "insights"
         default: nil
         }
     }

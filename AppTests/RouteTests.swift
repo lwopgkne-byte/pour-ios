@@ -41,7 +41,8 @@ struct RouteTests {
         ("/goals", .goals),
         ("/library", .library(LibraryAsk())),
         ("/library?note=12", .library(LibraryAsk(note: 12))),
-        ("/library?view=insights", .library(LibraryAsk(view: "insights"))),
+        ("/insights", .insights),
+        ("/library?view=insights", .insights),
         ("/library?view=moments", .library(LibraryAsk(view: "moments"))),
         ("/library?tag=小王", .library(LibraryAsk(tag: "小王"))),
         ("/settings", .settings(nil)),
@@ -103,7 +104,7 @@ struct RouteTests {
         #expect(model.sayContext == "mood")
         model.open("/about/mood")
         #expect(model.sayContext == "mood")
-        model.open("/library?view=insights")
+        model.open("/insights")
         #expect(model.sayContext == "insights")
         model.open("/library")
         #expect(model.sayContext == nil)

@@ -74,10 +74,11 @@ extension AppModel {
         mood.pending[index].noteId = note.id
     }
 
-    /// 刚记下的一笔钱、一刻心情：整理完的不再先显示（拿对话时调）
+    /// 刚记下的一笔钱、一刻心情、一句感悟：整理完的不再先显示（拿对话时调）
     func prunePending() {
         prunePendingMoney()
         prunePendingMood()
+        prunePendingSayings()
     }
 
     /// 整理完的（或者没整理成的）不再先显示：正式的那一刻已经在服务器的单子里

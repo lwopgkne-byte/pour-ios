@@ -91,6 +91,8 @@ targets:
         NSCalendarsFullAccessUsageDescription: Pour 读今天的日程，放进待办那张卡里。只读，不改日历，不送到电脑上。
         # 打开钱要面容 ID（docs/3.0/01-需求文档.md 5.6，设置 → 隐私）
         NSFaceIDUsageDescription: 设置里开了「打开钱要面容 ID」时，进钱之前用面容 ID 确认是你。只在这台手机上验。
+        # 感悟分享成图片（docs/3.0/01-需求文档.md 7.4）：存到相册只添加，不读相册
+        NSPhotoLibraryAddUsageDescription: 把你分享的那张感悟卡片存进相册。只添加，不看你的照片。
         # 按住主屏幕上的图标（docs/3.0/06-交互细节.md 第 1 节）：说一句 · 记一笔 · 加待办 · 记心情（App/Sources/Shell/QuickActions.swift）
         # 后台刷新提醒（docs/3.0/07-开发任务清单.md 2.15：每次打开、收到推送、后台刷新都重排）
         UIBackgroundModes: [fetch]

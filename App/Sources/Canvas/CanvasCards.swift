@@ -101,7 +101,7 @@ struct CanvasCard: View {
 }
 
 /// 卡片标题：图标小方块 + 类别名 + 右边一个小数（「还有 1 件」「14 次」「4 笔」「AI 推测」）。
-/// 3.0（docs/3.0/06-交互细节.md 第 1 节）：钱、心情的标题能点进那一页（「钱 ›」），待办、钱、心情右上角直接记
+/// 3.0（docs/3.0/06-交互细节.md 第 1 节）：待办、钱、心情、感悟的标题能点进那一页（「钱 ›」），待办、钱、心情右上角直接记
 /// （「＋」「＋ 记一笔」「记心情」：第 1 步先打开对话填好开头，第 2–4 步换成正式的弹层）
 private struct CardHeader: View {
     @Environment(AppModel.self) private var model
@@ -166,7 +166,9 @@ private struct CardHeader: View {
     }
 
     /// 标题点进哪一页（心情页第 4 步做，先是关于我里的心情）
-    private static let page: [CanvasPlan.Template: String] = [.todo: "/todos", .money: "/money", .mood: "/mood"]
+    private static let page: [CanvasPlan.Template: String] = [
+        .todo: "/todos", .money: "/money", .mood: "/mood", .insight: "/insights",
+    ]
 
     /// 右上角直接记什么、对话里先填好的开头
     private static let quick: [CanvasPlan.Template: (title: String, start: String)] = [

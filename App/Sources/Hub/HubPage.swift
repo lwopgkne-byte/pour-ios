@@ -121,7 +121,7 @@ struct HubPage: View {
         .padding(.top, Theme.Space.small)
     }
 
-    // MARK: - 四个快捷大按钮（这一步先接到对话：填好开头，第 2–5 步换成正式的弹层）
+    // MARK: - 四个快捷大按钮（都是正式的弹层：加待办、记一笔、记心情、记一句）
 
     private var quickActions: some View {
         HStack(spacing: 0) {
@@ -136,11 +136,11 @@ struct HubPage: View {
 
     private func quick(_ title: String, symbol: String, color: Color, start: String) -> some View {
         Button {
-            // 加待办、记一笔、记心情是正式的弹层（第 2–4 步）；记一句第 5 步换
             switch start {
             case "待办：": model.todoSheet = .add("")
             case "/记 ": model.recordMoney()
             case "心情：": model.checkinMood()
+            case "记一句：": model.insight.sheet = .add
             default: model.startSaying(start)
             }
         } label: {

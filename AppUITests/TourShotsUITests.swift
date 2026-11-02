@@ -68,6 +68,7 @@ final class TourShotsUITests: XCTestCase {
             ("27-心情", "/mood"),
             ("28-心情-分析", "/mood/analysis"),
             ("29-心情-好时刻", "/mood/moments"),
+            ("31-感悟", "/insights"),
             ("30-关于我-主页", "/about"),
             ("32-关于我-人", "/about/people"),
             ("33-关于我-你说的话", "/about/talk"),
@@ -76,7 +77,6 @@ final class TourShotsUITests: XCTestCase {
             ("36-关于我-领域-孩子", "/about/domain/孩子"),
             ("40-目标", "/goals"),
             ("50-笔记库-原话", "/library"),
-            ("51-笔记库-感悟", "/library?view=insights"),
             ("52-笔记库-好时刻", "/library?view=moments"),
             ("60-设置", "/settings"),
         ]

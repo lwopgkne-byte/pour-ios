@@ -47,6 +47,7 @@ struct RootView: View {
     private var shell: some View {
         @Bindable var model = model
         @Bindable var mood = model.mood
+        @Bindable var insight = model.insight
         return NavigationStack(path: $model.stack) {
             CanvasView()
                 .hiddenWhenCovered()
@@ -114,6 +115,14 @@ struct RootView: View {
         .sheet(item: $model.moneyDetail) { MoneyDetailSheet(ref: $0) }
         .sheet(item: $mood.checkin) { MoodCheckinSheet(start: $0) }
         .sheet(item: $mood.detail) { MoodDetailSheet(moment: $0) }
+        // 感悟的弹层（3.0 第 5 步）：记一句、一条感悟、分享成图片
+        .sheet(item: $insight.sheet) { sheet in
+            switch sheet {
+            case .add: InsightAddSheet()
+            case .detail(let item): InsightDetailSheet(item: item)
+            case .share(let item): InsightShareSheet(item: item)
+            }
+        }
         // 重复的待办删的时候问一句（01 需求文档 4.4）
         .confirmationDialog(
             "这是重复的待办", isPresented: deletingRepeat, titleVisibility: .visible, presenting: model.todoDeleting

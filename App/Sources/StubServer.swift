@@ -119,7 +119,8 @@
             /// 不带编号的接口：今天是哪天、类别表、说过的话、说一句
             private mutating func basic(_ method: String, _ url: URL, _ body: [String: Any]) -> Reply? {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
-                if let value = settingsReply(method, url.path, body) ?? namesReply(method, url.path, body)
+                if let value = insightsReply(method, url) ?? settingsReply(method, url.path, body)
+                    ?? namesReply(method, url.path, body)
                     ?? cardsReply(method, url.path, body) ?? healthReply(method, url.path, body)
                     ?? hubReply(method, url.path, body) ?? pageReply(method, url.path)
                 {
@@ -185,9 +186,11 @@
                     "id": noteId, "text": text, "createdAt": now, "day": backfill ?? today, "status": "done",
                 ]
                 if backfill != nil { note["backfill"] = true }
-                if text.contains("余额") {
-                    note["status"] = "failed"
-                    note["error"] = "没整理成：大模型账户余额不足。"
+                // 余额不足：没整理成；记一句（感悟页）：还在整理（最上面那张「整理中」一直在，界面测试看得到）
+                if text.contains("余额") || text.hasPrefix("记一句：") {
+                    let failed = text.contains("余额")
+                    note["status"] = failed ? "failed" : "pending"
+                    if failed { note["error"] = "没整理成：大模型账户余额不足。" }
                     notes.append(note)
                     return note
                 }

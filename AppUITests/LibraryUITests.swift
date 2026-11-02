@@ -1,7 +1,7 @@
 import XCTest
 
-/// 笔记库（2026-10-20）：原话、感悟、好时刻；跑系统的无障碍审计，截图留给自验收看。
-/// 用假服务器（-uiTest）：演示数据里最近几段原话、人物、感悟、好时刻
+/// 笔记库（2026-10-20）：原话、好时刻（感悟 3.0 第 5 步搬成了自己的一页，InsightsUITests）；跑系统的无障碍审计，截图留给自验收看。
+/// 用假服务器（-uiTest）：演示数据里最近几段原话、人物、好时刻
 final class LibraryUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
@@ -26,11 +26,6 @@ final class LibraryUITests: XCTestCase {
         XCTAssertTrue(app.buttons["删除"].waitForExistence(timeout: 3), "菜单没打开")
         app.buttons["删除"].tap()
         XCTAssertTrue(app.staticTexts["已删除这段话和它的记录"].waitForExistence(timeout: 3), "没删")
-
-        app.buttons["感悟"].firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["2026年10月"].waitForExistence(timeout: 5), "感悟没出来")
-        settle()
-        audit(app, "笔记库-感悟")
 
         app.buttons["好时刻"].firstMatch.tap()
         XCTAssertTrue(

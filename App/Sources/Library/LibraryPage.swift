@@ -4,7 +4,7 @@ import SwiftUI
 
 /// 笔记库（规格 11）：所有原话，新的在前；能搜、按时间、类别、人物筛；
 /// 每段原话下面是它整理出的记录和处理状态；能原地改（自动重新整理）、删。
-/// 「感悟」像一本会自己整理的随笔集；「好时刻」是你说过觉得好的那一刻
+/// 「好时刻」是你说过觉得好的那一刻（感悟 3.0 第 5 步搬成了自己的一页）
 struct LibraryPage: View {
     @Environment(AppModel.self) private var model
     @State private var view: String
@@ -13,7 +13,7 @@ struct LibraryPage: View {
     /// 从「关于我」跳过来带着的人物
     @State private var tag: String
 
-    /// 3.0 外壳（第 1 步）：地址里带着的（「/library?note=12」「/library?view=insights」「/library?tag=小王」）
+    /// 3.0 外壳（第 1 步）：地址里带着的（「/library?note=12」「/library?view=moments」「/library?tag=小王」）
     init(ask: LibraryAsk) {
         _view = State(initialValue: ask.view)
         _focus = State(initialValue: ask.note)
@@ -21,7 +21,7 @@ struct LibraryPage: View {
     }
 
     private static let views = [
-        (key: "notes", label: "原话"), (key: "insights", label: "感悟"), (key: "moments", label: "好时刻"),
+        (key: "notes", label: "原话"), (key: "moments", label: "好时刻"),
     ]
 
     var body: some View {
@@ -39,7 +39,6 @@ struct LibraryPage: View {
                 }
                 .padding(.top, Web.space4)
                 switch view {
-                case "insights": InsightsView { open(note: $0) }
                 case "moments": MomentsView { open(note: $0) }
                 default: NotesView(focus: $focus, tag: $tag, reveal: reveal)
                 }
@@ -89,101 +88,6 @@ struct LibraryMonth: View {
             }
         }
         return out
-    }
-}
-
-/// 感悟：按标签浏览所有感悟，像一本会自己整理的随笔集
-private struct InsightsView: View {
-    @Environment(AppModel.self) private var model
-    let openNote: (Int) -> Void
-    @State private var tag: String?
-    @State private var page: API.InsightsPage?
-    @State private var problem: String?
-
-    var body: some View {
-        Group {
-            if let page {
-                if page.insights.isEmpty && tag == nil {
-                    LibraryEmpty(text: "还没有感悟。说说你的想法和体会，它们会被收在这里。")
-                } else {
-                    content(page)
-                }
-            } else if let problem {
-                WebErrorState(problem) { Task { await load() } }.padding(.top, Web.space6)
-            } else {
-                WebSkeleton(height: Web.space16).padding(.top, Web.space6)
-            }
-        }
-        .task(id: "\(tag ?? "")-\(model.dataVersion)") { await load() }
-    }
-
-    private func content(_ page: API.InsightsPage) -> some View {
-        VStack(alignment: .leading, spacing: Web.space8) {
-            PourFlowLayout(spacing: Web.space2, lineSpacing: Web.space2) {
-                WebChip(selected: tag == nil) {
-                    tag = nil
-                } label: {
-                    Text("全部")
-                }
-                ForEach(page.tags, id: \.tag) { item in
-                    WebChip(selected: tag == item.tag) {
-                        tag = item.tag == tag ? nil : item.tag
-                    } label: {
-                        Text(item.tag)
-                        Text("\(item.count)").foregroundStyle(Web.fgTertiary)
-                    }
-                }
-            }
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel(Text("按标签看"))
-            VStack(alignment: .leading, spacing: Web.space12) {
-                ForEach(LibraryMonth.group(page.insights, day: \.day), id: \.month) { group in
-                    VStack(alignment: .leading, spacing: Web.space8) {
-                        LibraryMonth(title: group.month)
-                        ForEach(group.items) { essay($0) }
-                    }
-                }
-            }
-        }
-        .padding(.top, Web.space6)
-    }
-
-    private func essay(_ item: API.InsightItem) -> some View {
-        VStack(alignment: .leading, spacing: Web.space2) {
-            EssayQuote(text: item.quote)
-            PourFlowLayout(spacing: Web.space2, lineSpacing: Web.space1) {
-                Text(item.title)
-                Text("·")
-                Text(Show.monthDay(item.day))
-                ForEach(item.tags, id: \.self) { name in
-                    // 看得见的是小标签，能点的是盖在上面的 44 点（和 WebTextButton 一样）
-                    YellowTag(text: name).accessibilityHidden(true)
-                        .overlay {
-                            Button {
-                                tag = name
-                            } label: {
-                                Color.clear.frame(minWidth: Web.touch, minHeight: Web.touch).contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(Text(name))
-                            .accessibilityHint(Text("只看这个标签的感悟"))
-                        }
-                }
-                if let note = item.noteId {
-                    WebTextButton("原话", font: Web.captionMedium) { openNote(note) }
-                }
-            }
-            .font(Web.caption).foregroundStyle(Web.fgTertiary)
-        }
-    }
-
-    private func load() async {
-        do {
-            page = try await model.client.insights(tag: tag)
-            problem = nil
-        } catch {
-            problem = error.readable
-        }
     }
 }
 

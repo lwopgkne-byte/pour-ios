@@ -15,6 +15,8 @@ enum Route: Hashable {
     /// 心情（3.0 第 4 步）：心情页、心情分析、好时刻
     case mood(MoodRoute)
     case about(AboutRoute, ask: KnownAsk?)
+    /// 感悟（3.0 第 5 步）：今天重温、语录 ★、按月的卡片
+    case insights
     case goals
     case library(LibraryAsk)
     /// 设置：打开时滚到哪一块（「data」）
@@ -40,10 +42,12 @@ enum Route: Hashable {
         // 以前的「关于我 → 心情」搬进了心情分析
         case "about" where head == "/about/mood": .mood(.analysis)
         case "about": AboutRoute(base).map { .about($0, ask: KnownAsk(path: base)) }
+        // 以前「笔记库 → 感悟」搬成了自己的一页
+        case "library" where LibraryAsk(path: base).view == "insights": .insights
         default:
             [
-                "/me": .hub, "/todos": .todos, "/goals": .goals, "/library": .library(LibraryAsk(path: base)),
-                "/settings": .settings(anchor),
+                "/me": .hub, "/todos": .todos, "/insights": .insights, "/goals": .goals,
+                "/library": .library(LibraryAsk(path: base)), "/settings": .settings(anchor),
             ][head]
         }
     }
@@ -59,6 +63,7 @@ enum Route: Hashable {
         case .money(let money): money.title
         case .mood(let mood): mood.title
         case .about(let about, _): about.title
+        case .insights: "感悟"
         case .goals: "目标"
         case .library: "笔记库"
         case .settings: "设置"
@@ -73,14 +78,16 @@ enum Route: Hashable {
         case (.money(let left), .money(let right)): left.kind == right.kind
         case (.mood(let left), .mood(let right)): left.kind == right.kind
         case (.about(let left, _), .about(let right, _)): left.kind == right.kind && left.kind != "home"
-        case (.library, .library), (.settings, .settings), (.goals, .goals), (.hub, .hub), (.todos, .todos): true
+        case (.library, .library), (.settings, .settings), (.goals, .goals), (.hub, .hub), (.todos, .todos),
+            (.insights, .insights):
+            true
         default: false
         }
     }
 }
 
-/// 笔记库打开时：哪一栏（原话 · 感悟 · 好时刻）、从哪一段原话开始看、带着哪个人
-/// （「/library?note=12」「/library?view=insights」「/library?tag=小王」）
+/// 笔记库打开时：哪一栏（原话 · 好时刻）、从哪一段原话开始看、带着哪个人
+/// （「/library?note=12」「/library?view=moments」「/library?tag=小王」；「/library?view=insights」是感悟页）
 struct LibraryAsk: Hashable {
     var view = "notes"
     var note: Int?

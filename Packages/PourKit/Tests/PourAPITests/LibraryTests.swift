@@ -38,6 +38,20 @@ struct LibraryTests {
         #expect(mood.moment == "晚上楼下飘上来烤红薯的香味")
     }
 
+    /// 3.0 感悟页（Fixtures/insights.json、insight-today.json：5288 演示数据）：语录 ★（收藏的 + 记一句记的）、今天重温
+    @Test func insightsPage() throws {
+        let page = try fixture("insights", as: API.InsightsPage.self)
+        #expect(page.starred == 7 && page.insights.filter(\.isStarred).count == 7)
+        let first = try #require(page.insights.first)
+        #expect(first.isStarred && first.saying == true && first.quote == "陪儿子的时候 就只陪儿子")
+        let today = try fixture("insight-today", as: API.InsightDetail.self)
+        #expect(today.ago == "一个月前的今天你说" && today.related.count == 3)
+        let quote = try #require(today.insight?.quote)
+        #expect(today.said?.contains(quote) == true)
+        #expect(APIClient.insightsPath() == "/api/insights")
+        #expect(APIClient.insightsPath(query: " 陪 儿子& ") == "/api/insights?q=%E9%99%AA%20%E5%84%BF%E5%AD%90%26")
+    }
+
     @Test func filter() {
         #expect(API.LibraryFilter().isEmpty)
         #expect(!API.LibraryFilter(tag: "小王").isEmpty)
