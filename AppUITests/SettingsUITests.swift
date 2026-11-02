@@ -43,6 +43,27 @@ final class SettingsUITests: XCTestCase {
         }
     }
 
+    /// 反馈（3.0 第 10 步）：我的 → 反馈：一句话 + 截图（能去掉）+ 在哪一页；发出去有轻提示
+    @MainActor func testFeedback() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTest"]
+        app.launch()
+        XCTAssertTrue(app.buttons["today.me"].waitForExistence(timeout: 10), "画布没打开")
+        app.buttons["today.me"].tap()
+        let row = app.buttons["hub.row.feedback"]
+        app.reveal(row)
+        row.tap()
+        let field = app.textFields["feedback.text"].firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 5), "反馈没打开")
+        XCTAssertTrue(app.switches["feedback.attach"].exists, "没有带上截图的开关")
+        field.typeText("笔记库左滑有点难点")
+        RunLoop.current.run(until: Date().addingTimeInterval(1))
+        attach(app, "反馈")
+        try AppAudit.run(app, name: "反馈")
+        app.buttons["feedback.send"].tap()
+        XCTAssertTrue(app.staticTexts["收到了，谢谢"].waitForExistence(timeout: 5), "发出去没有轻提示")
+    }
+
     /// 改提醒：关掉「预警」，开关跟着变
     @MainActor func testToggleReminder() throws {
         let app = XCUIApplication()

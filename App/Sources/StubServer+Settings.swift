@@ -7,6 +7,8 @@
         mutating func settingsReply(_ method: String, _ path: String, _ body: [String: Any]) -> Any? {
             switch (method, path) {
             case ("GET", "/api/reminders"): return reminders
+            // 3.0 第 10 步：反馈（没填 GitHub 令牌的样子）
+            case ("POST", "/api/feedback"): return ["id": 1, "issue": NSNull(), "toast": "收到了，谢谢"] as [String: Any]
             case ("PUT", "/api/reminders"):
                 reminders.merge(body) { _, new in new }
                 return reminders

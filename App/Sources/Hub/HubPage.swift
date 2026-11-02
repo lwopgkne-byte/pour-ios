@@ -14,6 +14,7 @@ struct HubPage: View {
     @State private var editing = false
     @State private var query = ""
     @State private var confirmReal = false
+    @State private var feedback: FeedbackDraft?
 
     var body: some View {
         ScrollView {
@@ -263,14 +264,27 @@ struct HubPage: View {
 extension HubPage {
     // MARK: - 最下面
 
+    /// 最下面：反馈（3.0 第 10 步）、设置
     private var bottomRows: some View {
-        Button {
-            model.open("/settings")
-        } label: {
+        VStack(spacing: 0) {
+            bottomRow("反馈", symbol: "bubble.left.and.exclamationmark.bubble.right.fill", id: "hub.row.feedback") {
+                // 截下现在的样子（「我的」这一页），在哪一页写打开「我的」以前的那一页
+                feedback = FeedbackDraft(
+                    page: model.stack.dropLast().last?.title ?? "画布", screenshot: FeedbackSheet.snapshot())
+            }
+            Divider().padding(.leading, Theme.Space.regular + Theme.Size.tile + Theme.Space.medium)
+            bottomRow("设置", symbol: "gearshape.fill", id: "hub.row.settings") { model.open("/settings") }
+        }
+        .themeCard(padding: 0)
+        .sheet(item: $feedback) { FeedbackSheet(page: $0.page, screenshot: $0.screenshot) }
+    }
+
+    private func bottomRow(_ title: String, symbol: String, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
             HStack(spacing: Theme.Space.medium) {
-                Image(systemName: "gearshape.fill").font(Theme.Typeface.body)
+                Image(systemName: symbol).font(Theme.Typeface.body)
                     .foregroundStyle(Theme.Palette.secondaryLabel).frame(width: Theme.Size.tile)
-                Text("设置").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                Text(title).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(Theme.Typeface.glyph)
                     .foregroundStyle(Theme.Palette.tertiaryLabel)
@@ -280,8 +294,7 @@ extension HubPage {
             .contentShape(Rectangle())
         }
         .buttonStyle(PressScale())
-        .themeCard(padding: 0)
-        .accessibilityIdentifier("hub.row.settings")
+        .accessibilityIdentifier(id)
     }
 
     // MARK: - 搜功能
