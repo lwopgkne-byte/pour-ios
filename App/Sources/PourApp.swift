@@ -32,6 +32,12 @@ struct PourApp: App {
                         model.requestVoice()
                         return
                     }
+                    // pour://money：小组件、控制中心、锁屏的「记一笔」——回到画布、打开数字键盘
+                    if url.scheme == "pour", url.host() == "money" {
+                        model.goHome()
+                        model.recordMoney()
+                        return
+                    }
                     guard url.scheme == "pour", url.host() == "open",
                         let path = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
                             .first(where: { $0.name == "path" })?.value, path.hasPrefix("/")

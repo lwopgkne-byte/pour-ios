@@ -13,7 +13,9 @@ struct PourWidgets: WidgetBundle {
         NextTodoWidget()
         QuoteWidget()
         MoodWidget()
+        MoneyWidget()
         SayControl()
+        MoneyControl()
     }
 }
 
@@ -141,5 +143,43 @@ struct SayControl: ControlWidget {
         }
         .displayName("说一句")
         .description("打开 Pour 直接开始说。")
+    }
+}
+
+/// 「记一笔」（3.0 第 10 步）：桌面小的、中的（这个月花了多少），锁屏圆的；点了打开数字键盘
+struct MoneyWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "pour.money", provider: GlanceProvider()) { entry in
+            MoneyEntryView(entry: entry).widgetURL(moneyURL)
+        }
+        .configurationDisplayName("记一笔")
+        .description("点一下打开数字键盘；中号写这个月花了多少。")
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular])
+    }
+}
+
+private struct MoneyEntryView: View {
+    @Environment(\.widgetFamily) private var family
+    let entry: GlanceEntry
+
+    var body: some View {
+        if family == .accessoryCircular {
+            MoneyCircleView().containerBackground(.clear, for: .widget)
+        } else {
+            MoneyWidgetView(glance: entry.glance).containerBackground(Theme.Palette.card, for: .widget)
+        }
+    }
+}
+
+/// 控制中心的「记一笔」
+struct MoneyControl: ControlWidget {
+    var body: some ControlWidgetConfiguration {
+        StaticControlConfiguration(kind: "pour.money.control") {
+            ControlWidgetButton(action: OpenURLIntent(moneyURL)) {
+                Label("记一笔", systemImage: "yensign.circle.fill")
+            }
+        }
+        .displayName("记一笔")
+        .description("打开 Pour 的数字键盘。")
     }
 }

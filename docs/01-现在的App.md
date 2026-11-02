@@ -32,6 +32,8 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 | `App/Sources/Canvas/` | 生活画布、输入框（斜杠命令）、对话面板、记录详情（原地改、最近 7 天、相关目标、来源原话）、时间轴、类别卡片 |
 | `App/Sources/About3/`、`About/` | 3.0 关于我：主页（`AboutHomePage`，一块一张卡片、标题旁 ⓘ）、Pour 认识的（`/about/known`）、一个人（`/about/person/儿子`）、人（星图 `PeopleStarMap`，两根手指放大）在 `About3/`；你说的话、你的一年、领域页和 Pour 认识的那几块还在 `About/`（共用部件换成了新的样子） |
 | `App/Sources/Library3/`、`Library/` | 3.0 笔记库（`LibraryPage3`，系统列表拼成按天的卡片、左滑、按住、筛选弹层 `LibraryFilterSheet` 带条数）；好时刻还在 `Library/` |
+| `App/Sources/Settings/` | 3.0 设置：分组列表（`SettingsPage`，`SettingsPageKey` 一行一页：`/settings#reminders`…），每一页沿用原来那几块；小组件和捷径（`WidgetsGuide`） |
+| `App/Sources/Hub/FeedbackSheet.swift` | 3.0 反馈：一句话 + 截图（能去掉）+ 在哪一页 + 版本 + 最近几次出错（`Log.recent`），发到 `POST /api/feedback` |
 | `App/Sources/Goals/` | 旧目标页留下的三样：「一项一项填」的表单（`GoalForm`，定目标弹层里用）、选类别（`CategoryPicker`）、记录详情里的小进度条（`GoalBar`、`ToneDot`）；第 9 步重做记录详情时换掉 |
 | `App/Sources/Review/`、`About/`、`Library/`、`Search/`、`Settings/` | 各页（还没重做的用 `Web.*`；`About/AboutLegacyParts.swift` 是钱的旧部件，第 8 步一起换掉） |
 | `App/Sources/PinGate.swift`、`ServerConfiguration.swift` | 要 PIN 时整个 App 先显示的那一页；服务器地址（设置里改过的存在钥匙串，没有就用 Info.plist 的 `PourServerURL`） |

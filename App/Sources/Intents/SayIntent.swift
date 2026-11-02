@@ -19,8 +19,17 @@ struct PourShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: SayIntent(),
-            phrases: ["用\(.applicationName)记一句", "\(.applicationName)记一句"],
+            phrases: ["用\(.applicationName)记一句", "\(.applicationName)记一句", "用\(.applicationName)说一句"],
             shortTitle: "记一句",
             systemImageName: "mic")
+        AppShortcut(
+            intent: RecordMoneyIntent(), phrases: ["用\(.applicationName)记一笔", "\(.applicationName)记一笔"],
+            shortTitle: "记一笔", systemImageName: "yensign.circle")
+        AppShortcut(
+            intent: RecordMoodIntent(), phrases: ["用\(.applicationName)记心情", "\(.applicationName)记心情"],
+            shortTitle: "记心情", systemImageName: "face.smiling")
+        AppShortcut(
+            intent: TodayTodosIntent(), phrases: ["\(.applicationName)今天还有什么待办", "用\(.applicationName)看今天的待办"],
+            shortTitle: "今天的待办", systemImageName: "checklist")
     }
 }
