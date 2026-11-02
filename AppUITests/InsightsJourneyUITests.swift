@@ -22,8 +22,27 @@ final class InsightsJourneyUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(card.waitForExistence(timeout: 15), "感悟没打开")
         pause()
         shot("旅程-1-感悟", of: app.screenshot())
+        revisit(app, card)
+        let row = app.buttons.matching(NSPredicate(format: "identifier MATCHES 'insight\\\\.[0-9]+'")).firstMatch
+        share(app, row)
+        editAndUndo(app, row)
+        search(app)
+        // 记一句：最上面多一张「整理中」（重开一次，从感悟页开始）
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(card.waitForExistence(timeout: 15), "感悟没打开")
+        app.buttons["insights.add"].tap()
+        let text = app.descendants(matching: .any)["insightAdd.text"]
+        XCTAssertTrue(text.waitForExistence(timeout: 3), "记一句没打开")
+        text.typeText("先把一件事做完，再开始下一件。")
+        app.buttons["insightAdd.save"].tap()
+        XCTAssertTrue(app.staticTexts["记下了，收藏成你的语录"].waitForExistence(timeout: 3), "记下了没说")
+        pause()
+        shot("旅程-8-记一句", of: app.screenshot())
+    }
 
-        // 翻过来、翻回来
+    /// 今天重温：翻过来、翻回来；手指往左滑换一句，再点「换一句」
+    @MainActor private func revisit(_ app: XCUIApplication, _ card: XCUIElement) {
         card.tap()
         let back = app.descendants(matching: .any)["insights.revisit.back"]
         XCTAssertTrue(back.waitForExistence(timeout: 3), "没翻过来")
@@ -32,8 +51,6 @@ final class InsightsJourneyUITests: XCTestCase, TodoTesting {
         shot("旅程-2-翻过来", of: app.screenshot())
         back.tap()
         XCTAssertTrue(card.waitForExistence(timeout: 3), "没翻回来")
-
-        // 手指往左滑：换一句；再点「换一句」
         let first = card.label
         card.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5))
             .press(forDuration: 0.05, thenDragTo: card.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.5)))
@@ -43,9 +60,10 @@ final class InsightsJourneyUITests: XCTestCase, TodoTesting {
         let second = card.label
         app.buttons["insights.revisit.next"].tap()
         XCTAssertTrue(waitFor(card, labelChangesFrom: second), "换一句没换")
+    }
 
-        // 按住第一张：分享成图片，三种样子，拷贝
-        let row = app.buttons.matching(NSPredicate(format: "identifier MATCHES 'insight\\\\.[0-9]+'")).firstMatch
+    /// 按住第一张：分享成图片，三种样子，拷贝
+    @MainActor private func share(_ app: XCUIApplication, _ row: XCUIElement) {
         app.reveal(row)
         row.press(forDuration: 1.0)
         XCTAssertTrue(app.buttons["分享成图片"].waitForExistence(timeout: 3), "按住没出菜单")
@@ -59,8 +77,11 @@ final class InsightsJourneyUITests: XCTestCase, TodoTesting {
         }
         app.buttons["share.copy"].tap()
         XCTAssertTrue(app.staticTexts["拷贝好了，去微信里粘贴"].waitForExistence(timeout: 3), "拷贝了没说")
+    }
 
-        // 一条感悟：原话、以前也说过类似的（真服务器给的）；加个标签、好了、撤销
+    /// 一条感悟：原话、以前也说过类似的（真服务器给的）；加个标签、好了、撤销——语录的句数不变
+    /// （改字、改标签不会让「记一句」记的掉出语录，服务器 2026-11-02 修的）
+    @MainActor private func editAndUndo(_ app: XCUIApplication, _ row: XCUIElement) {
         let starred = app.buttons["insights.filter.starred"]
         let quotes = starred.label
         app.reveal(row)
@@ -77,12 +98,13 @@ final class InsightsJourneyUITests: XCTestCase, TodoTesting {
         done.tap()
         XCTAssertTrue(app.staticTexts["改好了"].waitForExistence(timeout: 3), "改好了没说")
         app.buttons["undoToast"].tap()
-        // 改字、改标签不会让「记一句」记的掉出语录（服务器 2026-11-02 修的）
         pause()
         app.swipeDown(velocity: .fast)
         XCTAssertTrue(waitFor(starred, labelContains: quotes), "改了一下语录的句数变了：\(starred.label)，原来 \(quotes)")
+    }
 
-        // 按意思搜：「早点睡」，字面上没有的也找到
+    /// 按意思搜：「早点睡」，字面上没有的也找到
+    @MainActor private func search(_ app: XCUIApplication) {
         let search = app.searchFields.firstMatch
         app.swipeDown(velocity: .fast)
         search.tap()
@@ -91,19 +113,6 @@ final class InsightsJourneyUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(found.waitForExistence(timeout: 8), "搜不出来")
         pause()
         shot("旅程-7-按意思搜", of: app.screenshot())
-
-        // 记一句：最上面多一张「整理中」（重开一次，从感悟页开始）
-        app.terminate()
-        app.launch()
-        XCTAssertTrue(card.waitForExistence(timeout: 15), "感悟没打开")
-        app.buttons["insights.add"].tap()
-        let text = app.descendants(matching: .any)["insightAdd.text"]
-        XCTAssertTrue(text.waitForExistence(timeout: 3), "记一句没打开")
-        text.typeText("先把一件事做完，再开始下一件。")
-        app.buttons["insightAdd.save"].tap()
-        XCTAssertTrue(app.staticTexts["记下了，收藏成你的语录"].waitForExistence(timeout: 3), "记下了没说")
-        pause()
-        shot("旅程-8-记一句", of: app.screenshot())
     }
 
     @MainActor private func waitFor(_ element: XCUIElement, labelChangesFrom label: String) -> Bool {
