@@ -2,74 +2,16 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 笔记库（规格 11）：所有原话，新的在前；能搜、按时间、类别、人物筛；
-/// 每段原话下面是它整理出的记录和处理状态；能原地改（自动重新整理）、删。
-/// 「好时刻」是你说过觉得好的那一刻（感悟 3.0 第 5 步搬成了自己的一页）
-struct LibraryPage: View {
-    @Environment(AppModel.self) private var model
-    @State private var view: String
-    /// 从一条来源原话跳过来（回顾、详情里的「原话」）：从那一段开始往前看
-    @State private var focus: Int?
-    /// 从「关于我」跳过来带着的人物
-    @State private var tag: String
-
-    /// 3.0 外壳（第 1 步）：地址里带着的（「/library?note=12」「/library?view=moments」「/library?tag=小王」）
-    init(ask: LibraryAsk) {
-        _view = State(initialValue: ask.view)
-        _focus = State(initialValue: ask.note)
-        _tag = State(initialValue: ask.tag)
-    }
-
-    private static let views = [
-        (key: "notes", label: "原话"), (key: "moments", label: "好时刻"),
-    ]
-
-    var body: some View {
-        ScrollViewReader { proxy in
-            page { id in withAnimation(Web.panel) { proxy.scrollTo(id, anchor: .center) } }
-        }
-    }
-
-    private func page(reveal: @escaping (Int) -> Void) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("笔记库").font(Web.title).foregroundStyle(Web.fg).accessibilityAddTraits(.isHeader)
-                WebSegmented("视图", options: Self.views, selected: view) { picked in
-                    withAnimation(Web.fast) { view = picked }
-                }
-                .padding(.top, Web.space4)
-                switch view {
-                case "moments": MomentsView { open(note: $0) }
-                default: NotesView(focus: $focus, tag: $tag, reveal: reveal)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, Web.space4)
-            .padding(.top, Web.space4)
-            .padding(.bottom, Web.space12)
-        }
-        .scrollDismissesKeyboard(.interactively)
-    }
-
-    /// 「原话」：回到原话那一栏，从那一段开始看
-    private func open(note id: Int) {
-        withAnimation(Web.fast) {
-            view = "notes"
-            focus = id
-        }
-    }
-}
-
 /// 一个月一组的标题（「2026年10月」）：感悟、好时刻按月分组
 struct LibraryMonth: View {
     let title: String
 
     var body: some View {
-        Text(title).font(Web.body).foregroundStyle(Web.fg)
+        Text(title).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.bottom, Web.space2)
-            .overlay(alignment: .bottom) { Rectangle().fill(Web.line).frame(height: 1) }
-            .padding(.bottom, Web.space1)
+            .padding(.bottom, Theme.Space.small)
+            .overlay(alignment: .bottom) { Rectangle().fill(Theme.Palette.separator).frame(height: 1) }
+            .padding(.bottom, Theme.Space.tight)
             .accessibilityAddTraits(.isHeader)
     }
 
@@ -108,27 +50,29 @@ struct MomentsView: View {
                     content(moments)
                 }
             } else if let problem {
-                WebErrorState(problem) { Task { await load() } }.padding(.top, Web.space6)
+                ErrorState(problem.contains("连") ? .serverOff : .other) { Task { await load() } }.padding(
+                    .top, Theme.Space.xLarge)
             } else {
-                WebSkeleton(height: Web.space16).padding(.top, Web.space6)
+                SkeletonBlock(height: (Theme.Space.section * 2)).padding(.top, Theme.Space.xLarge)
             }
         }
         .task(id: model.dataVersion) { await load() }
     }
 
     private func content(_ moments: [API.Moment]) -> some View {
-        VStack(alignment: .leading, spacing: Web.space8) {
-            Text("你说过觉得好的那一刻。心情是 AI 听出来的，点开可以改。").font(Web.caption).foregroundStyle(Web.fgTertiary)
-            VStack(alignment: .leading, spacing: Web.space12) {
+        VStack(alignment: .leading, spacing: Theme.Space.section) {
+            Text("你说过觉得好的那一刻。心情是 AI 听出来的，点开可以改。").font(Theme.Typeface.footnote).foregroundStyle(
+                Theme.Palette.secondaryLabel)
+            VStack(alignment: .leading, spacing: (Theme.Size.touch + Theme.Space.tight)) {
                 ForEach(LibraryMonth.group(moments, day: \.entry.day), id: \.month) { group in
-                    VStack(alignment: .leading, spacing: Web.space8) {
+                    VStack(alignment: .leading, spacing: Theme.Space.section) {
                         LibraryMonth(title: group.month)
                         ForEach(group.items) { moment($0) }
                     }
                 }
             }
         }
-        .padding(.top, Web.space6)
+        .padding(.top, Theme.Space.xLarge)
     }
 
     @ViewBuilder private func moment(_ item: API.Moment) -> some View {
@@ -136,17 +80,19 @@ struct MomentsView: View {
             let emotions = mood.emotions.reduce(into: [String]()) {
                 if !$0.contains($1) && $0.count < 3 { $0.append($1) }
             }
-            VStack(alignment: .leading, spacing: Web.space2) {
+            VStack(alignment: .leading, spacing: Theme.Space.small) {
                 Button {
                     model.openEntry(item.entry.id, day: item.entry.day)
                 } label: {
-                    EssayQuote(text: mood.moment ?? "").padding(.vertical, Web.space1).padding(.horizontal, Web.space2)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
+                    EssayQuote(text: mood.moment ?? "").padding(.vertical, Theme.Space.tight).padding(
+                        .horizontal, Theme.Space.small
+                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(Rectangle())
                 }
-                .buttonStyle(WebPressStyle(radius: Web.radiusControl))
-                .padding(.horizontal, -Web.space2)
-                PourFlowLayout(spacing: Web.space2, lineSpacing: Web.space1) {
+                .buttonStyle(.plain)
+                .padding(.horizontal, -Theme.Space.small)
+                PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.tight) {
                     Text(Show.monthDay(item.entry.day))
                     Text("·")
                     Text(Show.moodWord(mood.mood))
@@ -155,10 +101,10 @@ struct MomentsView: View {
                         Text(emotions.joined(separator: "、"))
                     }
                     if let note = item.noteId {
-                        WebTextButton("原话", font: Web.captionMedium) { openNote(note) }
+                        LinkButton("原话", font: Theme.Typeface.footnoteSemibold) { openNote(note) }
                     }
                 }
-                .font(Web.caption).foregroundStyle(Web.fgTertiary)
+                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
         }
     }
@@ -178,10 +124,12 @@ struct EssayQuote: View {
     let text: String
 
     var body: some View {
-        Text(Show.spaced(text)).font(Web.section).foregroundStyle(Web.fg).lineSpacing(Web.essayLineSpacing)
-            .padding(.leading, Web.space3)
-            .overlay(alignment: .leading) { Rectangle().fill(Web.lineStrong).frame(width: Web.space1 / 2) }
-            .frame(maxWidth: .infinity, alignment: .leading)
+        Text(Show.spaced(text)).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label).lineSpacing(
+            Theme.Leading.quote
+        )
+        .padding(.leading, Theme.Space.medium)
+        .overlay(alignment: .leading) { Rectangle().fill(Theme.Palette.separator).frame(width: Theme.Space.tight / 2) }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -190,6 +138,7 @@ struct LibraryEmpty: View {
     let text: String
 
     var body: some View {
-        Text(text).font(Web.body).foregroundStyle(Web.fgTertiary).padding(.top, Web.space6)
+        Text(text).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel).padding(
+            .top, Theme.Space.xLarge)
     }
 }

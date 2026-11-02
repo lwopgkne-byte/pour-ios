@@ -9,13 +9,14 @@ struct PeekRow<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Web.space4) {
-            Text(label).font(Web.body).foregroundStyle(Web.fg)
-            Spacer(minLength: Web.space2)
-            content().font(Web.body).foregroundStyle(Web.fgSecondary).multilineTextAlignment(.trailing)
+        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.regular) {
+            Text(label).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+            Spacer(minLength: Theme.Space.small)
+            content().font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel).multilineTextAlignment(
+                .trailing)
         }
-        .padding(.vertical, Web.space2)
-        .frame(minHeight: Web.touch)
+        .padding(.vertical, Theme.Space.small)
+        .frame(minHeight: Theme.Size.touch)
     }
 }
 
@@ -38,9 +39,9 @@ struct InlineEdit: View {
 
     var body: some View {
         if editing {
-            VStack(alignment: .trailing, spacing: Web.space1) {
+            VStack(alignment: .trailing, spacing: Theme.Space.tight) {
                 TextField(label, text: $text)
-                    .font(Web.body).foregroundStyle(Web.fg)
+                    .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                     .multilineTextAlignment(.trailing)
                     .keyboardType(keyboard)
                     // 地址不要自动大写、不要自动改
@@ -48,22 +49,24 @@ struct InlineEdit: View {
                     .autocorrectionDisabled(keyboard == .URL)
                     .submitLabel(.done)
                     .focused($focused)
-                    .padding(.horizontal, Web.space2)
-                    .frame(minHeight: Web.control)
+                    .padding(.horizontal, Theme.Space.small)
+                    .frame(minHeight: Theme.Size.capsule)
                     .overlay(
-                        RoundedRectangle(cornerRadius: Web.radiusControl).strokeBorder(
-                            problem == nil ? Web.lineStrong : Web.danger, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: Theme.Corner.tile).strokeBorder(
+                            problem == nil ? Theme.Palette.separator : Theme.Palette.bad, lineWidth: 1)
                     )
                     .onSubmit(commit)
                     .onChange(of: focused) { _, now in if !now { commit() } }
-                if let problem { Text(problem).font(Web.caption).foregroundStyle(Web.danger) }
+                if let problem { Text(problem).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.bad) }
             }
             .onAppear { focused = true }
         } else {
             // 看起来是一段字；能点的范围至少 44×44，不另占地方
             Text(Show.spaced(display ?? (value.isEmpty ? placeholder : value)))
-                .foregroundStyle(value.isEmpty && display == nil ? Web.fgTertiary : Web.fgSecondary)
-                .frame(minHeight: Web.touch)
+                .foregroundStyle(
+                    value.isEmpty && display == nil ? Theme.Palette.secondaryLabel : Theme.Palette.secondaryLabel
+                )
+                .frame(minHeight: Theme.Size.touch)
                 .accessibilityHidden(true)
                 .overlay {
                     Button {
@@ -71,7 +74,8 @@ struct InlineEdit: View {
                         problem = nil
                         editing = true
                     } label: {
-                        Color.clear.frame(minWidth: Web.touch, minHeight: Web.touch).contentShape(Rectangle())
+                        Color.clear.frame(minWidth: Theme.Size.touch, minHeight: Theme.Size.touch).contentShape(
+                            Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text("修改\(label)"))
@@ -102,8 +106,9 @@ struct PeekSection<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space2) {
-            Text(title).font(Web.captionMedium).foregroundStyle(Web.fgSecondary).accessibilityAddTraits(.isHeader)
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            Text(title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
+                .accessibilityAddTraits(.isHeader)
             content()
         }
     }
@@ -117,24 +122,24 @@ struct Sparkline: View {
 
     var body: some View {
         let max = Swift.max(trend.points.compactMap(\.value).max() ?? 1, 1)
-        HStack(alignment: .bottom, spacing: Web.space2) {
+        HStack(alignment: .bottom, spacing: Theme.Space.small) {
             ForEach(trend.points, id: \.day) { point in
-                VStack(spacing: Web.space1) {
+                VStack(spacing: Theme.Space.tight) {
                     GeometryReader { proxy in
                         ZStack(alignment: .bottom) {
                             if trend.unit == "mood" {
                                 ForEach(Array((point.values ?? []).enumerated()), id: \.offset) { index, level in
-                                    Circle().fill(Web.tag("pink").solid)
-                                        .frame(width: Web.space2, height: Web.space2)
+                                    Circle().fill(Theme.tag("pink").solid)
+                                        .frame(width: Theme.Space.small, height: Theme.Space.small)
                                         .opacity(point.day == today ? 1 : 0.45)
                                         .offset(
                                             x: (CGFloat(index) - CGFloat((point.values ?? []).count - 1) / 2)
-                                                * Web.space2,
-                                            y: -(proxy.size.height - Web.space2) * (level - 1) / 4)
+                                                * Theme.Space.small,
+                                            y: -(proxy.size.height - Theme.Space.small) * (level - 1) / 4)
                                 }
                             } else if let value = point.value {
                                 UnevenRoundedRectangle(
-                                    topLeadingRadius: Web.radiusControl, topTrailingRadius: Web.radiusControl
+                                    topLeadingRadius: Theme.Corner.tile, topTrailingRadius: Theme.Corner.tile
                                 )
                                 .fill(color)
                                 .frame(height: Swift.max(proxy.size.height * 0.06, proxy.size.height * value / max))
@@ -142,13 +147,14 @@ struct Sparkline: View {
                             }
                         }
                         .frame(width: proxy.size.width, height: proxy.size.height, alignment: .bottom)
-                        .overlay(alignment: .bottom) { Rectangle().fill(Web.line).frame(height: 1) }
+                        .overlay(alignment: .bottom) { Rectangle().fill(Theme.Palette.separator).frame(height: 1) }
                     }
-                    Text("\(Int(point.day.suffix(2)) ?? 0)").font(Web.caption).foregroundStyle(Web.fgTertiary)
+                    Text("\(Int(point.day.suffix(2)) ?? 0)").font(Theme.Typeface.footnote).foregroundStyle(
+                        Theme.Palette.secondaryLabel)
                 }
             }
         }
-        .frame(height: Web.space16 + Web.space4)
+        .frame(height: (Theme.Space.section * 2) + Theme.Space.regular)
         .accessibilityElement()
         .accessibilityLabel(Text("最近 7 天的\(trend.label)"))
     }

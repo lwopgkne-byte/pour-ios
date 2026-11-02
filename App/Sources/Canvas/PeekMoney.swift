@@ -48,7 +48,7 @@ struct MetricMoneyRows: View {
             reimburse
             ? (settled ? "已报销 · 改为还没报" : "还没报 · 标记为已报销") : (settled ? "已还 · 改为还没还" : "还没还 · 标记为已还")
         return PeekRow(label: reimburse ? "报销" : "还了没") {
-            WebTextButton(title) {
+            LinkButton(title, font: Theme.Typeface.body) {
                 model.settle([.init(entryId: entry.id, index: index)], settled: !settled, said: nil)
             }
         }
@@ -68,14 +68,14 @@ struct EventMoneyRows: View {
     var body: some View {
         if let renqing = event.renqing {
             PeekRow(label: "人情") {
-                PourFlowLayout(spacing: Web.space2, lineSpacing: 0) {
+                PourFlowLayout(spacing: Theme.Space.small, lineSpacing: 0) {
                     Text(words(renqing))
                     ForEach(counterparts, id: \.self) { name in
-                        WebTextButton("和\(name)的来往 ›", font: Web.body, color: Web.fgSecondary) {
+                        LinkButton("和\(name)的来往 ›", font: Theme.Typeface.body) {
                             navigate("/money/renqing/\(name)")
                         }
                     }
-                    WebTextButton("不算人情", font: Web.body, color: Web.fgSecondary) {
+                    LinkButton("不算人情", font: Theme.Typeface.body) {
                         model.update(entry.id, ["renqing": .null])
                     }
                 }
@@ -84,7 +84,7 @@ struct EventMoneyRows: View {
         let bought = (event.metrics ?? []).contains { $0.unit == "元" && $0.name == "花费" }
         if !(event.things ?? []).isEmpty && bought {
             PeekRow(label: "这样东西") {
-                WebTextButton("用了几次、每次多少钱 ›", font: Web.body, color: Web.fgSecondary) {
+                LinkButton("用了几次、每次多少钱 ›", font: Theme.Typeface.body) {
                     navigate("/money/thing/\(entry.id)")
                 }
             }

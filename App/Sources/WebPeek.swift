@@ -11,35 +11,37 @@ struct WebPeek<Content: View>: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: Web.space2) {
-                Text(Show.spaced(title)).font(Web.sectionSemibold).foregroundStyle(Web.fg).lineLimit(2)
+            HStack(spacing: Theme.Space.small) {
+                Text(Show.spaced(title)).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label).lineLimit(2)
                     .accessibilityAddTraits(.isHeader)
                 Spacer(minLength: 0)
                 Button {
                     dismiss()
                 } label: {
-                    Image(systemName: "xmark").font(Web.section).foregroundStyle(Web.fgSecondary)
-                        .frame(width: Web.touch, height: Web.touch).contentShape(Rectangle())
+                    Image(systemName: "xmark").font(Theme.Typeface.section).foregroundStyle(
+                        Theme.Palette.secondaryLabel
+                    )
+                    .frame(width: Theme.Size.touch, height: Theme.Size.touch).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text("关闭"))
             }
-            .padding(.leading, Web.space4)
-            .padding([.trailing, .vertical], Web.space2)
-            .frame(minHeight: Web.header)
+            .padding(.leading, Theme.Space.regular)
+            .padding([.trailing, .vertical], Theme.Space.small)
+            .frame(minHeight: Theme.Size.touch + Theme.Space.tight)
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) { content() }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, Web.space4)
-                    .padding(.bottom, Web.space6)
+                    .padding(.horizontal, Theme.Space.regular)
+                    .padding(.bottom, Theme.Space.xLarge)
             }
             .scrollDismissesKeyboard(.interactively)
         }
-        .background(Web.bg)
+        .background(Theme.Palette.card)
         .presentationDetents([.fraction(0.6), .large])
-        .presentationCornerRadius(Web.radiusPanel)
+        .presentationCornerRadius(Theme.Corner.chip)
         .presentationDragIndicator(.visible)
         .preferredColorScheme(.light)
-        .tint(Web.accent)
+        .tint(Theme.Palette.accent)
     }
 }

@@ -12,14 +12,14 @@ struct AnswerView: View {
     private var sources: [API.AnswerSource] { answer.sources ?? [] }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space3) {
+        VStack(alignment: .leading, spacing: Theme.Space.medium) {
             ForEach(Array(Self.blocks(answer.text).enumerated()), id: \.offset) { _, block in
                 switch block {
                 case .paragraph(let line): Text(inline(line))
                 case .list(let lines):
-                    VStack(alignment: .leading, spacing: Web.space1) {
+                    VStack(alignment: .leading, spacing: Theme.Space.tight) {
                         ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
-                            HStack(alignment: .firstTextBaseline, spacing: Web.space2) {
+                            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
                                 Text("•").accessibilityHidden(true)
                                 Text(inline(line))
                             }
@@ -27,7 +27,7 @@ struct AnswerView: View {
                     }
                 }
             }
-            .font(Web.body).foregroundStyle(Web.fg)
+            .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
             .environment(
                 \.openURL,
                 OpenURLAction { url in
@@ -36,13 +36,13 @@ struct AnswerView: View {
                 })
             ForEach(Array((answer.charts ?? []).enumerated()), id: \.offset) { _, chart in ChartCard(spec: chart) }
             ForEach(answer.reports ?? [], id: \.id) { report in
-                WebTextButton("查看完整报告：\(report.title)") { openReport(report.id) }
+                LinkButton("查看完整报告：\(report.title) ›", font: Theme.Typeface.body) { openReport(report.id) }
             }
             if !sources.isEmpty {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(Array(sources.enumerated()), id: \.offset) { index, item in sourceRow(index, item) }
                 }
-                .padding(.top, Web.space1)
+                .padding(.top, Theme.Space.tight)
             }
         }
     }
@@ -51,20 +51,26 @@ struct AnswerView: View {
         Button {
             openNote(source.noteId)
         } label: {
-            HStack(spacing: Web.space2) {
-                Text("\(index + 1)").font(Web.caption).foregroundStyle(Web.fgSecondary).monospacedDigit()
-                    .frame(minWidth: Web.space4 + Web.space1, minHeight: Web.space4 + Web.space1)
-                    .background(Circle().fill(Web.bgSubtle))
-                Text(source.text).font(Web.caption).foregroundStyle(Web.fgSecondary)
+            HStack(spacing: Theme.Space.small) {
+                Text("\(index + 1)").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .monospacedDigit()
+                    .frame(
+                        minWidth: Theme.Space.regular + Theme.Space.tight,
+                        minHeight: Theme.Space.regular + Theme.Space.tight
+                    )
+                    .background(Circle().fill(Theme.Palette.fill))
+                Text(source.text).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                     .lineLimit(typeSize > .large ? nil : 1)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text(Show.dayTitle(source.day, today: model.today)).font(Web.caption).foregroundStyle(Web.fgTertiary)
-                    .fixedSize()
+                Text(Show.dayTitle(source.day, today: model.today)).font(Theme.Typeface.footnote).foregroundStyle(
+                    Theme.Palette.secondaryLabel
+                )
+                .fixedSize()
             }
-            .frame(minHeight: Web.touch)
+            .frame(minHeight: Theme.Size.touch)
             .contentShape(Rectangle())
         }
-        .buttonStyle(WebPressStyle(radius: Web.radiusControl))
+        .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
         .accessibilityHint(Text("在笔记库里看这段原话"))
     }
@@ -101,12 +107,12 @@ struct AnswerView: View {
             out += AttributedString(Show.spaced(String(rest[..<match.range.lowerBound])))
             if let bold = match.output.1 {
                 var part = AttributedString(Show.spaced(String(bold)))
-                part.font = Web.bodySemibold
+                part.font = Theme.Typeface.bodySemibold
                 out += part
             } else if let cited = match.output.2, let id = Int(cited), let number = order.firstIndex(of: id) {
                 var part = AttributedString(" \(number + 1) ")
-                part.font = Web.captionMedium
-                part.foregroundColor = Web.accent
+                part.font = Theme.Typeface.footnoteSemibold
+                part.foregroundColor = Theme.Palette.accent
                 part.link = URL(string: "pour://note/\(id)")
                 out += part
             }
