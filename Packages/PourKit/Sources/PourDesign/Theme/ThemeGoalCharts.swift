@@ -142,6 +142,23 @@ public struct WeekBarsChart: View {
     let caption: (Int) -> String
     @State private var picked: Int?
 
+    /// 柱子占一格的 62%：左右各一半
+    static let half = 0.31
+
+    /// 一根柱子。横轴是数（按住选哪一周要用数），按比例的宽度在数的轴上没有「一格」可比，画出来是 0 宽：
+    /// 每根柱子自己写左右两边
+    private func column(_ index: Int, _ bar: Bar, shown: Int) -> some ChartContent {
+        let left = Double(index) - Self.half
+        let right = Double(index) + Self.half
+        let color = tint.opacity(Self.strength(index == shown, current: bar.current))
+        return RectangleMark(
+            xStart: .value("哪一周", left), xEnd: .value("哪一周", right), yStart: .value("多少", 0.0),
+            yEnd: .value("多少", bar.value)
+        )
+        .foregroundStyle(color)
+        .clipShape(RoundedRectangle(cornerRadius: Theme.Corner.bar))
+    }
+
     /// 按住的那一根最深，这周到今天的浅一点
     static func strength(_ picked: Bool, current: Bool) -> Double {
         if picked { return 1 }
@@ -163,9 +180,7 @@ public struct WeekBarsChart: View {
                 .accessibilityIdentifier("goal.bars.caption")
             Chart {
                 ForEach(Array(bars.enumerated()), id: \.offset) { index, bar in
-                    BarMark(x: .value("哪一周", index), y: .value("多少", bar.value), width: .ratio(0.62))
-                        .foregroundStyle(tint.opacity(Self.strength(index == shown, current: bar.current)))
-                        .clipShape(RoundedRectangle(cornerRadius: Theme.Corner.bar))
+                    column(index, bar, shown: shown)
                 }
                 if let line {
                     RuleMark(y: .value("目标", line)).foregroundStyle(Theme.Palette.tertiaryLabel)
