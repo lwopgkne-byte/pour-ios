@@ -25,11 +25,13 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 | `App/Sources/Todos/`、`AppModel+Todos.swift` | 3.0 待办：待办页（系统的 `List`：左右滑、按住的菜单）、今天的时间线、加待办 / 详情 / 推迟到三个弹层（挂在外壳上，`model.todoSheet`）；`TodoBoard` 照服务器的规矩分组、挪行，勾掉的留在原地（`todoHeld`）；通知上的按钮和后台刷新（`TodoNotifications`） |
 | `App/Sources/Money/`、`AppModel+Money.swift` | 3.0 钱：主页（`Home/MoneyHomePage`，`/api/money/home` 一次拿全）、记一笔（数字键盘弹层，`model.keypadOpen`）、一笔的详情（弹层，挂在外壳上，`model.moneyDetail`）、每一笔（系统的 `List`：搜索、左滑、按住的菜单）、留意的、人情往来、和 TA 的来往、一样东西、一天的钱；数字键盘记了、还在整理的几笔（`moneyPending`，先显示「整理中」）；打开钱要面容 ID（`MoneyLock`） |
 | `App/Sources/Review/`、`AppModel+Review.swift` | 3.0 回顾：回顾页（`ReviewListPage`，`/api/review?kind=` 三段、需要留意）；全屏的故事（`Story/`，挂在外壳上，`model.review.story`；画布「昨天的回顾好了」、对话里的回顾也打开它）；「看整页」的每日回顾、周报月报长页面（`/review/2026-10-18`、`/review/week/…`、`/review/month/…`）；还没收尾的、自动检查的几个动作在 `AppModel+Review` |
+| `App/Sources/Goals3/`、`AppModel+Goals3.swift` | 3.0 目标：首页（`/goals`，`/api/goals/home` 一次拿全：这周一句话、每周回顾那一行、我在乎的、按我在乎的分组一行一个、坚持、做到的 · 放下的；按住菜单、左滑暂停）、一个目标（`/goals/4`）、坚持和预算两页（`/goals/streaks`、`/goals/budgets`）、我在乎的一块（`/goals/care/health`）；定目标、花 1 分钟想清楚、聊聊怎么调、每周回顾四个弹层（挂在外壳上，`model.goals.sheet`）；目标的通知（「如果就」、每周回顾、先停一个月回来的前一天）照服务器的单子手机自己排（`GoalReminders` + PourPlatform 的 `GoalNotices`），「到家的时候」的家只存在手机上（`HomePlace`） |
 | `App/Sources/SerifFont.swift` | 宋体按需下载：iPhone 上的宋体是系统按需下载的，打开 App 时没有就请系统下（没下好时宋体的字退回黑体） |
 | `App/Sources/Insights/`、`AppModel+Insights.swift` | 3.0 感悟：感悟页（`/insights`，以前的 `/library?view=insights`；今天重温 `/api/insights/today`、点了翻过来）、记一句 / 一条感悟 / 分享成图片三个弹层（挂在外壳上，`model.insight.sheet`）；点过的星、改过的字、删掉的先改界面再发（`model.insight`）；记一句记了、还在整理的那句先放在最上面（「整理中」） |
 | `App/Sources/Mood/`、`AppModel+Mood.swift` | 3.0 心情：心情页（`/mood`，`/api/mood/page` 一次拿全）、记心情和一条心情两个弹层（挂在外壳上，`model.mood`）、心情分析（`/mood/analysis`，以前的 `/about/mood`）、好时刻（`/mood/moments`）；晚上问一句（`MoodEvening` + PourPlatform 的 `EveningMood`）；小组件「记心情」在 `Extensions/WidgetViews/MoodCheckinIntent.swift` |
 | `App/Sources/Canvas/` | 生活画布、输入框（斜杠命令）、对话面板、记录详情（原地改、最近 7 天、相关目标、来源原话）、时间轴、类别卡片 |
-| `App/Sources/Review/`、`About/`、`Goals/`、`Library/`、`Search/`、`Settings/` | 各页（还没重做的用 `Web.*`；`About/AboutLegacyParts.swift` 是钱的旧部件，第 8 步一起换掉） |
+| `App/Sources/Goals/` | 旧目标页留下的三样：「一项一项填」的表单（`GoalForm`，定目标弹层里用）、选类别（`CategoryPicker`）、记录详情里的小进度条（`GoalBar`、`ToneDot`）；第 9 步重做记录详情时换掉 |
+| `App/Sources/Review/`、`About/`、`Library/`、`Search/`、`Settings/` | 各页（还没重做的用 `Web.*`；`About/AboutLegacyParts.swift` 是钱的旧部件，第 8 步一起换掉） |
 | `App/Sources/PinGate.swift`、`ServerConfiguration.swift` | 要 PIN 时整个 App 先显示的那一页；服务器地址（设置里改过的存在钥匙串，没有就用 Info.plist 的 `PourServerURL`） |
 | `App/Sources/WebPeek.swift` | 从底部滑出的详情层 |
 | `Packages/PourKit/Sources/PourAPI/PageCache.swift` | 页面缓存：每个页面接口最后一次的回复存在手机上（按服务器分开），没连上时拿它顶上；换真实 / 演示数据清掉 |
@@ -38,7 +40,7 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 | `PourDesign/Theme/` | **唯一的设计系统**（[ADR A26](ADR/A26-一套设计系统.md)）：生活画布 2.0 起的令牌（`Theme.Palette`、`Theme.Space`、`Theme.Corner`、`Theme.Motion`……）和组件；`ColorToken.swift` 是颜色值和对比度计算 |
 | `PourDesign/Web.swift`、`WebControls.swift`、`WebParts.swift` | 还没重做的页面暂时用的令牌 `Web.*` 和组件（`WebButton`、`WebSwitch`、`WebSegmented`……）：3.0 每重做一块就换掉那一块的，全部做完删掉 |
 | `PourCore/` | 日期、钟点、`Math.round` 的规则（和服务器对拍：`fixtures/golden/`）、中文和数字之间的空 |
-| `PourPlatform/` | 待办的系统通知（`Reminder`、`Reminders`：排、撤、通知上的四个按钮、通知开着没有）、钥匙串、和扩展共用的存储、健康、日历、语音 |
+| `PourPlatform/` | 待办的系统通知（`Reminder`、`Reminders`：排、撤、通知上的四个按钮、通知开着没有）、目标的系统通知（`GoalNotices`：每周几天各一个重复的、一次的、到家的时候）、钥匙串、和扩展共用的存储、健康、日历、语音 |
 | `AppUITests/` | 每一页的界面测试；`AppAudit.swift` 是无障碍审计和它的例外 |
 | `scripts/` | `bootstrap.sh` 准备环境、`check.sh` 检查、`install-device.sh` 装到手机、`simulator.py` 选模拟器、`tour-shots.sh` 全部页面截图（每页拼一张长图）、几个检查脚本 |
 

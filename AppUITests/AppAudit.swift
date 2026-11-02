@@ -218,18 +218,21 @@ enum AppAudit {
         if type == .textClipped, place.oneLine { return "本来就是一行" }
         // 会换行的字一律被报截断（testAuditProbeStillMisreportsWrappedText）
         if type == .textClipped && frame.height >= 30 { return "审计自己的毛病" }
-        // 带全角括号的一行字一律被报截断（testAuditProbeParentheses）
-        if type == .textClipped && (label.contains("（") || label.contains("）")) { return "审计自己的毛病" }
+        // 带全角括号、书名号、引号的一行字一律被报截断（testAuditProbeParentheses；《》「」排版时被挤窄，同一个毛病；
+        // 宋体下好以后（2026-11-02 起「Pour 检查」那台也有了）宋体原话的「」最明显）
+        if type == .textClipped && ["（", "）", "《", "》", "「", "」"].contains(where: label.contains) {
+            return "审计自己的毛病"
+        }
         return nil
     }
 
     /// 页面滚到输入框、顶栏、对话面板上沿后面，只露出一截：量出来的对比度、截断都不准；滚出来以后照样审
     private static func edge(type: XCUIAccessibilityAuditType, frame: CGRect, place: Place) -> String? {
-        guard [.textClipped, .contrast].contains(type) else { return nil }
-        // 压在底部输入框下面的（页面滚到它后面了）：露出来的那一截量不准；滚上来以后照样审
-        if let top = place.barTop, frame.maxY > top {
+        // 压在底部输入框下面的（页面滚到它后面了）：露出来的那一截量不准，点的地方也只剩一截；滚上来以后照样审
+        if let top = place.barTop, frame.maxY > top, [.textClipped, .contrast, .hitRegion].contains(type) {
             return "在输入框后面"
         }
+        guard [.textClipped, .contrast].contains(type) else { return nil }
         if let bottom = place.headerBottom, frame.minY < bottom {
             return "在顶栏后面"
         }

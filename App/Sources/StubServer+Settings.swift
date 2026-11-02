@@ -70,6 +70,7 @@
                 "dnd": ["enabled": true, "from": "23:00", "to": "07:00"] as [String: Any],
                 "bedtime": "00:00", "channels": ["serverchan": true, "bark": true],
                 "keys": ["serverchan": NSNull(), "bark": NSNull()] as [String: Any],
+                "review": ["enabled": true, "weekday": 6, "time": "20:00"] as [String: Any],
             ]
         }
 

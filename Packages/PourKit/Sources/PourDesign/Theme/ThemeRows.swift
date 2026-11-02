@@ -296,9 +296,13 @@ public struct ThemeToast: View {
         HStack(spacing: Theme.Space.medium) {
             Text(message).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
             if let action {
-                Button(action, action: perform).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.accent)
-                    .buttonStyle(.plain).frame(minHeight: Theme.Size.touch)
-                    .accessibilityIdentifier("undoToast")
+                // 点的地方撑在按钮里面（撑在外面读屏和审计还是按字的大小算）
+                Button(action: perform) {
+                    Text(action).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.accent)
+                        .frame(minWidth: Theme.Size.touch, minHeight: Theme.Size.touch).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("undoToast")
             }
         }
         .padding(.horizontal, Theme.Space.regular)

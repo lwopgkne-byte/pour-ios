@@ -17,7 +17,8 @@ enum TodoNotifications {
     @MainActor
     static func listen() {
         Reminders.listen(
-            { action, id in await handle(action, id) }, mood: { answer in await MoodEvening.handle(answer) })
+            { action, id in await handle(action, id) }, mood: { answer in await MoodEvening.handle(answer) },
+            open: { path in await MainActor.run { QuickActions.shared.pendingPath = path } })
     }
 
     static func handle(_ action: Reminders.Action, _ id: Int) async {
@@ -76,12 +77,21 @@ enum TodoNotifications {
         }
     }
 
-    /// 照服务器的提醒单子重排（拿不到就不动已经排好的）
+    /// 照服务器的提醒单子重排（拿不到就不动已经排好的）：先排目标的（「如果就」、每周回顾、先停一个月回来的前一天，
+    /// 07 开发任务清单 7.6），待办让出目标占的那几个，合起来不超过系统的 64 个
     static func sync(_ client: APIClient) async {
+        var reserved = 0
+        if let goals = try? await client.goalReminders() {
+            let notices = GoalReminders.notices(goals, home: HomePlace.saved)
+            await GoalNotices.sync(notices)
+            reserved = GoalNotices.slots(notices)
+        }
         guard let list = try? await client.todoReminders() else { return }
         await Reminders.sync(
-            list.map { Reminder(id: String($0.id), content: $0.content, time: $0.at, said: $0.said.map(Show.monthDay)) }
-        )
+            list.map {
+                Reminder(id: String($0.id), content: $0.content, time: $0.at, said: $0.said.map(Show.monthDay))
+            },
+            reserved: reserved)
     }
 
     /// 后台刷新（系统挑时候叫醒，大约一小时一次）：重排提醒，再约下一次

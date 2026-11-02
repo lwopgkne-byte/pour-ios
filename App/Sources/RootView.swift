@@ -48,6 +48,7 @@ struct RootView: View {
         @Bindable var model = model
         @Bindable var mood = model.mood
         @Bindable var insight = model.insight
+        @Bindable var goals = model.goals
         @Bindable var review = model.review
         return NavigationStack(path: $model.stack) {
             CanvasView()
@@ -101,7 +102,6 @@ struct RootView: View {
         .animation(Web.panel, value: model.chatOpen)
         .animation(Web.panel, value: model.notice)
         .sheet(item: $model.detail) { ref in EntryPeek(entryId: ref.id, day: ref.day) }
-        .sheet(item: $model.goalDetail) { ref in GoalPeek(goalId: ref.id) }
         // 待办的弹层（3.0 第 2 步）：加待办、详情、推迟到哪——待办页、画布、「我的」、通知都打开这几个
         .sheet(item: $model.todoSheet) { sheet in
             switch sheet {
@@ -118,6 +118,15 @@ struct RootView: View {
         .sheet(item: $mood.detail) { MoodDetailSheet(moment: $0) }
         // 回顾的故事（3.0 第 6 步）：全屏，往下拉、右上角 × 关掉
         .fullScreenCover(item: $review.story) { ReviewStory(ref: $0) }
+        // 目标的弹层（3.0 第 7 步）：定目标、花 1 分钟想清楚、聊聊怎么调、每周回顾
+        .sheet(item: $goals.sheet) { sheet in
+            switch sheet {
+            case .define(let text): GoalDefineSheet(preset: text)
+            case .woop(let id, let step): GoalWoopSheet(goalId: id, only: step)
+            case .grow(let id): GoalGrowSheet(goalId: id)
+            case .weekly: GoalWeeklySheet()
+            }
+        }
         // 感悟的弹层（3.0 第 5 步）：记一句、一条感悟、分享成图片
         .sheet(item: $insight.sheet) { sheet in
             switch sheet {

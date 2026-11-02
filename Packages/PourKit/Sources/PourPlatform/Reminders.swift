@@ -35,8 +35,11 @@ public enum Reminders {
         }
     }
 
-    /// 照现在要提醒的待办重排；已经过了的不排。第一次有要提醒的才问能不能发通知
-    public static func sync(_ items: [Reminder], now: Date = Date(), calendar: Calendar = .current) async {
+    /// 照现在要提醒的待办重排；已经过了的不排。第一次有要提醒的才问能不能发通知。
+    /// reserved 是目标的通知占了几个（GoalNotices.slots），待办少排这么多，合起来不超过系统的 64 个
+    public static func sync(
+        _ items: [Reminder], reserved: Int = 0, now: Date = Date(), calendar: Calendar = .current
+    ) async {
         let center = UNUserNotificationCenter.current()
         let upcoming = items.compactMap { item -> (Reminder, DateComponents)? in
             guard let parts = components(item.time), let date = calendar.date(from: parts), date > now else {
@@ -44,7 +47,7 @@ public enum Reminders {
             }
             return (item, parts)
         }
-        .prefix(limit)
+        .prefix(max(0, limit - reserved))
         let ours = await center.pendingNotificationRequests().map(\.identifier).filter { $0.hasPrefix(prefix) }
         center.removePendingNotificationRequests(withIdentifiers: ours)
         guard !upcoming.isEmpty else { return }
@@ -97,11 +100,12 @@ public enum Reminders {
 
     /// 启动时：App 开着的时候到点也弹出来（系统默认不弹）；注册通知上的四个按钮；
     /// 点了按钮、点了通知交给 handler（App 没开着时系统在后台叫醒 App 来做，要在启动完以前设好）
-    /// mood 是晚上问心情的通知上选了什么（EveningMood）
+    /// mood 是晚上问心情的通知上选了什么（EveningMood）；open 是点了目标的通知要打开哪（GoalNotices）
     @MainActor
     public static func listen(
         _ handler: @escaping @Sendable (Action, Int) async -> Void,
-        mood: @escaping @Sendable (EveningMood.Answer) async -> Void = { _ in }
+        mood: @escaping @Sendable (EveningMood.Answer) async -> Void = { _ in },
+        open: @escaping @Sendable (String) async -> Void = { _ in }
     ) {
         let buttons = Action.allCases.compactMap { action in
             action.title.map { UNNotificationAction(identifier: action.rawValue, title: $0, options: []) }
@@ -113,6 +117,7 @@ public enum Reminders {
         ])
         NotificationDelegate.shared.handler.withLock { $0 = handler }
         NotificationDelegate.shared.mood.withLock { $0 = mood }
+        NotificationDelegate.shared.open.withLock { $0 = open }
         center.delegate = NotificationDelegate.shared
     }
 }
@@ -123,6 +128,7 @@ private final class NotificationDelegate: NSObject, UNUserNotificationCenterDele
     static let shared = NotificationDelegate()
     let handler = Mutex<(@Sendable (Reminders.Action, Int) async -> Void)?>(nil)
     let mood = Mutex<(@Sendable (EveningMood.Answer) async -> Void)?>(nil)
+    let open = Mutex<(@Sendable (String) async -> Void)?>(nil)
 
     func userNotificationCenter(
         _ center: UNUserNotificationCenter, willPresent notification: UNNotification,
@@ -136,6 +142,17 @@ private final class NotificationDelegate: NSObject, UNUserNotificationCenterDele
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
         let identifier = response.notification.request.identifier
+        if let path = GoalNotices.path(
+            identifier: identifier, userInfo: response.notification.request.content.userInfo),
+            let open = open.withLock({ $0 })
+        {
+            nonisolated(unsafe) let done = completionHandler
+            Task { @MainActor in
+                await open(path)
+                done()
+            }
+            return
+        }
         if identifier.hasPrefix(EveningMood.prefix), let mood = mood.withLock({ $0 }) {
             let answer = EveningMood.answer(response)
             nonisolated(unsafe) let done = completionHandler

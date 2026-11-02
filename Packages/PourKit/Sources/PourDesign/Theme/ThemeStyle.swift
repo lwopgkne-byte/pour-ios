@@ -122,6 +122,16 @@ extension Theme {
         /// 进度环
         public static let ring: CGFloat = 46
         public static let ringLine: CGFloat = 6
+        /// 3.0 目标（第 7 步）：一个目标页头上的大环、它的线；坚持那一行 14 天的小格子；30 天的格子；七天 × 早中晚的格子；图的高度
+        public static let bigRing: CGFloat = 88
+        /// 目标首页一行的环（比 ring 小一点：第一屏要放得下 5 个目标，01 需求文档 9.14 第 6 条）
+        public static let rowRing: CGFloat = 38
+        public static let bigRingLine: CGFloat = 10
+        public static let dayCell: CGFloat = 11
+        public static let monthCell: CGFloat = 36
+        public static let whenCell: CGFloat = 30
+        public static let goalChart: CGFloat = 176
+        public static let weekBars: CGFloat = 120
         /// 一周条的日子圆
         public static let dayCircle: CGFloat = 38
         /// 骨架灰条：一行字、一张卡

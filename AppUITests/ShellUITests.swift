@@ -119,7 +119,7 @@ final class ShellUITests: XCTestCase {
         let app = launch()
         let links: [(String, String)] = [
             ("/review", "回顾"), ("/money", "遮住金额"), ("/money/watch", "留意的"), ("/money/renqing", "和谁来往"),
-            ("/about", "你的生活由什么组成"), ("/about/mood", "心情和精力"), ("/goals", "添加目标"),
+            ("/about", "你的生活由什么组成"), ("/about/mood", "心情和精力"), ("/goals", "定目标"),
             ("/library?view=insights", "感悟"), ("/settings", "大模型"), ("/settings#data", "数据"),
             ("/todos", "今天的时间线"), ("/money/list/2026-10?kind=fixed", "每一笔"), ("/money/thing/22", "一样东西"),
             ("/money/renqing/小李", "和小李的来往"), ("/money/day/2026-10-18", "10月18日"),

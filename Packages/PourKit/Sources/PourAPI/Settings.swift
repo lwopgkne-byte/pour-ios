@@ -78,6 +78,14 @@ extension API {
         public var bedtime: String?
         public var channels: Channels
         public var keys: Keys
+        /// 3.0 每周回顾的通知（手机排）：周几（0 周一 … 6 周日）几点、开没开；旧服务器没有
+        public var review: Review?
+
+        public struct Review: Codable, Hashable, Sendable {
+            public var enabled: Bool
+            public var weekday: Int
+            public var time: String
+        }
     }
 
     /// 免打扰时段：「23:00」到「07:00」

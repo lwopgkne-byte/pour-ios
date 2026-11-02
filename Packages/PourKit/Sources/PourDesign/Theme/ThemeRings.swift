@@ -39,8 +39,9 @@ public struct GoalRing: View {
                     .rotationEffect(.degrees(-90 + (turned ? 0 : -360)))
             }
             if state != .done {
+                // 留的边小一点：一行里的小环（38 点）也放得下「26 天」，不用缩字（缩了审计算截断）
                 Text(label).font(Theme.Typeface.tick).monospacedDigit().foregroundStyle(Theme.Palette.label)
-                    .minimumScaleFactor(0.7).lineLimit(1).padding(Theme.Space.tight)
+                    .minimumScaleFactor(0.7).lineLimit(1).padding(Theme.Space.hairline)
             }
         }
         .frame(width: size, height: size)

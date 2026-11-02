@@ -188,6 +188,7 @@ struct StoryDone: View {
 
 /// 周报第 5 页：目标（一行一个，写推进了多少和进度条）
 struct StoryPeriodGoals: View {
+    @Environment(AppModel.self) private var model
     let review: API.PeriodReview
 
     var body: some View {
@@ -195,6 +196,20 @@ struct StoryPeriodGoals: View {
         ForEach(review.goals.prefix(5)) { StoryGoalRow(goal: $0) }
         if review.goals.count > 5 {
             Text("还有 \(review.goals.count - 5) 个，在整页里").font(Theme.Typeface.footnote).opacity(0.75)
+        }
+        // 周报说上周发生了什么；调目标、定下周最重要的一件在每周回顾（3.0 第 7 步，01 需求文档 9.8）
+        if review.kind == "weekly" {
+            Button {
+                model.review.story = nil
+                Task {
+                    try? await Task.sleep(for: .milliseconds(450))
+                    model.goals.sheet = .weekly
+                }
+            } label: {
+                Text("去做每周回顾 ›").font(Theme.Typeface.bodySemibold).frame(minHeight: Theme.Size.touch)
+            }
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("story.weekly")
         }
     }
 }

@@ -24,8 +24,8 @@ struct HubTile: Identifiable, Hashable {
         "todos": "/todos", "money": "/money", "mood": "/mood", "insights": "/insights",
         "health": "/settings#health", "review": "/review", "library": "/library", "moments": "/mood/moments",
         "year": "/about/year", "about": "/about", "finds": "/about", "people": "/about/people", "talk": "/about/talk",
-        "watch": "/money/watch", "budget": "/money/watch", "renqing": "/money/renqing", "worth": "/money",
-        "goals": "/goals", "streak": "/goals",
+        "watch": "/money/watch", "budget": "/goals/budgets", "renqing": "/money/renqing", "worth": "/money",
+        "goals": "/goals", "streak": "/goals/streaks",
     ]
 }
 

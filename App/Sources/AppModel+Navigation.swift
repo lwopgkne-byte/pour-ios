@@ -34,6 +34,12 @@ extension AppModel {
     func openLink(_ path: String) {
         chatOpen = false
         search = nil
+        // 每周回顾的通知：目标首页 + 直接打开每周回顾（06 交互细节 12.8）
+        if path == "/goals/weekly" {
+            stack = [.goals(.home)]
+            goals.sheet = .weekly
+            return
+        }
         stack = Route(path: path).map { [$0] } ?? []
     }
 

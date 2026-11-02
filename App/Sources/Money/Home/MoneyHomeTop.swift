@@ -92,7 +92,7 @@ struct MoneyHero: View {
         VStack(spacing: Theme.Space.small) {
             ForEach(lines) { line in
                 Button {
-                    model.goalDetail = .init(id: line.id)
+                    model.openGoal(line.id)
                 } label: {
                     BudgetRow(
                         Show.spaced(line.title), text: Show.maskYuan(line.text, hide: hide),

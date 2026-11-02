@@ -11,7 +11,7 @@ struct RouteView: View {
     var body: some View {
         page
             .sayBarFollowsScroll()
-            .navigationTitle(route.title)
+            .modifier(RouteTitle(route: route))
             .navigationBarTitleDisplayMode(route.legacy ? .inline : .large)
             .toolbar {
                 // 旧页面自己有大标题：导航栏中间不再写一遍
@@ -29,7 +29,7 @@ struct RouteView: View {
         case .mood(let mood): MoodPage(route: mood)
         case .about(let about, let ask): AboutPage(route: about, ask: ask)
         case .insights: InsightsPage()
-        case .goals: GoalsPage()
+        case .goals(let goal): GoalsRoutePage(route: goal)
         case .library(let ask): LibraryPage(ask: ask)
         case .settings(let anchor): SettingsPage(anchor: anchor)
         }
@@ -45,8 +45,20 @@ extension Route {
     /// 还没按 3.0 重做的页（自己画标题、用 Web 的样子）
     var legacy: Bool {
         switch self {
-        case .hub, .todos, .money, .mood, .insights, .review: false
+        case .hub, .todos, .money, .mood, .insights, .review, .goals: false
         default: true
+        }
+    }
+}
+
+/// 导航栏上的名字：一个目标、我在乎的一块由页面自己写（拿到名字才知道）
+private struct RouteTitle: ViewModifier {
+    let route: Route
+
+    func body(content: Content) -> some View {
+        switch route {
+        case .goals(.goal), .goals(.care): content
+        default: content.navigationTitle(route.title)
         }
     }
 }

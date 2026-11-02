@@ -89,6 +89,8 @@ targets:
         NSHealthShareUsageDescription: Pour 读你的步数、睡眠和锻炼，放在画布上，算进目标和回顾。只读，不往健康里写。
         # 日历（docs/模块/产品优化.md R6）：只读，日程只在手机上
         NSCalendarsFullAccessUsageDescription: Pour 读今天的日程，放进待办那张卡里。只读，不改日历，不送到电脑上。
+        # 目标「到家的时候」提醒你「如果就」（docs/3.0/07-开发任务清单.md 7.6）：只在点「用现在的位置」时定位一次
+        NSLocationWhenInUseUsageDescription: 「到家的时候」提醒你目标的「如果就」，要知道家在哪。只在你点「用现在的位置」时定位一次，位置只存在这台手机上。
         # 打开钱要面容 ID（docs/3.0/01-需求文档.md 5.6，设置 → 隐私）
         NSFaceIDUsageDescription: 设置里开了「打开钱要面容 ID」时，进钱之前用面容 ID 确认是你。只在这台手机上验。
         # 感悟分享成图片（docs/3.0/01-需求文档.md 7.4）：存到相册只添加，不读相册

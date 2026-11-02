@@ -107,6 +107,8 @@ final class AppModel {
     /// 心情、感悟（3.0 第 4、5 步，AppModel+Mood、AppModel+Insights）：弹层、打开的那一条、刚记下还在整理的
     let mood = MoodState()
     let insight = InsightState()
+    /// 目标（3.0 第 7 步，AppModel+Goals3）：弹层、刚定好的那一个
+    let goals = GoalsState()
     /// 回顾的故事（3.0 第 6 步，AppModel+Review）
     let review = ReviewState()
     /// 打开钱要面容 ID（MoneyLock）：这次打开 App 以后验过了没有；退到后台就作废

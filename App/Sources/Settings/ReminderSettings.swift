@@ -66,6 +66,8 @@ private struct ReminderRows: View {
             }
             report("weekly", label: "周报", hint: "每周一早上，总结上周", button: "看上周的", enabled: status.weekly.enabled)
             report("monthly", label: "月报", hint: "每月 1 号早上，总结上个月", button: "看上个月的", enabled: status.monthly.enabled)
+            if let review = status.review { GoalReviewRow(review: review) { save(["review": $0]) } }
+            GoalIfThenSettings()
 
             SettingsHeading(title: "免打扰").padding(.top, Web.space2)
             SettingRow(label: "免打扰时段") {
@@ -138,6 +140,8 @@ private struct ReminderRows: View {
         Task {
             do {
                 fresh = try await client.saveReminders(patch)
+                // 每周回顾的通知是手机排的：改了时间、开关马上重排
+                if patch["review"] != nil { model.syncReminders() }
             } catch {
                 model.toast(error.readable)
             }

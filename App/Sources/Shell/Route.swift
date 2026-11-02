@@ -17,7 +17,8 @@ enum Route: Hashable {
     case about(AboutRoute, ask: KnownAsk?)
     /// 感悟（3.0 第 5 步）：今天重温、语录 ★、按月的卡片
     case insights
-    case goals
+    /// 目标（3.0 第 7 步）：首页、一个目标、坚持、预算、我在乎的一块
+    case goals(GoalRoute)
     case library(LibraryAsk)
     /// 设置：打开时滚到哪一块（「data」）
     case settings(String?)
@@ -44,9 +45,10 @@ enum Route: Hashable {
         case "about": AboutRoute(base).map { .about($0, ask: KnownAsk(path: base)) }
         // 以前「笔记库 → 感悟」搬成了自己的一页
         case "library" where LibraryAsk(path: base).view == "insights": .insights
+        case "goals": GoalRoute(head).map { .goals($0) }
         default:
             [
-                "/me": .hub, "/todos": .todos, "/insights": .insights, "/goals": .goals,
+                "/me": .hub, "/todos": .todos, "/insights": .insights,
                 "/library": .library(LibraryAsk(path: base)), "/settings": .settings(anchor),
             ][head]
         }
@@ -64,7 +66,7 @@ enum Route: Hashable {
         case .mood(let mood): mood.title
         case .about(let about, _): about.title
         case .insights: "感悟"
-        case .goals: "目标"
+        case .goals(let goal): goal.title
         case .library: "笔记库"
         case .settings: "设置"
         }
@@ -78,7 +80,8 @@ enum Route: Hashable {
         case (.money(let left), .money(let right)): left.kind == right.kind
         case (.mood(let left), .mood(let right)): left.kind == right.kind
         case (.about(let left, _), .about(let right, _)): left.kind == right.kind && left.kind != "home"
-        case (.library, .library), (.settings, .settings), (.goals, .goals), (.hub, .hub), (.todos, .todos),
+        case (.goals(let left), .goals(let right)): left.kind == right.kind && left.kind != "goal"
+        case (.library, .library), (.settings, .settings), (.hub, .hub), (.todos, .todos),
             (.insights, .insights):
             true
         default: false
@@ -163,6 +166,53 @@ extension AboutRoute {
         case .talk: "talk"
         case .year: "year"
         case .domain: "domain"
+        }
+    }
+}
+
+/// 目标的几页（「/goals」「/goals/12」「/goals/streaks」「/goals/budgets」「/goals/care/health」）
+enum GoalRoute: Hashable {
+    case home
+    case goal(Int)
+    /// 我的 → 坚持：只看坚持的那几行
+    case streaks
+    /// 我的 → 预算：说过的「不超过」
+    case budgets
+    /// 我在乎的一块（领域页上面四块）
+    case care(String)
+
+    init?(_ path: String) {
+        let parts = path.split(separator: "/").map(String.init)
+        switch parts.count {
+        case 1: self = .home
+        case 2 where parts[1] == "streaks": self = .streaks
+        case 2 where parts[1] == "budgets": self = .budgets
+        case 2:
+            guard let id = Int(parts[1]) else { return nil }
+            self = .goal(id)
+        case 3 where parts[1] == "care": self = .care(parts[2])
+        default: return nil
+        }
+    }
+
+    /// 导航栏上的名字；一个目标、一块的名字页面自己写
+    var title: String {
+        switch self {
+        case .home: "目标"
+        case .goal: "目标"
+        case .streaks: "坚持"
+        case .budgets: "预算"
+        case .care: "我在乎的"
+        }
+    }
+
+    var kind: String {
+        switch self {
+        case .home: "home"
+        case .goal: "goal"
+        case .streaks: "streaks"
+        case .budgets: "budgets"
+        case .care: "care"
         }
     }
 }

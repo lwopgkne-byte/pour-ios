@@ -246,13 +246,31 @@ public actor APIClient {
 }
 
 /// 发给服务器的 JSON（改字段时用：数、字、列表、对象都有）
-public enum JSONValue: Encodable, Hashable, Sendable {
+public enum JSONValue: Codable, Hashable, Sendable {
     case string(String)
     case number(Double)
     case bool(Bool)
     case array([JSONValue])
     case object([String: JSONValue])
     case null
+
+    /// 原样收回来（理解卡的 op：点「对」时原样发回去）
+    public init(from decoder: any Decoder) throws {
+        let box = try decoder.singleValueContainer()
+        if box.decodeNil() {
+            self = .null
+        } else if let value = try? box.decode(Bool.self) {
+            self = .bool(value)
+        } else if let value = try? box.decode(Double.self) {
+            self = .number(value)
+        } else if let value = try? box.decode(String.self) {
+            self = .string(value)
+        } else if let value = try? box.decode([JSONValue].self) {
+            self = .array(value)
+        } else {
+            self = .object(try box.decode([String: JSONValue].self))
+        }
+    }
 
     public func encode(to encoder: any Encoder) throws {
         var box = encoder.singleValueContainer()
