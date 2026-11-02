@@ -118,7 +118,7 @@ final class MoodUITests: XCTestCase, TodoTesting {
     @MainActor func testEveningQuestion() throws {
         allowNotifications()
         let app = XCUIApplication()
-        app.launchArguments += ["-uiTest", "-open", "/settings"]
+        app.launchArguments += ["-uiTest", "-open", "/settings#reminders"]
         app.launch()
         // 设置页的开关（WebSwitch）是带「开关」特征的按钮：读屏念「开 / 关」
         let kinds = [XCUIElement.ElementType.button.rawValue, XCUIElement.ElementType.switch.rawValue]

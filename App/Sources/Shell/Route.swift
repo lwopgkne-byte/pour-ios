@@ -68,7 +68,7 @@ enum Route: Hashable {
         case .insights: "感悟"
         case .goals(let goal): goal.title
         case .library: "笔记库"
-        case .settings: "设置"
+        case .settings(let anchor): anchor.flatMap(SettingsPageKey.init(rawValue:))?.title ?? "设置"
         }
     }
 
@@ -81,8 +81,9 @@ enum Route: Hashable {
         case (.mood(let left), .mood(let right)): left.kind == right.kind
         case (.about(let left, _), .about(let right, _)): left.kind == right.kind && left.kind != "home"
         case (.goals(let left), .goals(let right)): left.kind == right.kind && left.kind != "goal"
-        case (.library, .library), (.settings, .settings), (.hub, .hub), (.todos, .todos),
-            (.insights, .insights):
+        // 设置：分组列表和点进去的一页不是一种（点一行推进去，返回回到列表）
+        case (.settings(let left), .settings(let right)): (left == nil) == (right == nil)
+        case (.library, .library), (.hub, .hub), (.todos, .todos), (.insights, .insights):
             true
         default: false
         }

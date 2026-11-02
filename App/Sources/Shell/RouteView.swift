@@ -45,7 +45,7 @@ extension Route {
     /// 还没按 3.0 重做的页（自己画标题、用 Web 的样子）
     var legacy: Bool {
         switch self {
-        case .hub, .todos, .money, .mood, .insights, .review, .goals, .about, .library: false
+        case .hub, .todos, .money, .mood, .insights, .review, .goals, .about, .library, .settings: false
         default: true
         }
     }

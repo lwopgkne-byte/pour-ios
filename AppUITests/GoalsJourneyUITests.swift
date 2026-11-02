@@ -147,7 +147,7 @@ final class GoalsJourneyUITests: XCTestCase, TodoTesting {
             shot("列表-\(path.split(separator: "/").last ?? "")", of: page.screenshot())
         }
         app.terminate()
-        let settingsPage = try launch("/settings")
+        let settingsPage = try launch("/settings#reminders")
         let review = settingsPage.descendants(matching: .any)
             .matching(
                 NSPredicate(

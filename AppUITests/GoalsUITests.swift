@@ -191,7 +191,7 @@ final class GoalsUITests: XCTestCase, TodoTesting {
     /// 设置 → 提醒和推送：每周回顾（默认周日 20:00，能改、能关）、目标的「如果就」一个一个能关（07 开发任务清单 7.6）
     @MainActor func testReminderSettings() throws {
         let app = XCUIApplication()
-        app.launchArguments += ["-uiTest", "-open", "/settings"]
+        app.launchArguments += ["-uiTest", "-open", "/settings#reminders"]
         app.launch()
         let kinds = [XCUIElement.ElementType.button.rawValue, XCUIElement.ElementType.switch.rawValue]
         let toggle = { (label: String) in
