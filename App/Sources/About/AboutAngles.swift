@@ -116,7 +116,7 @@ struct MeCareView: View {
             }
             .padding(.top, Web.space6)
         } else if !care.rows.isEmpty {
-            ReviewSection(title: "说的和做的") {
+            LegacySection(title: "说的和做的") {
                 MeNote("你说在意的，和这 30 天记到的时间、钱摆在一起 · 两边都点得开看是哪几次、哪几天")
                 VStack(alignment: .leading, spacing: Web.space4) { ForEach(care.rows, id: \.key) { row($0) } }
                     .padding(.top, Web.space3)

@@ -12,7 +12,7 @@ struct MeComposition: View {
         let span = composition.days >= 30 ? "最近 30 天" : "这 \(composition.days) 天"
         let top = Array(composition.tiles.prefix(2))
         let rest = Array(composition.tiles.dropFirst(2))
-        ReviewSection(title: "你的生活由什么组成") {
+        LegacySection(title: "你的生活由什么组成") {
             MeNote("\(span)你说的话里，说到每样事的各占多少 · 点一块看那一页")
             if !composition.tiles.isEmpty {
                 VStack(spacing: Web.space1) {
@@ -110,7 +110,7 @@ struct TimeGone: View {
         VStack(alignment: .leading, spacing: 0) {
             Color.clear.frame(height: 0)
             if items?.isEmpty != true {
-                ReviewSection(title: "时间去向") {
+                LegacySection(title: "时间去向") {
                     MeNote("说了时长的事，时间各去了哪 · 这和上面的方块图不是一回事（那个是说到多少）")
                     WebSegmented("范围", options: Self.ranges, selected: days) { days = $0 }
                     if let items { content(items) } else { WebSkeleton(height: Web.space16) }

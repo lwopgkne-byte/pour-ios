@@ -108,6 +108,55 @@ func rich(_ parts: [Segment]) -> AttributedString {
 extension View {
     /// 一页的外框（「关于我」那几页）：能上下滚，左右滑翻上一页（往右滑）、下一页（往左滑）；和回顾一样
     func moneyPage(prev: (() -> Void)? = nil, next: (() -> Void)? = nil) -> some View {
-        reviewPage(prev: prev, next: next)
+        legacyPage(prev: prev, next: next)
+    }
+}
+
+/// 加载中的样子（关于我的几页还在用；回顾 3.0 第 6 步换成了新组件，这几页第 8 步一起换）
+struct ReviewSkeleton: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: Web.space4) {
+            WebSkeleton(width: Web.space16)
+            WebSkeleton(height: Web.space8).containerRelativeFrame(.horizontal) { width, _ in width / 2 }
+            WebSkeleton(height: Web.space6).containerRelativeFrame(.horizontal) { width, _ in width * 3 / 4 }
+            WebSkeleton(height: Web.space16)
+        }
+    }
+}
+
+/// 一部分：大留白 + 一个安静的小标题（原来回顾里的样子；回顾 3.0 第 6 步换成了卡片，「关于我」那几页第 8 步再换）
+struct LegacySection<Content: View>: View {
+    let title: String
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Web.space3) {
+            Text(title).font(Web.captionMedium).foregroundStyle(Web.fgTertiary).tracking(Web.kickerTracking)
+                .accessibilityAddTraits(.isHeader)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, Web.space12)
+    }
+}
+
+extension View {
+    /// 原来回顾一页的外框（「关于我」那几页还在用）：能上下滚，左右滑翻上一页（往右滑）、下一页（往左滑）
+    func legacyPage(prev: (() -> Void)?, next: (() -> Void)?) -> some View {
+        ScrollView {
+            self.frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, Web.space4)
+                .padding(.top, Web.space4)
+                .padding(.bottom, Web.space12)
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: Web.space6).onEnded { drag in
+                let across = drag.translation.width
+                guard abs(across) > Web.space12 + Web.space3, abs(across) > abs(drag.translation.height) * 2 else {
+                    return
+                }
+                if across > 0 { prev?() } else { next?() }
+            }
+        )
     }
 }

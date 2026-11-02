@@ -119,7 +119,8 @@
             /// 不带编号的接口：今天是哪天、类别表、说过的话、说一句
             private mutating func basic(_ method: String, _ url: URL, _ body: [String: Any]) -> Reply? {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
-                if let value = insightsReply(method, url) ?? settingsReply(method, url.path, body)
+                if let value = insightsReply(method, url) ?? reviewListReply(method, url)
+                    ?? settingsReply(method, url.path, body)
                     ?? namesReply(method, url.path, body)
                     ?? cardsReply(method, url.path, body) ?? healthReply(method, url.path, body)
                     ?? hubReply(method, url.path, body) ?? pageReply(method, url.path)

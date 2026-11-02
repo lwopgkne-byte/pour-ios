@@ -11,7 +11,7 @@ struct KnownNames: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if !rules.isEmpty {
-                ReviewSection(title: "改过的名字") {
+                LegacySection(title: "改过的名字") {
                     VStack(alignment: .leading, spacing: 0) {
                         ForEach(rules) { rule in row(rule) }
                         Text("原话没有改；画布上的「说到的」、关于我、笔记库都照这里算")

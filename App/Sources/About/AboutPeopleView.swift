@@ -49,10 +49,10 @@ struct AboutPeopleView: View {
                 }
                 MoneyList { ForEach(page.people, id: \.name) { person($0) } }.padding(.top, Web.space4)
             }
-            ReviewSection(title: "Pour 认识的") { KnownPeople(store: known, names: page.people.map(\.name)) }
-            if !page.findings.isEmpty { ReviewSection(title: "发现") { MeFindings(findings: page.findings) } }
+            LegacySection(title: "Pour 认识的") { KnownPeople(store: known, names: page.people.map(\.name)) }
+            if !page.findings.isEmpty { LegacySection(title: "发现") { MeFindings(findings: page.findings) } }
             if !page.changes.isEmpty {
-                ReviewSection(title: "变化") { MeChanges(changes: page.changes, navigate: navigate) }
+                LegacySection(title: "变化") { MeChanges(changes: page.changes, navigate: navigate) }
             }
             MeFoot()
         }

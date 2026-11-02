@@ -110,7 +110,7 @@ private struct CanvasCapsules: View {
                 .accessibilityHint(Text("现在看的是演示数据，你的真实数据没有变化"))
         }
         if let review = ReviewHint.path(model) {
-            capsule("昨天的回顾好了", symbol: "doc.text") { model.open(review) }
+            capsule("昨天的回顾好了", symbol: "doc.text") { model.openStory(path: review) }
         }
     }
 

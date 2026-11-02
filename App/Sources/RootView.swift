@@ -48,6 +48,7 @@ struct RootView: View {
         @Bindable var model = model
         @Bindable var mood = model.mood
         @Bindable var insight = model.insight
+        @Bindable var review = model.review
         return NavigationStack(path: $model.stack) {
             CanvasView()
                 .hiddenWhenCovered()
@@ -115,6 +116,8 @@ struct RootView: View {
         .sheet(item: $model.moneyDetail) { MoneyDetailSheet(ref: $0) }
         .sheet(item: $mood.checkin) { MoodCheckinSheet(start: $0) }
         .sheet(item: $mood.detail) { MoodDetailSheet(moment: $0) }
+        // 回顾的故事（3.0 第 6 步）：全屏，往下拉、右上角 × 关掉
+        .fullScreenCover(item: $review.story) { ReviewStory(ref: $0) }
         // 感悟的弹层（3.0 第 5 步）：记一句、一条感悟、分享成图片
         .sheet(item: $insight.sheet) { sheet in
             switch sheet {

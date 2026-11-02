@@ -5,12 +5,18 @@ import SwiftUI
 
 /// 心情从哪来（docs/prd-mood.md 5.11、06 交互细节 10.1）：30 天 / 90 天 / 今年；四块都写数——好时刻多出现在什么时候、
 /// 醒着的时间花在哪 · 好时刻在哪些领域（🎯 定了目标的、— 没记过时长）、和谁在一起、常见的心情。
-/// 数据不够的那一列不画，换成一行灰字；点一行展开最多 3 条那一刻（点了看原话）。只说同时出现
+/// 数据不够的那一列不画，换成一行灰字；点一行展开最多 3 条那一刻（点了看原话）。只说同时出现。
+/// 月报整页里给的是那个月的（fixed）：不选时间段、不自己去拿
 struct MoodSourcesCard: View {
     @Environment(AppModel.self) private var model
     @State private var range = "30d"
     @State private var data: API.MoodSources?
     @State private var problem: String?
+    let fixed: API.MoodSources?
+
+    init(fixed: API.MoodSources? = nil) {
+        self.fixed = fixed
+    }
 
     private static let ranges = [("30d", "30 天"), ("90d", "90 天"), ("year", "今年")]
     private static let whens = [("purpose", "做有目标的事时"), ("daily", "日常的事里"), ("glimpse", "不算一件事的一刻")]
@@ -18,11 +24,13 @@ struct MoodSourcesCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
             MoodCardHeader("心情从哪来")
-            Picker("多长时间", selection: $range) {
-                ForEach(Self.ranges, id: \.0) { key, name in Text(name).tag(key) }
+            if fixed == nil {
+                Picker("多长时间", selection: $range) {
+                    ForEach(Self.ranges, id: \.0) { key, name in Text(name).tag(key) }
+                }
+                .pickerStyle(.segmented)
             }
-            .pickerStyle(.segmented)
-            if let data {
+            if let data = fixed ?? data {
                 content(data)
             } else if let problem {
                 Text(problem).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
@@ -31,7 +39,9 @@ struct MoodSourcesCard: View {
             }
         }
         .themeCard()
-        .task(id: "\(range)-\(model.dataVersion)") { await load() }
+        .task(id: "\(range)-\(model.dataVersion)") {
+            if fixed == nil { await load() }
+        }
     }
 
     @ViewBuilder private func content(_ data: API.MoodSources) -> some View {

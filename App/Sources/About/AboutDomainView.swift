@@ -51,7 +51,7 @@ struct AboutDomainView: View {
                     Text("\(page.span)每一天：\(page.person.map { "和\($0)在一起" } ?? "说到\(page.name)")的那天是彩色的"))
             }
             if let when = page.when {
-                ReviewSection(title: "什么时候") {
+                LegacySection(title: "什么时候") {
                     WhenGrid(cells: when.cells, color: page.color)
                         .accessibilityElement(children: .contain)
                         .accessibilityLabel(Text("一周七天里，上午、下午、晚上各有几天"))
@@ -61,18 +61,18 @@ struct AboutDomainView: View {
                 }
             }
             if !page.acts.isEmpty || !page.chips.isEmpty {
-                ReviewSection(title: page.actsTitle) {
+                LegacySection(title: page.actsTitle) {
                     if !page.acts.isEmpty { CountBars(items: page.acts, color: page.color) }
                     if !page.chips.isEmpty { chips(page.chips) }
                 }
             }
-            if let mood = page.mood { ReviewSection(title: "那些日子的心情") { MoodScale(mood: mood, color: page.color) } }
-            if !page.quotes.isEmpty { ReviewSection(title: "你说过的话") { MeQuotes(quotes: page.quotes) } }
+            if let mood = page.mood { LegacySection(title: "那些日子的心情") { MoodScale(mood: mood, color: page.color) } }
+            if !page.quotes.isEmpty { LegacySection(title: "你说过的话") { MeQuotes(quotes: page.quotes) } }
             DomainTrend(domain: key)
             knownSection
-            if !page.findings.isEmpty { ReviewSection(title: "发现") { MeFindings(findings: page.findings) } }
+            if !page.findings.isEmpty { LegacySection(title: "发现") { MeFindings(findings: page.findings) } }
             if !page.changes.isEmpty {
-                ReviewSection(title: "变化") { MeChanges(changes: page.changes, navigate: navigate) }
+                LegacySection(title: "变化") { MeChanges(changes: page.changes, navigate: navigate) }
             }
             MeFoot()
         }
@@ -86,7 +86,7 @@ struct AboutDomainView: View {
             || about?.hidden.contains { $0.block == "habits" && $0.domain == key } == true
         let sleep = key == "sleep" && (about?.sleep != nil || about?.hidden.contains { $0.block == "sleep" } == true)
         if habits || sleep {
-            ReviewSection(title: "Pour 认识的") {
+            LegacySection(title: "Pour 认识的") {
                 VStack(alignment: .leading, spacing: Web.space6) {
                     if key == "sleep" { KnownSleep(store: known) }
                     KnownHabits(store: known, domain: key)
@@ -238,7 +238,7 @@ private struct DomainTrend: View {
         VStack(alignment: .leading, spacing: 0) {
             Color.clear.frame(height: 0)
             if !metrics.isEmpty {
-                ReviewSection(title: metrics.count > 1 ? "这些数的变化" : "\(metrics[0].name)的变化") { content }
+                LegacySection(title: metrics.count > 1 ? "这些数的变化" : "\(metrics[0].name)的变化") { content }
             }
         }
         .task(id: model.dataVersion) {

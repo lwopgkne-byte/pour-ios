@@ -103,7 +103,7 @@ private struct AboutHome: View {
                 TimeGone()
             }
             if !page.findings.isEmpty {
-                ReviewSection(title: "这周的新发现") {
+                LegacySection(title: "这周的新发现") {
                     VStack(spacing: Web.space3) {
                         ForEach(page.findings, id: \.key) { finding in
                             FindingCard(
@@ -117,11 +117,11 @@ private struct AboutHome: View {
                 }
             }
             if !page.angles.isEmpty {
-                ReviewSection(title: "换个角度看你") { MeAngles(angles: page.angles, navigate: navigate) }
+                LegacySection(title: "换个角度看你") { MeAngles(angles: page.angles, navigate: navigate) }
             }
-            if let recipe = page.recipe { ReviewSection(title: "好日子的配方") { MeRecipeView(recipe: recipe) } }
+            if let recipe = page.recipe { LegacySection(title: "好日子的配方") { MeRecipeView(recipe: recipe) } }
             if !page.changes.isEmpty {
-                ReviewSection(title: "你没注意到的变化") { MeChanges(changes: page.changes, navigate: navigate) }
+                LegacySection(title: "你没注意到的变化") { MeChanges(changes: page.changes, navigate: navigate) }
             }
             if let care { MeCareView(care: care) { await load() } }
             knownSection
@@ -139,7 +139,7 @@ private struct AboutHome: View {
             !about.sayings.isEmpty || !about.places.isEmpty
                 || about.people.contains(where: { $0.relation != nil && !$0.titled })
         {
-            ReviewSection(title: "Pour 认识的") {
+            LegacySection(title: "Pour 认识的") {
                 VStack(alignment: .leading, spacing: Web.space6) {
                     KnownPeople(store: known, onlyRelations: true)
                     KnownPlaces(store: known)
@@ -151,7 +151,7 @@ private struct AboutHome: View {
 
     /// 还在攒的：每样什么时候能看
     private func waiting(_ items: [API.MeWaiting]) -> some View {
-        ReviewSection(title: "还在攒的") {
+        LegacySection(title: "还在攒的") {
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(items.enumerated()), id: \.element.key) { index, item in
                     VStack(alignment: .leading, spacing: Web.space1) {

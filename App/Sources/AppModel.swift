@@ -107,6 +107,8 @@ final class AppModel {
     /// 心情、感悟（3.0 第 4、5 步，AppModel+Mood、AppModel+Insights）：弹层、打开的那一条、刚记下还在整理的
     let mood = MoodState()
     let insight = InsightState()
+    /// 回顾的故事（3.0 第 6 步，AppModel+Review）
+    let review = ReviewState()
     /// 打开钱要面容 ID（MoneyLock）：这次打开 App 以后验过了没有；退到后台就作废
     var moneyUnlocked = false
     /// 排提醒（AppModel+Reminders）：一会儿内连着变了几次只排最后一次
@@ -335,23 +337,6 @@ extension AppModel {
         noticeAction = nil
         noticeTimer?.cancel()
         action?()
-    }
-
-    /// 做一件事，做完重新拿这一天（服务器的推送也会来，这里不等它）
-    func act(_ work: @escaping @Sendable (APIClient) async throws -> Void) {
-        let client = self.client
-        Task {
-            do {
-                try await work(client)
-            } catch let error as APIError {
-                offline = error.message
-            } catch {
-                offline = APIError.unreachable.message
-            }
-            await reloadDay()
-            await reloadChat()
-            await reloadStatus()
-        }
     }
 }
 

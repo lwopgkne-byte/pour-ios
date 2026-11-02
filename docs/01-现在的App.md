@@ -1,4 +1,4 @@
-# 01 现在的 App（2026-10-20；2026-11-02 3.0 第 0–5 步后更新）
+# 01 现在的 App（2026-10-20；2026-11-02 3.0 第 0–6 步后更新）
 
 > 给接手的 Claude：App 现在是怎么搭起来的、每样东西在哪、怎么改一页、怎么测。要做成什么样看 [00 提示词](00-提示词.md)；为什么这么搭看 [ADR A22](ADR/A22-路线B.md)、[A23](ADR/A23-只留服务器.md)。
 
@@ -12,7 +12,7 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 - **App 只做界面**：读写服务器的接口；一直听服务器的推送，哪样变了就重新拿哪样；没网时说的话先存在手机上（发件箱），连上自动发；定了时间、没做完的待办由手机照服务器的提醒单子（`/api/todos?reminders=1`，最近 60 条）自己排系统通知，通知上「完成 · 10 分钟后 · 1 小时后 · 明天早上」不用打开 App
 - **服务器做其余一切**：整理（意图识别 → 解析 → 程序把关 → 收据）、钱、目标、心情、关于我、回顾和周报月报、按意思搜索（电脑上的本地模型）、提醒和推送（Bark / Server酱）、夜里自动体检
 - **只能在电脑上做的**（密钥、PIN、从备份导入、评测、审核员考试）：App 里只看得到现在的样子，改要双击 `~/Developer/pour/Pour 设置.command`
-- **链接**：服务器和对话里的链接是页面地址（`/review/2026-10-18`、`/money/watch`、`/library?note=12`、`/about?find=老地方`、3.0 加了 `/me`、`/todos`、`/mood`、`/insights`），`model.open(地址)` 推进来一页（同一种页面里翻页换掉最上面那页，要去的页就在下面就退回去）；从 App 外面是 `pour://open?path=地址`（`model.openLink`：画布在最底下，只推这一页），Bark 的推送是 `pour://`（打开 App）；开发时启动参数 `-open /me` 直接打开那一页
+- **链接**：服务器和对话里的链接是页面地址（`/review/2026-10-18`、`/money/watch`、`/library?note=12`、`/about?find=老地方`、3.0 加了 `/me`、`/todos`、`/mood`、`/insights`；回顾的卡片和对话里的回顾打开全屏的故事 `model.openStory`），`model.open(地址)` 推进来一页（同一种页面里翻页换掉最上面那页，要去的页就在下面就退回去）；从 App 外面是 `pour://open?path=地址`（`model.openLink`：画布在最底下，只推这一页），Bark 的推送是 `pour://`（打开 App）；开发时启动参数 `-open /me` 直接打开那一页
 
 ## 2. 代码在哪
 
@@ -24,6 +24,8 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 | `App/Sources/Hub/` | 「我的」= 全部功能：头、四个快捷、常用（管理、长按）、五组格子、下拉搜功能；格子表 `HubTiles.swift`（键和服务器的 `HUB_TILES` 一样） |
 | `App/Sources/Todos/`、`AppModel+Todos.swift` | 3.0 待办：待办页（系统的 `List`：左右滑、按住的菜单）、今天的时间线、加待办 / 详情 / 推迟到三个弹层（挂在外壳上，`model.todoSheet`）；`TodoBoard` 照服务器的规矩分组、挪行，勾掉的留在原地（`todoHeld`）；通知上的按钮和后台刷新（`TodoNotifications`） |
 | `App/Sources/Money/`、`AppModel+Money.swift` | 3.0 钱：主页（`Home/MoneyHomePage`，`/api/money/home` 一次拿全）、记一笔（数字键盘弹层，`model.keypadOpen`）、一笔的详情（弹层，挂在外壳上，`model.moneyDetail`）、每一笔（系统的 `List`：搜索、左滑、按住的菜单）、留意的、人情往来、和 TA 的来往、一样东西、一天的钱；数字键盘记了、还在整理的几笔（`moneyPending`，先显示「整理中」）；打开钱要面容 ID（`MoneyLock`） |
+| `App/Sources/Review/`、`AppModel+Review.swift` | 3.0 回顾：回顾页（`ReviewListPage`，`/api/review?kind=` 三段、需要留意）；全屏的故事（`Story/`，挂在外壳上，`model.review.story`；画布「昨天的回顾好了」、对话里的回顾也打开它）；「看整页」的每日回顾、周报月报长页面（`/review/2026-10-18`、`/review/week/…`、`/review/month/…`）；还没收尾的、自动检查的几个动作在 `AppModel+Review` |
+| `App/Sources/SerifFont.swift` | 宋体按需下载：iPhone 上的宋体是系统按需下载的，打开 App 时没有就请系统下（没下好时宋体的字退回黑体） |
 | `App/Sources/Insights/`、`AppModel+Insights.swift` | 3.0 感悟：感悟页（`/insights`，以前的 `/library?view=insights`；今天重温 `/api/insights/today`、点了翻过来）、记一句 / 一条感悟 / 分享成图片三个弹层（挂在外壳上，`model.insight.sheet`）；点过的星、改过的字、删掉的先改界面再发（`model.insight`）；记一句记了、还在整理的那句先放在最上面（「整理中」） |
 | `App/Sources/Mood/`、`AppModel+Mood.swift` | 3.0 心情：心情页（`/mood`，`/api/mood/page` 一次拿全）、记心情和一条心情两个弹层（挂在外壳上，`model.mood`）、心情分析（`/mood/analysis`，以前的 `/about/mood`）、好时刻（`/mood/moments`）；晚上问一句（`MoodEvening` + PourPlatform 的 `EveningMood`）；小组件「记心情」在 `Extensions/WidgetViews/MoodCheckinIntent.swift` |
 | `App/Sources/Canvas/` | 生活画布、输入框（斜杠命令）、对话面板、记录详情（原地改、最近 7 天、相关目标、来源原话）、时间轴、类别卡片 |

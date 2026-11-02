@@ -7,6 +7,11 @@ struct PourApp: App {
     @State private var quickActions = QuickActions.shared
     @Environment(\.scenePhase) private var scenePhase
 
+    init() {
+        // 宋体是系统按需下载的：没有就在后台下（SerifFont）
+        SerifFont.ensure()
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView().environment(model)

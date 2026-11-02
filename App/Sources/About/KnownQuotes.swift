@@ -13,7 +13,7 @@ struct KnownQuotes: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if !quotes.isEmpty {
-                ReviewSection(title: "我的语录") {
+                LegacySection(title: "我的语录") {
                     VStack(alignment: .leading, spacing: Web.space3) {
                         ForEach(all ? quotes : Array(quotes.prefix(5))) { quote in row(quote) }
                         if !all && quotes.count > 5 {

@@ -16,6 +16,38 @@
             }
         }
 
+        /// 3.0 回顾页的三段（/api/review?kind=day|week|month）：每天两篇（一篇没看过、一篇看过且重写过）和「需要留意」，
+        /// 每周一篇，每月还没有（看空的样子）
+        func reviewListReply(_ method: String, _ url: URL) -> Any? {
+            guard method == "GET", url.path == "/api/review",
+                let kind = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first(where: {
+                    $0.name == "kind"
+                })?.value
+            else { return nil }
+            switch kind {
+            case "day": return Self.json(Self.dayList)
+            case "week": return Self.json(Self.weekList)
+            default: return ["items": [Any](), "attention": NSNull()]
+            }
+        }
+
+        private static let dayList = #"""
+            {"items":[{"id":83,"kind":"daily","title":"10月18日 周日","summary":"睡了 8 小时 20 分，16:8 轻断食，看书 42 页，背单词。",
+            "day":"2026-10-18","from":null,"createdAt":"2026-10-19T02:00:00.000Z","read":false,"updated":false,
+            "chips":["睡眠 8:20","专注 2:24","心情 有起有落"]},{"id":82,"kind":"daily","title":"10月17日 周六",
+            "summary":"睡了 8 小时 20 分，跑步 9.9 公里，16:8 轻断食。","day":"2026-10-17","from":null,
+            "createdAt":"2026-10-18T02:00:00.000Z","read":true,"updated":true,"chips":["睡眠 8:20","运动 1:01","心情 挺好"]}],
+            "attention":{"lines":["连续 3 天入睡晚于目标 00:00（00:10、00:30、00:10）","目标「每周外卖不超过 2 次」落后超过 10% 了（已用 2 / 2 次）"],
+            "ids":[81,80]}}
+            """#
+
+        private static let weekList = #"""
+            {"items":[{"id":84,"kind":"weekly","title":"10月12日–18日 周报",
+            "summary":"这周运动 3 小时 2 分（比上周多 38 分钟），睡眠每晚平均 7 小时 16 分。","day":null,"from":"2026-10-12",
+            "createdAt":"2026-10-19T02:05:00.000Z","read":false,"updated":false,"chips":["睡眠 7:16","运动 5 次","心情 一般"]}],
+            "attention":null}
+            """#
+
         private static func json(_ text: String) -> Any {
             (try? JSONSerialization.jsonObject(with: Data(text.utf8))) ?? [String: Any]()
         }

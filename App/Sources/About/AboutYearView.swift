@@ -40,7 +40,7 @@ struct AboutYearView: View {
                 Text(Show.spaced(page.sentence)).font(Web.body).foregroundStyle(Web.fg)
                 if !notes.isEmpty { MeNote(notes.joined(separator: " · ")) }
             }
-            ReviewSection(title: "一年每天一格") { YearHeat(year: $year) }
+            LegacySection(title: "一年每天一格") { YearHeat(year: $year) }
             if !page.enough, let waiting = page.waiting {
                 Text(Show.spaced("\(waiting)。这一页要记满小半年才看得出一年的样子，现在只有热力图。")).font(Web.body)
                     .foregroundStyle(Web.fg).padding(.top, Web.space6)
@@ -60,7 +60,7 @@ struct AboutYearView: View {
 
     @ViewBuilder private func tiles(_ page: API.MeYear) -> some View {
         if !page.tiles.isEmpty {
-            ReviewSection(title: "这一年你说得最多的") {
+            LegacySection(title: "这一年你说得最多的") {
                 PourFlowLayout(spacing: Web.space1, lineSpacing: Web.space1) {
                     ForEach(page.tiles, id: \.key) { tile in
                         Button {
@@ -88,7 +88,7 @@ struct AboutYearView: View {
 
     @ViewBuilder private func people(_ page: API.MeYear) -> some View {
         if let first = page.people.first {
-            ReviewSection(title: "这一年和你在一起最多的") {
+            LegacySection(title: "这一年和你在一起最多的") {
                 VStack(spacing: 0) {
                     ForEach(page.people, id: \.name) { person in
                         Button {
@@ -111,7 +111,7 @@ struct AboutYearView: View {
 
     @ViewBuilder private func months(_ page: API.MeYear) -> some View {
         if !page.months.isEmpty {
-            ReviewSection(title: "一年的心情") {
+            LegacySection(title: "一年的心情") {
                 HStack(spacing: Web.space1) {
                     ForEach(page.months, id: \.month) { month in
                         VStack(spacing: Web.space1) {
@@ -142,7 +142,7 @@ struct AboutYearView: View {
 
     @ViewBuilder private func emotions(_ page: API.MeYear) -> some View {
         if !page.emotions.isEmpty {
-            ReviewSection(title: "这一年你说出过的感受") {
+            LegacySection(title: "这一年你说出过的感受") {
                 PourFlowLayout(spacing: Web.space2, lineSpacing: Web.space2) {
                     ForEach(page.emotions, id: \.word) { emotion in
                         HStack(alignment: .firstTextBaseline, spacing: Web.space1) {
@@ -161,7 +161,7 @@ struct AboutYearView: View {
     @ViewBuilder private func firstLast(_ page: API.MeYear) -> some View {
         let said = [page.first, page.last].compactMap { $0 }
         if !said.isEmpty {
-            ReviewSection(title: "这一年的第一句和最近一句") {
+            LegacySection(title: "这一年的第一句和最近一句") {
                 MeQuotes(quotes: said.map { API.MeQuote(text: $0.text, day: $0.day, noteId: $0.noteId) })
             }
         }

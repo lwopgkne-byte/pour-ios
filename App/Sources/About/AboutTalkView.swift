@@ -39,7 +39,7 @@ struct AboutTalkView: View {
                 }
             }
             if !page.topics.isEmpty {
-                ReviewSection(title: "这几周你在说什么") {
+                LegacySection(title: "这几周你在说什么") {
                     VStack(spacing: 0) {
                         ForEach(page.topics, id: \.key) { topic in
                             HStack(spacing: Web.space3) {
@@ -61,14 +61,14 @@ struct AboutTalkView: View {
                 }
             }
             if !page.themes.isEmpty {
-                ReviewSection(title: "主题的起落") {
+                LegacySection(title: "主题的起落") {
                     VStack(spacing: 0) { ForEach(page.themes, id: \.key) { theme($0) } }
                     MeNote("把你说过的话按意思归成几堆（在你电脑上归的，没发出去）· 名字是 AI 起的，点开是那几段原话")
                 }
             }
-            if !page.words.isEmpty { ReviewSection(title: "小词里的你") { words(page.words) } }
+            if !page.words.isEmpty { LegacySection(title: "小词里的你") { words(page.words) } }
             if !page.chains.isEmpty {
-                ReviewSection(title: "连锁反应") {
+                LegacySection(title: "连锁反应") {
                     VStack(spacing: Web.space3) { ForEach(page.chains, id: \.key) { ChainCard(chain: $0) } }
                 }
             }
