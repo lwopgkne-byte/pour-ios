@@ -28,7 +28,7 @@ struct AboutYearView: View {
             }
         }
         .aboutPage()
-        .navigationTitle("你的 \(year)")
+        .navigationTitle(Text(verbatim: "你的 \(year)"))
         .task(id: "\(year)-\(model.dataVersion)") { await load() }
     }
 
@@ -43,10 +43,23 @@ struct AboutYearView: View {
             }
             AboutCardSection(title: "一年每天一格") { YearHeat(year: $year) }
             if !page.enough, let waiting = page.waiting {
-                Text(Show.spaced("\(waiting)。这一页要记满小半年才看得出一年的样子，现在只有热力图。")).font(Theme.Typeface.body)
-                    .foregroundStyle(Theme.Palette.label).padding(.top, Theme.Space.xLarge)
+                // 没记满小半年：先说还差几天，下面照现在的数给看看到时候是什么样（06 交互细节 10.6）
+                VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                    Text(Show.spaced("\(waiting)。这一页要记满小半年才看得出一年的样子，现在只有热力图。"))
+                        .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("下面先看看到时候是什么样（数是照现在算的）").font(Theme.Typeface.footnote)
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(Theme.Space.regular)
+                .background(
+                    Theme.Palette.warnFill, in: RoundedRectangle(cornerRadius: Theme.Corner.card, style: .continuous)
+                )
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("year.waiting")
             }
-            if page.enough { enough(page) }
+            enough(page)
             MeFoot()
         }
     }

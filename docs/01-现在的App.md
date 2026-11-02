@@ -30,6 +30,7 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 | `App/Sources/Insights/`、`AppModel+Insights.swift` | 3.0 感悟：感悟页（`/insights`，以前的 `/library?view=insights`；今天重温 `/api/insights/today`、点了翻过来）、记一句 / 一条感悟 / 分享成图片三个弹层（挂在外壳上，`model.insight.sheet`）；点过的星、改过的字、删掉的先改界面再发（`model.insight`）；记一句记了、还在整理的那句先放在最上面（「整理中」） |
 | `App/Sources/Mood/`、`AppModel+Mood.swift` | 3.0 心情：心情页（`/mood`，`/api/mood/page` 一次拿全）、记心情和一条心情两个弹层（挂在外壳上，`model.mood`）、心情分析（`/mood/analysis`，以前的 `/about/mood`）、好时刻（`/mood/moments`）；晚上问一句（`MoodEvening` + PourPlatform 的 `EveningMood`）；小组件「记心情」在 `Extensions/WidgetViews/MoodCheckinIntent.swift` |
 | `App/Sources/Canvas/` | 生活画布、输入框（斜杠命令）、对话面板、记录详情（原地改、最近 7 天、相关目标、来源原话）、时间轴、类别卡片 |
+| `App/Sources/About3/`、`About/` | 3.0 关于我：主页（`AboutHomePage`，一块一张卡片、标题旁 ⓘ）、Pour 认识的（`/about/known`）、一个人（`/about/person/儿子`）、人（星图 `PeopleStarMap`，两根手指放大）在 `About3/`；你说的话、你的一年、领域页和 Pour 认识的那几块还在 `About/`（共用部件换成了新的样子） |
 | `App/Sources/Goals/` | 旧目标页留下的三样：「一项一项填」的表单（`GoalForm`，定目标弹层里用）、选类别（`CategoryPicker`）、记录详情里的小进度条（`GoalBar`、`ToneDot`）；第 9 步重做记录详情时换掉 |
 | `App/Sources/Review/`、`About/`、`Library/`、`Search/`、`Settings/` | 各页（还没重做的用 `Web.*`；`About/AboutLegacyParts.swift` 是钱的旧部件，第 8 步一起换掉） |
 | `App/Sources/PinGate.swift`、`ServerConfiguration.swift` | 要 PIN 时整个 App 先显示的那一页；服务器地址（设置里改过的存在钥匙串，没有就用 Info.plist 的 `PourServerURL`） |
