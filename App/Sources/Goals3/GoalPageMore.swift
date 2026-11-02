@@ -86,7 +86,7 @@ struct GoalMoodCard: View {
             Text(mood.title).font(Theme.Typeface.bodySemibold).fixedSize(horizontal: false, vertical: true)
             bar("推进了的日子", good: mood.movedGood, of: mood.moved, tint: Theme.Palette.good)
             bar("别的日子", good: mood.otherGood, of: mood.other, tint: Theme.Palette.tertiaryLabel)
-            Text("只是一起出现，不说是因为什么。").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+            Text("只是一起出现，不一定有关。").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             if let foot = mood.foot {
                 Text(foot).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).fixedSize(
                     horizontal: false, vertical: true)
