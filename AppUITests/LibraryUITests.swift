@@ -42,11 +42,20 @@ final class LibraryUITests: XCTestCase {
         XCTAssertTrue(app.buttons["重新整理"].waitForExistence(timeout: 3), "左滑没有重新整理")
         app.swipeDown(velocity: .slow)
 
-        // 筛选：时间、类别、人、状态，带条数
+        // 筛选：时间、类别、人和地方（3.0 收尾补上地方）、状态，带条数
         app.buttons["library.filter"].tap()
         XCTAssertTrue(app.buttons["filter.done"].waitForExistence(timeout: 5), "筛选没打开")
+        // 拉到整页再审（停在半屏时审计按放大字号推算，会把组名当成被截掉；别的弹层也是这样审的）
+        app.navigationBars["筛选"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(
+            forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
         settle()
         audit(app, "笔记库-筛选")
+        let place = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '学校'")).firstMatch
+        app.reveal(place)
+        XCTAssertTrue(place.exists, "筛选里没有地方")
+        place.tap()
+        XCTAssertTrue(place.isSelected, "点了地方没选上")
+        place.tap()
         app.buttons["filter.done"].tap()
 
         app.buttons["好时刻"].firstMatch.tap()

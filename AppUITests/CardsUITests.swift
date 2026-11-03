@@ -1,7 +1,7 @@
 import XCTest
 
 /// 我的卡片和语录（docs/模块/产品优化.md R3、R4）：画布样张里的三张卡（一个数、一张清单、一张小图），
-/// 长按「不要了」轻提示能撤销；每日回顾最后一句「你说过」；关于我里「我的语录」
+/// 长按「不要了」轻提示能撤销；每日回顾故事的最后一页「你说过」；「关于我 → Pour 认识的」里「我的语录」
 final class CardsUITests: XCTestCase {
     override func setUp() {
         continueAfterFailure = false
@@ -33,18 +33,31 @@ final class CardsUITests: XCTestCase {
         app.launchArguments += ["-uiTest"]
         app.launch()
         go(to: "回顾", in: app)
-        let daily = app.buttons.matching(NSPredicate(format: "label CONTAINS '周日'")).firstMatch
+        // 3.0 第 6 步起：每天 · 每周 · 每月三段（回顾页记得上次看的是哪一段，先回到「每天」），点一篇是故事
+        let tabs = app.segmentedControls["review.tabs"]
+        XCTAssertTrue(tabs.waitForExistence(timeout: 5), "回顾页没出来")
+        tabs.buttons["每天"].tap()
+        let daily = app.buttons["review.card.2026-10-18"]
         XCTAssertTrue(daily.waitForExistence(timeout: 5), "回顾列表没出来")
         daily.tap()
+        // 「你说过」是故事最后一页：点右边一页一页翻
         let said = app.staticTexts["「付出不亚于任何人的努力」"]
-        for _ in 0..<8 where !said.exists { app.swipeUp(velocity: .slow) }
-        XCTAssertTrue(said.waitForExistence(timeout: 3), "每日回顾没有「你说过」")
+        for _ in 0..<8 where !said.exists {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.88)).tap()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        }
+        XCTAssertTrue(said.waitForExistence(timeout: 3), "每日回顾最后一页没有「你说过」")
         settle()
         attach(app, "回顾-你说过")
+        app.buttons["story.close"].tap()
+        // 3.0 第 8 步起：我的语录在「关于我 → Pour 认识的」那一页
         go(to: "关于我", in: app)
+        let known = app.buttons["about.known.sayings"]
+        app.reveal(known)
+        known.tap()
         let quotes = app.staticTexts["我的语录"]
-        for _ in 0..<10 where !(quotes.exists && quotes.isHittable) { app.swipeUp(velocity: .slow) }
-        XCTAssertTrue(quotes.waitForExistence(timeout: 3), "关于我没有我的语录")
+        app.reveal(quotes)
+        XCTAssertTrue(quotes.waitForExistence(timeout: 3), "Pour 认识的没有我的语录")
         settle()
         attach(app, "关于我-我的语录")
     }

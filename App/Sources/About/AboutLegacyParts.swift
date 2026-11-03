@@ -73,9 +73,10 @@ struct MoneyTag: View {
     let text: String
 
     var body: some View {
-        Text(text).font(Theme.Typeface.footnote).foregroundStyle(Theme.tag("gray").solid).fixedSize()
+        // 字用第二层字色、底是浅灰（和笔记库「意思相近」一样）：标签色的 solid 是画点和条的，写字对比度不够（3.0 收尾查出来的）
+        Text(text).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).fixedSize()
             .padding(.horizontal, Theme.Space.small)
-            .background(Capsule().fill(Theme.tag("gray").tint))
+            .background(Capsule().fill(Theme.Palette.fill))
     }
 }
 

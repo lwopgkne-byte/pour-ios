@@ -113,6 +113,8 @@ final class MoneyEachUITests: XCTestCase, TodoTesting {
         let toggle = app.switches["settings.moneyLock"]
         app.reveal(toggle)
         XCTAssertTrue(toggle.exists, "设置里没有「打开钱要面容 ID」")
+        // 滚动停稳了再点：还在滑的时候点下去，开关不动（2026-11-03 全部检查里挂过一次，重跑过了）
+        pause()
         toggle.tap()
         XCTAssertTrue(waitFor(toggle, value: "1"), "开关没打开")
         app.openTile("money")

@@ -3,7 +3,8 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 笔记库的筛选（docs/3.0/01-需求文档.md 第 11 章）：时间、类别、人、状态，每一样后面写几段（照别的筛选条件算）；
+/// 笔记库的筛选（docs/3.0/01-需求文档.md 第 11 章、06 交互细节「人物地方带条数」）：时间、类别、人和地方、状态，
+/// 每一样后面写几段（照别的筛选条件算）；
 /// 下面「看 N 段」。筛了的在笔记库上面是一排胶囊，点一个去掉它
 struct LibraryFilterSheet: View {
     @Environment(AppModel.self) private var model
@@ -11,7 +12,8 @@ struct LibraryFilterSheet: View {
     @Binding var filter: API.LibraryFilter
     @State private var draft = API.LibraryFilter()
     @State private var facets: API.LibraryFacets?
-    @State private var people: [API.Mention] = []
+    /// 人在前、地方在后（旧 App 就能按地方筛；3.0 收尾补上）
+    @State private var mentions: [API.Mention] = []
 
     /// 时间：从哪天起（空是全部）
     private var ranges: [(key: String, label: String)] {
@@ -40,10 +42,10 @@ struct LibraryFilterSheet: View {
                             }
                         }
                     }
-                    if !people.isEmpty {
-                        group("人") {
+                    if !mentions.isEmpty {
+                        group("人和地方") {
                             FilterChip("全部", selected: draft.tag.isEmpty) { draft.tag = "" }
-                            ForEach(people.prefix(12), id: \.name) { item in
+                            ForEach(mentions, id: \.name) { item in
                                 FilterChip(item.name, count: item.count, selected: draft.tag == item.name) {
                                     draft.tag = draft.tag == item.name ? "" : item.name
                                 }
@@ -83,7 +85,9 @@ struct LibraryFilterSheet: View {
         .presentationDetents([.medium, .large])
         .task {
             draft = filter
-            people = ((try? await model.client.mentions()) ?? []).filter { $0.kind == "person" }
+            let all = (try? await model.client.mentions()) ?? []
+            mentions =
+                Array(all.filter { $0.kind == "person" }.prefix(12)) + all.filter { $0.kind == "place" }.prefix(8)
         }
         .task(id: draft) { facets = try? await model.client.libraryFacets(draft) }
     }

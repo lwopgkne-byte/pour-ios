@@ -144,7 +144,10 @@ final class TodayUITests: XCTestCase {
         attach(app, "对话-每日回顾")
         try AppAudit.run(app, name: "对话-每日回顾")
         link.tap()
-        XCTAssertTrue(app.buttons["每日回顾"].waitForExistence(timeout: 5), "没打开那一天的回顾")
+        // 3.0 第 6 步起：点链接打开那一天的故事（一页一页翻），对话收起来；关掉故事回到原来那一页
+        let close = app.buttons["story.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 5), "没打开那一天的回顾")
+        close.tap()
         XCTAssertEqual(app.buttons["pourbar.chat"].label, "展开对话", "对话没收起来")
     }
 
