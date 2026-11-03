@@ -32,17 +32,17 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 | `App/Sources/Canvas/` | 生活画布、输入框（斜杠命令）、对话面板、记录详情（原地改、最近 7 天、相关目标、来源原话）、时间轴、类别卡片 |
 | `App/Sources/About3/`、`About/` | 3.0 关于我：主页（`AboutHomePage`，一块一张卡片、标题旁 ⓘ）、Pour 认识的（`/about/known`）、一个人（`/about/person/儿子`）、人（星图 `PeopleStarMap`，两根手指放大）在 `About3/`；你说的话、你的一年、领域页和 Pour 认识的那几块还在 `About/`（共用部件换成了新的样子） |
 | `App/Sources/Library3/`、`Library/` | 3.0 笔记库（`LibraryPage3`，系统列表拼成按天的卡片、左滑、按住、筛选弹层 `LibraryFilterSheet` 带条数）；好时刻还在 `Library/` |
-| `App/Sources/Settings/` | 3.0 设置：分组列表（`SettingsPage`，`SettingsPageKey` 一行一页：`/settings#reminders`…），每一页沿用原来那几块；小组件和捷径（`WidgetsGuide`） |
+| `App/Sources/Settings/` | 3.0 设置：分组列表（`SettingsPage`，`SettingsPageKey` 一行一页：`/settings#reminders`…），每一页沿用原来那几块的内容，样子在 3.0 收尾时换成了 Theme（系统开关、系统分段、系统按钮样式）；小组件和捷径（`WidgetsGuide`） |
 | `App/Sources/Hub/FeedbackSheet.swift` | 3.0 反馈：一句话 + 截图（能去掉）+ 在哪一页 + 版本 + 最近几次出错（`Log.recent`），发到 `POST /api/feedback` |
 | `App/Sources/Goals/` | 旧目标页留下的三样：「一项一项填」的表单（`GoalForm`，定目标弹层里用）、选类别（`CategoryPicker`）、记录详情里的小进度条（`GoalBar`、`ToneDot`）；第 9 步重做记录详情时换掉 |
-| `App/Sources/Review/`、`About/`、`Library/`、`Search/`、`Settings/` | 各页（还没重做的用 `Web.*`；`About/AboutLegacyParts.swift` 是钱的旧部件，第 8 步一起换掉） |
+| `App/Sources/Review/`、`About/`、`Library/`、`Search/`、`Settings/` | 各页，全部只用 `Theme`（3.0 收尾删掉了 `Web.*`）；`About/AboutLegacyParts.swift` 是钱、回顾里还在用的几样小部件 |
 | `App/Sources/PinGate.swift`、`ServerConfiguration.swift` | 要 PIN 时整个 App 先显示的那一页；服务器地址（设置里改过的存在钥匙串，没有就用 Info.plist 的 `PourServerURL`） |
 | `App/Sources/WebPeek.swift` | 从底部滑出的详情层 |
 | `Packages/PourKit/Sources/PourAPI/PageCache.swift` | 页面缓存：每个页面接口最后一次的回复存在手机上（按服务器分开），没连上时拿它顶上；换真实 / 演示数据清掉 |
 | `App/Sources/StubServer*.swift` | 界面测试用的假服务器（启动参数 `-uiTest`）：照服务器的接口回话，数据是从演示服务器拿的 |
 | `Packages/PourKit/Sources/PourAPI/` | 服务器接口的数据类型（字段名一字不差）、客户端 `APIClient`、推送 `Events`、写法 `Show`（日期、钱、心情、时长……和服务器说的一字不差） |
 | `PourDesign/Theme/` | **唯一的设计系统**（[ADR A26](ADR/A26-一套设计系统.md)）：生活画布 2.0 起的令牌（`Theme.Palette`、`Theme.Space`、`Theme.Corner`、`Theme.Motion`……）和组件；`ColorToken.swift` 是颜色值和对比度计算 |
-| `PourDesign/Web.swift`、`WebControls.swift`、`WebParts.swift` | 还没重做的页面暂时用的令牌 `Web.*` 和组件（`WebButton`、`WebSwitch`、`WebSegmented`……）：3.0 每重做一块就换掉那一块的，全部做完删掉 |
+| `PourDesign/Theme/ThemeControls.swift` | 设置、开机密码、填表定目标用的按钮（`ThemeButton`，系统按钮样式）、开关（`ThemeSwitch`，系统开关）、分段（`ThemeSegmented`，系统分段）、输入框（`ThemeTextField`）。从网页照搬的 `Web.swift`、`WebControls.swift`、`WebParts.swift` 在 3.0 收尾（2026-11-03）删掉了 |
 | `PourCore/` | 日期、钟点、`Math.round` 的规则（和服务器对拍：`fixtures/golden/`）、中文和数字之间的空 |
 | `PourPlatform/` | 待办的系统通知（`Reminder`、`Reminders`：排、撤、通知上的四个按钮、通知开着没有）、目标的系统通知（`GoalNotices`：每周几天各一个重复的、一次的、到家的时候）、钥匙串、和扩展共用的存储、健康、日历、语音 |
 | `AppUITests/` | 每一页的界面测试；`AppAudit.swift` 是无障碍审计和它的例外 |
@@ -62,7 +62,7 @@ iPhone 上的 Pour App  ──接口（HTTP）、推送（/api/events）──�
 
 - **单元测试**：`cd Packages/PourKit && swift test`（约 90 项：接口解码、写法、对拍、提醒、颜色对比度）；App 里的（`AppTests`：链接和导航栈、待办的分组和推迟）跟着界面测试一起跑（`-only-testing:PourTests`）
 - **界面测试**：连假服务器、不花钱。每页一个测试类，都跑系统的无障碍审计（对比度、字被截、点按区域、动态字体），截图存进测试结果
-- **一键检查**：`scripts/check.sh` 是全部（界面测试和审计，半个小时左右），改得多或者改了大家都用的（外壳、审计、设计系统）时跑；推送前自动跑的是 `--no-ui`（几分钟；不要用 `--no-verify` 跳过）；平时只跑改到的那一页的界面测试（`-only-testing:PourUITests/MoneyUITests`）
+- **一键检查**：`scripts/check.sh` 是全部（99 个界面测试，每一屏审计，两个半小时以上），改得多或者改了大家都用的（外壳、审计、设计系统）时跑；推送前自动跑的是 `--no-ui`（几分钟；不要用 `--no-verify` 跳过）；平时只跑改到的那一页的界面测试（`-only-testing:PourUITests/MoneyUITests`）
 - **审计的坑**（踩过的）：长页面的审计偶尔超时（AppAudit 会重试、再按类型分开审）；检查跑着的时候别跑别的重活、别改仓库里的文件；审计报「字被截」常是一行字放不下用了省略号——字大时换成多行；对比度报错常是对话面板或搜索盖着的页面——盖着时把下面的页面对读屏藏起来；半屏的弹层要拉到全屏再审（系统画得略小，审计会以为字被截了）；列表是懒加载的，屏幕外的行还没生成，要往下翻着找；提醒、通知的测试用 `-remindersCheck`（界面测试里也排通知，`TodoSheetsUITests`）
 - **截图对照**：`scripts/tour-shots.sh http://127.0.0.1:5288 <输出目录>` 一条命令把每一页截下来、每页拼一张长图（只连演示数据的服务器）；单看一页：启动参数 `-serverURL http://127.0.0.1:5288` 连演示服务器，`-day 2026-10-15` 直接打开那一天
 
