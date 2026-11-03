@@ -198,7 +198,7 @@ struct PhoneSettings: View {
             if saved { FieldMessage(text: "下次打开 App 时用新的地址。") }
             SettingRow(label: "连接") {
                 if let offline = model.offline {
-                    Text(offline).foregroundStyle(Web.danger)
+                    Text(offline).foregroundStyle(Theme.Palette.bad)
                 } else {
                     Text("已连上")
                 }

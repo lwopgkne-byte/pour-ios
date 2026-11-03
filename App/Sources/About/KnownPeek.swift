@@ -11,7 +11,7 @@ struct KnownPeek: View {
     let key: String
 
     var body: some View {
-        WebPeek(title: title) {
+        DetailPeek(title: title) {
             if let about = store.about {
                 content(about)
             } else {

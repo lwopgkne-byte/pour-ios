@@ -343,6 +343,8 @@ extension API {
             public var care: GoalSettingCare?
             public var remind: String?
             public var rest: Int?
+            /// 改类别、只算、周期、从哪天算用的（服务器 2.19.0 起才有；没有时这几行只显示）
+            public var edit: GoalSettingsEdit?
         }
 
         public var card: GoalCard

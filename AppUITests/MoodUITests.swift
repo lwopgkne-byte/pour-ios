@@ -90,7 +90,8 @@ final class MoodUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(app.staticTexts["已删除"].waitForExistence(timeout: 3), "删了没说")
     }
 
-    /// 心情分析（以前「关于我 → 心情」的全部）和好时刻（按月分组）：打得开、每一屏跑审计
+    /// 心情分析（以前「关于我 → 心情」的全部）和好时刻（按月分组）：打得开、每一屏跑审计；
+    /// 「你说出过的感受」点一个展开说它的那几次原话，再点收起
     @MainActor func testAnalysisAndMoments() throws {
         let app = openMood()
         let link = app.buttons["mood.analysis"]
@@ -105,6 +106,20 @@ final class MoodUITests: XCTestCase, TodoTesting {
             pause()
             audit(app, name)
         }
+        let glad = app.buttons["mood.feeling.开心"]
+        app.reveal(glad)
+        XCTAssertEqual(glad.value as? String, "收着")
+        glad.tap()
+        let quote = app.buttons.matching(NSPredicate(format: "label CONTAINS '方案评审一次过了'")).firstMatch
+        XCTAssertTrue(quote.waitForExistence(timeout: 3), "点了「开心」没展开那几次的原话")
+        XCTAssertTrue(app.staticTexts["说「开心」的 12 次里，最近的 2 次"].exists, "没写是 12 次里的几次")
+        XCTAssertEqual(glad.value as? String, "展开了")
+        app.reveal(quote)
+        pause()
+        audit(app, "心情分析-感受展开")
+        app.reveal(glad)
+        glad.tap()
+        XCTAssertEqual(glad.value as? String, "收着")
         app.goBack()
         let all = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '全部 15 个'")).firstMatch
         app.reveal(all)
@@ -120,13 +135,13 @@ final class MoodUITests: XCTestCase, TodoTesting {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest", "-open", "/settings#reminders"]
         app.launch()
-        // 设置页的开关（WebSwitch）是带「开关」特征的按钮：读屏念「开 / 关」
+        // 设置页的开关是系统开关（3.0 收尾以前是带「开关」特征的按钮）：开是 1、关是 0
         let kinds = [XCUIElement.ElementType.button.rawValue, XCUIElement.ElementType.switch.rawValue]
         let row = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label == '晚上问问心情' AND elementType IN %@", kinds)).firstMatch
         app.reveal(row)
         XCTAssertTrue(row.exists, "设置里没有「晚上问问心情」")
-        XCTAssertEqual(row.value as? String, "关", "晚上问问心情默认要关着")
+        XCTAssertEqual(row.value as? String, "0", "晚上问问心情默认要关着")
         row.tap()
         app.tap()  // 让通知权限的弹窗被接住
         let scheduled = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '手机上排好了'")).firstMatch

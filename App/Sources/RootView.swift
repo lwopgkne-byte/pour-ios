@@ -99,8 +99,8 @@ struct RootView: View {
             .opacity(barHidden ? 0 : 1)
             .animation(Theme.Motion.standard, value: barHidden)
         }
-        .animation(Web.panel, value: model.chatOpen)
-        .animation(Web.panel, value: model.notice)
+        .animation(Theme.Motion.standard, value: model.chatOpen)
+        .animation(Theme.Motion.standard, value: model.notice)
         .sheet(item: $model.detail) { ref in EntryPeek(entryId: ref.id, day: ref.day) }
         // 待办的弹层（3.0 第 2 步）：加待办、详情、推迟到哪——待办页、画布、「我的」、通知都打开这几个
         .sheet(item: $model.todoSheet) { sheet in
@@ -151,7 +151,7 @@ struct RootView: View {
                 SearchPalette(initial: search).transition(.opacity)
             }
         }
-        .animation(Web.fast, value: model.search != nil)
+        .animation(Theme.Motion.standard, value: model.search != nil)
         // 只有一种样子（亮色）：产品主人 2026-10-21「把黑色的风格去掉，只要一种」
         .preferredColorScheme(.light)
         .tint(Theme.Palette.accent)

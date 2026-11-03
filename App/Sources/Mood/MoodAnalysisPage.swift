@@ -104,7 +104,6 @@ struct MoodWhenCard: View {
 
 /// 好时刻多在做什么：一行一个领域写个数和一根条；点一行展开那几刻的原话（点了去笔记库）
 struct MoodDomainsCard: View {
-    @Environment(AppModel.self) private var model
     let moments: API.MeMoments
     @State private var open: String?
 
@@ -133,15 +132,21 @@ struct MoodDomainsCard: View {
                 .buttonStyle(.plain)
                 .accessibilityElement(children: .combine)
                 .accessibilityValue(Text(open == row.key ? "展开了" : "收着"))
-                if open == row.key { quotes(row.moments) }
+                if open == row.key { MoodQuotes(list: row.moments) }
             }
             Text("\(moments.sentence) · 点一行看那几刻").font(Theme.Typeface.footnote)
                 .foregroundStyle(Theme.Palette.secondaryLabel)
         }
         .themeCard()
     }
+}
 
-    private func quotes(_ list: [API.MeMomentRow.Moment]) -> some View {
+/// 展开的那几刻：原话（宋体）+ 哪天；有原话编号的点了去笔记库从那一段看
+struct MoodQuotes: View {
+    @Environment(AppModel.self) private var model
+    let list: [API.MeMomentRow.Moment]
+
+    var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             ForEach(Array(list.enumerated()), id: \.offset) { _, moment in
                 Button {
@@ -165,9 +170,11 @@ struct MoodDomainsCard: View {
     }
 }
 
-/// 你说出过的感受：胶囊，说得越多字越大；好的绿、不好的黄、说不清的灰
+/// 你说出过的感受：胶囊，说得越多字越大；好的绿、不好的黄、说不清的灰。
+/// 点一个展开说它的那几次原话（06 交互细节「心情分析」），再点收起
 struct MoodFeelingsCard: View {
     let feelings: API.MeFeelings
+    @State private var open: String?
 
     private static let fonts = [
         Theme.Typeface.footnote, Theme.Typeface.subheadline, Theme.Typeface.bodySemibold, Theme.Typeface.cardTitle,
@@ -176,21 +183,55 @@ struct MoodFeelingsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
             MoodCardHeader("你说出过的感受")
-            PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) {
+            // 每个胶囊点按区域 44 点高（胶囊本身不变）：一行和一行之间就不用再空
+            PourFlowLayout(spacing: Theme.Space.small, lineSpacing: 0) {
                 ForEach(feelings.words, id: \.word) { word in
-                    HStack(alignment: .firstTextBaseline, spacing: Theme.Space.tight) {
-                        Text(word.word).font(Self.fonts[min(4, max(1, word.size)) - 1])
-                        Text("\(word.count)").font(Theme.Typeface.caption).monospacedDigit()
+                    if (word.moments ?? []).isEmpty {
+                        capsule(word, shown: false).frame(minHeight: Theme.Size.touch)
+                    } else {
+                        button(word)
                     }
-                    .foregroundStyle(ink(word.group))
-                    .padding(.vertical, Theme.Space.snug).padding(.horizontal, Theme.Space.medium)
-                    .background(fill(word.group), in: Capsule())
-                    .accessibilityElement(children: .combine)
                 }
             }
-            Text(feelings.sentence).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+            if let word = feelings.words.first(where: { $0.word == open }), let list = word.moments, !list.isEmpty {
+                Text(
+                    word.count > list.count
+                        ? "说「\(word.word)」的 \(word.count) 次里，最近的 \(list.count) 次" : "说「\(word.word)」的那几次"
+                )
+                .font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
+                MoodQuotes(list: list)
+            }
+            Text(canOpen ? "\(feelings.sentence) · 点一个看那几次" : feelings.sentence)
+                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
         .themeCard()
+    }
+
+    /// 服务器 2.19.0 以前不带那几次：胶囊照旧，不能点
+    private var canOpen: Bool { feelings.words.contains { !($0.moments ?? []).isEmpty } }
+
+    private func button(_ word: API.MeFeeling) -> some View {
+        let shown = open == word.word
+        return Button {
+            withAnimation(Theme.Motion.standard) { open = shown ? nil : word.word }
+        } label: {
+            capsule(word, shown: shown).frame(minHeight: Theme.Size.touch).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityValue(Text(shown ? "展开了" : "收着"))
+        .accessibilityIdentifier("mood.feeling.\(word.word)")
+    }
+
+    private func capsule(_ word: API.MeFeeling, shown: Bool) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.tight) {
+            Text(word.word).font(Self.fonts[min(4, max(1, word.size)) - 1])
+            Text("\(word.count)").font(Theme.Typeface.caption).monospacedDigit()
+        }
+        .foregroundStyle(ink(word.group))
+        .padding(.vertical, Theme.Space.snug).padding(.horizontal, Theme.Space.medium)
+        .background(fill(word.group), in: Capsule())
+        .overlay { Capsule().strokeBorder(shown ? ink(word.group) : .clear, lineWidth: Theme.Space.hairline) }
+        .accessibilityElement(children: .combine)
     }
 
     private func ink(_ group: String) -> Color {

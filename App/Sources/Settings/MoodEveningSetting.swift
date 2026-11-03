@@ -22,7 +22,7 @@ struct MoodEveningRow: View {
                     resync()
                 }
             }
-            WebSwitch("晚上问问心情", isOn: asking) { toggle($0) }
+            ThemeSwitch("晚上问问心情", isOn: asking) { toggle($0) }
         }
         .task(id: "\(asking)-\(time)") { scheduled = await EveningMood.pending() }
     }

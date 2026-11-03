@@ -48,6 +48,8 @@ extension Theme {
         public static let quickIcon = Font.title2.weight(.semibold)
         /// 你说的原话（宋体 17）
         public static let quote = Font.custom("Songti SC", size: 17, relativeTo: .body)
+        /// 处理日志：等宽，一行一行好对齐
+        public static let mono = Font.system(.footnote, design: .monospaced)
         /// 只写了一句感悟那天的大引用（宋体 21）
         public static let quoteLarge = Font.custom("Songti SC", size: 21, relativeTo: .title3)
     }

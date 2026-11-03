@@ -14,38 +14,40 @@ struct MoneyList<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) { content() }
-            .overlay(alignment: .top) { Rectangle().fill(Web.line).frame(height: 1) }
+            .overlay(alignment: .top) { Rectangle().fill(Theme.Palette.separator).frame(height: 1) }
     }
 }
 
 extension View {
     /// 一行下面的细线
     func moneyRule() -> some View {
-        overlay(alignment: .bottom) { Rectangle().fill(Web.line).frame(height: 1) }
+        overlay(alignment: .bottom) { Rectangle().fill(Theme.Palette.separator).frame(height: 1) }
     }
 }
 
 /// 能点的一行：内容在左，右边一个小箭头，下面一条细线；按下去底色变深
 struct MoneyLinkRow<Label: View>: View {
-    var minHeight = Web.space16
+    var minHeight = (Theme.Space.section * 2)
     var chevron = true
     let action: () -> Void
     @ViewBuilder let label: () -> Label
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: Web.space2) {
+            HStack(spacing: Theme.Space.small) {
                 label().frame(maxWidth: .infinity, alignment: .leading)
                 if chevron {
-                    Image(systemName: "chevron.right").font(Web.caption).foregroundStyle(Web.fgTertiary)
-                        .accessibilityHidden(true)
+                    Image(systemName: "chevron.right").font(Theme.Typeface.footnote).foregroundStyle(
+                        Theme.Palette.secondaryLabel
+                    )
+                    .accessibilityHidden(true)
                 }
             }
-            .padding(.vertical, Web.space2)
+            .padding(.vertical, Theme.Space.small)
             .frame(minHeight: minHeight)
             .contentShape(Rectangle())
         }
-        .buttonStyle(WebPressStyle(radius: 0))
+        .buttonStyle(.plain)
         .moneyRule()
     }
 }
@@ -57,9 +59,9 @@ struct MoneyMainSub: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            main.font(Web.body).foregroundStyle(Web.fg)
+            main.font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
             if let sub, !sub.isEmpty {
-                Text(sub).font(Web.caption).foregroundStyle(Web.fgTertiary).monospacedDigit()
+                Text(sub).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit()
             }
         }
         .accessibilityElement(children: .combine)
@@ -71,27 +73,27 @@ struct MoneyTag: View {
     let text: String
 
     var body: some View {
-        Text(text).font(Web.caption).foregroundStyle(Web.tag("gray").fg).fixedSize()
-            .padding(.horizontal, Web.space2)
-            .background(Capsule().fill(Web.tag("gray").bg))
+        Text(text).font(Theme.Typeface.footnote).foregroundStyle(Theme.tag("gray").solid).fixedSize()
+            .padding(.horizontal, Theme.Space.small)
+            .background(Capsule().fill(Theme.tag("gray").tint))
     }
 }
 
 /// 一句话里的一段：字体、颜色（「一共送出 **¥4,066**」这种半粗的钱）
 struct Segment {
     let text: String
-    var font: Font = Web.body
-    var color: Color = Web.fg
+    var font: Font = Theme.Typeface.body
+    var color: Color = Theme.Palette.label
 
-    init(_ text: String, font: Font = Web.body, color: Color = Web.fg) {
+    init(_ text: String, font: Font = Theme.Typeface.body, color: Color = Theme.Palette.label) {
         self.text = text
         self.font = font
         self.color = color
     }
 
     /// 半粗的一段
-    static func bold(_ text: String, color: Color = Web.fg) -> Segment {
-        .init(text, font: Web.bodySemibold, color: color)
+    static func bold(_ text: String, color: Color = Theme.Palette.label) -> Segment {
+        .init(text, font: Theme.Typeface.bodySemibold, color: color)
     }
 }
 
@@ -115,11 +117,11 @@ extension View {
 /// 加载中的样子（关于我的几页还在用；回顾 3.0 第 6 步换成了新组件，这几页第 8 步一起换）
 struct ReviewSkeleton: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space4) {
-            WebSkeleton(width: Web.space16)
-            WebSkeleton(height: Web.space8).containerRelativeFrame(.horizontal) { width, _ in width / 2 }
-            WebSkeleton(height: Web.space6).containerRelativeFrame(.horizontal) { width, _ in width * 3 / 4 }
-            WebSkeleton(height: Web.space16)
+        VStack(alignment: .leading, spacing: Theme.Space.regular) {
+            SkeletonBlock(height: Theme.Space.regular).frame(width: Theme.Space.section * 2)
+            SkeletonBlock(height: Theme.Space.section).containerRelativeFrame(.horizontal) { width, _ in width / 2 }
+            SkeletonBlock(height: Theme.Space.xLarge).containerRelativeFrame(.horizontal) { width, _ in width * 3 / 4 }
+            SkeletonBlock(height: Theme.Space.section * 2)
         }
     }
 }
@@ -130,13 +132,13 @@ struct LegacySection<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space3) {
-            Text(title).font(Web.captionMedium).foregroundStyle(Web.fgTertiary).tracking(Web.kickerTracking)
+        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+            Text(title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
                 .accessibilityAddTraits(.isHeader)
             content()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, Web.space12)
+        .padding(.top, (Theme.Size.touch + Theme.Space.tight))
     }
 }
 
@@ -145,14 +147,16 @@ extension View {
     func legacyPage(prev: (() -> Void)?, next: (() -> Void)?) -> some View {
         ScrollView {
             self.frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, Web.space4)
-                .padding(.top, Web.space4)
-                .padding(.bottom, Web.space12)
+                .padding(.horizontal, Theme.Space.regular)
+                .padding(.top, Theme.Space.regular)
+                .padding(.bottom, (Theme.Size.touch + Theme.Space.tight))
         }
         .simultaneousGesture(
-            DragGesture(minimumDistance: Web.space6).onEnded { drag in
+            DragGesture(minimumDistance: Theme.Space.xLarge).onEnded { drag in
                 let across = drag.translation.width
-                guard abs(across) > Web.space12 + Web.space3, abs(across) > abs(drag.translation.height) * 2 else {
+                guard abs(across) > (Theme.Size.touch + Theme.Space.tight) + Theme.Space.medium,
+                    abs(across) > abs(drag.translation.height) * 2
+                else {
                     return
                 }
                 if across > 0 { prev?() } else { next?() }

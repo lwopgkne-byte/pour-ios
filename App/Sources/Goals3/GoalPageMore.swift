@@ -114,7 +114,8 @@ struct GoalMoodCard: View {
     }
 }
 
-/// 设置：名称、目标值（点了原地改：输入框 +「好」，回车也行）、类别、只算、周期、从哪天算、我在乎的（点了换一块）、提醒
+/// 设置：名称、目标值、只算（点了原地改：输入框 +「好」，回车也行）、类别和周期（点了是系统菜单）、
+/// 从哪天算（点了弹出系统的日历）、我在乎的（点了换一块）、提醒。服务器 2.19.0 以前类别、只算、周期、从哪天算只能看
 struct GoalSettingsBlock: View {
     @Environment(AppModel.self) private var model
     let goalId: Int
@@ -134,12 +135,18 @@ struct GoalSettingsBlock: View {
                 Divider()
                 editable("target", "目标值", settings.targetText, number: true)
             }
-            if let category = settings.category { Divider(); plain("类别", category, sub: "子类别的记录也算进上级") }
-            if let only = settings.only { Divider(); plain("只算", only) }
+            if let category = settings.category { Divider(); categoryRow(category) }
+            if settings.edit?.keywords != nil {
+                Divider()
+                editable("only", "只算", settings.only ?? "整个类别都算", number: false)
+            } else if let only = settings.only {
+                Divider()
+                plain("只算", only)
+            }
             Divider()
-            plain("周期", settings.period)
+            periodRow
             Divider()
-            plain("从哪天算", settings.start)
+            startRow
             if page.card.parentId == nil {
                 Divider()
                 careRow
@@ -163,7 +170,8 @@ struct GoalSettingsBlock: View {
         if editing == key {
             HStack(spacing: Theme.Space.small) {
                 Text(name).font(Theme.Typeface.body)
-                TextField(name, text: $draft).focused($focused).multilineTextAlignment(number ? .trailing : .leading)
+                TextField(key == "only" ? "名称里带的字，空格隔开" : name, text: $draft).focused($focused)
+                    .multilineTextAlignment(number ? .trailing : .leading)
                     .keyboardType(number ? .decimalPad : .default).submitLabel(.done).onSubmit { save(key) }
                     .textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("goal.edit.\(key)")
@@ -175,7 +183,12 @@ struct GoalSettingsBlock: View {
             .frame(minHeight: Theme.Size.touch + Theme.Space.small)
         } else {
             Button {
-                draft = number ? Show.fmtNum(settings.target?.value ?? 0) : settings.title
+                draft =
+                    switch key {
+                    case "target": Show.fmtNum(settings.target?.value ?? 0)
+                    case "only": (settings.edit?.keywords ?? []).joined(separator: " ")
+                    default: settings.title
+                    }
                 editing = key
                 focused = true
             } label: {
@@ -193,6 +206,74 @@ struct GoalSettingsBlock: View {
             model.goalSet(goalId, GoalChange(target: value))
         } else if key == "title", !text.isEmpty, text != settings.title {
             model.goalSet(goalId, GoalChange(title: text))
+        } else if key == "only" {
+            // 空着是整个类别都算
+            let words = text.split { " ,，、".contains($0) }.map(String.init)
+            if words != (settings.edit?.keywords ?? []) { model.goalSet(goalId, GoalChange(keywords: words)) }
+        }
+    }
+
+    /// 类别：系统菜单，点一类换过去（子类别的记录也算进上级）
+    @ViewBuilder private func categoryRow(_ name: String) -> some View {
+        let sub = "子类别的记录也算进上级"
+        if let current = settings.edit?.category {
+            Menu {
+                ForEach(CategoryPicker.ordered(model.categories), id: \.key) { item in
+                    Button {
+                        if item.key != current { model.goalSet(goalId, GoalChange(category: item.key)) }
+                    } label: {
+                        if item.key == current { Label(item.name, systemImage: "checkmark") } else { Text(item.name) }
+                    }
+                }
+            } label: {
+                rowLabel("类别", name, chevron: true, sub: sub)
+            }
+            .accessibilityIdentifier("goal.setting.category")
+        } else {
+            plain("类别", name, sub: sub)
+        }
+    }
+
+    /// 周期：系统菜单（今年 / 这个月 / 这周 / 每月 / 每周）；每天的、坚持的、大目标不能换
+    @ViewBuilder private var periodRow: some View {
+        if let periods = settings.edit?.periods, !periods.isEmpty {
+            Menu {
+                ForEach(periods, id: \.label) { option in
+                    Button {
+                        if !option.current {
+                            model.goalSet(goalId, GoalChange(period: option.period, repeats: option.repeats))
+                        }
+                    } label: {
+                        if option.current { Label(option.label, systemImage: "checkmark") } else { Text(option.label) }
+                    }
+                }
+            } label: {
+                rowLabel("周期", settings.period, chevron: true)
+            }
+            .accessibilityIdentifier("goal.setting.period")
+        } else {
+            plain("周期", settings.period)
+        }
+    }
+
+    /// 从哪天算：点了弹出系统的日历，只能选这一段的第一天到今天（有终点的目标）
+    @ViewBuilder private var startRow: some View {
+        if let start = settings.edit?.start {
+            HStack(spacing: Theme.Space.medium) {
+                Text("从哪天算").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                Spacer(minLength: Theme.Space.small)
+                DateEdit(label: "从哪天算", value: start.value, display: settings.start, range: start.from...start.to) {
+                    model.goalSet(goalId, GoalChange(start: $0))
+                }
+                .font(Theme.Typeface.body)
+                Image(systemName: "chevron.right").font(Theme.Typeface.footnote).foregroundStyle(
+                    Theme.Palette.tertiaryLabel
+                )
+                .accessibilityHidden(true)
+            }
+            .frame(minHeight: Theme.Size.touch + Theme.Space.small)
+        } else {
+            plain("从哪天算", settings.start)
         }
     }
 

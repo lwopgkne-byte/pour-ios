@@ -75,17 +75,24 @@ public struct ThemeListRow<Trailing: View>: View {
 public struct ThemeTextButton: View {
     let title: String
     let font: Font
+    /// 平常是强调色；删除、清除这种用红色
+    let color: Color
     let action: () -> Void
 
-    public init(_ title: String, font: Font = Theme.Typeface.footnoteSemibold, action: @escaping () -> Void) {
+    public init(
+        _ title: String, font: Font = Theme.Typeface.footnoteSemibold, color: Color = Theme.Palette.accent,
+        action: @escaping () -> Void
+    ) {
         self.title = title
         self.font = font
+        self.color = color
         self.action = action
     }
 
     public var body: some View {
         Button(action: action) {
-            Text(title).font(font).foregroundStyle(Theme.Palette.accent)
+            // 字放一行：挤的时候别的字让，按钮不折成「试 / 一下」（3.0 收尾，设置页查出来的）
+            Text(title).font(font).foregroundStyle(color).fixedSize()
                 .frame(minWidth: Theme.Size.touch, minHeight: Theme.Size.touch)
                 .contentShape(Rectangle())
         }

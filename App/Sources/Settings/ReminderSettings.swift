@@ -38,17 +38,18 @@ private struct ReminderRows: View {
             channel("bark", label: "Bark（iPhone）", key: status.keys.bark, enabled: status.channels.bark)
             FieldMessage(text: "推送密钥在电脑上用「Pour 设置」填写。")
             if status.keys.serverchan != nil || status.keys.bark != nil {
-                VStack(alignment: .leading, spacing: Web.space2) {
-                    WebButton("发一条测试推送", loading: testing) { testPush() }
+                VStack(alignment: .leading, spacing: Theme.Space.small) {
+                    ThemeButton("发一条测试推送", loading: testing) { testPush() }
                     if let testResult {
-                        Text(Show.spaced(testResult)).font(Web.caption).foregroundStyle(Web.fgSecondary)
+                        Text(Show.spaced(testResult)).font(Theme.Typeface.footnote).foregroundStyle(
+                            Theme.Palette.secondaryLabel)
                     }
                 }
-                .padding(.vertical, Web.space2)
+                .padding(.vertical, Theme.Space.small)
             }
             FieldMessage(text: "提醒只在电脑开着、Pour 运行时发出；推送末尾附上手机能打开的地址。所有提醒也会出现在对话里。")
 
-            SettingsHeading(title: "提醒").padding(.top, Web.space2)
+            SettingsHeading(title: "提醒").padding(.top, Theme.Space.small)
             timed("morning", label: "每日回顾", hint: "早上把昨天整理成一页回顾，连同今天的安排一起推送", status.morning)
             timed("evening", label: "晚上的倾倒提醒", hint: "今天还没记录时。好几天没记的时候会自己变少，一记就恢复", status.evening)
             MoodEveningRow(evening: status.evening) { save($0) }
@@ -56,7 +57,7 @@ private struct ReminderRows: View {
             SettingRow(label: "目标入睡时间", hint: "连续 3 天晚于它会预警") {
                 if let bedtime = status.bedtime {
                     TimeEdit(label: "目标入睡时间", value: bedtime) { save(["bedtime": .string($0)]) }
-                    WebTextButton("不检查") { save(["bedtime": .null]) }
+                    ThemeTextButton("不检查", font: Theme.Typeface.bodyMedium) { save(["bedtime": .null]) }
                 } else {
                     // 空着显示灰色的「不检查」，点一下选时间
                     TimeEdit(label: "目标入睡时间", value: "00:00", display: "不检查", unset: true) {
@@ -69,14 +70,14 @@ private struct ReminderRows: View {
             if let review = status.review { GoalReviewRow(review: review) { save(["review": $0]) } }
             GoalIfThenSettings()
 
-            SettingsHeading(title: "免打扰").padding(.top, Web.space2)
+            SettingsHeading(title: "免打扰").padding(.top, Theme.Space.small)
             SettingRow(label: "免打扰时段") {
                 if status.dnd.enabled {
                     TimeEdit(label: "免打扰开始", value: status.dnd.from) { save(["dnd": dnd(from: $0)]) }
-                    Text("到").foregroundStyle(Web.fgTertiary)
+                    Text("到").foregroundStyle(Theme.Palette.secondaryLabel)
                     TimeEdit(label: "免打扰结束", value: status.dnd.to) { save(["dnd": dnd(to: $0)]) }
                 }
-                WebSwitch("免打扰", isOn: status.dnd.enabled) { save(["dnd": dnd(enabled: $0)]) }
+                ThemeSwitch("免打扰", isOn: status.dnd.enabled) { save(["dnd": dnd(enabled: $0)]) }
             }
             FieldMessage(text: "免打扰时段里不推送，提醒照常出现在对话里。")
         }
@@ -85,9 +86,10 @@ private struct ReminderRows: View {
     /// 推送渠道一行：打码的密钥；填过了能开关（填写只能在电脑上用「Pour 设置」）
     private func channel(_ name: String, label: String, key: String?, enabled: Bool) -> some View {
         SettingRow(label: label) {
-            Text(key ?? "还没填写").foregroundStyle(key == nil ? Web.fgTertiary : Web.fgSecondary)
+            Text(key ?? "还没填写").foregroundStyle(
+                key == nil ? Theme.Palette.secondaryLabel : Theme.Palette.secondaryLabel)
             if key != nil {
-                WebSwitch("用\(label)推送", isOn: enabled) { value in
+                ThemeSwitch("用\(label)推送", isOn: enabled) { value in
                     var channels = [
                         "serverchan": JSONValue.bool(status.channels.serverchan), "bark": .bool(status.channels.bark),
                     ]
@@ -107,7 +109,7 @@ private struct ReminderRows: View {
                 }
             }
             tryButton(kind, title: "试一下")
-            WebSwitch(label, isOn: setting.enabled) { value in
+            ThemeSwitch(label, isOn: setting.enabled) { value in
                 save([kind: .object(["enabled": .bool(value), "time": .string(setting.time)])])
             }
         }
@@ -116,15 +118,15 @@ private struct ReminderRows: View {
     private func report(_ kind: String, label: String, hint: String, button: String, enabled: Bool) -> some View {
         SettingRow(label: label, hint: hint) {
             tryButton(kind, title: button)
-            WebSwitch(label, isOn: enabled) { save([kind: .object(["enabled": .bool($0)])]) }
+            ThemeSwitch(label, isOn: enabled) { save([kind: .object(["enabled": .bool($0)])]) }
         }
     }
 
     @ViewBuilder private func tryButton(_ kind: String, title: String) -> some View {
         if trying == kind {
-            Dots(label: "\(title)，正在处理").foregroundStyle(Web.accent).frame(minHeight: Web.touch)
+            Dots(label: "\(title)，正在处理").foregroundStyle(Theme.Palette.accent).frame(minHeight: Theme.Size.touch)
         } else {
-            WebTextButton(title) { tryNow(kind) }
+            ThemeTextButton(title, font: Theme.Typeface.bodyMedium) { tryNow(kind) }
         }
     }
 

@@ -4,7 +4,7 @@ import SwiftUI
 
 /// 详情层：从底部滑出的一层，上面是标题和右上角的关闭，下面能滚。
 /// 设置里的类别、没答对的句子、你改过的地方、处理日志都用它（记录详情 EntryPeek 是同一个样子）
-struct WebPeek<Content: View>: View {
+struct DetailPeek<Content: View>: View {
     let title: String
     @ViewBuilder let content: () -> Content
     @Environment(\.dismiss) private var dismiss

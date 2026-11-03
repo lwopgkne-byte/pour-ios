@@ -156,10 +156,17 @@ public struct GoalChange: Encodable, Sendable {
     public var quiet: Bool?
     public var remind: API.GoalRemind??
     public var three: API.GoalThree?
+    /// 3.0 收尾（服务器 2.19.0）：类别的 key、只算的字（空的是整个类别都算）、周期、从哪天算
+    public var category: String?
+    public var keywords: [String]?
+    public var period: String?
+    public var repeats: Bool?
+    public var start: String?
 
     public init(
         title: String? = nil, target: Double? = nil, care: String?? = nil, restPerWeek: Int? = nil, quiet: Bool? = nil,
-        remind: API.GoalRemind?? = nil, three: API.GoalThree? = nil
+        remind: API.GoalRemind?? = nil, three: API.GoalThree? = nil, category: String? = nil,
+        keywords: [String]? = nil, period: String? = nil, repeats: Bool? = nil, start: String? = nil
     ) {
         self.title = title
         self.target = target
@@ -168,9 +175,17 @@ public struct GoalChange: Encodable, Sendable {
         self.quiet = quiet
         self.remind = remind
         self.three = three
+        self.category = category
+        self.keywords = keywords
+        self.period = period
+        self.repeats = repeats
+        self.start = start
     }
 
-    private enum Keys: String, CodingKey { case title, target, care, restPerWeek, quiet, remind, three }
+    private enum Keys: String, CodingKey {
+        case title, target, care, restPerWeek, quiet, remind, three, category, keywords, period, start
+        case repeats = "repeat"
+    }
 
     public func encode(to encoder: any Encoder) throws {
         var box = encoder.container(keyedBy: Keys.self)
@@ -181,5 +196,10 @@ public struct GoalChange: Encodable, Sendable {
         try box.encodeIfPresent(quiet, forKey: .quiet)
         if let remind { try box.encode(remind, forKey: .remind) }
         try box.encodeIfPresent(three, forKey: .three)
+        try box.encodeIfPresent(category, forKey: .category)
+        try box.encodeIfPresent(keywords, forKey: .keywords)
+        try box.encodeIfPresent(period, forKey: .period)
+        try box.encodeIfPresent(repeats, forKey: .repeats)
+        try box.encodeIfPresent(start, forKey: .start)
     }
 }

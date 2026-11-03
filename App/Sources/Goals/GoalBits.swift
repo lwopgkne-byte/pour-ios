@@ -9,12 +9,12 @@ struct ToneDot: View {
     var body: some View {
         Group {
             if tone == "idle" {
-                Circle().strokeBorder(Web.fgTertiary, lineWidth: 1)
+                Circle().strokeBorder(Theme.Palette.secondaryLabel, lineWidth: 1)
             } else {
-                Circle().fill(Web.status(tone))
+                Circle().fill(Theme.Palette.status(tone))
             }
         }
-        .frame(width: Web.space2, height: Web.space2)
+        .frame(width: Theme.Space.small, height: Theme.Space.small)
         .accessibilityHidden(true)
     }
 }
@@ -26,11 +26,11 @@ struct GoalBar: View {
 
     var body: some View {
         GeometryReader { proxy in
-            Capsule().fill(Web.bgHover).overlay(alignment: .leading) {
-                Capsule().fill(Web.status(tone)).frame(width: proxy.size.width * min(1, max(0, pct)))
+            Capsule().fill(Theme.Palette.fill).overlay(alignment: .leading) {
+                Capsule().fill(Theme.Palette.status(tone)).frame(width: proxy.size.width * min(1, max(0, pct)))
             }
         }
-        .frame(height: Web.space1)
+        .frame(height: Theme.Space.tight)
         .accessibilityHidden(true)
     }
 }

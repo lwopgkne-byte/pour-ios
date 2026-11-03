@@ -12,37 +12,39 @@ struct PinGate: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space4) {
-            VStack(alignment: .leading, spacing: Web.space1) {
-                Text("Pour").font(Web.sectionSemibold).foregroundStyle(Web.fg).accessibilityAddTraits(.isHeader)
-                Text("输入电脑上设置的 PIN。").font(Web.body).foregroundStyle(Web.fgSecondary)
+        VStack(alignment: .leading, spacing: Theme.Space.regular) {
+            VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                Text("Pour").font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label).accessibilityAddTraits(
+                    .isHeader)
+                Text("输入电脑上设置的 PIN。").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
             }
-            VStack(alignment: .leading, spacing: Web.space1) {
+            VStack(alignment: .leading, spacing: Theme.Space.tight) {
                 TextField("4-6 位数字", text: $pin)
-                    .font(Web.body).foregroundStyle(Web.fg)
+                    .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                     .keyboardType(.numberPad).textContentType(.oneTimeCode)
                     .focused($focused)
-                    .padding(.horizontal, Web.space2)
-                    .frame(minHeight: Web.touch)
-                    .background(RoundedRectangle(cornerRadius: Web.radiusControl).fill(Web.bg))
+                    .padding(.horizontal, Theme.Space.small)
+                    .frame(minHeight: Theme.Size.touch)
+                    .background(RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(Theme.Palette.card))
                     .overlay(
-                        RoundedRectangle(cornerRadius: Web.radiusControl).strokeBorder(
-                            problem == nil ? (focused ? Web.accent : Web.line) : Web.danger, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: Theme.Corner.tile).strokeBorder(
+                            problem == nil
+                                ? (focused ? Theme.Palette.accent : Theme.Palette.separator) : Theme.Palette.bad,
+                            lineWidth: 1)
                     )
                     .accessibilityLabel(Text("PIN"))
                     .onChange(of: pin) { _, now in
                         pin = String(now.filter(\.isNumber).prefix(6))
                         problem = nil
                     }
-                Text(problem ?? "输入后，这台设备会记住 30 天。").font(Web.caption)
-                    .foregroundStyle(problem == nil ? Web.fgTertiary : Web.danger)
+                Text(problem ?? "输入后，这台设备会记住 30 天。").font(Theme.Typeface.footnote)
+                    .foregroundStyle(problem == nil ? Theme.Palette.secondaryLabel : Theme.Palette.bad)
             }
-            WebButton("进入", variant: .primary, loading: busy, disabled: pin.count < 4, block: true) { enter() }
+            ThemeButton("进入", variant: .primary, loading: busy, disabled: pin.count < 4, block: true) { enter() }
         }
-        .frame(maxWidth: Web.toastWidth)
-        .padding(.horizontal, Web.space4)
+        .padding(.horizontal, Theme.Space.regular)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Web.bg)
+        .background(Theme.Palette.card)
         .onAppear { focused = true }
     }
 

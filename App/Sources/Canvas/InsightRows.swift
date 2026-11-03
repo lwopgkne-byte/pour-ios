@@ -8,9 +8,11 @@ struct QuoteText: View {
     let text: String
 
     var body: some View {
-        Text(Show.spaced(text)).font(Web.body).foregroundStyle(Web.fg).lineSpacing(Web.quoteLineSpacing)
-            .padding(.leading, Web.space3)
-            .overlay(alignment: .leading) { Rectangle().fill(Web.lineStrong).frame(width: Web.space1 / 2) }
+        Text(Show.spaced(text)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label).lineSpacing(
+            Theme.Leading.quote
+        )
+        .padding(.leading, Theme.Space.medium)
+        .overlay(alignment: .leading) { Rectangle().fill(Theme.Palette.separator).frame(width: Theme.Space.tight / 2) }
     }
 }
 
@@ -19,8 +21,8 @@ struct YellowTag: View {
     let text: String
 
     var body: some View {
-        Text(text).font(Web.caption).foregroundStyle(Web.tag("yellow").fg)
-            .padding(.horizontal, Web.space2)
-            .background(Capsule().fill(Web.tag("yellow").bg))
+        Text(text).font(Theme.Typeface.footnote).foregroundStyle(Theme.tag("yellow").solid)
+            .padding(.horizontal, Theme.Space.small)
+            .background(Capsule().fill(Theme.tag("yellow").tint))
     }
 }

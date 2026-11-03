@@ -77,7 +77,7 @@ private struct EvalRows: View {
             .sorted { EvalNames.order($0.key) < EvalNames.order($1.key) }
         VStack(alignment: .leading, spacing: 0) {
             SettingRow(label: "最近一次检查", hint: lastHint(last)) {
-                Text(last.map { "\(EvalNames.pct($0.overall)) 正确" } ?? "还没有检查过").foregroundStyle(Web.fg)
+                Text(last.map { "\(EvalNames.pct($0.overall)) 正确" } ?? "还没有检查过").foregroundStyle(Theme.Palette.label)
             }
             if let last, !dims.isEmpty {
                 let weakest = dims.min { $0.value.rate < $1.value.rate }
@@ -85,44 +85,48 @@ private struct EvalRows: View {
                     label: "分开看",
                     hint: weakest.map { $0.value.rate < 1 ? "最弱的是「\(EvalNames.dim($0.key))」" : "每一方面都对" }
                 ) {
-                    PourFlowLayout(spacing: Web.space3, lineSpacing: Web.space1) {
+                    PourFlowLayout(spacing: Theme.Space.medium, lineSpacing: Theme.Space.tight) {
                         ForEach(dims, id: \.key) { key, value in
                             Text("\(EvalNames.dim(key)) \(EvalNames.pct(value.rate))")
-                                .foregroundStyle(value.rate < 1 ? Web.fg : Web.fgSecondary)
+                                .foregroundStyle(value.rate < 1 ? Theme.Palette.label : Theme.Palette.secondaryLabel)
                         }
                     }
-                    .font(Web.caption)
+                    .font(Theme.Typeface.footnote)
                 }
                 .id(last.file)
             }
             if sameModel.count > 1 {
                 SettingRow(label: "最近几次", hint: "同一个模型，从早到晚：变高是变准了") {
                     Text(sameModel.prefix(6).reversed().map { EvalNames.pct($0.overall) }.joined(separator: " → "))
-                        .font(Web.caption).monospacedDigit()
+                        .font(Theme.Typeface.footnote).monospacedDigit()
                 }
             }
             if let last {
                 SettingRow(label: "没答对的句子", hint: problemsHint(last)) {
                     Text(last.failures.isEmpty ? "没有" : "\(last.failures.count) 条")
-                    if !last.failures.isEmpty { WebTextButton("查看") { failuresOpen = true } }
+                    if !last.failures.isEmpty {
+                        ThemeTextButton("查看", font: Theme.Typeface.bodyMedium) { failuresOpen = true }
+                            .accessibilityIdentifier("settings.eval.failures")
+                    }
                 }
             }
             SettingRow(label: "你改过的地方", hint: "整理错了你改一下，这里就多一条；收进检查清单后，以后每次检查都会看它还会不会错") {
                 Text(candidates.map { $0 > 0 ? "\($0) 条" : "还没有" } ?? "还没有")
-                WebTextButton("查看") { candidatesOpen = true }
+                ThemeTextButton("查看", font: Theme.Typeface.bodyMedium) { candidatesOpen = true }
+                    .accessibilityIdentifier("settings.eval.candidates")
             }
             SettingRow(label: "再检查一次", hint: rerunHint(sameModel)) {
                 if evals.progress.running {
-                    HStack(spacing: Web.space2) {
+                    HStack(spacing: Theme.Space.small) {
                         Dots()
                         Text(evals.progress.total.map { "\(evals.progress.done) / \($0)" } ?? "准备中")
                     }
                 } else {
-                    Text("在电脑上用「Pour 设置」跑").foregroundStyle(Web.fgTertiary)
+                    Text("在电脑上用「Pour 设置」跑").foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
             if let error = evals.progress.error, !evals.progress.running {
-                FieldMessage(text: error, tone: Web.danger)
+                FieldMessage(text: error, tone: Theme.Palette.bad)
             }
         }
         .task { await countCandidates() }
@@ -187,10 +191,10 @@ private struct GrowthRows: View {
         VStack(alignment: .leading, spacing: 0) {
             if let week = growth.weeks.last {
                 SettingRow(label: "这周要你改", hint: trend(\.corrections) ?? "这周说了 \(week.notes) 段话") {
-                    Text("\(week.corrections) 次").foregroundStyle(Web.fg).monospacedDigit()
+                    Text("\(week.corrections) 次").foregroundStyle(Theme.Palette.label).monospacedDigit()
                 }
                 SettingRow(label: "这周 AI 追问", hint: trend(\.asks) ?? "拿不准的时候先问你，不瞎猜") {
-                    Text("\(week.asks) 次").foregroundStyle(Web.fg).monospacedDigit()
+                    Text("\(week.asks) 次").foregroundStyle(Theme.Palette.label).monospacedDigit()
                 }
             }
             link(label: "记住你的说法", hint: "在「关于我」里可以看、可以改") {
@@ -231,10 +235,10 @@ private struct GrowthRows: View {
         Button {
             model.open("/about")
         } label: {
-            SettingRow(label: label, hint: hint, content: content).padding(.horizontal, Web.space2)
+            SettingRow(label: label, hint: hint, content: content).padding(.horizontal, Theme.Space.small)
         }
-        .buttonStyle(WebPressStyle(radius: Web.radiusControl))
-        .padding(.horizontal, -Web.space2)
+        .buttonStyle(.plain)
+        .padding(.horizontal, -Theme.Space.small)
     }
 
     /// 最近几周每 100 段话里有几次：从早到晚，变小是更懂你了；不到两周、或者一直是 0 不说
@@ -254,13 +258,13 @@ private struct AuditRow: View {
     var body: some View {
         SettingRow(label: "自动检查", hint: hint) {
             if status.examRunning {
-                HStack(spacing: Web.space2) {
+                HStack(spacing: Theme.Space.small) {
                     Dots()
                     Text("审核员在考试")
                 }
             } else if let exam = status.exam {
                 if exam.passed {
-                    Text("这周 \(status.week.found) 处").foregroundStyle(Web.fg).monospacedDigit()
+                    Text("这周 \(status.week.found) 处").foregroundStyle(Theme.Palette.label).monospacedDigit()
                 } else {
                     Text("审核员没考过")
                 }

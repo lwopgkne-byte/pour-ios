@@ -53,7 +53,8 @@ final class BackfillUITests: XCTestCase {
         XCTAssertTrue(chip.waitForExistence(timeout: 5), "撤销了小李没回来")
     }
 
-    /// 不再显示以后，关于我的「改过的名字」里看得到，点「恢复」回到画布上
+    /// 不再显示以后，「关于我 → Pour 认识的」的「改过的名字」里看得到（3.0 第 8 步从关于我主页搬进那一页），
+    /// 点「恢复」回到画布上
     @MainActor func testRestoreInAbout() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest", "-canvasSample", "上班族"]
@@ -66,12 +67,16 @@ final class BackfillUITests: XCTestCase {
         let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: chip)
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "小李还在")
         go(to: "关于我", in: app)
+        let known = app.buttons["about.known.sayings"]
+        app.reveal(known)
+        known.tap()
+        XCTAssertTrue(app.navigationBars["Pour 认识的"].waitForExistence(timeout: 5), "Pour 认识的没打开")
         let rule = app.staticTexts["小李 · 不再显示"]
         let restore = app.buttons["恢复小李"]
         // 滚到「恢复」整个露出来：只露出一半时，点下去点到的是浮在底部的「说一句」（2026-10-31 查出来的，
         // 第 0 步的全部检查里这个测试两次都没过就是这样）
         app.reveal(restore)
-        XCTAssertTrue(rule.waitForExistence(timeout: 5), "关于我里没有改过的名字")
+        XCTAssertTrue(rule.waitForExistence(timeout: 5), "Pour 认识的里没有改过的名字")
         settle()
         attach(app, "关于我-改过的名字")
         restore.tap()

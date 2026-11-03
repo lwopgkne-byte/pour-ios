@@ -43,6 +43,68 @@ final class SettingsUITests: XCTestCase {
         }
     }
 
+    /// 3.0 收尾：设置里点进去的几页换成了 Theme（以前是网页那套）。上面没走到的几页一页一页看，
+    /// 三个详情层（处理日志、没答对的句子、你改过的地方）打开看，每一屏跑审计
+    @MainActor func testSettingsDetails() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTest"]
+        app.launch()
+        XCTAssertTrue(app.buttons["today.me"].waitForExistence(timeout: 10), "画布没打开")
+        app.buttons["today.me"].tap()
+        app.buttons["hub.settings"].tap()
+        let reminders = app.buttons["settings.row.reminders"]
+        XCTAssertTrue(reminders.waitForExistence(timeout: 5), "设置没打开")
+        for row in ["categories", "privacy", "phone"] {
+            open(row, in: app)
+            attach(app, "设置-\(row)")
+            try AppAudit.run(app, name: "设置-\(row)")
+            app.navigationBars.buttons.firstMatch.tap()
+            XCTAssertTrue(reminders.waitForExistence(timeout: 5), "返回没回到分组列表")
+        }
+        open("llm", in: app)
+        peek("settings.llm.log", title: "处理日志", in: app)
+        app.navigationBars.buttons.firstMatch.tap()
+        open("eval", in: app)
+        attach(app, "设置-AI表现")
+        try AppAudit.run(app, name: "设置-AI表现")
+        peek("settings.eval.failures", title: "没答对的句子", in: app, showing: "下午三点到四点开了个会")
+        peek("settings.eval.candidates", title: "你改过的地方", in: app)
+    }
+
+    @MainActor
+    private func open(_ row: String, in app: XCUIApplication) {
+        let button = app.buttons["settings.row.\(row)"]
+        app.reveal(button)
+        button.tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(2.5))
+    }
+
+    /// 点「查看」打开详情层，审计，点右上角「关闭」收起（标题和设置页那一行同名，按「关闭」认开没开）
+    @MainActor
+    private func peek(_ identifier: String, title: String, in app: XCUIApplication, showing text: String? = nil) {
+        let look = app.buttons[identifier]
+        app.reveal(look)
+        XCTAssertTrue(look.exists, "没有「\(title)」的查看")
+        look.tap()
+        let close = app.buttons["关闭"].firstMatch
+        XCTAssertTrue(close.waitForExistence(timeout: 5), "「\(title)」没打开")
+        // 拉到整页再审（停在 60% 时审计按放大字号推算，会把标题当成被截掉；关于我的详情层也是这样审的）
+        let header = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0)).withOffset(
+            CGVector(dx: 0, dy: close.frame.midY))
+        header.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.05)))
+        if let text {
+            let shown = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", text))
+                .firstMatch
+            XCTAssertTrue(shown.waitForExistence(timeout: 5), "「\(title)」里没有「\(text)」")
+        }
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        attach(app, "设置-\(title)")
+        XCTAssertNoThrow(try AppAudit.run(app, name: "设置-\(title)"))
+        close.tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: close)
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "「\(title)」没收起来")
+    }
+
     /// 反馈（3.0 第 10 步）：我的 → 反馈：一句话 + 截图（能去掉）+ 在哪一页；发出去有轻提示
     @MainActor func testFeedback() throws {
         let app = XCUIApplication()

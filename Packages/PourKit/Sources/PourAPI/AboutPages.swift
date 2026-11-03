@@ -36,6 +36,8 @@ extension API {
         public var group: String
         /// 1–4：说得越多字越大
         public var size: Int
+        /// 说这个感受的那几次（新的在前，最多 10 次）：点胶囊看原话；服务器 2.19.0 起才有
+        public var moments: [MeMomentRow.Moment]?
     }
 
     public struct MeWhenMood: Codable, Hashable, Sendable {

@@ -33,9 +33,8 @@ line_length:
 
 identifier_name:
   # xs / sm / md / lg 是设计规范 06 的圆角令牌名
-  # bg / fg 是 Web 令牌的名字（底色、字色）
   # at / ok / to 是服务器接口里的字段名（什么时候、成没成、到哪天）：PourAPI 照原样解码，字段名一字不差
-  excluded: [id, x, y, r, g, b, xs, sm, md, lg, bg, fg, at, ok, to]
+  excluded: [id, x, y, r, g, b, xs, sm, md, lg, at, ok, to]
 
 nesting:
   type_level: 2
@@ -45,40 +44,39 @@ custom_rules:
     name: 不许硬编码颜色
     regex: '(Color|UIColor|NSColor)\(\s*(red|white|hue|srgbRed|#)|#colorLiteral|Color\.(red|blue|green|yellow|orange|purple|pink|gray|black|white)\b'
     excluded: 'Packages/PourKit/Sources/PourDesign/'
-    message: '颜色只能用 PourDesign 的令牌：改过的页面用 Theme.Palette.xxx（docs/模块/生活画布2.0.md 8.3），没改的页面暂时用 Web.xxx'
+    message: '颜色只能用 PourDesign 的令牌：Theme.Palette.xxx（docs/模块/生活画布2.0.md 8.3）'
     severity: error
   no_hardcoded_font:
     name: 不许硬编码字号
     regex: '\.system\(\s*size:|Font\.custom\(|UIFont\.(systemFont|boldSystemFont)\(ofSize:'
     excluded: 'Packages/PourKit/Sources/PourDesign/'
-    message: '字只能用 PourDesign 的令牌：Theme.Typeface.xxx（生活画布2.0.md 8.1），没改的页面暂时用 Web.xxx'
+    message: '字只能用 PourDesign 的令牌：Theme.Typeface.xxx（生活画布2.0.md 8.1）'
     severity: error
   no_hardcoded_spacing:
     name: 不许硬编码间距
     regex: '\.padding\(\s*(\.[a-z]+\s*,\s*)?[1-9][0-9]*\s*\)|spacing:\s*[1-9][0-9]*[,)]'
     excluded: 'Packages/PourKit/Sources/PourDesign/'
-    message: '间距只能用令牌：Theme.Space.xxx / Theme.Size.xxx（生活画布2.0.md 8.2），没改的页面暂时用 Web.spaceN'
+    message: '间距只能用令牌：Theme.Space.xxx / Theme.Size.xxx（生活画布2.0.md 8.2）'
     severity: error
   no_hardcoded_radius:
     name: 不许硬编码圆角
     regex: 'cornerRadius:\s*[0-9]+|\.pour\(\s*[0-9]+'
     excluded: 'Packages/PourKit/Sources/PourDesign/'
-    message: '圆角只能用令牌：Theme.Corner.xxx 配 Theme.rounded(_:)（生活画布2.0.md 8.4），没改的页面暂时用 Web.radiusXxx'
+    message: '圆角只能用令牌：Theme.Corner.xxx 配 Theme.rounded(_:)（生活画布2.0.md 8.4）'
     severity: error
   no_hardcoded_duration:
     name: 不许硬编码动画时长
     regex: '(duration|delay):\s*[0-9.]+'
     excluded: 'Packages/PourKit/Sources/PourDesign/'
-    message: '动画只能用令牌：Theme.Motion.xxx（生活画布2.0.md 8.5），没改的页面暂时用 Web.panel / Web.fast'
+    message: '动画只能用令牌：Theme.Motion.xxx（生活画布2.0.md 8.5）'
     severity: error
-  no_web_in_new_pages:
-    name: 3.0 重做过的页不许用 Web
-    # 设计系统只留一套（ADR A26）：重做过的页、外壳、Theme 自己只用 Theme；Web.* 只留给还没重做的页。
-    # 重做一块就把那一块的目录加进来（第 2 步加待办、第 3 步加钱……）
+  no_web:
+    name: 不许再用 Web 那一套
+    # 设计系统只留一套（ADR A26）：3.0 收尾（2026-11-03）把最后几页换完、删掉了从网页照搬的 Web.*，别再加回来
     regex: '\bWeb\.|\bWeb[A-Z][A-Za-z]*\('
-    included: 'App/Sources/(Hub|Shell|Todos|Money|Mood|Insights|Review|Goals3|About3|Library3)/|Packages/PourKit/Sources/PourDesign/Theme/'
+    included: 'App/|Extensions/|Widgets/|Share/|Packages/PourKit/Sources/'
     excluded_match_kinds: [comment, doccomment, string]
-    message: '3.0 重做过的页只用 Theme 的令牌和组件（ADR A26）；Web.* 只留给还没重做的页'
+    message: '只用 Theme 的令牌和组件（ADR A26）；Web.* 在 3.0 收尾时删掉了'
     severity: error
   no_print:
     name: 不许用 print

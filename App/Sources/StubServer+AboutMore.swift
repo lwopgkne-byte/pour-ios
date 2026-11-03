@@ -78,7 +78,11 @@
             1,"days":["2026-09-29","2026-10-06"]},{"name":"晚上","good":5,"bad":0,"days":["2026-09-20",
             "2026-09-24","2026-10-08","2026-10-10","2026-10-14"]}],"sentence":"好时刻多在晚上；不好的时刻多在早上",
             "timed":11,"untimed":18},"feelings":{"words":[{"word":"开心","count":12,"group":
-            "good","size":3},{"word":"烦躁","count":5,"group":"bad","size":2},{"word":"放松","count":
+            "good","size":3,"moments":[{"day":"2026-10-14",
+            "text":"晚上陪儿子拼完了乐高 他自己搭了个火箭 挺开心的","noteId":372},{"day":"2026-10-08",
+            "text":"会员改版的方案评审一次过了 开心","noteId":301}]},
+            {"word":"烦躁","count":5,"group":"bad","size":2,"moments":[{"day":"2026-10-13",
+            "text":"早上地铁挤了半小时 到公司就有点烦躁","noteId":340}]},{"word":"放松","count":
             4,"group":"good","size":2},{"word":"生气","count":3,"group":"bad","size":1},{"word":
             "失落","count":3,"group":"bad","size":1},{"word":"满足","count":2,"group":"good","size":
             1},{"word":"委屈","count":2,"group":"bad","size":1},{"word":"焦虑","count":1,"group":

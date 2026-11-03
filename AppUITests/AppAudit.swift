@@ -111,7 +111,7 @@ enum AppAudit {
             guard let element = issue.element else { return unresolved(issue) }
             // 审计的时候页面还在动（数据刚拿回来、重新排了一遍），报出来的元素已经不在了：当成指不出元素的，拉回顶上再审
             guard element.exists else { return unresolved(issue) }
-            // 辅助文字（Web.fgTertiary，60% 的墨色，对比度约 3.6:1）：产品主人 2026-10-19 要界面 1 比 1 照原来的样子，
+            // 辅助文字（以前网页那套的第三层字色，60% 的墨色，对比度约 3.6:1）：产品主人 2026-10-19 要界面 1 比 1 照原来的样子，
             // 这个值是定过的；只放过「差一点」的，差得多的照样算（下一阶段统一设计系统时重新定）
             if issue.auditType == .contrast, issue.compactDescription.contains("nearly") {
                 print("放过（辅助文字）[\(name)] \(issue.compactDescription) ← \(element.label)")
@@ -123,11 +123,6 @@ enum AppAudit {
             place.oneLine = element.identifier == "webOneLine"
             // 顶栏自己的「我」、搜索也照样审
             if element.identifier == "today.me" || element.label == "搜索" { place.headerBottom = nil }
-            // 类别小标签（WebChip）：字是令牌色、对比度够；前面的彩色表情让审计量不准（和「表情不是字」一样）
-            if issue.auditType == .contrast, element.identifier == "webChip" {
-                print("放过（表情不是字）[\(name)] \(issue.compactDescription) ← \(element.label)")
-                return true
-            }
             // 能折行的字（canWrap：没有 lineLimit，放不下就换行，不会出现「…」）：书名号「《》」排版时被挤窄，
             // 审计按没挤的宽度量、以为字被截了（截图核实是完整的，2026-10-26 我的卡片）。只放过「被截」，对比度照样审
             if issue.auditType == .textClipped, element.identifier == "canWrap" {

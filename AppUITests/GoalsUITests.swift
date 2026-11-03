@@ -3,7 +3,7 @@ import XCTest
 /// 3.0 目标（docs/3.0/01-需求文档.md 第 9 章、06 交互细节第 12 节）：首页、一个目标、按住菜单、左滑暂停、定目标的理解卡、
 /// 花 1 分钟想清楚、聊聊怎么调、每周回顾、我在乎的一块。每一屏跑无障碍审计。
 /// 用假服务器（-uiTest）：10月27日（原型那天）的演示数据原样（StubServer+GoalsData）；改动回服务器同样的轻提示
-final class GoalsUITests: XCTestCase, TodoTesting {
+final class GoalsUITests: XCTestCase, GoalTesting {
     override func setUp() {
         continueAfterFailure = false
     }
@@ -201,63 +201,14 @@ final class GoalsUITests: XCTestCase, TodoTesting {
         let review = toggle("每周回顾")
         app.reveal(review)
         XCTAssertTrue(review.exists, "设置里没有每周回顾")
-        XCTAssertEqual(review.value as? String, "开", "每周回顾默认开着")
+        XCTAssertEqual(review.value as? String, "1", "每周回顾默认开着")  // 系统开关：开是 1
         XCTAssertEqual(app.buttons["settings.review.day"].label, "每周回顾在星期几")
         let run = toggle("「今年跑 500 公里」的提醒")
         app.reveal(run)
         XCTAssertTrue(run.exists, "没有跑步的「如果就」")
-        XCTAssertEqual(run.value as? String, "开")
+        XCTAssertEqual(run.value as? String, "1")
         audit(app, "设置-目标的提醒")
         run.tap()
         XCTAssertTrue(toast(app, "关了「今年跑 500 公里」的提醒"), "关了没有轻提示")
-    }
-
-    // MARK: - 共用
-
-    /// 我 → 目标
-    @MainActor private func openGoals() -> XCUIApplication {
-        let app = XCUIApplication()
-        app.launchArguments += ["-uiTest"]
-        app.launch()
-        app.openTile("goals")
-        XCTAssertTrue(app.staticTexts["goals.summary"].waitForExistence(timeout: 8), "目标没打开")
-        pause()
-        return app
-    }
-
-    /// 一个目标那一行；列表里还没滑到的往上滑着找（List 只画看得见的几行）
-    @MainActor private func row(_ app: XCUIApplication, _ id: Int) -> XCUIElement {
-        let element = app.descendants(matching: .any)["goal.row.\(id)"].firstMatch
-        for _ in 0..<4 where !element.waitForExistence(timeout: 2) { app.swipeUp(velocity: .slow) }
-        XCTAssertTrue(element.exists, "没有目标 \(id)")
-        return element
-    }
-
-    /// 点一行打开那个目标：点左边的环（中间那一行「落后两周了，聊聊怎么调？」是另一个链接）；
-    /// 压在「说一句」后面的先往上滑出来，不然点到的是输入框
-    @MainActor private func tapRow(_ app: XCUIApplication, _ id: Int) {
-        let bar = app.buttons["pourbar"]
-        let limit = bar.exists ? bar.frame.minY : app.frame.maxY * 0.85
-        // 每次重新找：List 滑过以后那一行是新画的，旧的引用找不到了
-        for _ in 0..<3 where row(app, id).frame.maxY > limit - 8 {
-            app.swipeUp(velocity: .slow)
-            pause()
-        }
-        row(app, id).coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.5)).tap()
-    }
-
-    /// 轻提示那句话：App 在汉字和数字、字母之间加了细空格（WebText.spaced），去掉再比
-    @MainActor private func toast(_ app: XCUIApplication, _ text: String) -> Bool {
-        let head = String(text.prefix { !$0.isASCII })
-        let element = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", head)).firstMatch
-        guard element.waitForExistence(timeout: 5) else { return false }
-        let label = element.label.replacingOccurrences(of: "\u{2006}", with: "")
-        XCTAssertEqual(label, text, "轻提示的字不对")
-        return label == text
-    }
-
-    @MainActor private func audit(_ app: XCUIApplication, _ name: String) {
-        shot(name, of: app.screenshot())
-        XCTAssertNoThrow(try AppAudit.run(app, name: name))
     }
 }

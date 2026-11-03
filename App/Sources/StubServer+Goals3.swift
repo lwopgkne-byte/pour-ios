@@ -48,7 +48,50 @@
                 return done("改好了：\(remind["text"] ?? "") 提醒你「如果就」")
             }
             if body["care"] != nil { return done("放进「关系」了") }
-            return done("改好了")
+            return setMore(body) ?? done("改好了")
+        }
+
+        /// 3.0 收尾：类别、只算、周期、从哪天算（和服务器 2.19.0 的轻提示一样）
+        private static func setMore(_ body: [String: Any]) -> [String: Any]? {
+            if let key = body["category"] as? String {
+                let names = ["exercise": "运动", "run": "跑步", "sleep": "睡眠", "diet": "饮食", "study": "学习", "work": "工作"]
+                return done("类别改成「\(names[key] ?? key)」")
+            }
+            if let words = body["keywords"] as? [String] {
+                return done(words.isEmpty ? "整个类别都算" : "只算名称里带\(words.map { "「\($0)」" }.joined())的记录")
+            }
+            if let period = body["period"] as? String {
+                let label = ["year": "今年", "month": "这个月", "week": "这周"][period] ?? period
+                if body["repeat"] as? Bool == true { return done("周期改成「\(period == "week" ? "每周" : "每月")」") }
+                let range = ["year": "1月1日–12月31日", "month": "10月1日–10月31日", "week": "10月26日–11月1日"][period] ?? ""
+                return done("周期改成「\(label)」（\(range)）")
+            }
+            if let start = body["start"] as? String, start.count == 10 {
+                return done("从 \(Int(start.dropFirst(5).prefix(2)) ?? 0)月\(Int(start.suffix(2)) ?? 0)日 开始算")
+            }
+            return nil
+        }
+
+        /// 跑步那个目标（4）带上设置里能改的（服务器 2.19.0 的 settings.edit）；别的目标照旧，是旧服务器的样子
+        static func withEdit(_ detail: Any?) -> Any? {
+            guard var detail = detail as? [String: Any], var page = detail["page"] as? [String: Any],
+                var settings = page["settings"] as? [String: Any]
+            else { return detail }
+            let option = { (label: String, period: String, repeats: Bool) -> [String: Any] in
+                ["label": label, "period": period, "repeat": repeats, "current": label == "今年"]
+            }
+            settings["edit"] =
+                [
+                    "category": "run", "keywords": [String](),
+                    "periods": [
+                        option("今年", "year", false), option("这个月", "month", false), option("这周", "week", false),
+                        option("每月", "month", true), option("每周", "week", true),
+                    ],
+                    "start": ["value": "2026-09-23", "from": "2026-01-01", "to": "2026-10-27"],
+                ] as [String: Any]
+            page["settings"] = settings
+            detail["page"] = page
+            return detail
         }
 
         /// 手机排的目标通知（10月27日演示数据原样）：跑步的「如果就」每个工作日 18:30、每周回顾周日 20:00
@@ -89,6 +132,7 @@
 
         private func goals3Get(_ path: String) -> Any? {
             if path == "/api/goals/reminders" { return Goals3Stub.reminders }
+            if path == "/api/goals/4" { return Goals3Stub.withEdit(Goals3Stub.json(path)) }
             if Goals3Stub.all[path] != nil { return Goals3Stub.json(path) }
             if path.hasSuffix("/grow") { return Goals3Stub.json("/api/goals/4/grow") }
             if path.hasSuffix("/woop") { return Goals3Stub.json("/api/goals/4/woop") }

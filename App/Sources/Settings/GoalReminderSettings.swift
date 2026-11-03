@@ -20,13 +20,14 @@ struct GoalReviewRow: View {
                     }
                 } label: {
                     Text(Self.days.indices.contains(review.weekday) ? Self.days[review.weekday] : "周日")
-                        .font(Web.bodyMedium).foregroundStyle(Web.accent).frame(minHeight: Web.touch)
+                        .font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.accent).frame(
+                            minHeight: Theme.Size.touch)
                 }
                 .accessibilityLabel(Text("每周回顾在星期几"))
                 .accessibilityIdentifier("settings.review.day")
                 TimeEdit(label: "每周回顾的时间", value: review.time) { save(value(time: $0)) }
             }
-            WebSwitch("每周回顾", isOn: review.enabled) { save(value(enabled: $0)) }
+            ThemeSwitch("每周回顾", isOn: review.enabled) { save(value(enabled: $0)) }
         }
     }
 
@@ -47,7 +48,7 @@ struct GoalIfThenSettings: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            SettingsHeading(title: "目标的「如果就」").padding(.top, Web.space2)
+            SettingsHeading(title: "目标的「如果就」").padding(.top, Theme.Space.small)
             if let list {
                 if list.ifthen.isEmpty {
                     FieldMessage(text: "还没有目标设了提醒：在一个目标的「花 1 分钟想清楚」第三屏里选。")
@@ -56,7 +57,7 @@ struct GoalIfThenSettings: View {
                 if list.ifthen.contains(where: { $0.remind.kind == "place" }) || home != nil { homeRow }
                 FieldMessage(text: "这些提醒是手机自己排的，到点不用连网；暂停的目标不提醒。")
             } else {
-                Dots(label: "正在拿目标的提醒").foregroundStyle(Web.accent).frame(minHeight: Web.touch)
+                Dots(label: "正在拿目标的提醒").foregroundStyle(Theme.Palette.accent).frame(minHeight: Theme.Size.touch)
             }
         }
         .task(id: model.dataVersion) { list = try? await model.client.goalReminders() }
@@ -64,7 +65,7 @@ struct GoalIfThenSettings: View {
 
     private func row(_ item: API.GoalReminderList.IfThen) -> some View {
         SettingRow(label: item.title, hint: item.paused ? "\(item.remind.text) · 暂停中，不提醒" : item.line) {
-            WebSwitch("「\(item.title)」的提醒", isOn: item.remind.off != true) { isOn in
+            ThemeSwitch("「\(item.title)」的提醒", isOn: item.remind.off != true) { isOn in
                 var remind = item.remind
                 remind.off = isOn ? nil : true
                 remind.line = nil
@@ -76,11 +77,12 @@ struct GoalIfThenSettings: View {
     /// 家在哪：「到家的时候」提醒要用；用现在的位置定一次
     private var homeRow: some View {
         SettingRow(label: "家在哪", hint: "「到家的时候」提醒要用；只存在这台手机上") {
-            Text(home == nil ? "还没定" : "定好了").foregroundStyle(home == nil ? Web.fgTertiary : Web.fgSecondary)
+            Text(home == nil ? "还没定" : "定好了").foregroundStyle(
+                home == nil ? Theme.Palette.secondaryLabel : Theme.Palette.secondaryLabel)
             if locating {
-                Dots(label: "正在定位").foregroundStyle(Web.accent).frame(minHeight: Web.touch)
+                Dots(label: "正在定位").foregroundStyle(Theme.Palette.accent).frame(minHeight: Theme.Size.touch)
             } else {
-                WebTextButton(home == nil ? "用现在的位置" : "改成现在的位置") {
+                ThemeTextButton(home == nil ? "用现在的位置" : "改成现在的位置", font: Theme.Typeface.bodyMedium) {
                     locating = true
                     Task {
                         if await model.setHomeHere() { home = HomePlace.saved }
@@ -89,7 +91,7 @@ struct GoalIfThenSettings: View {
                 }
             }
             if home != nil {
-                WebTextButton("不用了") {
+                ThemeTextButton("不用了", font: Theme.Typeface.bodyMedium) {
                     HomePlace.save(nil)
                     home = nil
                     model.syncReminders()

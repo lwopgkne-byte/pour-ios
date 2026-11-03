@@ -40,7 +40,7 @@ private struct LlmRows: View {
                 spokenHint: deepseek ? "DeepSeek 的服务" : nil
             ) {
                 if deepseek {
-                    WebSegmented("模型", options: Self.models, selected: status.model) { choose($0) }
+                    ThemeSegmented("模型", options: Self.models, selected: status.model) { choose($0) }
                 } else {
                     Text(status.model).lineLimit(1)
                 }
@@ -53,22 +53,25 @@ private struct LlmRows: View {
             }
             SettingRow(label: "密钥", hint: status.local ? nil : "在电脑上用「Pour 设置」填") {
                 Text(status.keyMasked ?? "还没有填写")
-                if status.keySource == "env" { Text("来自 .env").foregroundStyle(Web.fgTertiary) }
+                if status.keySource == "env" { Text("来自 .env").foregroundStyle(Theme.Palette.secondaryLabel) }
             }
             if status.keySource == "env" {
-                FieldMessage(text: "当前使用 .env 中的密钥，此处修改不会生效。").padding(.bottom, Web.space2)
+                FieldMessage(text: "当前使用 .env 中的密钥，此处修改不会生效。").padding(.bottom, Theme.Space.small)
             }
             if status.configured && !status.consentAccepted {
                 SettingRow(label: "发送说明") {
                     Text("你说的话会发送到大模型服务器整理")
-                    WebTextButton("确认") { post("好的，开始整理") { try await $0.acceptConsent() } }
+                    ThemeTextButton("确认", font: Theme.Typeface.bodyMedium) {
+                        post("好的，开始整理") { try await $0.acceptConsent() }
+                    }
                 }
             }
             SettingRow(label: "连接") {
                 if let testResult {
-                    Text(Show.spaced(testResult.message)).foregroundStyle(testResult.ok ? Web.fgSecondary : Web.danger)
+                    Text(Show.spaced(testResult.message)).foregroundStyle(
+                        testResult.ok ? Theme.Palette.secondaryLabel : Theme.Palette.bad)
                 }
-                WebButton("测试连接", loading: testing, disabled: !status.configured) { test() }
+                ThemeButton("测试连接", loading: testing, disabled: !status.configured) { test() }
             }
             if status.queue.pending > 0 {
                 SettingRow(label: "排队中") {
@@ -102,7 +105,10 @@ private struct LlmRows: View {
                         post("已更新") { try await $0.llmSettings(["confidenceThreshold": .number(value)]) }
                     })
             }
-            SettingRow(label: "处理日志") { WebTextButton("查看") { logOpen = true } }
+            SettingRow(label: "处理日志") {
+                ThemeTextButton("查看", font: Theme.Typeface.bodyMedium) { logOpen = true }
+                    .accessibilityIdentifier("settings.llm.log")
+            }
         }
         .sheet(isPresented: $logOpen) { RunLogPeek() }
     }
@@ -119,7 +125,7 @@ private struct LlmRows: View {
                 ? " · 缓存命中 \(Int((Double(usage.cacheHitTokens) / Double(usage.promptTokens) * 100).rounded()))%" : ""
             Text("约 \(Numbers.cny(usage.costCny))\(hit)")
         }
-        VStack(alignment: .trailing, spacing: Web.space1) {
+        VStack(alignment: .trailing, spacing: Theme.Space.tight) {
             Text("按 DeepSeek 官方价格估算，实际以账单为准" + (usage.costPartial ? "；有些调用用的模型不在价格表里，没算进去" : ""))
             ForEach(usage.byFeature.filter { $0.totalTokens > 0 || $0.calls > 0 }, id: \.feature) { item in
                 let name = Self.featureNames[item.feature] ?? item.feature
@@ -128,9 +134,9 @@ private struct LlmRows: View {
                         + " · \(item.calls) 次 · 约 \(Numbers.cny(item.costCny))")
             }
         }
-        .font(Web.caption).foregroundStyle(Web.fgTertiary).multilineTextAlignment(.trailing)
+        .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).multilineTextAlignment(.trailing)
         .frame(maxWidth: .infinity, alignment: .trailing)
-        .padding(.bottom, Web.space2)
+        .padding(.bottom, Theme.Space.small)
     }
 
     private func choose(_ name: String) {

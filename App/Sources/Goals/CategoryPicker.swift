@@ -18,13 +18,10 @@ struct CategoryPicker: View {
     var body: some View {
         let categories = model.categories
         if open {
-            PourFlowLayout(spacing: Web.space1, lineSpacing: Web.space1) {
+            PourFlowLayout(spacing: Theme.Space.tight, lineSpacing: Theme.Space.tight) {
                 ForEach(Self.ordered(categories), id: \.key) { category in
-                    WebChip(selected: category.key == value) {
+                    FilterChip(category.name, selected: category.key == value) {
                         if category.key != value { pick(category.key) }
-                    } label: {
-                        Text(category.emoji).accessibilityHidden(true)
-                        Text(category.name)
                     }
                 }
             }
@@ -34,8 +31,8 @@ struct CategoryPicker: View {
                 open = true
             } label: {
                 Text(current.map { "\($0.emoji) \($0.name)" } ?? "选一个类别")
-                    .foregroundStyle(current == nil ? Web.fgTertiary : Web.fgSecondary)
-                    .frame(minHeight: Web.touch)
+                    .foregroundStyle(current == nil ? Theme.Palette.secondaryLabel : Theme.Palette.secondaryLabel)
+                    .frame(minHeight: Theme.Size.touch)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text("修改类别"))
