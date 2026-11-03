@@ -7,6 +7,8 @@ import UIKit
 struct VoiceCard: View {
     @Environment(VoiceSession.self) private var voice
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// 输入框里已经有的字：接着说的时候浅浅地写在上面，说的接在后面
+    var before = ""
     /// ✓：字放进输入框；↑：发出去
     let useText: (String, _ send: Bool) -> Void
 
@@ -14,6 +16,11 @@ struct VoiceCard: View {
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
             header
             Waveform(levels: voice.levels).frame(height: Theme.Size.waveform)
+            if !before.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                Text("接着说 · \(before)").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .lineLimit(2).truncationMode(.head)
+                    .accessibilityIdentifier("voice.before")
+            }
             words
             HStack(spacing: Theme.Space.medium) {
                 round("xmark", label: "不要了", id: "voice.cancel", filled: false) { voice.cancel() }

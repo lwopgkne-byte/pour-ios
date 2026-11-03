@@ -3,9 +3,11 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 对话面板（docs/模块/生活画布2.0.md 第 7 节）：按天分隔的历史（居中的小标签），你的话在右边浅蓝的气泡里，
-/// 整理的结果在左边（收据小卡、回复、追问；ChatMessages）；拖上面的小横条往下收起；往上翻自动拿更早的，
-/// 离开底部时右下角「回到最新」。还没交给服务器的话（没网时）排在最后，写「正在保存」或者「没有保存上 · 重试」
+/// 对话面板（docs/模块/生活画布2.0.md 第 7 节；2026-11-03 产品主人说「太粗糙了」重做样子）：
+/// 上面小横条 + 「对话」+ 关闭；暖灰底，按天分隔（居中一行小字），你的话在右边蓝底白字的气泡里，
+/// 整理的结果在左边白卡片上（收据、回复、追问；ChatMessages）；话少时贴着输入框往上排（像「信息」）；
+/// 往下拖上面那一条收起；往上翻自动拿更早的，离开底部时下面正中「回到最新」。
+/// 还没交给服务器的话（没网时）排在最后，写「正在保存」或者「没有保存上 · 重试」
 struct ChatPanel: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -14,10 +16,10 @@ struct ChatPanel: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            handle
+            header
             ScrollViewReader { reader in
                 ScrollView {
-                    LazyVStack(spacing: Theme.Space.medium) {
+                    LazyVStack(spacing: Theme.Space.regular) {
                         // 翻到最上面自动拿更早的一页，拿完停在原来看的地方（看见「加载更早的记录」就拿）
                         if model.chatHasMore {
                             Dots(label: "加载更早的记录").foregroundStyle(Theme.Palette.tertiaryLabel)
@@ -33,7 +35,7 @@ struct ChatPanel: View {
                         if rows.isEmpty { ChatEmpty() }
                         ForEach(rows, id: \.id) { row in
                             switch row {
-                            case .day(_, let label): DayCapsule(label: label)
+                            case .day(_, let label): DaySeparator(label: label)
                             case .note(let note): NoteMessage(note: note)
                             case .message(let message): MessageCard(message: message)
                             case .outbox(let item): OutboxMessage(item: item)
@@ -46,6 +48,8 @@ struct ChatPanel: View {
                     .padding(.bottom, Theme.Space.regular)
                 }
                 .scrollDismissesKeyboard(.interactively)
+                // 话少时贴着下面（输入框）排，不在上面留一大片空
+                .defaultScrollAnchor(.bottom)
                 // 界面测试认对话面板用（AppAudit：面板里滚到上沿后面、只露出一截的字不量）
                 .accessibilityIdentifier("chat.scroll")
                 .onAppear { reader.scrollTo("bottom", anchor: .bottom) }
@@ -61,43 +65,67 @@ struct ChatPanel: View {
                 } action: { _, now in
                     atBottom = now
                 }
-                .overlay(alignment: .bottomTrailing) {
+                // 下面正中：不压在右边你的气泡、左边的收据上
+                .overlay(alignment: .bottom) {
                     if !atBottom {
                         GlassCircleButton("arrow.down", label: "回到最新") {
                             withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
                                 reader.scrollTo("bottom", anchor: .bottom)
                             }
                         }
-                        .padding(Theme.Space.medium)
+                        .padding(.bottom, Theme.Space.small)
                         .themeTransition(.scale(scale: 0.8).combined(with: .opacity))
                     }
                 }
                 .animation(Theme.Motion.pick(Theme.Motion.quick, reduceMotion: reduceMotion), value: atBottom)
             }
         }
-        .background(Theme.Palette.card)
+        .background(Theme.Palette.background)
     }
 
-    /// 上面的小横条：往下拖收起（读屏用输入框旁边的「收起对话」，这条不再读一遍）
-    private var handle: some View {
-        Capsule().fill(Theme.Palette.separator)
-            .frame(width: Theme.Space.section + Theme.Space.tight, height: Theme.Space.tight + 1)
-            .padding(.vertical, Theme.Space.small)
-            .frame(maxWidth: .infinity)
-            .contentShape(Rectangle())
-            .gesture(
-                DragGesture()
-                    .onChanged { drag = $0.translation.height }
-                    .onEnded { end in
-                        withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
-                            if end.translation.height > Theme.Size.touch + Theme.Space.regular {
-                                model.chatOpen = false
-                            }
-                            drag = 0
-                        }
+    /// 上面一条：小横条、「对话」、右边关闭；整条都能往下拖收起
+    private var header: some View {
+        VStack(spacing: Theme.Space.tight) {
+            Capsule().fill(Theme.Palette.separator)
+                .frame(width: Theme.Space.section + Theme.Space.tight, height: Theme.Space.tight + 1)
+                .accessibilityHidden(true)
+            HStack(spacing: Theme.Space.small) {
+                Text("对话").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: 0)
+                Button {
+                    withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
+                        model.chatOpen = false
                     }
-            )
-            .accessibilityHidden(true)
+                } label: {
+                    Image(systemName: "xmark").font(Theme.Typeface.glyph).foregroundStyle(Theme.Palette.secondaryLabel)
+                        .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
+                        .background(Theme.Palette.fill, in: Circle())
+                        .frame(width: Theme.Size.touch, height: Theme.Size.touch)
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("关闭对话"))
+                .accessibilityIdentifier("chat.close")
+            }
+            .padding(.leading, Theme.Space.regular)
+            .padding(.trailing, Theme.Space.tight)
+        }
+        .padding(.top, Theme.Space.small)
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture()
+                .onChanged { drag = $0.translation.height }
+                .onEnded { end in
+                    withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
+                        if end.translation.height > Theme.Size.touch + Theme.Space.regular {
+                            model.chatOpen = false
+                        }
+                        drag = 0
+                    }
+                }
+        )
     }
 
     /// 最下面：排队的话共用一个暂停原因（比如还没填大模型的密钥），只说一次；没保存上的说会自动重发
@@ -173,14 +201,12 @@ struct ChatPanel: View {
     private var bottomKey: String { "\(rows.last?.id ?? "")-\(model.chat.last?.status ?? "")" }
 }
 
-/// 按天分隔：居中的小标签（小圆角：不能点的不用胶囊）
-private struct DayCapsule: View {
+/// 按天分隔：居中一行小字（像「信息」，不加底色）
+private struct DaySeparator: View {
     let label: String
 
     var body: some View {
-        Text(label).font(Theme.Typeface.caption).foregroundStyle(Theme.Palette.secondaryLabel)
-            .padding(.horizontal, Theme.Space.medium).frame(minHeight: Theme.Size.badge + Theme.Space.tight)
-            .background(Theme.Palette.fill, in: Theme.rounded(Theme.Corner.tile))
+        Text(label).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
             .frame(maxWidth: .infinity)
             .padding(.top, Theme.Space.small)
             .accessibilityAddTraits(.isHeader)

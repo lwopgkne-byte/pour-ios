@@ -61,7 +61,7 @@ struct Composer: View {
                 }
             }
             if voice.active, voice.mode == .tap {
-                VoiceCard { words, send in use(words, send: send) }
+                VoiceCard(before: model.draft) { words, send in use(words, send: send) }
                     .themeTransition(.scale(scale: 0.96, anchor: .bottom).combined(with: .opacity))
             } else {
                 ComposerBar(
@@ -75,7 +75,7 @@ struct Composer: View {
         .padding(.horizontal, open ? 0 : Theme.Space.medium)
         .padding(.bottom, open ? 0 : Theme.Space.small)
         .background {
-            if open { Theme.Palette.card.ignoresSafeArea(edges: .bottom) }
+            if open { Theme.Palette.background.ignoresSafeArea(edges: .bottom) }
         }
         // 收起对话是要看画布：键盘一起收起来
         .onChange(of: model.chatOpen) { _, open in
@@ -141,9 +141,9 @@ struct Composer: View {
         }
     }
 
-    /// 说完的字：✓ 放进输入框再改，↑ 和松开就发出去
+    /// 说完的字：✓ 放进输入框再改，↑ 和松开就发出去。输入框里已经有字的（说了一半停了、又接着说），接在后面
     private func use(_ words: String, send: Bool) {
-        model.draft = model.draft.isEmpty ? words : model.draft + words
+        model.draft = Self.joined(model.draft, words)
         if send {
             withAnimation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion)) { model.send() }
         } else {
@@ -155,9 +155,19 @@ struct Composer: View {
     private func keepWords() {
         Task {
             guard let words = await voice.finish(quiet: true) else { return }
-            model.draft = model.draft.isEmpty ? words : model.draft + words
+            model.draft = Self.joined(model.draft, words)
             model.toast("录音停了，说到的字放在输入框里")
         }
+    }
+
+    /// 接着说：输入框里已经有字、末尾没有标点的，先加一个逗号再接（「早上跑了五公里，中午和小王吃面」）
+    static func joined(_ draft: String, _ words: String) -> String {
+        let head = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        let tail = words.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let last = head.last else { return tail }
+        guard !tail.isEmpty else { return head }
+        let ends = last.unicodeScalars.allSatisfy { CharacterSet.punctuationCharacters.contains($0) }
+        return ends ? head + tail : head + "，" + tail
     }
 
     /// 说到 2 分钟：点一下说的转成字留着再改，按住说的发出去
@@ -210,6 +220,11 @@ private struct ComposerBar: View {
                 .foregroundStyle(Theme.Palette.label)
                 .lineLimit(1...6)
                 .padding(.vertical, Theme.Space.medium)
+                // 对话开着：输入的那一块是暖灰底上一块白的圆角（收着时整条是玻璃，不另加）
+                .padding(.horizontal, open ? Theme.Space.medium : 0)
+                .background {
+                    if open { Theme.rounded(Theme.Corner.bubble).fill(Theme.Palette.card) }
+                }
                 .focused(focused)
                 .accessibilityLabel(Text(backfilling ? "补记 \(Show.monthDay(model.shownDay))" : "说一句"))
                 .accessibilityIdentifier("pourbar.input")
@@ -222,10 +237,9 @@ private struct ComposerBar: View {
                     resized = false
                     fieldID += 1
                 }
-            if empty {
-                MicButton(tap: tapMic, send: sendWords, cancelling: $cancelling)
-                    .themeTransition(.scale.combined(with: .opacity))
-            } else {
+            // 麦克风一直在：说了一半停了、有字了，点一下接着说（产品主人 2026-11-03：「语音不能连续说」）
+            MicButton(tap: tapMic, send: sendWords, cancelling: $cancelling)
+            if !empty {
                 sendButton.themeTransition(.scale.combined(with: .opacity))
             }
         }
@@ -233,10 +247,9 @@ private struct ComposerBar: View {
         .padding(.vertical, Theme.Space.hairline)
         .frame(minHeight: Theme.Size.composer)
         .animation(Theme.Motion.quick, value: empty)
+        .padding(.bottom, open ? Theme.Space.tight : 0)
         .background {
-            if open {
-                Theme.Palette.card.overlay(alignment: .top) { Theme.Palette.separator.frame(height: 0.5) }
-            }
+            if open { Theme.Palette.background }
         }
         .modifier(GlassWhenFloating(floating: !open))
     }

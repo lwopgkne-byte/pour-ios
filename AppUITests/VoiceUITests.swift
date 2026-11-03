@@ -37,7 +37,21 @@ final class VoiceUITests: XCTestCase {
         let field = app.descendants(matching: .any)["pourbar.input"]
         let filled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == '早上跑了五公里'"), object: field)
         XCTAssertEqual(XCTWaiter().wait(for: [filled], timeout: 3), .completed, "字没放进输入框")
-        XCTAssertTrue(app.buttons["pourbar.send"].exists, "有字了应该是发送")
+        XCTAssertTrue(app.buttons["pourbar.send"].exists, "有字了应该有发送")
+        // 说了一半停了：麦克风还在，点一下接着说，说的接在后面（产品主人 2026-11-03：「语音不能连续说」）
+        XCTAssertTrue(app.buttons["pourbar.mic"].exists, "有字了麦克风也要在，好接着说")
+        app.buttons["pourbar.mic"].tap()
+        let before = app.descendants(matching: .any)["voice.before"]
+        XCTAssertTrue(before.waitForExistence(timeout: 3), "接着说时没写前面说过的")
+        let again = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == '早上跑了五公里'"), object: words)
+        XCTAssertEqual(XCTWaiter().wait(for: [again], timeout: 5), .completed, "第二段字没出来")
+        settle()
+        attach(app, "语音-接着说")
+        try AppAudit.run(app, name: "语音-接着说")
+        app.buttons["voice.text"].tap()
+        let joined = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == '早上跑了五公里，早上跑了五公里'"), object: field)
+        XCTAssertEqual(XCTWaiter().wait(for: [joined], timeout: 3), .completed, "接着说的字没接在后面")
     }
 
     /// 按住说：松开就发（看过说明以后才有按住说：先点一下看说明、开始说、✕ 不要了，再按住说）

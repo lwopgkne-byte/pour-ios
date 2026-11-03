@@ -1,7 +1,7 @@
 import PourDesign
 import SwiftUI
 
-/// 麦克风（输入框右边，没字的时候）：点一下说（输入框长成录音卡），按住说（松开就发，往上滑取消）。
+/// 麦克风（输入框右边，一直在；有字时旁边多一个发送）：点一下说（输入框长成录音卡，有字的接着说），按住说（松开就发，往上滑取消）。
 /// 读屏点两下是「点一下说」
 struct MicButton: View {
     @Environment(VoiceSession.self) private var voice

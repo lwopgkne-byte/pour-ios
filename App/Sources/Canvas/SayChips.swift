@@ -10,7 +10,8 @@ struct SayChips: View {
     let pick: (String) -> Void
 
     private static let commands = [
-        ("问一句", "/问 "), ("记一笔", "/记 "), ("定目标", "/目标 "), ("改一下", "/改 "), ("找一找", "/找 "),
+        ("问一句", "/问 ", "questionmark.bubble"), ("记一笔", "/记 ", "yensign.circle"),
+        ("定目标", "/目标 ", "target"), ("改一下", "/改 ", "pencil"), ("找一找", "/找 ", "magnifyingglass"),
     ]
 
     var body: some View {
@@ -25,20 +26,30 @@ struct SayChips: View {
                     chip("记到\(dayName)", symbol: "calendar", lit: backfilling)
                 }
                 .accessibilityIdentifier("say.day")
-                ForEach(Self.commands, id: \.0) { name, prefix in
+                ForEach(Self.commands, id: \.0) { name, prefix, symbol in
                     Button {
                         pick(prefix)
                     } label: {
-                        chip(name, symbol: nil, lit: false)
+                        chip(name, symbol: symbol, lit: false)
                     }
                     .buttonStyle(PressScale())
                     .accessibilityIdentifier("say.\(name)")
                 }
             }
-            .padding(.horizontal, Theme.Space.medium)
+            .padding(.horizontal, Theme.Space.regular)
             .padding(.vertical, Theme.Space.tight)
         }
-        .background(Theme.Palette.card)
+        // 两头渐隐：滑出去的半个胶囊看着是「还有」，不是被切掉
+        .mask {
+            HStack(spacing: 0) {
+                LinearGradient(colors: [.clear, .black], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: Theme.Space.regular)
+                Rectangle()
+                LinearGradient(colors: [.black, .clear], startPoint: .leading, endPoint: .trailing)
+                    .frame(width: Theme.Space.section)
+            }
+        }
+        .background(Theme.Palette.background)
     }
 
     /// 在画布上看以前的日子时，说的话补记到那天
@@ -63,7 +74,7 @@ struct SayChips: View {
         .foregroundStyle(lit ? Theme.Palette.accent : Theme.Palette.label)
         .padding(.horizontal, Theme.Space.medium)
         .frame(minHeight: Theme.Size.capsule)
-        .background(lit ? Theme.Palette.bubble : Theme.Palette.fill, in: Capsule())
+        .background(lit ? Theme.Palette.bubble : Theme.Palette.card, in: Capsule())
         .frame(minHeight: Theme.Size.touch)
         .contentShape(Rectangle())
     }

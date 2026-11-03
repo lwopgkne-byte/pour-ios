@@ -4,7 +4,7 @@ import PourDesign
 import SwiftUI
 import UIKit
 
-/// 你说的话：右边浅蓝的气泡（右下角小一点），下面一行时间 + 状态；长按能复制
+/// 你说的话：右边蓝底白字的气泡（右下角小一点，像「信息」），最宽到四分之三；下面一行时间 + 状态；长按能复制
 struct Bubble<Status: View>: View {
     let text: String
     let time: String
@@ -14,11 +14,11 @@ struct Bubble<Status: View>: View {
 
     var body: some View {
         VStack(alignment: .trailing, spacing: Theme.Space.tight) {
-            Text(Show.spaced(text)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+            Text(Show.spaced(text)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.onAccent)
                 .lineSpacing(Theme.Leading.body)
                 .padding(.vertical, Theme.Space.small + Theme.Space.hairline).padding(.horizontal, Theme.Space.inset)
                 .background(
-                    Theme.Palette.bubble,
+                    Theme.Palette.accentFill,
                     in: UnevenRoundedRectangle(
                         topLeadingRadius: Theme.Corner.bubble, bottomLeadingRadius: Theme.Corner.bubble,
                         bottomTrailingRadius: Theme.Corner.bar, topTrailingRadius: Theme.Corner.bubble,
@@ -35,7 +35,7 @@ struct Bubble<Status: View>: View {
             .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
         .frame(maxWidth: .infinity, alignment: .trailing)
-        .padding(.leading, Theme.Space.section + Theme.Space.regular)
+        .padding(.leading, Theme.Space.section * 2)
     }
 }
 
@@ -203,7 +203,7 @@ private struct ReceiptCard: View {
             }
         }
         .padding(.horizontal, Theme.Space.medium).padding(.vertical, Theme.Space.tight)
-        .background(Theme.Palette.background, in: Theme.rounded(Theme.Corner.receipt))
+        .background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.receipt))
     }
 
     private var undoButton: some View {

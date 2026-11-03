@@ -83,8 +83,8 @@ struct MessageCard: View {
 }
 
 extension View {
-    /// 系统消息的样子：页面底色的一块（在白的对话面板上浅浅地分开），小卡的圆角
+    /// 系统消息的样子：暖灰的对话面板上一张白卡片，小卡的圆角
     fileprivate func card() -> some View {
-        background(Theme.Palette.background, in: Theme.rounded(Theme.Corner.receipt))
+        background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.receipt))
     }
 }
