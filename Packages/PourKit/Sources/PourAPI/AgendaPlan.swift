@@ -47,9 +47,14 @@ public enum AgendaPlan {
 
     /// 是不是同一件：都有钟点、相差 15 分钟以内，名字像（一个包含另一个，或者有一段至少两个字、占短的那个一半的一样）
     public static func same(_ event: CalendarItem, _ todo: API.TodoData) -> Bool {
-        guard !event.allDay, let remind = todo.remindAt else { return false }
+        same(event, title: todo.content, remindAt: todo.remindAt)
+    }
+
+    /// 同上（待办页的一行：事、提醒的本地时刻「2026-10-26T15:00」）
+    public static func same(_ event: CalendarItem, title: String, remindAt: LocalDateTime?) -> Bool {
+        guard !event.allDay, let remind = remindAt else { return false }
         guard abs(PourDate.minutesBetween(event.start, remind)) <= nearMinutes else { return false }
-        return similar(event.title, todo.content)
+        return similar(event.title, title)
     }
 
     static func similar(_ lhs: String, _ rhs: String) -> Bool {

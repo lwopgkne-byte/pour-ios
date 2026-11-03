@@ -7,8 +7,11 @@ final class AboutUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// 3.0（第 8 步）：一块一张卡片；你的生活由什么组成一行一个领域；Pour 认识的六行
     @MainActor func testAboutHome() throws {
         let app = open()
+        XCTAssertTrue(app.staticTexts["about.caption"].label.contains("段话里看出来的你"), "没有头一句")
+        XCTAssertTrue(app.buttons["about.domain.diet"].exists, "你的生活由什么组成没有饮食那一行")
         audit(app, "关于我")
         app.swipeUp(velocity: .slow)
         settle()
@@ -23,16 +26,17 @@ final class AboutUITests: XCTestCase {
 
     @MainActor func testAboutPages() throws {
         let app = open()
-        // 方块图点一块：那一块生活的那一页
-        app.buttons.matching(NSPredicate(format: "label BEGINSWITH '饮食'")).firstMatch.tap()
-        let back = app.buttons["‹ 关于我"]
+        // 你的生活由什么组成：点一行进那一块生活的那一页
+        app.buttons["about.domain.diet"].tap()
+        // 3.0 外壳：返回是导航栏左上角的按钮，写着上一页的名字
+        let back = app.navigationBars.buttons["关于我"]
         XCTAssertTrue(back.waitForExistence(timeout: 5), "饮食那一页没打开")
         settle()
         audit(app, "关于我-饮食")
         back.tap()
         // 换个角度看你：心情、人、你说的话
         for (name, title) in [("mood", "关于我-心情"), ("people", "关于我-人"), ("talk", "关于我-你说的话")] {
-            let card = app.buttons["angle.\(name)"]
+            let card = app.buttons["about.angle.\(name)"]
             scroll(app, to: card)
             card.tap()
             XCTAssertTrue(back.waitForExistence(timeout: 5), "\(name)那一页没打开")
@@ -52,10 +56,10 @@ final class AboutUITests: XCTestCase {
     /// 心情那一页下面：心情和精力的曲线、心情从哪来
     @MainActor func testMoodBoard() throws {
         let app = open()
-        let card = app.buttons["angle.mood"]
+        let card = app.buttons["about.angle.mood"]
         scroll(app, to: card)
         card.tap()
-        XCTAssertTrue(app.buttons["‹ 关于我"].waitForExistence(timeout: 5), "心情那一页没打开")
+        XCTAssertTrue(app.navigationBars.buttons["关于我"].waitForExistence(timeout: 5), "心情那一页没打开")
         let curve = app.staticTexts["心情和精力"]
         scroll(app, to: curve)
         XCTAssertTrue(curve.isHittable, "没有心情和精力的曲线")
@@ -68,9 +72,15 @@ final class AboutUITests: XCTestCase {
         audit(app, "关于我-心情从哪来")
     }
 
-    /// Pour 认识的：点一个说法看从哪学来的；人那一页点一个认识的人
+    /// Pour 认识的（3.0 第 8 步搬成自己的一页）：主页那张卡点「你的说法」进去，点一个说法看从哪学来的
     @MainActor func testKnown() throws {
         let app = open()
+        let row = app.buttons["about.known.sayings"]
+        scroll(app, to: row)
+        row.tap()
+        XCTAssertTrue(app.navigationBars["Pour 认识的"].waitForExistence(timeout: 5), "Pour 认识的没打开")
+        settle()
+        audit(app, "关于我-Pour认识的")
         let saying = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '老地方 = '")).firstMatch
         scroll(app, to: saying)
         saying.tap()
@@ -80,12 +90,29 @@ final class AboutUITests: XCTestCase {
         audit(app, "关于我-一个说法")
     }
 
+    /// 一个人（3.0 第 8 步新的一页）：多是做什么、那些日子的心情、关系、最近的记录、花在他身上的
+    @MainActor func testPerson() throws {
+        let app = XCUIApplication()
+        app.launchArguments += ["-uiTest", "-open", "/about/person/儿子"]
+        app.launch()
+        let sub = app.staticTexts["person.sub"]
+        XCTAssertTrue(sub.waitForExistence(timeout: 8), "一个人那一页没打开")
+        XCTAssertTrue(sub.label.hasPrefix("家人 · "), "头一句不对：\(sub.label)")
+        XCTAssertTrue(app.staticTexts["多是做什么"].exists, "没有多是做什么")
+        settle()
+        audit(app, "关于我-一个人")
+        app.swipeUp(velocity: .slow)
+        settle()
+        XCTAssertTrue(app.buttons["person.library"].exists, "没有在笔记库看原话")
+        audit(app, "关于我-一个人-下面")
+    }
+
     /// 链接打开（推送、对话里的链接点进来是 pour://open?path=…）：只知道一个词也能打开 Pour 认识的那一条
     @MainActor func testDeepLink() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
         app.launch()
-        XCTAssertTrue(app.descendants(matching: .any)["today.menu"].waitForExistence(timeout: 5), "画布没打开")
+        XCTAssertTrue(app.buttons["today.me"].waitForExistence(timeout: 5), "画布没打开")
         // path=/about?find=老地方
         let link = try XCTUnwrap(URL(string: "pour://open?path=%2Fabout%3Ffind%3D%E8%80%81%E5%9C%B0%E6%96%B9"))
         app.open(link)
@@ -106,10 +133,7 @@ final class AboutUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
         app.launch()
-        let menu = app.descendants(matching: .any)["today.menu"]
-        XCTAssertTrue(menu.waitForExistence(timeout: 5), "画布没打开")
-        menu.tap()
-        app.buttons["关于我"].firstMatch.tap()
+        app.openTile("about")
         XCTAssertTrue(app.staticTexts["你的生活由什么组成"].waitForExistence(timeout: 5), "关于我没打开")
         settle()
         return app
@@ -131,12 +155,8 @@ final class AboutUITests: XCTestCase {
     /// 往下翻到它能点为止（最多翻 8 次）
     @MainActor
     private func scroll(_ app: XCUIApplication, to element: XCUIElement) {
-        // 翻到它能点、而且在输入框上面（压在输入框下面也算「能点」，点到的却是输入框）
-        var tries = 0
-        while !(element.isHittable && element.frame.maxY < app.frame.height * 0.7) && tries < 8 {
-            app.swipeUp(velocity: .slow)
-            tries += 1
-        }
+        // 翻到它整个露出来：在导航栏下面、在输入框上面（压在输入框下面也算「能点」，点到的却是输入框）
+        app.reveal(element)
     }
 
     @MainActor

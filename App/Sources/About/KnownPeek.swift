@@ -11,11 +11,11 @@ struct KnownPeek: View {
     let key: String
 
     var body: some View {
-        WebPeek(title: title) {
+        DetailPeek(title: title) {
             if let about = store.about {
                 content(about)
             } else {
-                WebSkeleton(height: Web.space16)
+                SkeletonBlock(height: (Theme.Space.section * 2))
             }
         }
     }
@@ -42,7 +42,7 @@ struct KnownPeek: View {
         } else if let saying = about.sayings.first(where: { $0.key == key }) {
             SayingDetail(saying: saying, store: store, leave: leave)
         } else {
-            Text("这一条已经不在了。").font(Web.body).foregroundStyle(Web.fgTertiary)
+            Text("这一条已经不在了。").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
         }
     }
 
@@ -75,19 +75,13 @@ private struct MarkChoices: View {
 
     var body: some View {
         let right = mark == "right"
-        VStack(alignment: .leading, spacing: Web.space2) {
-            HStack(spacing: Web.space3) {
-                Text("说得对吗？").font(Web.body).foregroundStyle(Web.fgSecondary)
-                WebChip(selected: right) {
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            HStack(spacing: Theme.Space.medium) {
+                Text("说得对吗？").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
+                FilterChip("对", selected: right) {
                     store.mark(key, right ? nil : "right", basis: basis, sentence: sentence, model)
-                } label: {
-                    Text("对")
                 }
-                WebChip(selected: false) {
-                    wrong()
-                } label: {
-                    Text("不对")
-                }
+                FilterChip("不对", selected: false) { wrong() }
             }
             MeNote(right && markedAt != nil ? "你 \(KnownStore.isoDay(markedAt ?? ""))确认过" : "点「不对」它就不再这么说，可以撤销")
         }
@@ -111,16 +105,19 @@ private struct EvidenceRow: View {
 
     var body: some View {
         Button(action: open) {
-            HStack(spacing: Web.space3) {
-                Text(Show.spaced(text)).font(Web.body).foregroundStyle(Web.fg).frame(
+            HStack(spacing: Theme.Space.medium) {
+                Text(Show.spaced(text)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label).frame(
                     maxWidth: .infinity, alignment: .leading)
-                if let side { Text(side).font(Web.caption).foregroundStyle(warn ? Web.status("warn") : Web.fgTertiary) }
+                if let side {
+                    Text(side).font(Theme.Typeface.footnote).foregroundStyle(
+                        warn ? Theme.Palette.status("warn") : Theme.Palette.secondaryLabel)
+                }
             }
-            .padding(.vertical, Web.space2)
-            .frame(minHeight: Web.touch)
+            .padding(.vertical, Theme.Space.small)
+            .frame(minHeight: Theme.Size.touch)
             .contentShape(Rectangle())
         }
-        .buttonStyle(WebPressStyle(radius: 0))
+        .buttonStyle(.plain)
         .moneyRule()
         .accessibilityElement(children: .combine)
     }
@@ -139,7 +136,7 @@ private struct ShowSome<Item, Row: View>: View {
             ForEach(Array((all ? items : Array(items.prefix(first))).enumerated()), id: \.offset) { _, item in row(item)
             }
             if !all && items.count > first {
-                WebTextButton("看全部 \(items.count) \(unit)", font: Web.caption) { all = true }.padding(.top, Web.space2)
+                LinkButton("看全部 \(items.count) \(unit)") { all = true }.padding(.top, Theme.Space.small)
             }
         }
     }
@@ -151,8 +148,9 @@ private struct SleepDetail: View {
     let openEntry: (String, Int) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space6) {
-            Text(Show.spaced(Show.sleepSentence(sleep, full: true))).font(Web.body).foregroundStyle(Web.fg)
+        VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
+            Text(Show.spaced(Show.sleepSentence(sleep, full: true))).font(Theme.Typeface.body).foregroundStyle(
+                Theme.Palette.label)
             MarkChoices(
                 key: sleep.key, basis: sleep.basis, mark: sleep.mark, markedAt: sleep.markedAt,
                 sentence: Show.sleepSentence(sleep), store: store)
@@ -165,11 +163,11 @@ private struct SleepDetail: View {
                             }
                         }
                     }
-                    MeNote("要是记错了，点这一晚就能改；改了，上面跟着重新算").padding(.top, Web.space2)
+                    MeNote("要是记错了，点这一晚就能改；改了，上面跟着重新算").padding(.top, Theme.Space.small)
                 }
             }
             PeekSection(title: "\(sleep.nights.count) 个晚上（\(Show.monthDay(sleep.from))–\(Show.monthDay(sleep.to))）") {
-                SleepChart(sleep: sleep).padding(.bottom, Web.space2)
+                SleepChart(sleep: sleep).padding(.bottom, Theme.Space.small)
                 ShowSome(items: sleep.nights, first: 3, unit: "晚") { night in
                     EvidenceRow(text: Self.nightText(night), side: Show.durationCn(night.minutes)) {
                         openEntry(night.day, night.entryId)
@@ -191,23 +189,23 @@ private struct SleepChart: View {
 
     var body: some View {
         let odd = Set(sleep.outliers.map(\.entryId))
-        VStack(spacing: Web.space1) {
-            VStack(spacing: Web.space1 / 2) {
+        VStack(spacing: Theme.Space.tight) {
+            VStack(spacing: Theme.Space.tight / 2) {
                 ForEach(sleep.nights.reversed(), id: \.entryId) { night in
                     GeometryReader { proxy in
                         let from = Self.place(night.start, after: false)
                         let until = Self.place(night.end, after: true)
-                        Capsule().fill(Web.bgSubtle)
+                        Capsule().fill(Theme.Palette.fill)
                             .overlay(alignment: .leading) {
                                 Capsule().fill(
                                     odd.contains(night.entryId)
-                                        ? Web.status("warn") : Web.tag("purple").solid.opacity(0.5)
+                                        ? Theme.Palette.status("warn") : Theme.tag("purple").solid.opacity(0.5)
                                 )
                                 .frame(width: proxy.size.width * max(0.01, until - from))
                                 .offset(x: proxy.size.width * from)
                             }
                     }
-                    .frame(height: Web.space1)
+                    .frame(height: Theme.Space.tight)
                 }
             }
             HStack {
@@ -216,7 +214,7 @@ private struct SleepChart: View {
                     if mark != "12:00" { Spacer() }
                 }
             }
-            .font(Web.caption).foregroundStyle(Web.fgTertiary).monospacedDigit()
+            .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit()
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("每晚几点睡、几点起，\(sleep.nights.count) 晚"))
@@ -237,8 +235,8 @@ private struct HabitDetail: View {
     let openEntry: (String, Int) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space6) {
-            Text(Show.spaced(Show.habitSentence(habit))).font(Web.body).foregroundStyle(Web.fg)
+        VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
+            Text(Show.spaced(Show.habitSentence(habit))).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
             MarkChoices(
                 key: habit.key, basis: habit.basis, mark: habit.mark, markedAt: habit.markedAt,
                 sentence: "\(habit.name)：\(Show.habitMeta(habit))", store: store)

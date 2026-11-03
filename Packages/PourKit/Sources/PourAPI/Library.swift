@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 笔记库（LibraryNote、InsightItem、MomentItem，服务器 routes/library.ts），字段名一字不差
 extension API {
@@ -55,6 +55,26 @@ extension API {
         public var quote: String
         public var tags: [String]
         public var noteId: Int?
+        /// 3.0 语录 ★：收藏的或者「记一句」记的（服务器 2.13.0 起才有）
+        public var starred: Bool?
+        /// 「记一句」记的
+        public var saying: Bool?
+
+        public var isStarred: Bool { starred == true }
+
+        public init(
+            id: Int, day: String, title: String, quote: String, tags: [String], noteId: Int?, starred: Bool? = nil,
+            saying: Bool? = nil
+        ) {
+            self.id = id
+            self.day = day
+            self.title = title
+            self.quote = quote
+            self.tags = tags
+            self.noteId = noteId
+            self.starred = starred
+            self.saying = saying
+        }
     }
 
     public struct InsightsPage: Codable, Hashable, Sendable {
@@ -65,6 +85,23 @@ extension API {
 
         public var insights: [InsightItem]
         public var tags: [TagCount]
+        /// 语录几句（「语录 ★」胶囊后面的数）
+        public var starred: Int?
+
+        public init(insights: [InsightItem], tags: [TagCount] = [], starred: Int? = nil) {
+            self.insights = insights
+            self.tags = tags
+            self.starred = starred
+        }
+    }
+
+    /// 3.0 一句感悟带着你当时说的整段话、以前也说过类似的：今天重温（翻过来看）、一条感悟弹层都是它；
+    /// ago 是「16 天前你说」。今天重温一句都没有时 insight 是 nil
+    public struct InsightDetail: Codable, Hashable, Sendable {
+        public var insight: InsightItem?
+        public var ago: String?
+        public var said: String?
+        public var related: [Related]
     }
 
     /// 好时刻：一条心情记录，带着它来自哪段原话
@@ -91,26 +128,65 @@ extension API {
         public var category = ""
         public var tag = ""
         public var from = ""
+        /// 3.0 第 9 步：done 已整理、confirm 待确认、pending 待处理、failed 失败；空是全部
+        public var status = ""
 
-        public init(text: String = "", category: String = "", tag: String = "", from: String = "") {
+        public init(text: String = "", category: String = "", tag: String = "", from: String = "", status: String = "")
+        {
             self.text = text
             self.category = category
             self.tag = tag
             self.from = from
+            self.status = status
         }
 
-        public var isEmpty: Bool { text.isEmpty && category.isEmpty && tag.isEmpty && from.isEmpty }
+        public var isEmpty: Bool { text.isEmpty && category.isEmpty && tag.isEmpty && from.isEmpty && status.isEmpty }
+
+        /// 地址后面的查询（「q=跑步&category=exercise」）
+        var query: [URLQueryItem] {
+            var out: [URLQueryItem] = []
+            if !text.isEmpty { out.append(.init(name: "q", value: text)) }
+            if !category.isEmpty { out.append(.init(name: "category", value: category)) }
+            if !tag.isEmpty { out.append(.init(name: "tag", value: tag)) }
+            if !from.isEmpty { out.append(.init(name: "from", value: from)) }
+            if !status.isEmpty { out.append(.init(name: "status", value: status)) }
+            return out
+        }
+    }
+
+    /// 筛选弹层的条数（GET /api/library/facets）
+    public struct LibraryFacets: Codable, Hashable, Sendable {
+        public struct Category: Codable, Hashable, Sendable {
+            public var key: String
+            public var name: String
+            public var emoji: String
+            public var count: Int
+        }
+
+        public struct Status: Codable, Hashable, Sendable {
+            public var key: String
+            public var label: String
+            public var count: Int
+        }
+
+        public var total: Int
+        public var categories: [Category]
+        public var status: [Status]
     }
 }
 
 extension APIClient {
+    /// 筛选弹层的条数：照别的筛选条件算，每个类别、每种状态各有几段
+    public func libraryFacets(_ filter: API.LibraryFilter) async throws(APIError) -> API.LibraryFacets {
+        var parts = URLComponents()
+        parts.queryItems = filter.query
+        let query = filter.query.isEmpty ? "" : "?\(parts.percentEncodedQuery ?? "")"
+        return try await get("/api/library/facets\(query)")
+    }
+
     /// 一页原话（新的在前）；before 是往前翻：比这一段早的
     public func library(_ filter: API.LibraryFilter, before: Int?) async throws(APIError) -> API.LibraryPage {
-        var query: [URLQueryItem] = []
-        if !filter.text.isEmpty { query.append(.init(name: "q", value: filter.text)) }
-        if !filter.category.isEmpty { query.append(.init(name: "category", value: filter.category)) }
-        if !filter.tag.isEmpty { query.append(.init(name: "tag", value: filter.tag)) }
-        if !filter.from.isEmpty { query.append(.init(name: "from", value: filter.from)) }
+        var query = filter.query
         if let before { query.append(.init(name: "before", value: String(before))) }
         var parts = URLComponents()
         parts.queryItems = query
@@ -122,9 +198,27 @@ extension APIClient {
         return page.items
     }
 
-    public func insights(tag: String?) async throws(APIError) -> API.InsightsPage {
-        let path = tag.flatMap { $0.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) }
-        return try await get("/api/insights\(path.map { "?tag=\($0)" } ?? "")")
+    /// 3.0 感悟页：全部感悟（标签、语录在手机上筛）；query 是搜（关键词 + 按意思，服务器的本地向量）
+    public func insights(query: String = "") async throws(APIError) -> API.InsightsPage {
+        try await get(Self.insightsPath(query: query))
+    }
+
+    /// 「/api/insights」「/api/insights?q=专注」（缓存也按这个地址存）
+    public static func insightsPath(query: String = "") -> String {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "/api/insights" }
+        let allowed = CharacterSet.urlQueryAllowed.subtracting(CharacterSet(charactersIn: "&+=?#"))
+        return "/api/insights?q=\(trimmed.addingPercentEncoding(withAllowedCharacters: allowed) ?? trimmed)"
+    }
+
+    /// 今天重温的一句；next 是「换一句」
+    public func insightToday(next: Bool = false) async throws(APIError) -> API.InsightDetail {
+        try await get(next ? "/api/insights/today?next=1" : "/api/insights/today")
+    }
+
+    /// 一条感悟：原话、以前也说过类似的
+    public func insight(_ id: Int) async throws(APIError) -> API.InsightDetail {
+        try await get("/api/insights/\(id)")
     }
 
     public func moments() async throws(APIError) -> [API.Moment] {

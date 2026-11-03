@@ -18,6 +18,20 @@ struct ReviewTests {
         #expect(items.contains { $0.kind == "daily" && $0.day == "2026-10-18" })
     }
 
+    /// 3.0 回顾页（Fixtures/review-list-day / week / month.json：5288 演示数据的 /api/review?kind=）：每张卡带几个数；
+    /// 每天那一段有需要留意
+    @Test func tabs() throws {
+        let day = try fixture("review-list-day", as: API.ReviewListPage.self)
+        #expect(day.items.first?.kind == "daily" && day.items.allSatisfy { !$0.chips.isEmpty && $0.day != nil })
+        #expect(day.attention?.lines.count == 2 && day.attention?.ids.count == 2)
+        let week = try fixture("review-list-week", as: API.ReviewListPage.self)
+        #expect(week.items.first?.from != nil && week.items.first?.chips.contains { $0.hasPrefix("运动") } == true)
+        #expect(week.attention == nil)
+        let month = try fixture("review-list-month", as: API.ReviewListPage.self)
+        #expect(month.items.first?.kind == "monthly")
+        #expect(APIClient.reviewListPath("month") == "/api/review?kind=month")
+    }
+
     @Test func daily() throws {
         let page = try fixture("review-daily", as: API.DailyReviewPage.self)
         let review = page.review

@@ -2,7 +2,15 @@ import SwiftUI
 
 @main
 struct PourApp: App {
+    @UIApplicationDelegateAdaptor(PourAppDelegate.self) private var appDelegate
     @State private var model = AppModel.launch()
+    @State private var quickActions = QuickActions.shared
+    @Environment(\.scenePhase) private var scenePhase
+
+    init() {
+        // 宋体是系统按需下载的：没有就在后台下（SerifFont）
+        SerifFont.ensure()
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -24,12 +32,44 @@ struct PourApp: App {
                         model.requestVoice()
                         return
                     }
+                    // pour://money：小组件、控制中心、锁屏的「记一笔」——回到画布、打开数字键盘
+                    if url.scheme == "pour", url.host() == "money" {
+                        model.goHome()
+                        model.recordMoney()
+                        return
+                    }
                     guard url.scheme == "pour", url.host() == "open",
                         let path = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?
                             .first(where: { $0.name == "path" })?.value, path.hasPrefix("/")
                     else { return }
-                    model.open(path)
+                    model.openLink(path)
                 }
+                // 按住图标的快捷操作（QuickActions）：回到画布，打开对话、填好开头
+                .onChange(of: quickActions.pending, initial: true) { _, type in
+                    guard let type, let start = QuickActions.starts[type] else { return }
+                    quickActions.pending = nil
+                    model.goHome()
+                    // 加待办、记一笔、记心情是正式的弹层（第 2–4 步）；说一句打开对话
+                    switch type {
+                    case "pour.todo": model.todoSheet = .add("")
+                    case "pour.money": model.recordMoney()
+                    case "pour.mood": model.checkinMood()
+                    default: model.startSaying(start)
+                    }
+                }
+                // App 没开着时点了提醒的通知：打开待办
+                .onChange(of: quickActions.pendingPath, initial: true) { _, path in
+                    guard let path else { return }
+                    quickActions.pendingPath = nil
+                    model.openLink(path)
+                }
+        }
+        // 进后台时约一次后台刷新：系统挑时候叫醒 App 重排提醒（07 开发任务清单 2.15）
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .background, model.remindersOn { TodoNotifications.schedule() }
+        }
+        .backgroundTask(.appRefresh(TodoNotifications.refreshTask)) {
+            await TodoNotifications.refreshInBackground()
         }
     }
 }

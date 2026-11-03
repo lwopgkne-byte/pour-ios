@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 import PourCore
 
 // 钱的几页（「留意的」、一样东西、人情往来）和接口
@@ -293,5 +293,16 @@ extension Show {
     public static func unusedText(_ row: API.FixedRow) -> String {
         guard let unused = row.unused else { return "" }
         return "\(monthDay(row.lastDay))又扣了；\(monthDay(unused.lastMention))以后没说到\(unused.key)"
+    }
+}
+
+extension API.MoneyItem {
+    /// 每个月固定的那一样最近扣的一笔（「留意的」里点一行，打开一笔的详情；不知道是哪一块生活，详情里不写）
+    public init(fixed row: API.FixedRow) {
+        self.init(
+            entryId: row.lastEntryId, index: row.lastIndex, day: row.lastDay, time: nil, name: row.name,
+            amount: row.amount, kind: "fixed", domain: .init(key: "", name: "", color: "gray"), who: "", verdict: nil,
+            settled: nil, flag: nil, label: row.name, pack: nil, ended: nil, monthly: true, renqing: nil,
+            returned: nil, people: nil, things: nil, places: nil)
     }
 }

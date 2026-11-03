@@ -12,31 +12,35 @@ struct MeCalendar: View {
     let open: (String) -> Void
 
     var body: some View {
-        Grid(horizontalSpacing: Web.space1, verticalSpacing: Web.space1) {
+        Grid(horizontalSpacing: Theme.Space.tight, verticalSpacing: Theme.Space.tight) {
             GridRow {
-                Color.clear.frame(width: Web.space8, height: 1)
+                Color.clear.frame(width: Theme.Space.section, height: 1)
                 ForEach(MeStyle.weekHead, id: \.self) { PaintedText(text: $0) }
             }
             .accessibilityHidden(true)
             ForEach(weeks, id: \.self) { week in
                 GridRow {
-                    Text(week.label).font(Web.caption).foregroundStyle(Web.fgTertiary).fixedSize()
+                    Text(week.label).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                        .fixedSize()
                         .gridColumnAlignment(.leading)
                     ForEach(week.days, id: \.day) { day in cell(day) }
                 }
             }
         }
-        .padding(.top, Web.space4)
+        .padding(.top, Theme.Space.regular)
     }
 
     @ViewBuilder private func cell(_ day: API.MeCalDay) -> some View {
-        let shape = RoundedRectangle(cornerRadius: Web.radiusControl)
+        let shape = RoundedRectangle(cornerRadius: Theme.Corner.tile)
         switch day.state {
-        case "future": Color.clear.frame(height: Web.space6).accessibilityHidden(true)
+        case "future": Color.clear.frame(height: Theme.Space.xLarge).accessibilityHidden(true)
         case "none":
-            shape.strokeBorder(Web.line, style: StrokeStyle(lineWidth: 1, dash: [Web.space1 / 2, Web.space1 / 2]))
-                .frame(height: Web.space6)
-                .accessibilityLabel(Text("\(MeStyle.dayLabel(day.day))：没说话"))
+            shape.strokeBorder(
+                Theme.Palette.separator,
+                style: StrokeStyle(lineWidth: 1, dash: [Theme.Space.tight / 2, Theme.Space.tight / 2])
+            )
+            .frame(height: Theme.Space.xLarge)
+            .accessibilityLabel(Text("\(MeStyle.dayLabel(day.day))：没说话"))
         default:
             Button {
                 open(day.day)
@@ -45,12 +49,13 @@ struct MeCalendar: View {
                     if let fill = paint(day) {
                         shape.fill(fill)
                     } else if kind == "mood" {
-                        shape.fill(Web.tag("gray").bg)
+                        shape.fill(Theme.tag("gray").tint)
                     } else {
-                        shape.fill(Web.bg).overlay(shape.strokeBorder(Web.line, lineWidth: 1))
+                        shape.fill(Theme.Palette.card).overlay(
+                            shape.strokeBorder(Theme.Palette.separator, lineWidth: 1))
                     }
                 }
-                .frame(height: Web.space6)
+                .frame(height: Theme.Space.xLarge)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
             }
@@ -67,10 +72,10 @@ struct PaintedText: View {
     var body: some View {
         Canvas { context, size in
             context.draw(
-                Text(text).font(Web.caption).foregroundStyle(Web.fgTertiary),
+                Text(text).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel),
                 at: CGPoint(x: size.width / 2, y: size.height / 2))
         }
-        .frame(height: Web.space4 + Web.space1)
+        .frame(height: Theme.Space.regular + Theme.Space.tight)
         .frame(maxWidth: .infinity)
         .accessibilityHidden(true)
     }

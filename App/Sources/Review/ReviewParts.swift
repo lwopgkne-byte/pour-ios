@@ -1,131 +1,95 @@
 import PourAPI
+import PourCore
 import PourDesign
 import SwiftUI
 
 /*
- * 每日回顾、周报、月报共用的几样（docs/prd-report.md：同样的东西在所有地方一样）：
- * 一页的开头、关键数字、一个部分、目标一行、加载中的样子、左右滑翻上一页下一页
+ * 3.0「看整页」（故事最后一页进来，07 开发任务清单 6.4a）：每日回顾、周报、月报的长页面，和待办、钱、心情同一种卡片。
+ * 现在长页面里有的一块不少（做了什么全部领域、目标全部、今天、来源几段话、看这一天的画布、这一周的周报……）
  */
 
-/// 一页的开头：小字的「每日回顾」（点了回到列表）、「· 已更新」，大标题和后面灰色的「昨天」「上周」，一句话概括
+/// 一页的开头：日子（或那一周、那个月）和「昨天」「上周」、「已更新」；周报月报下面一句话
 struct ReviewHead: View {
-    let kicker: String
-    let updated: Bool
     let title: String
     let relative: String?
-    let overview: String
-    let back: () -> Void
+    let updated: Bool
+    var overview = ""
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space2) {
-            HStack(spacing: Web.space2) {
-                // 看起来是一行小字，能点的范围撑到 44 点
-                Text(kicker).font(Web.caption).foregroundStyle(Web.fgTertiary).tracking(Web.kickerTracking)
-                    .accessibilityHidden(true)
-                    .overlay {
-                        Button(action: back) {
-                            Color.clear.frame(minWidth: Web.touch, minHeight: Web.touch).contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(Text(kicker))
-                        .accessibilityHint(Text("回到回顾列表"))
-                    }
-                if updated {
-                    Text("· 已更新").font(Web.caption).foregroundStyle(Web.fgTertiary).tracking(Web.kickerTracking)
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
+                Text(Show.spaced(title)).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label)
+                if let relative {
+                    Text(relative).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.secondaryLabel)
                 }
-            }
-            HStack(alignment: .firstTextBaseline, spacing: Web.space3) {
-                Text(Show.spaced(title)).font(Web.title).foregroundStyle(Web.fg)
-                if let relative { Text(relative).font(Web.section).foregroundStyle(Web.fgTertiary) }
+                Spacer(minLength: 0)
+                if updated {
+                    Text("已更新").font(Theme.Typeface.caption).foregroundStyle(Theme.Palette.secondaryLabel)
+                        .padding(.horizontal, Theme.Space.snug).padding(.vertical, Theme.Space.hairline)
+                        .background(Theme.Palette.fill, in: Capsule())
+                }
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits(.isHeader)
-            // 每日回顾的总结写在下面「这一天的样子」里（传空的），周报月报照旧写在这里
             if !overview.isEmpty {
-                Text(Show.spaced(overview)).font(Web.section).foregroundStyle(Web.fg)
-                    .lineSpacing(Web.overviewLineSpacing)
-                    .padding(.top, Web.space2)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(Show.spaced(overview)).font(Theme.Typeface.summary).foregroundStyle(Theme.Palette.label)
+                    .lineSpacing(Theme.Leading.summary).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 }
 
-/// 关键数字：全页唯一的焦点（浅灰底的一块，手机上两列）
-struct KeyNumbers: View {
-    let numbers: [API.KeyNumber]
-
-    var body: some View {
-        if !numbers.isEmpty {
-            // 手机上两列（普通的格子，不用懒加载：字号变了不重建）
-            Grid(alignment: .topLeading, horizontalSpacing: Web.space4, verticalSpacing: Web.space4) {
-                ForEach(Array(stride(from: 0, to: numbers.count, by: 2)), id: \.self) { start in
-                    GridRow {
-                        cell(numbers[start])
-                        if start + 1 < numbers.count {
-                            cell(numbers[start + 1])
-                        } else {
-                            Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
-                        }
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(Web.space4)
-            .background(RoundedRectangle(cornerRadius: Web.radiusPanel).fill(Web.bgSubtle))
-            .padding(.top, Web.space8)
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel(Text("关键数字"))
-        }
-    }
-
-    private func cell(_ number: API.KeyNumber) -> some View {
-        VStack(alignment: .leading, spacing: Web.space1) {
-            Text(value(number))
-            Text(Show.spaced(number.label)).font(Web.caption).foregroundStyle(Web.fgSecondary)
-                .padding(.top, Web.space1)
-            if let compare = number.compare {
-                Text(Show.spaced(compare)).font(Web.caption).foregroundStyle(Web.fgTertiary)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
-    }
-
-    /// 大号的数字（半粗）、小号的单位
-    private func value(_ number: API.KeyNumber) -> AttributedString {
-        number.parts.reduce(into: AttributedString()) { text, part in
-            var digits = AttributedString(part.number)
-            digits.font = Web.displaySemibold
-            digits.foregroundColor = Web.fg
-            text += digits
-            if !part.unit.isEmpty {
-                var unit = AttributedString("\u{2006}\(part.unit)\u{2006}")
-                unit.font = Web.caption
-                unit.foregroundColor = Web.fgSecondary
-                text += unit
-            }
-        }
-    }
-}
-
-/// 一部分：大留白 + 一个安静的小标题
+/// 一块卡片：标题 + 内容（每一块都是一张卡）
 struct ReviewSection<Content: View>: View {
     let title: String
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space3) {
-            Text(title).font(Web.captionMedium).foregroundStyle(Web.fgTertiary).tracking(Web.kickerTracking)
+        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+            Text(title).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.label)
                 .accessibilityAddTraits(.isHeader)
             content()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, Web.space12)
+        .themeCard()
     }
 }
 
-/// 目标一行：状态色小圆点、名称、这一天 / 这一期推进了多少，细进度条，一句话；点了打开目标详情
+/// 周报月报的四个数：两列浅灰块，大数字（单位小一号）、名字、和上一期比
+struct ReviewNumbers: View {
+    let numbers: [API.KeyNumber]
+
+    var body: some View {
+        Grid(alignment: .topLeading, horizontalSpacing: Theme.Space.small, verticalSpacing: Theme.Space.small) {
+            ForEach(Array(stride(from: 0, to: numbers.count, by: 2)), id: \.self) { start in
+                GridRow {
+                    ForEach(start..<min(start + 2, numbers.count), id: \.self) { tile(numbers[$0]) }
+                    if start + 1 >= numbers.count { Color.clear.gridCellUnsizedAxes([.horizontal, .vertical]) }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("几个数"))
+    }
+
+    private func tile(_ number: API.KeyNumber) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+            FigureText(
+                number.parts.map { ($0.number, $0.unit) }, numberFont: Theme.Typeface.heroMetric,
+                unitFont: Theme.Typeface.caption, unitColor: Theme.Palette.secondaryLabel)
+            Text(Show.spaced(number.label)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.label)
+            if let compare = number.compare {
+                Text(Show.spaced(compare)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(Theme.Space.medium)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.Palette.background, in: Theme.rounded(Theme.Corner.stat))
+        .accessibilityElement(children: .combine)
+    }
+}
+
+/// 目标一行：名字、这一天 / 这一期推进了多少、细进度条、一句话；点了打开目标
 struct ReviewGoalRow: View {
     @Environment(AppModel.self) private var model
     let goal: API.DayGoal
@@ -134,91 +98,132 @@ struct ReviewGoalRow: View {
         Button {
             model.openGoal(goal.id)
         } label: {
-            VStack(alignment: .leading, spacing: Web.space2) {
-                HStack(spacing: Web.space2) {
-                    ToneDot(tone: goal.tone)
-                    Text(Show.spaced(goal.title)).foregroundStyle(Web.fg).frame(
-                        maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(Show.spaced(goal.title)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     if let delta = goal.delta {
-                        Text(Show.spaced(delta)).font(Web.bodySemibold).foregroundStyle(Web.fg).monospacedDigit()
+                        Text(Show.spaced(delta)).font(Theme.Typeface.bodySemibold).monospacedDigit()
+                            .foregroundStyle(Theme.Palette.label)
                     }
                 }
-                .font(Web.body)
-                GoalBar(pct: goal.pct, tone: goal.tone)
-                Text(Show.spaced(goal.headline)).font(Web.caption).foregroundStyle(Web.fgTertiary)
+                GeometryReader { proxy in
+                    Capsule().fill(Theme.Palette.fill)
+                        .overlay(alignment: .leading) {
+                            Capsule().fill(Self.tone(goal.tone))
+                                .frame(width: proxy.size.width * min(1, max(0, goal.pct)))
+                        }
+                }
+                .frame(height: Theme.Size.dot / 2 + 1)
+                Text(Show.spaced(goal.headline)).font(Theme.Typeface.footnote)
+                    .foregroundStyle(Theme.Palette.secondaryLabel)
             }
-            .padding(Web.space2)
+            .padding(.vertical, Theme.Space.tight)
             .contentShape(Rectangle())
         }
-        .buttonStyle(WebPressStyle(radius: Web.radiusControl))
-        .padding(.horizontal, -Web.space2)
+        .buttonStyle(PressScale())
         .accessibilityElement(children: .combine)
+    }
+
+    /// 不落后绿、稍微落后黄、落后较多红；没有说法的用强调色
+    static func tone(_ tone: String) -> Color {
+        switch tone {
+        case "good": Theme.Palette.good
+        case "warn": Theme.Palette.warn
+        case "bad": Theme.Palette.bad
+        default: Theme.Palette.accentFill
+        }
     }
 }
 
-/// 能点的一行：按下去底色变深，往两边伸出 8 点
+/// 能点的一行：整行都能点，按下去轻轻一缩
 struct ReviewLine<Label: View>: View {
     let action: () -> Void
     @ViewBuilder let label: () -> Label
 
     var body: some View {
-        // 往两边伸出 8 点放在外面一层：按钮自己的大小和里面的字一样，审计不会以为字被截了
-        VStack(spacing: 0) {
-            Button(action: action) {
-                label().padding(.vertical, Web.space1).padding(.horizontal, Web.space2)
-                    .frame(maxWidth: .infinity, minHeight: Web.touch, alignment: .leading)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(WebPressStyle(radius: Web.radiusControl))
-            .accessibilityElement(children: .combine)
+        Button(action: action) {
+            label().frame(maxWidth: .infinity, minHeight: Theme.Size.touch, alignment: .leading)
+                .contentShape(Rectangle())
         }
-        .padding(.horizontal, -Web.space2)
+        .buttonStyle(PressScale())
+        .accessibilityElement(children: .combine)
     }
 }
 
-/// 一页最下面的小字：来自几段话、去画布、这一周的周报
+/// 一条心情：小表情、几点 · 说法 · 情绪词，下面宋体的那一刻（已经在当天某条感悟里整句出现的不再写）
+struct ReviewMoodRow: View {
+    let mood: API.ReviewMood
+    let quotes: [String]
+    let showTime: Bool
+
+    var body: some View {
+        let squash = { (text: String) in text.filter { !$0.isWhitespace && !$0.isPunctuation } }
+        let moment = mood.moment.flatMap { moment in
+            quotes.contains { squash($0).contains(squash(moment)) } ? nil : moment
+        }
+        HStack(alignment: .top, spacing: Theme.Space.medium) {
+            MoodBadge(level: Int(mood.mood.rounded()), size: Theme.Size.capsule)
+            VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+                let head = (showTime ? [mood.at].compactMap(\.self) : []) + [Show.moodWord(mood.mood)] + mood.emotions
+                Text(head.joined(separator: " · ")).font(Theme.Typeface.subheadline).monospacedDigit()
+                    .foregroundStyle(Theme.Palette.label)
+                if let moment {
+                    Text(Show.spaced(moment)).font(Theme.Typeface.quote).foregroundStyle(Theme.Palette.label)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+}
+
+/// 最下面的小字：来自几段话、去画布、这一周的周报
 struct ReviewFoot<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        HStack(spacing: 0) { content() }
-            .font(Web.caption).foregroundStyle(Web.fgTertiary)
+        PourFlowLayout(spacing: Theme.Space.small, lineSpacing: 0) { content() }
+            .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, Web.space4)
-            .overlay(alignment: .top) { Rectangle().fill(Web.line).frame(height: 1) }
-            .padding(.top, Web.space12)
-    }
-}
-
-/// 加载中的样子
-struct ReviewSkeleton: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: Web.space4) {
-            WebSkeleton(width: Web.space16)
-            WebSkeleton(height: Web.space8).containerRelativeFrame(.horizontal) { width, _ in width / 2 }
-            WebSkeleton(height: Web.space6).containerRelativeFrame(.horizontal) { width, _ in width * 3 / 4 }
-            WebSkeleton(height: Web.space16)
-        }
+            .padding(.top, Theme.Space.small)
     }
 }
 
 extension View {
-    /// 回顾一页的外框：能上下滚，左右滑翻上一页（往右滑）、下一页（往左滑）
+    /// 回顾一页的外框：上下滚；左右滑翻上一篇（往右滑）、下一篇（往左滑）；右上角也能翻
     func reviewPage(prev: (() -> Void)?, next: (() -> Void)?) -> some View {
         ScrollView {
-            self.frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, Web.space4)
-                .padding(.top, Web.space4)
-                .padding(.bottom, Web.space12)
+            VStack(alignment: .leading, spacing: Theme.Space.cardGap) { self }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, Theme.Space.screen)
+                .padding(.bottom, Theme.Space.xLarge)
         }
         .simultaneousGesture(
-            DragGesture(minimumDistance: Web.space6).onEnded { drag in
+            DragGesture(minimumDistance: Theme.Space.xLarge).onEnded { drag in
                 let across = drag.translation.width
-                guard abs(across) > Web.space12 + Web.space3, abs(across) > abs(drag.translation.height) * 2 else {
+                guard abs(across) > Theme.Space.section * 2, abs(across) > abs(drag.translation.height) * 2 else {
                     return
                 }
                 if across > 0 { prev?() } else { next?() }
             }
         )
+        .toolbar {
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button {
+                    prev?()
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .disabled(prev == nil)
+                .accessibilityLabel(Text("上一篇"))
+                Button {
+                    next?()
+                } label: {
+                    Image(systemName: "chevron.right")
+                }
+                .disabled(next == nil)
+                .accessibilityLabel(Text("下一篇"))
+            }
+        }
     }
 }

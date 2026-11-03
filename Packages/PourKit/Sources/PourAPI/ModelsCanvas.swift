@@ -37,6 +37,14 @@ extension API {
         public var total: Int
         public var next: Todo?
         public var quote: Quote?
+        /// 3.0「记一笔」小组件中号：这个月日常花了多少、几笔（旧服务器没有）
+        public var money: Money?
+
+        public struct Money: Codable, Hashable, Sendable {
+            public var month: String
+            public var spent: Double
+            public var count: Int
+        }
 
         public init(today: String, open: [Todo], done: Int, total: Int, next: Todo?, quote: Quote?) {
             self.today = today

@@ -120,7 +120,7 @@ struct HealthPeek: View {
     let entry: API.Entry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space4) {
+        VStack(alignment: .leading, spacing: Theme.Space.regular) {
             if let event = CanvasPlan.event(entry) {
                 VStack(spacing: 0) {
                     if let start = event.start, let end = event.end {
@@ -134,10 +134,11 @@ struct HealthPeek: View {
                 }
             }
             Text(Show.spaced("健康 App 记的（手表或手机），你没说过。要改、要删，在健康 App 里；你说一句同一件事，就用你说的。"))
-                .font(Web.caption).foregroundStyle(Web.fgTertiary).fixedSize(horizontal: false, vertical: true)
+                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).fixedSize(
+                    horizontal: false, vertical: true)
             if let url = URL(string: "x-apple-health://") {
-                Link("打开健康", destination: url).font(Web.bodyMedium).foregroundStyle(Web.accent)
-                    .frame(minHeight: Web.touch)
+                Link("打开健康", destination: url).font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.accent)
+                    .frame(minHeight: Theme.Size.touch)
             }
         }
         .accessibilityIdentifier("detail.health")

@@ -46,6 +46,8 @@ struct ChatPanel: View {
                     .padding(.bottom, Theme.Space.regular)
                 }
                 .scrollDismissesKeyboard(.interactively)
+                // 界面测试认对话面板用（AppAudit：面板里滚到上沿后面、只露出一截的字不量）
+                .accessibilityIdentifier("chat.scroll")
                 .onAppear { reader.scrollTo("bottom", anchor: .bottom) }
                 .onChange(of: bottomKey) { _, _ in
                     withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {

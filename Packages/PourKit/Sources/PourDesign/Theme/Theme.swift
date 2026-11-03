@@ -2,7 +2,7 @@ public import SwiftUI
 
 /// 生活画布 2.0 起的设计规范（docs/模块/生活画布2.0.md 第 8 节）：颜色、字、间距、圆角、阴影、玻璃、动效、触感。
 /// 只有一种样子（亮色）：产品主人 2026-10-21「不要搞两个风格，把黑色的去掉」。
-/// 改到哪一页，那一页就只用这里的值；还没改到的页面暂时用 `Web.*`，全部改完删掉 `Web.*`
+/// 每一页都只用这里的值（3.0 收尾删掉了从网页照搬的 `Web.*`，2026-11-03）
 public enum Theme {}
 
 // MARK: - 颜色
@@ -33,6 +33,15 @@ extension Theme {
         public static let statFill = one(0xFFFFFF, opacity: 0.62)
         public static let good = one(0x1A683D)
         public static let warn = one(0x7D5500)
+        /// 过了时间的待办胶囊：浅黄底、深一档的琥珀字（小字画出来淡一点，留意色本身在浅黄底上差一点到 4.5）
+        public static let warnFill = one(0xF6ECD8)
+        public static let warnInk = one(0x6B4700)
+        /// 到点提醒的待办胶囊：比气泡浅一点的蓝底，上面是强调色的字
+        public static let remindFill = one(0xEEF3FC)
+        /// 钱的种类标签（3.0 第 3 步）：收入、回来的钱（浅绿底、好的字）；人情（浅红底、深一档的红字）
+        public static let goodFill = one(0xF0F8F2)
+        public static let badFill = one(0xFBEFEE)
+        public static let badInk = one(0x9E322B)
         public static let bad = one(0xAA3831)
 
         /// 一个颜色（只有一种样子：亮、暗用同一个值）
@@ -54,10 +63,18 @@ extension Theme {
         public static let accent = Tokens.accent.color
         public static let accentFill = Tokens.accentFill.color
         public static let onAccent = Color.white
+        /// 格子角上的小胶囊：安静的灰底（3.0 不用红点）
+        public static let badgeFill = Tokens.one(0xE7E4DE).color
         public static let bubble = Tokens.bubble.color
         public static let statFill = Tokens.statFill.color
         public static let good = Tokens.good.color
         public static let warn = Tokens.warn.color
+        public static let warnFill = Tokens.warnFill.color
+        public static let warnInk = Tokens.warnInk.color
+        public static let remindFill = Tokens.remindFill.color
+        public static let goodFill = Tokens.goodFill.color
+        public static let badFill = Tokens.badFill.color
+        public static let badInk = Tokens.badInk.color
         public static let bad = Tokens.bad.color
         /// 卡片的两层影子（只在亮色）
         public static let shadowNear = Color.black.opacity(0.04)

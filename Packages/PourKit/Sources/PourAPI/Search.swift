@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 搜索（服务器 routes/search.ts 的 SearchResult）和回答（shared answer.ts），字段名一字不差
 extension API {

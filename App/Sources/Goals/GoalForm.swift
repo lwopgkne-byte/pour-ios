@@ -32,54 +32,49 @@ struct GoalForm: View {
     ]
 
     var body: some View {
-        WebPeek(title: "添加目标") {
-            VStack(alignment: .leading, spacing: Web.space4) {
-                Text("也可以直接在输入框里说，例如「我今年想跑 1000 公里」「每周运动 3 次」。").font(Web.caption)
-                    .foregroundStyle(Web.fgTertiary)
+        DetailPeek(title: "添加目标") {
+            VStack(alignment: .leading, spacing: Theme.Space.regular) {
+                Text("也可以直接在输入框里说，例如「我今年想跑 1000 公里」「每周运动 3 次」。").font(Theme.Typeface.footnote)
+                    .foregroundStyle(Theme.Palette.secondaryLabel)
                 field("种类") {
-                    WebSegmented(
+                    ThemeSegmented(
                         "种类", options: [(key: "quantity", label: "有数字的"), (key: "completion", label: "做完就算")],
                         selected: kind
                     ) { kind = $0 }
                 }
-                WebTextField(
+                ThemeTextField(
                     "名称",
                     placeholder: kind == "completion" ? "例如：读完《三体》" : autoTitle.isEmpty ? "按下面的选择自动生成" : autoTitle,
                     text: $title)
                 if kind == "quantity" { quantityFields }
-                if let problem { Text(problem).font(Web.caption).foregroundStyle(Web.danger) }
-                HStack(spacing: Web.space3) {
-                    WebButton("添加", variant: .primary, loading: saving) { submit() }
-                    WebTextButton("取消") { dismiss() }
+                if let problem { Text(problem).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.bad) }
+                HStack(spacing: Theme.Space.medium) {
+                    ThemeButton("添加", variant: .primary, loading: saving) { submit() }
+                    ThemeTextButton("取消", font: Theme.Typeface.bodyMedium) { dismiss() }
                 }
             }
         }
     }
 
     @ViewBuilder private var quantityFields: some View {
-        field("周期") { WebSegmented("周期", options: Self.scopes, selected: scope) { scope = $0 } }
+        field("周期") { ThemeSegmented("周期", options: Self.scopes, selected: scope) { scope = $0 } }
         field("类别（子类别的记录也算进上级）") {
-            PourFlowLayout(spacing: Web.space1, lineSpacing: Web.space1) {
+            PourFlowLayout(spacing: Theme.Space.tight, lineSpacing: Theme.Space.tight) {
                 ForEach(CategoryPicker.ordered(model.categories), id: \.key) { item in
-                    WebChip(selected: item.key == category) {
-                        pick(item)
-                    } label: {
-                        Text(item.emoji).accessibilityHidden(true)
-                        Text(item.name)
-                    }
+                    FilterChip(item.name, selected: item.key == category) { pick(item) }
                 }
             }
         }
-        field("怎么算") { WebSegmented("怎么算", options: Self.calcs, selected: calc) { calc = $0 } }
+        field("怎么算") { ThemeSegmented("怎么算", options: Self.calcs, selected: calc) { calc = $0 } }
         if byMetric {
             field("看什么") {
-                WebSegmented(
+                ThemeSegmented(
                     "看什么", options: [(key: "duration", label: "时长"), (key: "value", label: "数量")], selected: metric
                 ) { metric = $0 }
             }
             if metric == "duration" {
                 field("时长的单位") {
-                    WebSegmented(
+                    ThemeSegmented(
                         "时长的单位", options: [(key: "h", label: "小时"), (key: "m", label: "分钟")],
                         selected: hours ? "h" : "m"
                     ) {
@@ -87,22 +82,22 @@ struct GoalForm: View {
                     }
                 }
             } else {
-                WebTextField("数量的单位", placeholder: "例如：公里、页、毫升", text: $metricUnit)
+                ThemeTextField("数量的单位", placeholder: "例如：公里、页、毫升", text: $metricUnit)
             }
         }
         if calc != "streak" {
             field("方向") {
-                WebSegmented(
+                ThemeSegmented(
                     "方向", options: [(key: "gte", label: "至少"), (key: "lte", label: "不超过")], selected: direction
                 ) {
                     direction = $0
                 }
             }
         }
-        WebTextField(unit.isEmpty ? "目标值" : "目标值（\(unit)）", text: $target, keyboard: .decimal)
+        ThemeTextField(unit.isEmpty ? "目标值" : "目标值（\(unit)）", text: $target, keyboard: .decimal)
         if scope == "year" || scope == "month" {
             field("从哪天开始算") {
-                WebSegmented(
+                ThemeSegmented(
                     "从哪天开始算",
                     options: [
                         (key: "today", label: "今天"), (key: "start", label: scope == "year" ? "1 月 1 日" : "这个月 1 日"),
@@ -114,8 +109,8 @@ struct GoalForm: View {
     }
 
     private func field<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: Web.space1) {
-            Text(label).font(Web.captionMedium).foregroundStyle(Web.fgSecondary)
+        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+            Text(label).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
             content()
         }
     }

@@ -7,7 +7,7 @@ struct FailuresPeek: View {
     let run: API.Evals.Run?
 
     var body: some View {
-        WebPeek(title: "没答对的句子") {
+        DetailPeek(title: "没答对的句子") {
             if let run {
                 Text(
                     Show.spaced(
@@ -15,28 +15,29 @@ struct FailuresPeek: View {
                             + "\(run.cases) 句里错了 \(run.failures.count) 句。"
                             + "同一类错反复出现，就说明整理规则里少了一条，先改它。")
                 )
-                .font(Web.body).foregroundStyle(Web.fgSecondary)
+                .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
             }
-            VStack(alignment: .leading, spacing: Web.space6) {
+            VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
                 if let run, !run.failures.isEmpty {
                     ForEach(run.failures, id: \.id) { failure in
-                        VStack(alignment: .leading, spacing: Web.space2) {
+                        VStack(alignment: .leading, spacing: Theme.Space.small) {
                             QuoteText(text: failure.text)
                             ForEach(Array(failure.problems.enumerated()), id: \.offset) { _, problem in
                                 Text(
                                     spans([
-                                        (EvalNames.dim(problem.dim), Web.fg), (" · \(problem.what)", Web.fgSecondary),
+                                        (EvalNames.dim(problem.dim), Theme.Palette.label),
+                                        (" · \(problem.what)", Theme.Palette.secondaryLabel),
                                     ])
                                 )
-                                .font(Web.caption)
+                                .font(Theme.Typeface.footnote)
                             }
                         }
                     }
                 } else {
-                    Text("这次全部都对。").font(Web.body).foregroundStyle(Web.fgTertiary)
+                    Text("这次全部都对。").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
-            .padding(.top, Web.space6)
+            .padding(.top, Theme.Space.xLarge)
         }
     }
 }
@@ -50,23 +51,23 @@ struct CandidatesPeek: View {
     private static let scopeNames = ["general": "通用的", "personal": "你个人的"]
 
     var body: some View {
-        WebPeek(title: "你改过的地方") {
+        DetailPeek(title: "你改过的地方") {
             Text("整理错了你改一下，这里就多一条：原话，和改过之后的正确结果。看一眼觉得对，就收进检查清单，以后每次检查都会看它还会不会错。")
-                .font(Web.body).foregroundStyle(Web.fgSecondary)
-            Text(intro).font(Web.body).padding(.top, Web.space3)
-            VStack(alignment: .leading, spacing: Web.space6) {
+                .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
+            Text(intro).font(Theme.Typeface.body).padding(.top, Theme.Space.medium)
+            VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
                 if let list {
                     if list.candidates.isEmpty {
-                        Text("还没有纠正过。").font(Web.body).foregroundStyle(Web.fgTertiary)
+                        Text("还没有纠正过。").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
                     }
                     ForEach(list.candidates) { item(item: $0, classifying: list.classifying) }
                 } else if let problem {
-                    WebErrorState(problem) { Task { await load() } }
+                    ErrorState(problem.contains("连") ? .serverOff : .other) { Task { await load() } }
                 } else {
-                    Dots(label: "加载中").foregroundStyle(Web.fgTertiary)
+                    Dots(label: "加载中").foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
-            .padding(.top, Web.space6)
+            .padding(.top, Theme.Space.xLarge)
         }
         .task { await load() }
         .task(id: list?.classifying) {
@@ -79,42 +80,47 @@ struct CandidatesPeek: View {
 
     private var intro: AttributedString {
         spans([
-            ("AI 会分一下：", Web.fgSecondary), ("通用的", Web.fg),
-            ("是换谁这么说都可能被理解错，收进去以后所有人都受益；", Web.fgSecondary), ("你个人的", Web.fg),
-            ("是只有你知道的说法（某个人是谁、你的简称），会顺便记进个人词典。", Web.fgSecondary),
+            ("AI 会分一下：", Theme.Palette.secondaryLabel), ("通用的", Theme.Palette.label),
+            ("是换谁这么说都可能被理解错，收进去以后所有人都受益；", Theme.Palette.secondaryLabel), ("你个人的", Theme.Palette.label),
+            ("是只有你知道的说法（某个人是谁、你的简称），会顺便记进个人词典。", Theme.Palette.secondaryLabel),
         ])
     }
 
     private func item(item: API.Candidate, classifying: Bool) -> some View {
         let remember = item.scope == "personal" && item.phrase != nil && item.meaning != nil
-        return VStack(alignment: .leading, spacing: Web.space2) {
+        return VStack(alignment: .leading, spacing: Theme.Space.small) {
             QuoteText(text: item.text)
             Text(Show.spaced("\(EvalNames.when(item.createdAt)) · 正确结果：\(expected(item))"))
-                .font(Web.caption).foregroundStyle(Web.fgTertiary)
+                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             if let scope = item.scope {
                 let why = item.scopeWhy.map { " · \($0)" } ?? (item.scopeBy == "me" ? " · 你改的" : "")
                 let learn = remember ? " · 会记住「\(item.phrase ?? "")」= \(item.meaning ?? "")" : ""
-                Text(spans([(Self.scopeNames[scope] ?? scope, Web.fg), (why + learn, Web.fgSecondary)]))
-                    .font(Web.caption)
+                Text(
+                    spans([
+                        (Self.scopeNames[scope] ?? scope, Theme.Palette.label),
+                        (why + learn, Theme.Palette.secondaryLabel),
+                    ])
+                )
+                .font(Theme.Typeface.footnote)
             } else if classifying {
-                HStack(spacing: Web.space2) {
+                HStack(spacing: Theme.Space.small) {
                     Dots()
                     Text("正在看是通用的还是你个人的")
                 }
-                .font(Web.caption).foregroundStyle(Web.fgTertiary)
+                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
-            HStack(spacing: Web.space3) {
-                WebTextButton(remember ? "记住，并收进检查清单" : "收进检查清单") {
+            HStack(spacing: Theme.Space.medium) {
+                ThemeTextButton(remember ? "记住，并收进检查清单" : "收进检查清单", font: Theme.Typeface.bodyMedium) {
                     let done = remember ? "已记住「\(item.phrase ?? "")」，并收进检查清单" : "已收进检查清单"
                     act(done) { try await $0.addCandidate(item.id) }
                 }
                 if let scope = item.scope {
                     let other = scope == "general" ? "personal" : "general"
-                    WebButton(scope == "general" ? "其实是我个人的" : "其实是通用的", variant: .ghost) {
+                    ThemeButton(scope == "general" ? "其实是我个人的" : "其实是通用的", variant: .ghost) {
                         act("改成了\(Self.scopeNames[other] ?? other)") { try await $0.setCandidateScope(item.id, other) }
                     }
                 }
-                WebButton("忽略", variant: .ghost) { act("已忽略") { try await $0.ignoreCandidate(item.id) } }
+                ThemeButton("忽略", variant: .ghost) { act("已忽略") { try await $0.ignoreCandidate(item.id) } }
             }
         }
     }
@@ -170,20 +176,22 @@ struct RunLogPeek: View {
     @State private var problem: String?
 
     var body: some View {
-        WebPeek(title: "处理日志") {
+        DetailPeek(title: "处理日志") {
             Text("最近 50 次整理。点开一条，可以看到每一步发给大模型的内容和它的回答。")
-                .font(Web.body).foregroundStyle(Web.fgSecondary)
+                .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
             VStack(alignment: .leading, spacing: 0) {
                 if let runs {
-                    if runs.isEmpty { Text("还没有整理过。").font(Web.body).foregroundStyle(Web.fgTertiary) }
+                    if runs.isEmpty {
+                        Text("还没有整理过。").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
+                    }
                     ForEach(runs) { RunItem(run: $0) }
                 } else if let problem {
-                    WebErrorState(problem) { Task { await load() } }
+                    ErrorState(problem.contains("连") ? .serverOff : .other) { Task { await load() } }
                 } else {
-                    Dots(label: "加载中").foregroundStyle(Web.fgTertiary)
+                    Dots(label: "加载中").foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
-            .padding(.top, Web.space4)
+            .padding(.top, Theme.Space.regular)
         }
         .task { await load() }
     }
@@ -209,25 +217,25 @@ private struct RunItem: View {
 
     var body: some View {
         DisclosureGroup(isExpanded: $open) {
-            VStack(alignment: .leading, spacing: Web.space3) {
-                if let error = run.error { Text(error).font(Web.body).foregroundStyle(Web.danger) }
+            VStack(alignment: .leading, spacing: Theme.Space.medium) {
+                if let error = run.error { Text(error).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.bad) }
                 if let steps {
                     ForEach(steps) { StepItem(step: $0) }
                 } else {
-                    Dots(label: "加载中").foregroundStyle(Web.fgTertiary)
+                    Dots(label: "加载中").foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
-            .padding(.leading, Web.space4)
-            .padding(.bottom, Web.space4)
+            .padding(.leading, Theme.Space.regular)
+            .padding(.bottom, Theme.Space.regular)
             .task { steps = try? await model.client.runSteps(run.id) }
         } label: {
-            VStack(alignment: .leading, spacing: Web.space1) {
-                Text(run.noteText).font(Web.body).foregroundStyle(Web.fg).lineLimit(1)
-                Text(summary).font(Web.caption).foregroundStyle(Web.fgTertiary)
+            VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                Text(run.noteText).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label).lineLimit(1)
+                Text(summary).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
-            .frame(minHeight: Web.touch)
+            .frame(minHeight: Theme.Size.touch)
         }
-        .tint(Web.fgTertiary)
+        .tint(Theme.Palette.secondaryLabel)
     }
 
     private var summary: String {
@@ -257,10 +265,16 @@ private struct StepItem: View {
     private static let names = ["route": "意图识别", "parse": "解析", "merge": "合并入库", "compose": "组装回复"]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space1) {
-            Text(spans([(Self.names[step.step] ?? step.step, Web.fg), (detail, Web.fgTertiary)], bold: 1))
-                .font(Web.caption)
-            if let error = step.error { Text(error).font(Web.caption).foregroundStyle(Web.danger) }
+        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+            Text(
+                spans(
+                    [
+                        (Self.names[step.step] ?? step.step, Theme.Palette.label),
+                        (detail, Theme.Palette.secondaryLabel),
+                    ], bold: 1)
+            )
+            .font(Theme.Typeface.footnote)
+            if let error = step.error { Text(error).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.bad) }
             if let input = step.input { raw("发给大模型的内容", input) }
             if let output = step.output { raw("大模型的回答", output) }
             if let result = step.result, step.output == nil { raw("结果", result) }
@@ -280,9 +294,10 @@ private struct StepItem: View {
         DisclosureGroup {
             LogBlock(text: Self.pretty(text))
         } label: {
-            Text(label).font(Web.caption).foregroundStyle(Web.fgSecondary).frame(minHeight: Web.touch)
+            Text(label).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).frame(
+                minHeight: Theme.Size.touch)
         }
-        .tint(Web.fgTertiary)
+        .tint(Theme.Palette.secondaryLabel)
     }
 
     /// JSON 排版得好读一些；发给大模型的消息把每条的内容直接展开
@@ -311,17 +326,17 @@ private struct LogBlock: View {
 
     var body: some View {
         ScrollView {
-            Text(text).font(Web.mono).foregroundStyle(Web.fgSecondary).textSelection(.enabled)
+            Text(text).font(Theme.Typeface.mono).foregroundStyle(Theme.Palette.secondaryLabel).textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, Web.space2).padding(.horizontal, Web.space3)
+                .padding(.vertical, Theme.Space.small).padding(.horizontal, Theme.Space.medium)
                 .onGeometryChange(for: CGFloat.self) {
                     $0.size.height
                 } action: {
                     height = $0
                 }
         }
-        .frame(height: min(max(height, Web.space8), Web.space16 * 5))
-        .background(RoundedRectangle(cornerRadius: Web.radiusControl).fill(Web.bgSubtle))
-        .padding(.top, Web.space1)
+        .frame(height: min(max(height, Theme.Space.section), (Theme.Space.section * 2) * 5))
+        .background(RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(Theme.Palette.fill))
+        .padding(.top, Theme.Space.tight)
     }
 }

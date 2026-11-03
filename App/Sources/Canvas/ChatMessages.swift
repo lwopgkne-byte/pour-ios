@@ -54,9 +54,7 @@ struct OutboxMessage: View {
             } else {
                 HStack(spacing: Theme.Space.tight) {
                     Text("没有保存上 ·").foregroundStyle(Theme.Palette.bad)
-                    Button("重试") { Task { await model.flushOutbox() } }
-                        .font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.accent).buttonStyle(.plain)
-                        .frame(minHeight: Theme.Size.touch)
+                    ThemeTextButton("重试") { Task { await model.flushOutbox() } }
                 }
             }
         }
@@ -123,9 +121,7 @@ private struct NoteStatus: View {
             HStack(spacing: Theme.Space.tight) {
                 Label("处理失败", systemImage: "exclamationmark.circle").labelStyle(ChatStatusStyle())
                     .foregroundStyle(Theme.Palette.bad)
-                Button("重试") { model.retry(note: note.id) }
-                    .font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.accent).buttonStyle(.plain)
-                    .frame(minHeight: Theme.Size.touch)
+                ThemeTextButton("重试") { model.retry(note: note.id) }
             }
         default:
             let label = Show.doneLabel(note.result)

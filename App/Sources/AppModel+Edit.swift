@@ -4,6 +4,23 @@ import PourAPI
 // MARK: - 改记录：做完重新拿这一天（AppModel.act）
 
 extension AppModel {
+    /// 做一件事，做完重新拿这一天（服务器的推送也会来，这里不等它）
+    func act(_ work: @escaping @Sendable (APIClient) async throws -> Void) {
+        let client = self.client
+        Task {
+            do {
+                try await work(client)
+            } catch let error as APIError {
+                offline = error.message
+            } catch {
+                offline = APIError.unreachable.message
+            }
+            await reloadDay()
+            await reloadChat()
+            await reloadStatus()
+        }
+    }
+
     /// 对话里收据后面的「撤销」：这段话整理出的记录都撤掉，原话留着
     func undo(note id: Int) { act { client in try await client.undo(note: id) } }
 
@@ -11,8 +28,6 @@ extension AppModel {
     func retry(note id: Int) { act { client in try await client.retry(note: id) } }
 
     func confirm(_ entryId: Int) { act { client in try await client.confirm(entry: entryId) } }
-
-    func setDone(_ entryId: Int, _ done: Bool) { act { client in try await client.setDone(entry: entryId, done) } }
 
     /// 详情里原地改（字段名照服务器：label、start、duration_min、metrics……）
     func update(_ entryId: Int, _ fields: [String: JSONValue]) {

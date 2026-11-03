@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 import Security
 
 /// 钥匙串（系统能力层）：存真机配对换来的网关令牌这类不能放进 App 包、不能放在普通设置里的东西。

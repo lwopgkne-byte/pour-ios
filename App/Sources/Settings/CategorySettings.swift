@@ -28,17 +28,17 @@ private struct CategoryList: View {
         VStack(alignment: .leading, spacing: 0) {
             if let suggestions = page.suggestions, !suggestions.isEmpty {
                 SetupBox {
-                    Text("整理建议").font(Web.bodyMedium).foregroundStyle(Web.fg)
+                    Text("整理建议").font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.label)
                     ForEach(suggestions, id: \.self) { suggestion($0, categories) }
                 }
-                .padding(.bottom, Web.space4)
+                .padding(.bottom, Theme.Space.regular)
             }
             ForEach(categories.filter { $0.parent == nil }, id: \.key) { top in
                 row(top, child: false)
                 ForEach(categories.filter { $0.parent == top.key }, id: \.key) { row($0, child: true) }
             }
             FieldMessage(text: "说到新的活动时，AI 会自动新建类别；这里可以改名、改图标和颜色、合并或删除。")
-                .padding(.top, Web.space2)
+                .padding(.top, Theme.Space.small)
         }
         .sheet(item: Binding(get: { openKey.map(Key.init) }, set: { openKey = $0?.id })) { key in
             if let category = categories.first(where: { $0.key == key.id }) {
@@ -60,37 +60,39 @@ private struct CategoryList: View {
         Button {
             openKey = category.key
         } label: {
-            HStack(spacing: Web.space2) {
+            HStack(spacing: Theme.Space.small) {
                 Text(category.emoji).accessibilityHidden(true)
-                Text(category.name).foregroundStyle(Web.fg).frame(maxWidth: .infinity, alignment: .leading)
+                Text(category.name).foregroundStyle(Theme.Palette.label).frame(maxWidth: .infinity, alignment: .leading)
                 if let count = category.count, count > 0 {
-                    Text("\(count) 条").font(Web.caption).foregroundStyle(Web.fgTertiary)
+                    Text("\(count) 条").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                 }
-                Circle().fill(Web.tag(category.color).solid).frame(width: Web.space2, height: Web.space2)
-                    .accessibilityHidden(true)
+                Circle().fill(Theme.tag(category.color).solid).frame(
+                    width: Theme.Space.small, height: Theme.Space.small
+                )
+                .accessibilityHidden(true)
             }
-            .font(Web.body)
-            .padding(.leading, child ? Web.space8 : Web.space2)
-            .padding(.trailing, Web.space2)
-            .frame(minHeight: Web.touch)
+            .font(Theme.Typeface.body)
+            .padding(.leading, child ? Theme.Space.section : Theme.Space.small)
+            .padding(.trailing, Theme.Space.small)
+            .frame(minHeight: Theme.Size.touch)
         }
-        .buttonStyle(WebPressStyle(radius: Web.radiusControl))
-        .padding(.horizontal, -Web.space2)
+        .buttonStyle(.plain)
+        .padding(.horizontal, -Theme.Space.small)
     }
 
     @ViewBuilder private func suggestion(_ item: API.CategorySuggestion, _ all: [API.Category]) -> some View {
-        HStack(spacing: Web.space2) {
-            Text(Show.spaced(item.text)).font(Web.body).foregroundStyle(Web.fgSecondary)
+        HStack(spacing: Theme.Space.small) {
+            Text(Show.spaced(item.text)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
                 .frame(maxWidth: .infinity, alignment: .leading)
             switch item.kind {
             case "merge":
-                WebTextButton("合并") { merge(item.keys, all) }
+                ThemeTextButton("合并", font: Theme.Typeface.bodyMedium) { merge(item.keys, all) }
             case "tidy-other":
-                WebTextButton("重新归类") {
+                ThemeTextButton("重新归类", font: Theme.Typeface.bodyMedium) {
                     run(done: "正在重新归类，完成后记录会自动更新") { try await $0.tidyOther() }
                 }
             default:
-                WebTextButton("删除") {
+                ThemeTextButton("删除", font: Theme.Typeface.bodyMedium) {
                     let key = item.keys.first ?? ""
                     run(done: "已删除这个类别") { try await $0.deleteCategory(key) }
                 }
@@ -134,14 +136,14 @@ private struct CategoryEditor: View {
     @State private var into = ""
 
     var body: some View {
-        WebPeek(title: "\(category.emoji) \(category.name)") {
-            VStack(alignment: .leading, spacing: Web.space6) {
+        DetailPeek(title: "\(category.emoji) \(category.name)") {
+            VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
                 fields
                 colors
                 mergeSection
                 if category.key != "other" {
-                    VStack(alignment: .leading, spacing: Web.space1) {
-                        WebTextButton("删除这个类别", color: Web.danger) {
+                    VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                        ThemeTextButton("删除这个类别", font: Theme.Typeface.bodyMedium, color: Theme.Palette.bad) {
                             let key = category.key
                             run({ client in try await client.deleteCategory(key) }, "已删除这个类别")
                             close()
@@ -192,20 +194,22 @@ private struct CategoryEditor: View {
 
     private var colors: some View {
         PeekSection(title: "颜色") {
-            HStack(spacing: Web.space2) {
-                ForEach(Web.tagNames, id: \.self) { name in
+            HStack(spacing: Theme.Space.small) {
+                ForEach(Theme.tagNames, id: \.self) { name in
                     Button {
                         patch(["color": .string(name)])
                     } label: {
-                        Circle().fill(Web.tag(name).solid).frame(width: Web.space6, height: Web.space6)
-                            .padding(Web.space1)
-                            .overlay {
-                                if category.color == name {
-                                    Circle().strokeBorder(Web.fgTertiary, lineWidth: 2)
-                                }
+                        Circle().fill(Theme.tag(name).solid).frame(
+                            width: Theme.Space.xLarge, height: Theme.Space.xLarge
+                        )
+                        .padding(Theme.Space.tight)
+                        .overlay {
+                            if category.color == name {
+                                Circle().strokeBorder(Theme.Palette.secondaryLabel, lineWidth: 2)
                             }
-                            .frame(minWidth: Web.touch, minHeight: Web.touch)
-                            .contentShape(Rectangle())
+                        }
+                        .frame(minWidth: Theme.Size.touch, minHeight: Theme.Size.touch)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(Text(name))
@@ -217,7 +221,7 @@ private struct CategoryEditor: View {
 
     private var mergeSection: some View {
         PeekSection(title: "合并到另一个类别") {
-            HStack(spacing: Web.space3) {
+            HStack(spacing: Theme.Space.medium) {
                 Picker("合并到", selection: $into) {
                     Text("选一个类别").tag("")
                     ForEach(all.filter { $0.key != category.key }, id: \.key) { other in
@@ -225,7 +229,7 @@ private struct CategoryEditor: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                WebButton("合并", disabled: into.isEmpty) {
+                ThemeButton("合并", disabled: into.isEmpty) {
                     let (key, target) = (category.key, into)
                     let name = all.first { $0.key == target }?.name ?? ""
                     run({ client in try await client.mergeCategory(key, into: target) }, "已合并到「\(name)」")

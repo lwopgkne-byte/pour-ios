@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 关于我（shared me.ts、me-pages.ts、me-care.ts、me-talk.ts、me-themes.ts、me-year.ts），字段名一字不差
 extension API {

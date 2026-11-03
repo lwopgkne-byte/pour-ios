@@ -16,6 +16,14 @@ extension AppModel {
     }
 
     /// 设置里「电脑上的 Pour」那一行：「2.7.0 · 接口第 1 版」
+    /// 这台手机上的 App：「3.0.0（120）」
+    var appVersionText: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(version)（\(build)）"
+    }
+
     var serverVersionText: String? {
         guard let meta = serverVersion, let server = meta.server else { return nil }
         return meta.api.map { "\(server) · 接口第 \($0.version) 版" } ?? server

@@ -1,7 +1,6 @@
 # 生成出来的工程和 Info.plist：由 project.yml 生成，不提交（docs/07-代码管理与发布.md 第 1 节）
 /*.xcodeproj/
 /App/Info.plist
-/Gallery/Info.plist
 /Widgets/Info.plist
 /Share/Info.plist
 # 权限文件也由 project.yml 的 entitlements.properties 生成
@@ -34,10 +33,7 @@ Secrets.xcconfig
 # Python 的缓存
 __pycache__/
 
-# AI 网关（gateway/）的依赖：npm install 装的，不提交
+# 旧的 AI 网关：3.0 第 0 步删掉了代码（产品主人 2026-10-31 同意）。以前的工作目录里可能还留着它的
+# 密钥文件（.env）和依赖：整个目录都不进仓库
+/gateway/
 node_modules/
-# 配好的真机令牌：只在这台 Mac 上
-gateway/.paired.json
-
-# 评测结果：每次跑一份，不进仓库（结论写进自验收报告）
-gateway/evals/results/

@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 「Pour 认识的」（shared about.ts 的 About、SleepPattern、Habit、Person、Place、Saying），字段名一字不差
 extension API {

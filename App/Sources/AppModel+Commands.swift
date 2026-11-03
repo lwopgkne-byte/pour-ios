@@ -9,7 +9,7 @@ extension AppModel {
             search = rest
         case "today":
             chatOpen = false
-            page = .canvas
+            goHome()
             show(today)
         case "report":
             await openLatestWeekly()

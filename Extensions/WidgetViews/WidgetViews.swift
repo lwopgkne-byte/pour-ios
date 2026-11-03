@@ -9,6 +9,49 @@ import WidgetKit
 
 /// 点了打开 Pour、直接开始听（pour://voice）
 let sayURL = URL(string: "pour://voice") ?? URL(fileURLWithPath: "/")
+/// 「记一笔」：打开 Pour 的数字键盘（3.0 第 10 步）
+let moneyURL = URL(string: "pour://money") ?? URL(fileURLWithPath: "/")
+
+/// 桌面的「记一笔」：小的一个按钮；中的写这个月日常花了多少、几笔
+struct MoneyWidgetView: View {
+    @Environment(\.widgetFamily) private var family
+    let glance: API.Glance?
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: Theme.Space.medium) {
+            VStack(alignment: .leading, spacing: Theme.Space.small) {
+                Image(systemName: "yensign.circle.fill").font(Theme.Typeface.metric).foregroundStyle(
+                    Theme.Palette.accent
+                )
+                .accessibilityHidden(true)
+                Spacer(minLength: 0)
+                Text("记一笔").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                Text("点了直接输数").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+            }
+            if family == .systemMedium, let money = glance?.money {
+                Spacer(minLength: 0)
+                VStack(alignment: .trailing, spacing: Theme.Space.tight) {
+                    Text("这个月").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    Text(Show.yuan(money.spent)).font(Theme.Typeface.metric).monospacedDigit()
+                        .foregroundStyle(Theme.Palette.label).minimumScaleFactor(0.6).lineLimit(1)
+                    Text("\(money.count) 笔").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+}
+
+/// 锁屏圆的「记一笔」
+struct MoneyCircleView: View {
+    var body: some View {
+        ZStack {
+            AccessoryWidgetBackground()
+            Image(systemName: "yensign").font(Theme.Typeface.bodySemibold)
+        }
+        .accessibilityLabel(Text("记一笔"))
+    }
+}
 
 /// 桌面小的「说一句」：一个大麦克风
 struct SayWidgetView: View {
@@ -132,5 +175,38 @@ struct QuoteWidgetView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+    }
+}
+
+/// 桌面中号的「记心情」（3.0 第 4 步）：五个表情，点一个就记下（不用打开 App）；记过了上面写「刚记下：挺好 21:30」
+struct MoodWidgetView: View {
+    /// 今天刚记下的那一档（MoodCheckinMark）
+    let last: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            HStack {
+                Text("现在心情怎么样？").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                Spacer()
+                if let last {
+                    Text("刚记下：\(last)").font(Theme.Typeface.footnote).monospacedDigit()
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                }
+            }
+            HStack(spacing: 0) {
+                ForEach(1...5, id: \.self) { level in
+                    Button(intent: MoodCheckinIntent(level: level)) {
+                        VStack(spacing: Theme.Space.tight) {
+                            MoodBadge(level: level, size: Theme.Size.touch - Theme.Space.tight)
+                            Text(Show.moodWords[level - 1]).font(Theme.Typeface.caption)
+                                .foregroundStyle(Theme.Palette.secondaryLabel)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text("记心情：\(Show.moodWords[level - 1])"))
+                }
+            }
+        }
     }
 }

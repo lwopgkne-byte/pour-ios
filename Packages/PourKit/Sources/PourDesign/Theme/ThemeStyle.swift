@@ -24,6 +24,8 @@ extension Theme {
         public static let unit = Font.subheadline.weight(.medium)
         /// 卡片的大数字（28 半粗圆体）
         public static let metric = Font.system(.title, design: .rounded, weight: .semibold)
+        /// 页面上的大数（钱的主页「¥9,616」）：34 点圆体（01 需求文档 3.1）
+        public static let bigNumber = Font.system(.largeTitle, design: .rounded, weight: .bold)
         /// 今天的样子里的数字（22 半粗圆体）
         public static let heroMetric = Font.system(.title2, design: .rounded, weight: .semibold)
         /// 一行里的钱、次数（15 半粗圆体）
@@ -42,8 +44,12 @@ extension Theme {
         public static let glyph = Font.caption.weight(.semibold)
         /// 玻璃圆按钮里的图标（17 中等）
         public static let toolbarIcon = Font.body.weight(.medium)
+        /// 「我的」快捷大按钮的图标
+        public static let quickIcon = Font.title2.weight(.semibold)
         /// 你说的原话（宋体 17）
         public static let quote = Font.custom("Songti SC", size: 17, relativeTo: .body)
+        /// 处理日志：等宽，一行一行好对齐
+        public static let mono = Font.system(.footnote, design: .monospaced)
         /// 只写了一句感悟那天的大引用（宋体 21）
         public static let quoteLarge = Font.custom("Songti SC", size: 21, relativeTo: .title3)
     }
@@ -118,11 +124,33 @@ extension Theme {
         /// 进度环
         public static let ring: CGFloat = 46
         public static let ringLine: CGFloat = 6
+        /// 3.0 目标（第 7 步）：一个目标页头上的大环、它的线；坚持那一行 14 天的小格子；30 天的格子；七天 × 早中晚的格子；图的高度
+        public static let bigRing: CGFloat = 88
+        /// 目标首页一行的环（比 ring 小一点：第一屏要放得下 5 个目标，01 需求文档 9.14 第 6 条）
+        public static let rowRing: CGFloat = 38
+        public static let bigRingLine: CGFloat = 10
+        public static let dayCell: CGFloat = 11
+        public static let monthCell: CGFloat = 36
+        public static let whenCell: CGFloat = 30
+        public static let goalChart: CGFloat = 176
+        public static let weekBars: CGFloat = 120
+        /// 3.0 关于我（第 8 步）：ⓘ 弹出来的说明有多宽；一行一个领域左边名字至少多宽；人的星图多高；2×2 小卡至少多高
+        public static let popover: CGFloat = 300
+        public static let label: CGFloat = 64
+        public static let starMap: CGFloat = 340
+        public static let angleCard: CGFloat = 116
         /// 一周条的日子圆
         public static let dayCircle: CGFloat = 38
         /// 骨架灰条：一行字、一张卡
         public static let skeletonLine: CGFloat = 20
         public static let skeletonWidth: CGFloat = 240
+        /// 「我的」页头的头像（3.0）
+        public static let avatar: CGFloat = 58
+        /// 「我的」里功能格子的彩色方块、快捷大按钮的圆（3.0，01 需求文档 2.3：44×44、圆角 12）
+        public static let hubIcon: CGFloat = 44
+        public static let quickIcon: CGFloat = 52
+        /// 格子角上的小胶囊最小多大
+        public static let badgeDot: CGFloat = 18
     }
 
     /// 圆角：都是连续圆角（苹果的那种）
@@ -138,6 +166,9 @@ extension Theme {
         public static let ribbon: CGFloat = 11
         public static let tile: CGFloat = 8
         public static let bar: CGFloat = 4
+        /// 「我的」功能格子的彩色方块（3.0，01 需求文档 2.3）、快捷大按钮的浅底
+        public static let hubTile: CGFloat = 12
+        public static let quick: CGFloat = 17
     }
 
     /// 一个连续圆角的矩形
@@ -184,9 +215,10 @@ extension View {
         modifier(ThemeEdge(radius: radius))
     }
 
-    /// 浮在内容上的玻璃（顶上的按钮、输入框、浮条）；系统「降低透明度」时自己变实
-    public func themeGlass(radius: CGFloat) -> some View {
-        glassEffect(.regular.interactive(), in: Theme.rounded(radius))
+    /// 浮在内容上的玻璃（顶上的按钮、输入框、浮条）；系统「降低透明度」时自己变实。
+    /// active 是 false 时没有玻璃，但还是同一个视图：里面的输入框不会因为玻璃有没有而重建（键盘的焦点不丢）
+    public func themeGlass(radius: CGFloat, active: Bool = true) -> some View {
+        glassEffect(active ? .regular.interactive() : .identity, in: Theme.rounded(radius))
     }
 
     /// 浮在内容上的玻璃胶囊
@@ -224,6 +256,15 @@ extension Theme {
         public static let reduced = Animation.easeInOut(duration: 0.2)
         /// 骨架灰块慢慢明暗：一圈 1.6 秒
         public static let pulse = Animation.easeInOut(duration: 0.8).repeatForever(autoreverses: true)
+        /// 3.0 的弹簧（docs/3.0/06-交互细节.md 第 0 节「动效」）：推进来、展开、数字变化
+        public static let spring = Animation.spring(response: 0.42, dampingFraction: 0.86)
+        /// 弹层滑出 0.5 秒、收回 0.3 秒
+        public static let sheetIn = Animation.smooth(duration: 0.5)
+        public static let sheetOut = Animation.smooth(duration: 0.3)
+        /// 3.0 感悟「换一句」：这张往左滑走（新的用 spring 进来）
+        public static let swapOut = Animation.easeIn(duration: 0.25)
+        /// 管理常用时格子轻轻抖
+        public static let jiggle = Animation.easeInOut(duration: 0.32).repeatForever(autoreverses: true)
 
         /// 按系统设置挑：减弱动态效果时换成渐变
         public static func pick(_ animation: Animation, reduceMotion: Bool) -> Animation {
@@ -241,6 +282,22 @@ extension Theme {
             public static let voice = SensoryFeedback.impact(weight: .medium)
             public static let check = SensoryFeedback.impact(flexibility: .soft)
             public static let warning = SensoryFeedback.warning
+            /// 3.0（06 交互细节第 0 节「触感」）：滑过阈值、删除、数字键盘每一下
+            public static let swipe = SensoryFeedback.impact(weight: .light)
+            public static let delete = SensoryFeedback.warning
+            public static let keypad = SensoryFeedback.impact(flexibility: .soft)
         }
     #endif
+}
+
+extension View {
+    /// 选中一个（胶囊、心情）时轻轻一下（iPhone 上；Mac 上跑规则测试时什么也不做）
+    @ViewBuilder
+    public func themeSelectionFeedback<T: Equatable>(trigger: T) -> some View {
+        #if os(iOS)
+            sensoryFeedback(Theme.Haptics.select, trigger: trigger)
+        #else
+            self
+        #endif
+    }
 }

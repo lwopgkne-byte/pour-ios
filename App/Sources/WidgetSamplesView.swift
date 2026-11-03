@@ -16,6 +16,8 @@
                     }
                     tile(TodayWidgetView(glance: WidgetSamples.glance, problem: nil), width: 364, height: 170)
                     tile(TodayWidgetView(glance: nil, problem: "连不上电脑上的 Pour"), width: 364, height: 170)
+                    tile(MoodWidgetView(last: nil), width: 364, height: 170)
+                    tile(MoodWidgetView(last: "挺好 21:30"), width: 364, height: 170)
                     Text("锁屏").font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label)
                     HStack(spacing: Theme.Space.medium) {
                         lock(SayCircleView(), width: 76, height: 76)

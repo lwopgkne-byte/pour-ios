@@ -31,6 +31,54 @@ struct ThemeColorTests {
         #expect(contrast(token, on: Theme.Tokens.background) >= 3, "\(name) 在页面底上不够")
     }
 
+    /// 3.0 待办的时间胶囊：浅蓝底上的蓝字（到点提醒）、浅黄底上的琥珀字（过了时间、以前没做完的），小字都 ≥ 4.5
+    @Test func timeCapsules() {
+        #expect(contrast(Theme.Tokens.accent, on: Theme.Tokens.remindFill, ink: Self.smallText) >= 4.5, "提醒")
+        #expect(contrast(Theme.Tokens.warnInk, on: Theme.Tokens.warnFill, ink: Self.smallText) >= 4.5, "过了")
+        #expect(contrast(Theme.Tokens.warnInk, on: Theme.Tokens.background, ink: Self.smallText) >= 4.5, "页面底上")
+    }
+
+    /// 3.0 钱的种类标签：浅底上的小字都 ≥ 4.5（等报销蓝、借出去黄、收入绿、人情红、固定的灰）
+    @Test func moneyTags() {
+        #expect(contrast(Theme.Tokens.accent, on: Theme.Tokens.remindFill, ink: Self.smallText) >= 4.5, "等报销")
+        #expect(contrast(Theme.Tokens.warnInk, on: Theme.Tokens.warnFill, ink: Self.smallText) >= 4.5, "借出去")
+        #expect(contrast(Theme.Tokens.good, on: Theme.Tokens.goodFill, ink: Self.smallText) >= 4.5, "收入")
+        #expect(contrast(Theme.Tokens.badInk, on: Theme.Tokens.badFill, ink: Self.smallText) >= 4.5, "人情")
+    }
+
+    /// 3.0 心情的五档表情：这一档的粉色圆上画的脸（图形 ≥ 3:1）；深的那档还当选中的圈、点亮的小点，在卡片上 ≥ 3
+    @Test func moodBadges() {
+        for level in 1...5 {
+            let fill = Theme.Mood.fillToken(level).resolved(dark: false).rgb
+            let ink = Theme.Mood.inkToken(level).resolved(dark: false).rgb
+            #expect(ink.contrast(with: fill) >= 3, "第 \(level) 档的脸在底上不够")
+        }
+        #expect(contrast(Theme.Mood.fillToken(5), on: Theme.Tokens.card) >= 3, "点亮的小点")
+    }
+
+    /// 3.0 感悟：纸（正面、背面）上的字 ≥ 4.5；标签浅黄底上的字 ≥ 4.5；收藏了的星在卡片、纸上 ≥ 3
+    @Test func insightPaper() {
+        for paper in [Theme.Idea.paperToken, Theme.Idea.paperBackToken] {
+            for (name, token) in [
+                ("正文", Theme.Tokens.label), ("次要", Theme.Tokens.secondaryLabel),
+                ("今天重温", Theme.Tokens.warnInk), ("能点的", Theme.Tokens.accent),
+            ] {
+                #expect(contrast(token, on: paper, ink: Self.smallText) >= 4.5, "\(name) 在纸上不够")
+            }
+            #expect(contrast(Theme.Idea.starToken, on: paper) >= 3, "星在纸上")
+        }
+        #expect(contrast(Theme.Idea.starToken, on: Theme.Tokens.card) >= 3, "星在卡片上")
+        #expect(contrast(Theme.Tokens.warnInk, on: Theme.Tokens.warnFill, ink: Self.smallText) >= 4.5, "标签")
+    }
+
+    /// 3.0「我的」功能格子：彩色方块上的白色图标（图形 ≥ 3:1）
+    @Test func hubTileIcons() {
+        for token in Theme.Tile.tokens {
+            let fill = token.resolved(dark: false).rgb
+            #expect(RGB.white.contrast(with: fill) >= 3, "白色图标在 \(fill) 上不够")
+        }
+    }
+
     /// 填满的蓝色上的白字（今天那个圆、发送按钮）；气泡里的字
     @Test func filledBackgrounds() {
         let fill = Theme.Tokens.accentFill.resolved(dark: false).rgb

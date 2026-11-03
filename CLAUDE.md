@@ -32,7 +32,7 @@
 
 ## 一块一块来
 
-每一块：写一页小方案 `docs/模块/名字.md` → 开 `feature/名字` 分支做 → **自验收**（`scripts/check.sh --full`、亮色 / 暗色 / 最大字号的截图对照设计审查清单，写 `docs/验收/名字.md`）→ 装到我的手机给我看 → 我验收后通过合并请求合并、打标签。先做哪几块见 00 提示词第 9 节。
+每一块：写一页小方案 `docs/模块/名字.md` → 开 `feature/名字` 分支做 → **自验收**（`scripts/check.sh`、截图对照设计审查清单，写 `docs/验收/名字.md`）→ 装到我的手机给我看 → 我验收后通过合并请求合并、打标签。先做哪几块见 00 提示词第 9 节。
 
 ## 两个仓库怎么配合
 
@@ -43,7 +43,8 @@
 ## 命令
 
 - `scripts/bootstrap.sh`：准备环境（可以重复运行）
-- `scripts/check.sh`：日常检查——密钥、文案、格式、SwiftLint 令牌检查、依赖方向、原始色板、隐私清单、单元和对拍、「iPhone 15 · iOS 27」模拟器上的界面测试和无障碍审计；`--no-ui` 跳过界面测试；**`--full` 是全部审计（亮暗、最大字号），每一块自验收前必须跑**
+- `scripts/check.sh`：全部检查——密钥、文案、格式、SwiftLint 令牌检查、依赖方向、隐私清单、单元和对拍、「iPhone 15 · iOS 27」模拟器上的界面测试和无障碍审计；`--no-ui` 跳过界面测试（推送前自动跑这个）；**每一块自验收前跑一次全部的**
+- `scripts/tour-shots.sh <服务器> <输出目录>`：连演示数据的服务器（开发用 5288），把每一页一屏一屏截下来、每页拼一张长图；改之前、改之后各跑一次并排对照
 - `cd Packages/PourKit && swift test`：单元测试
 - `scripts/install-device.sh`：用数据线装到我的 iPhone（免费签名，7 天要重装）
 - 推送前 Git 会自动跑日常检查，没过就推不上去，**不要用 `--no-verify` 跳过**；检查跑着的时候别改仓库里的文件、别跑别的重活
@@ -58,13 +59,13 @@
 
 ## 服务器（在 `~/Developer/pour`）
 
-- 5188 给我的手机，数据在 `~/Developer/pour-phone-data`；5199 是演示数据（看效果、截图、对照）；命令和重启的规矩在服务器仓库的 `CLAUDE.md`，重启前先备份数据库
+- 5188 给我的手机，数据在 `~/Developer/pour-phone-data`；5288 是开发用的演示数据（看效果、截图、对照；数据在 `~/Developer/pour-dev-data`）；命令和重启的规矩在服务器仓库的 `CLAUDE.md`，重启前先备份数据库
 - 只能在电脑上做的（密钥、PIN、从备份导入、评测、审核员考试）：双击 `~/Developer/pour/Pour 设置.command`，由我自己操作
 - 以后服务器搬阿里云（买服务器、域名、备案都要先问我）
 
 ## 安全
 
-- 不读、不打印、不改任何密钥文件（`.env`、`secrets.json`、`gateway/.env`）；密钥、证书、描述文件永远不进仓库，也不打进 App（`.gitignore` 和 `scripts/check-secrets.py` 双重拦）
+- 不读、不打印、不改任何密钥文件（`.env`、`secrets.json`；旧网关的代码 3.0 第 0 步删了，以前的工作目录里留下的 `gateway/.env` 也一样不碰）；密钥、证书、描述文件永远不进仓库，也不打进 App（`.gitignore` 和 `scripts/check-secrets.py` 双重拦）
 - `~/Developer/pour-phone-data` 是我的数据：不提交、不改、不删；只通过接口看
 - `Config/Local.xcconfig` 是这台电脑自己的签名团队，`bootstrap.sh` 生成，不提交
 

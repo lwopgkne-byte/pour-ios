@@ -114,6 +114,8 @@ extension API {
         public var people: [String]?
         public var things: [String]?
         public var places: [String]?
+        /// 重复（3.0 第 2 步）：每天、工作日、每周几、每月几号
+        public var `repeat`: Repeat?
     }
 
     public struct MoodData: Codable, Hashable, Sendable {

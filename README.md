@@ -7,7 +7,7 @@
 1. 从 App Store 装 Xcode 27.1，打开一次；装 [Homebrew](https://brew.sh)
 2. `git clone https://github.com/lwopgkne-byte/pour-ios.git && cd pour-ios`
 3. `scripts/bootstrap.sh`：装 XcodeGen、SwiftLint，启用推送前检查，生成 Xcode 工程（可以重复运行）
-4. `scripts/check.sh`：日常检查；`scripts/check.sh --full`：全部审计（每一块自验收前）
+4. `scripts/check.sh`：全部检查（界面测试和审计）；`scripts/check.sh --no-ui`：跳过界面测试（推送前自动跑这个）
 5. `open Pour.xcodeproj`；要连真的数据，先在电脑上把 Pour 服务器起来（见服务器仓库的 README）
 
 ## 里面有什么
@@ -15,11 +15,9 @@
 | 目录 | 是什么 |
 |---|---|
 | `App/` | 正式的 App：八页、对话、搜索和问答、设置；界面测试用的假服务器 |
-| `Packages/PourKit/` | PourAPI（服务器的接口和写法）、PourDesign（设计系统）、PourCore（日期时间的规则）、PourPlatform（系统通知、钥匙串）；PourData、PourAI 是第一阶段的，不用了 |
+| `Packages/PourKit/` | PourAPI（服务器的接口和写法）、PourDesign（设计系统：`Theme`，还没改到的页面暂时用 `Web`）、PourCore（日期时间的规则）、PourPlatform（系统通知、钥匙串、健康、日历、语音） |
 | `AppUITests/` | 每一页的界面测试和无障碍审计 |
-| `Gallery/` | 第一阶段的设计画廊（不上架） |
-| `gateway/` | 第一阶段手机自己的 AI 网关，不用了 |
-| `scripts/` | 准备环境、一键检查、装到手机、模拟器、色板 |
+| `scripts/` | 准备环境、一键检查、装到手机、模拟器、截图 |
 | `fixtures/golden/` | 对拍的标准答案：服务器的规则导出的数据 |
 | `docs/` | 总提示词、现在的 App、技术决定（ADR）、每一块的方案和验收报告、第一阶段的归档 |
 

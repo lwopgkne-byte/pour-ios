@@ -25,14 +25,15 @@ struct EntryPeek: View {
             ScrollView {
                 if let entry, entry.fromHealthApp {
                     // 健康 App 记的：只能看（docs/模块/产品优化.md R5）
-                    HealthPeek(entry: entry).padding(.horizontal, Web.space4).padding(.bottom, Web.space6)
+                    HealthPeek(entry: entry).padding(.horizontal, Theme.Space.regular).padding(
+                        .bottom, Theme.Space.xLarge)
                 } else if let entry {
-                    VStack(alignment: .leading, spacing: Web.space6) {
+                    VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
                         if entry.pending { confirmCard(entry) }
                         PeekFields(entry: entry)
                         if let filled = entry.fromHealth, !filled.isEmpty {
                             Text(Show.spaced("\(filled.joined(separator: "、"))是健康 App 补上的（你没说）。改了就用你改的。"))
-                                .font(Web.caption).foregroundStyle(Web.fgTertiary)
+                                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                         }
                         if let trend, trend.points.contains(where: { $0.value != nil }) {
                             PeekSection(title: "最近 7 天") {
@@ -45,22 +46,22 @@ struct EntryPeek: View {
                             dismiss()
                             model.delete(entry.id)
                         }
-                        .font(Web.bodyMedium).foregroundStyle(Web.danger).buttonStyle(.plain)
-                        .frame(minHeight: Web.touch)
+                        .font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.bad).buttonStyle(.plain)
+                        .frame(minHeight: Theme.Size.touch)
                         .accessibilityIdentifier("detail.delete")
                     }
-                    .padding(.horizontal, Web.space4)
-                    .padding(.bottom, Web.space6)
+                    .padding(.horizontal, Theme.Space.regular)
+                    .padding(.bottom, Theme.Space.xLarge)
                 }
             }
             .scrollDismissesKeyboard(.interactively)
         }
-        .background(Web.bg)
+        .background(Theme.Palette.card)
         .presentationDetents([.fraction(0.6), .large])
-        .presentationCornerRadius(Web.radiusPanel)
+        .presentationCornerRadius(Theme.Corner.chip)
         .presentationDragIndicator(.visible)
         .preferredColorScheme(.light)
-        .tint(Web.accent)
+        .tint(Theme.Palette.accent)
         // 健康 App 记的编号是负数，服务器上没有这条：不去拿最近 7 天
         .task { if entryId > 0 { trend = try? await model.client.trend(of: entryId) } }
         .task(id: "\(day ?? "")-\(model.dataVersion)") {
@@ -69,22 +70,23 @@ struct EntryPeek: View {
     }
 
     private var header: some View {
-        HStack(spacing: Web.space2) {
-            Text(Show.spaced(title)).font(Web.section.weight(.semibold)).foregroundStyle(Web.fg).lineLimit(2)
+        HStack(spacing: Theme.Space.small) {
+            Text(Show.spaced(title)).font(Theme.Typeface.section.weight(.semibold)).foregroundStyle(Theme.Palette.label)
+                .lineLimit(2)
                 .accessibilityAddTraits(.isHeader)
             Spacer(minLength: 0)
             Button {
                 dismiss()
             } label: {
-                Image(systemName: "xmark").font(Web.section).foregroundStyle(Web.fgSecondary)
-                    .frame(width: Web.touch, height: Web.touch).contentShape(Rectangle())
+                Image(systemName: "xmark").font(Theme.Typeface.section).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .frame(width: Theme.Size.touch, height: Theme.Size.touch).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text("关闭"))
         }
-        .padding(.leading, Web.space4)
-        .padding([.trailing, .vertical], Web.space2)
-        .frame(minHeight: Web.header)
+        .padding(.leading, Theme.Space.regular)
+        .padding([.trailing, .vertical], Theme.Space.small)
+        .frame(minHeight: (Theme.Size.touch + Theme.Space.tight))
     }
 
     /// 标题：类别的图标 + 名称（心情就是「心情」）
@@ -100,24 +102,26 @@ struct EntryPeek: View {
     }
 
     private func confirmCard(_ entry: API.Entry) -> some View {
-        VStack(alignment: .leading, spacing: Web.space3) {
-            Text(Show.spaced(entry.question ?? "我理解得对吗？")).font(Web.body).foregroundStyle(Web.fg)
-            HStack(spacing: Web.space3) {
+        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+            Text(Show.spaced(entry.question ?? "我理解得对吗？")).font(Theme.Typeface.body).foregroundStyle(
+                Theme.Palette.label)
+            HStack(spacing: Theme.Space.medium) {
                 Button {
                     model.confirm(entry.id)
                 } label: {
-                    Text("确认").font(Web.bodyMedium).foregroundStyle(Web.onAccent)
-                        .padding(.horizontal, Web.space4)
-                        .frame(minHeight: Web.touch)
-                        .background(RoundedRectangle(cornerRadius: Web.radiusControl).fill(Web.accent))
+                    Text("确认").font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.onAccent)
+                        .padding(.horizontal, Theme.Space.regular)
+                        .frame(minHeight: Theme.Size.touch)
+                        .background(RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(Theme.Palette.accent))
                 }
                 .buttonStyle(.plain)
-                Text("不对的话，直接改下面的内容，或者在对话里说").font(Web.caption).foregroundStyle(Web.fgTertiary)
+                Text("不对的话，直接改下面的内容，或者在对话里说").font(Theme.Typeface.footnote).foregroundStyle(
+                    Theme.Palette.secondaryLabel)
             }
         }
-        .padding(Web.space4)
+        .padding(Theme.Space.regular)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: Web.radiusCard).fill(Web.bgSubtle))
+        .background(RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(Theme.Palette.fill))
     }
 
     /// 相关目标的完整进度：圆点、目标、推进了多少、细进度条、进度说明
@@ -128,7 +132,7 @@ struct EntryPeek: View {
         }
         if !goals.isEmpty {
             PeekSection(title: "相关目标") {
-                VStack(alignment: .leading, spacing: Web.space3) {
+                VStack(alignment: .leading, spacing: Theme.Space.medium) {
                     ForEach(goals) { goal in
                         Button {
                             model.openGoal(goal.id)
@@ -145,32 +149,33 @@ struct EntryPeek: View {
 
     /// 相关的一个目标：名称、这天推进了多少、进度条、一句话
     private func relatedGoal(_ goal: API.DayGoal) -> some View {
-        VStack(alignment: .leading, spacing: Web.space1) {
-            HStack(spacing: Web.space2) {
+        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+            HStack(spacing: Theme.Space.small) {
                 ToneDot(tone: goal.tone)
-                Text(Show.spaced(goal.title)).foregroundStyle(Web.fg).lineLimit(1)
+                Text(Show.spaced(goal.title)).foregroundStyle(Theme.Palette.label).lineLimit(1)
                 Spacer(minLength: 0)
-                if let delta = goal.delta { Text(Show.spaced(delta)).foregroundStyle(Web.fgSecondary) }
+                if let delta = goal.delta { Text(Show.spaced(delta)).foregroundStyle(Theme.Palette.secondaryLabel) }
             }
-            .font(Web.body)
+            .font(Theme.Typeface.body)
             GoalBar(pct: goal.pct, tone: goal.tone)
-            Text(Show.spaced(goal.headline)).font(Web.caption).foregroundStyle(Web.fgTertiary)
+            Text(Show.spaced(goal.headline)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
         .contentShape(Rectangle())
     }
 
     private func sources(_ entry: API.Entry) -> some View {
         PeekSection(title: "来源") {
-            VStack(alignment: .leading, spacing: Web.space3) {
+            VStack(alignment: .leading, spacing: Theme.Space.medium) {
                 ForEach(entry.sources, id: \.self) { source in
-                    VStack(alignment: .leading, spacing: Web.space1) {
-                        Text(highlighted(source)).font(Web.body).lineSpacing(Web.bodyLineSpacing)
-                            .padding(.leading, Web.space3)
-                            .overlay(alignment: .leading) { Rectangle().fill(Web.lineStrong).frame(width: 1) }
-                        Text(caption(source)).font(Web.caption).foregroundStyle(Web.fgTertiary)
+                    VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                        Text(highlighted(source)).font(Theme.Typeface.body).lineSpacing(Theme.Leading.body)
+                            .padding(.leading, Theme.Space.medium)
+                            .overlay(alignment: .leading) { Rectangle().fill(Theme.Palette.separator).frame(width: 1) }
+                        Text(caption(source)).font(Theme.Typeface.footnote).foregroundStyle(
+                            Theme.Palette.secondaryLabel)
                     }
                 }
-                HStack(spacing: Web.space4) {
+                HStack(spacing: Theme.Space.regular) {
                     if let note = entry.sources.first?.noteId {
                         Button("在笔记库查看") {
                             dismiss()
@@ -182,8 +187,8 @@ struct EntryPeek: View {
                         model.chatOpen = true
                     }
                 }
-                .font(Web.bodyMedium).foregroundStyle(Web.accent).buttonStyle(.plain)
-                .frame(minHeight: Web.touch)
+                .font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.accent).buttonStyle(.plain)
+                .frame(minHeight: Theme.Size.touch)
             }
         }
     }
@@ -191,11 +196,11 @@ struct EntryPeek: View {
     /// 原话，对应的那一段黄底
     private func highlighted(_ source: API.Source) -> AttributedString {
         var text = AttributedString(Show.spaced(source.text))
-        text.foregroundColor = Web.fgSecondary
+        text.foregroundColor = Theme.Palette.secondaryLabel
         let span = Show.spaced(source.span)
         if !span.isEmpty, let range = text.range(of: span) {
-            text[range].backgroundColor = Web.tag("yellow").bg
-            text[range].foregroundColor = Web.fg
+            text[range].backgroundColor = Theme.tag("yellow").tint
+            text[range].foregroundColor = Theme.Palette.label
         }
         return text
     }
@@ -215,5 +220,7 @@ struct EntryPeek: View {
             words[source.action] ?? source.action)
     }
 
-    private func color(_ entry: API.Entry) -> Color { Web.tag(Show.meta(entry.category, model.categories).color).solid }
+    private func color(_ entry: API.Entry) -> Color {
+        Theme.tag(Show.meta(entry.category, model.categories).color).solid
+    }
 }

@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 目标（shared goals.ts 的 GoalView、GoalDetail、GoalProgress、SubPeriodView……），字段名一字不差
 extension API {

@@ -3,7 +3,6 @@ import Network
 import Observation
 import PourAPI
 import PourCore
-import PourData
 import PourPlatform
 
 /// App 的状态（产品主人 2026-10-19 选 B）：数据、业务规则和 AI 全在 Pour 服务器上，手机读写它的接口。
@@ -34,21 +33,28 @@ final class AppModel {
     private(set) var dayBoundary = PourDate.defaultBoundary
     private(set) var categories: [API.Category] = []
     /// 没连上服务器时说一句（连上了是 nil）
-    private(set) var offline: String?
+    var offline: String?
     /// 电脑上的 Pour 开了 PIN、这台手机还没输过：整个 App 先显示输入 PIN 的那一页
     private(set) var needsPin = false
     /// 还没交给服务器的话：没网时先存在手机上，连上了自动发
-    private(set) var outbox: [Outbox] = []
-
+    var outbox: [Outbox] = []
+    /// 还没交给服务器的写操作（勾待办、改常用……，AppModel+Writes）：界面先改了，没网时排在这里，连上了按顺序发
+    var writes: [PendingWrite] = []
+    /// 没连上、页面显示的是缓存：存下的时刻（顶上一条细条「没连上 · 显示的是 10:32 的」）；连上了是 nil
+    var staleSince: Date?
     var draft = ""
     /// 别处要输入框弹出键盘（时间轴上点空当补记）：加一就弹
     private(set) var composeFocus = 0
     /// 小组件、控制中心的「说一句」（pour://voice）：输入框看到就开始听，听了就清掉
     var voicePending = false
-    /// 正在看哪一页（左上角菜单换）
-    var page: Page = .canvas
-    /// 这一页要先打开哪一篇：页面地址（对话里点「昨天的回顾好了」→「/review/2026-10-18」），那一页看完清掉
-    var pagePath: String?
+    /// 推进来的页（3.0 外壳，docs/3.0/01-需求文档.md 2.5）：根是生活画布，别的页都推进这一个导航栈，返回一路回到画布
+    var stack: [Route] = [] { didSet { sayBarHidden = false } }
+    /// 往下翻页面时「说一句」收起，往上翻再出来（docs/3.0/01-需求文档.md 2.2；换一页总是出来）
+    var sayBarHidden = false
+    /// 页面里的搜索框在输入（每一笔；离开那一页就放下）：「说一句」让开，键盘上面只有一个输入框
+    var pageSearching = false
+    /// 别处要画布打开「跳到某一天」（「我的」里的日历格子）：加一就开
+    var dayPickerRequest = 0
     /// 要搜什么（右上角的搜索、「/找 三体」）：不是 nil 就打开搜索
     var search: String?
     /// 对话面板开着没有（发出去就向上展开）
@@ -73,7 +79,6 @@ final class AppModel {
     private(set) var answers: [Int: String] = [:]
     /// 别处改了设置（电脑上、另一台手机）就加一：设置页看到就重新拿
     private(set) var settingsVersion = 0
-
     private var events: Task<Void, Never>?
     /// 换了数据来源（画布样张开、关）：PourApp 看到它就换一个新的 AppModel
     var replaced = false
@@ -81,8 +86,37 @@ final class AppModel {
     private var noticeAction: (() -> Void)?
     private let network = NWPathMonitor()
     private(set) var remindersOn = false
-    /// 看过的日子里要提醒的待办（按日子存，换着看也不丢）
-    var reminders: [String: [Reminder]] = [:]
+    /// 3.0 待办页的单子（AppModel+Todos）：先用存下的画出来再拿新的；勾、推迟、带到今天都先改这里再发
+    var todoPage: API.TodoPage?
+    /// 待办页拿不到、又没有存下的：说一句（有单子时不挡）
+    var todoProblem: String?
+    /// 这一次看着勾掉的（编号 → 原来在哪一组）：划线留在原地，离开待办页再回来才收进「已完成」
+    var todoHeld: [Int: String] = [:]
+    /// 新加的、刚挪过来的那一行：亮一下再变回去
+    var todoFlash: Int?
+    /// 开着的待办弹层（加待办、详情、推迟到哪）
+    var todoSheet: TodoSheet?
+    /// 要删的是重复的待办：先问「只删这一次 / 以后都不要了」
+    var todoDeleting: API.TodoRow?
+    /// 记一笔的数字键盘开着没有（3.0 第 3 步，AppModel+Money）
+    var keypadOpen = false
+    /// 打开的那一笔钱（3.0 一笔的详情）
+    var moneyDetail: MoneyDetailRef?
+    /// 刚用数字键盘记下、服务器还没整理完的几笔：钱的主页上先显示（「整理中」），整理完换成正式的
+    var moneyPending: [PendingMoney] = []
+    /// 心情、感悟（3.0 第 4、5 步，AppModel+Mood、AppModel+Insights）：弹层、打开的那一条、刚记下还在整理的
+    let mood = MoodState()
+    let insight = InsightState()
+    /// 目标（3.0 第 7 步，AppModel+Goals3）：弹层、刚定好的那一个
+    let goals = GoalsState()
+    /// 回顾的故事（3.0 第 6 步，AppModel+Review）
+    let review = ReviewState()
+    /// 打开钱要面容 ID（MoneyLock）：这次打开 App 以后验过了没有；退到后台就作废
+    var moneyUnlocked = false
+    /// 排提醒（AppModel+Reminders）：一会儿内连着变了几次只排最后一次
+    var reminderSync: Task<Void, Never>?
+    /// 排完的样子（待办页底下那一行）：排上了几条、通知开着没有；没排过是 nil
+    var reminderState: ReminderState?
 
     init(client: APIClient, health: HealthLink, calendar: CalendarLink) {
         self.client = client
@@ -97,37 +131,7 @@ final class AppModel {
             outbox.append(Outbox(clientId: UUID().uuidString, text: text, createdAt: Date()))
         }
         OutboxStore.save(outbox)
-    }
-
-    /// 开始连服务器（AppModel+Launch）
-    func start() {
-        // 界面测试不排通知（会弹「允许通知」把界面挡住）；对照演示数据时（-serverURL）、看画布样张时也不排
-        let arguments = ProcessInfo.processInfo.arguments
-        remindersOn = !arguments.contains("-uiTest") && !arguments.contains("-serverURL") && !CanvasSamples.isOn
-        if remindersOn { Reminders.showWhileOpen() }
-        network.pathUpdateHandler = { [weak self] path in
-            guard path.status == .satisfied else { return }
-            Task { @MainActor in await self?.reconnected() }
-        }
-        network.start(queue: DispatchQueue(label: "pour.network"))
-        listen()
-        Task { await refreshAll() }
-    }
-
-    /// 停掉连接：换数据来源前（PourApp 换 AppModel 时）
-    func stop() {
-        events?.cancel()
-        network.cancel()
-    }
-
-    /// 回到前台：重新拿一遍（过了日界线就换成新的一天），没发出去的接着发
-    func becameActive() {
-        Task { await reconnected() }
-    }
-
-    private func reconnected() async {
-        await refreshAll()
-        await flushOutbox()
+        writes = WriteStore.load()
     }
 
     // MARK: - 拿数据
@@ -168,7 +172,7 @@ final class AppModel {
         if let fresh = try? await client.reviewList() { reviews = fresh }
     }
 
-    private func reloadDay() async {
+    func reloadDay() async {
         let target = shownDay
         do {
             async let view = client.day(target)
@@ -178,7 +182,7 @@ final class AppModel {
             day = loadedView
             dayNotes = loadedNotes
             offline = nil
-            noteReminders(loadedView)
+            syncReminders()
         } catch let error as APIError {
             offline = error.message
         } catch {
@@ -186,11 +190,12 @@ final class AppModel {
         }
     }
 
-    private func reloadChat() async {
+    func reloadChat() async {
         do {
             let page = try await client.recentNotes(limit: 30)
             chat = page.notes
             chatHasMore = page.hasMore ?? false
+            prunePending()
         } catch {
             offline = error.message
             return
@@ -290,22 +295,26 @@ final class AppModel {
         Task { await reloadDay() }
     }
 
+    /// 先改界面（写操作队列，AppModel+Writes）：正在看的这一天里的某一条记录
+    func patchEntry(_ id: Int, _ change: (inout API.Entry) -> Void) {
+        guard var view = day, let index = view.entries.firstIndex(where: { $0.id == id }) else { return }
+        change(&view.entries[index])
+        day = view
+    }
+
+    /// 先改界面：正在看的这一天里拿掉某一条（删了待办）
+    func removeEntry(_ id: Int) {
+        guard var view = day, let index = view.entries.firstIndex(where: { $0.id == id }) else { return }
+        view.entries.remove(at: index)
+        day = view
+    }
+
     /// 输入框里先填好一段（「14:00 到 15:30，」），弹出键盘接着说
     func compose(_ text: String) {
         draft = text
         composeFocus += 1
     }
 
-    /// 打开一个页面地址（对话里的回顾、周报月报链接，pour://open?path=…）：换到那一页，收起对话
-    func open(_ path: String) {
-        if path.hasPrefix("/review") { page = .review }
-        if path.hasPrefix("/money") { page = .money }
-        if path.hasPrefix("/library") { page = .library }
-        if path.hasPrefix("/about") { page = .about }
-        if path.hasPrefix("/settings") { page = .settings }
-        pagePath = path
-        chatOpen = false
-    }
 }
 
 // MARK: - 改
@@ -331,69 +340,48 @@ extension AppModel {
         noticeTimer?.cancel()
         action?()
     }
-
-    /// 做一件事，做完重新拿这一天（服务器的推送也会来，这里不等它）
-    func act(_ work: @escaping @Sendable (APIClient) async throws -> Void) {
-        let client = self.client
-        Task {
-            do {
-                try await work(client)
-            } catch let error as APIError {
-                offline = error.message
-            } catch {
-                offline = APIError.unreachable.message
-            }
-            await reloadDay()
-            await reloadChat()
-            await reloadStatus()
-        }
-    }
 }
 
-// MARK: - 说一句、提醒
+// MARK: - 连上、断开
 
 extension AppModel {
-    /// 发出去：原话先存在手机上，马上出现在对话里；交给服务器排队整理
-    func send() {
-        let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
-        draft = ""
-        // 在手机上直接做的命令（/找 /今天 /周报 /撤销）：不发给 AI
-        if let slash = Show.parseSlash(text), slash.command.intent == nil {
-            Task { await run(slash.command, slash.rest) }
-            return
+    /// 开始连服务器（AppModel+Launch）
+    func start() {
+        // 页面用了缓存（没连上）、又连上了：顶上的细条跟着出来、收起
+        let report: @Sendable (Date?) -> Void = { [weak self] date in
+            Task { @MainActor in self?.staleSince = date }
         }
-        // 画布样张只用来看：说的话交给真的服务器——回到服务器的数据，新的 AppModel 起来就发出去、打开对话
-        if CanvasSamples.isOn {
-            OutboxStore.queueForServer(text)
-            Self.openChatOnLaunch = true
-            showSamples(false)
-            return
+        Task { await client.onStale(report) }
+        // 界面测试不排通知（会弹「允许通知」把界面挡住）；对照演示数据时（-serverURL）、看画布样张时也不排
+        let arguments = ProcessInfo.processInfo.arguments
+        // 界面测试「-remindersCheck」：也排（看提醒真的排上了，01 需求文档 4.8 第 1 条）
+        remindersOn =
+            (!arguments.contains("-uiTest") || arguments.contains("-remindersCheck"))
+            && !arguments.contains("-serverURL") && !CanvasSamples.isOn
+        TodoNotifications.model = self
+        network.pathUpdateHandler = { [weak self] path in
+            guard path.status == .satisfied else { return }
+            Task { @MainActor in await self?.reconnected() }
         }
-        // 看以前的某一天时说的：补记到那一天，留在那一天（docs/模块/产品优化.md R1.1）；看以后的日子照旧回到今天
-        let backfill = shownDay < today ? shownDay : nil
-        outbox.append(Outbox(clientId: UUID().uuidString, text: text, createdAt: Date(), day: backfill))
-        OutboxStore.save(outbox)
-        chatOpen = true
-        if backfill == nil, shownDay != today { show(today) }
-        Task { await flushOutbox() }
+        network.start(queue: DispatchQueue(label: "pour.network"))
+        listen()
+        Task { await refreshAll() }
     }
 
-    /// 把手机上存着的话交给服务器（同一段话带着同一个编号，重发不会记两遍）
-    func flushOutbox() async {
-        for item in outbox {
-            do {
-                try await client.send(item.text, clientId: item.clientId, day: item.day)
-                outbox.removeAll { $0.clientId == item.clientId }
-                offline = nil
-            } catch {
-                if let index = outbox.firstIndex(where: { $0.clientId == item.clientId }) {
-                    outbox[index].failed = error.message
-                }
-            }
-            OutboxStore.save(outbox)
-        }
-        await reloadChat()
-        await reloadDay()
+    /// 停掉连接：换数据来源前（PourApp 换 AppModel 时）
+    func stop() {
+        events?.cancel()
+        network.cancel()
+    }
+
+    /// 回到前台：重新拿一遍（过了日界线就换成新的一天），没发出去的接着发
+    func becameActive() {
+        Task { await reconnected() }
+    }
+
+    private func reconnected() async {
+        await refreshAll()
+        await flushOutbox()
+        await flushWrites()
     }
 }

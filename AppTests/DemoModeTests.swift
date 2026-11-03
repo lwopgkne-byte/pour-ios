@@ -22,10 +22,13 @@ struct DemoModeTests {
         await link.load(today, boundary: 240)
         #expect(link.items[today] == nil, "演示数据时不读这台手机的日历")
         await link.loadDemo(today, from: StubServer.client())
-        #expect(link.items[today]?.map(\.title) == ["结婚纪念日", "给客户回电话"])
+        // 周一还有每周的周会（和服务器的演示日程一样，按星期几排）
+        let titles = link.items[today]?.map(\.title) ?? []
+        #expect(titles.starts(with: ["结婚纪念日", "给客户回电话"]), "演示的日程：\(titles)")
+        #expect(titles.count == (PourDate.weekdayMon0(today) == 0 ? 3 : 2), "演示的日程：\(titles)")
         #expect(link.items[today]?.first?.allDay == true)
         link.disconnect()
-        #expect(link.items[today]?.count == 2, "断开日历：演示的日程不是这台手机的，留着")
+        #expect(link.items[today]?.count == titles.count, "断开日历：演示的日程不是这台手机的，留着")
 
         link.useDemo(false)
         #expect(link.items.isEmpty, "回到真实数据：演示的日程不留着")

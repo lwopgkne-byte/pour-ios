@@ -4,22 +4,8 @@ import PourAPI
 /// 对一个目标的操作：确认、标记完成、原地修改、调整某个月、添加、删除（可撤销）
 extension AppModel {
     /// 打开一条记录的详情；day 是它是哪一天的（不是画布正在看的那天时，详情自己去拿那一天）
-    func openEntry(_ id: Int, day: String?, fixed: FixedPay? = nil) {
-        detail = .init(id: id, day: day == shownDay ? nil : day, fixed: fixed)
-    }
-
-    /// 打开目标详情；记录详情开着就先收起它（从记录详情点相关目标，记录详情关掉、目标详情打开）
-    func openGoal(_ id: Int) {
-        guard detail != nil else {
-            goalDetail = .init(id: id)
-            return
-        }
-        detail = nil
-        Task { [weak self] in
-            // 等记录详情收下去再打开（同时弹两层系统会拒绝）
-            try? await Task.sleep(for: .milliseconds(450))
-            self?.goalDetail = .init(id: id)
-        }
+    func openEntry(_ id: Int, day: String?) {
+        detail = .init(id: id, day: day == shownDay ? nil : day)
     }
 
     func confirmGoal(_ id: Int) { goalAction { try await $0.confirmGoal(id) } }
@@ -45,7 +31,7 @@ extension AppModel {
     /// 删掉：轻提示上能「撤销」
     func removeGoal(_ id: Int) {
         let client = self.client
-        Task {
+        Task { [self] in
             do {
                 try await client.deleteGoal(id)
                 dataChanged()

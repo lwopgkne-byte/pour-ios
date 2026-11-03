@@ -14,29 +14,30 @@ struct SettingRow<Content: View>: View {
     var body: some View {
         SettingRowLayout {
             VStack(alignment: .leading, spacing: 0) {
-                Text(Show.spaced(label)).font(Web.body).foregroundStyle(Web.fg)
+                Text(Show.spaced(label)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                 if let hint, !hint.isEmpty {
-                    Text(Show.spaced(hint)).font(Web.caption).foregroundStyle(Web.fgTertiary)
+                    Text(Show.spaced(hint)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
             .fixedSize(horizontal: false, vertical: true)
             // 名称和下面那句说明读屏一起念
             .accessibilityElement(children: .combine)
             .accessibilityLabel(Text([label, spokenHint ?? hint ?? ""].filter { !$0.isEmpty }.joined(separator: "，")))
-            HStack(spacing: Web.space3) { content() }
-                .font(Web.body).foregroundStyle(Web.fgSecondary).multilineTextAlignment(.trailing)
+            HStack(spacing: Theme.Space.medium) { content() }
+                .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel).multilineTextAlignment(
+                    .trailing)
         }
-        .padding(.vertical, Web.space2)
-        .frame(minHeight: Web.touch)
+        .padding(.vertical, Theme.Space.small)
+        .frame(minHeight: Theme.Size.touch)
         .accessibilityElement(children: .contain)
     }
 }
 
 /// 名称和右边的东西排一行还是两行：名称 192 点 + 间距 + 右边要的宽度放得下就一行（垂直居中），放不下右边换行靠右
 private struct SettingRowLayout: Layout {
-    private let basis = Web.space16 * 3
-    private let gap = Web.space4
-    private let rowGap = Web.space2
+    private let basis = (Theme.Space.section * 2) * 3
+    private let gap = Theme.Space.regular
+    private let rowGap = Theme.Space.small
 
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         let width = proposal.width ?? basis * 2
@@ -87,8 +88,9 @@ struct SettingsSection<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space2) {
-            Text(title).font(Web.sectionSemibold).foregroundStyle(Web.fg).accessibilityAddTraits(.isHeader)
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            Text(title).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label).accessibilityAddTraits(
+                .isHeader)
             content()
         }
     }
@@ -99,8 +101,8 @@ struct SettingsHeading: View {
     let title: String
 
     var body: some View {
-        Text(title).font(Web.captionMedium).foregroundStyle(Web.fgSecondary)
-            .padding(.top, Web.space4).padding(.bottom, Web.space1)
+        Text(title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
+            .padding(.top, Theme.Space.regular).padding(.bottom, Theme.Space.tight)
             .accessibilityAddTraits(.isHeader)
     }
 }
@@ -108,10 +110,10 @@ struct SettingsHeading: View {
 /// 一行下面的小字说明
 struct FieldMessage: View {
     let text: String
-    var tone: Color = Web.fgTertiary
+    var tone: Color = Theme.Palette.secondaryLabel
 
     var body: some View {
-        Text(Show.spaced(text)).font(Web.caption).foregroundStyle(tone)
+        Text(Show.spaced(text)).font(Theme.Typeface.footnote).foregroundStyle(tone)
             .frame(maxWidth: .infinity, alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -122,22 +124,22 @@ struct SetupBox<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space3) { content() }
-            .padding(Web.space4)
+        VStack(alignment: .leading, spacing: Theme.Space.medium) { content() }
+            .padding(Theme.Space.regular)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: Web.radiusCard).fill(Web.bgSubtle))
+            .background(RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(Theme.Palette.fill))
     }
 }
 
 /// 还在拿的时候：两条灰条
 struct SettingsSkeleton: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space3) {
-            WebSkeleton().containerRelativeFrame(.horizontal) { width, _ in width * 2 / 3 }
-            WebSkeleton().containerRelativeFrame(.horizontal) { width, _ in width / 2 }
+        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+            SkeletonBlock(height: Theme.Space.regular).containerRelativeFrame(.horizontal) { width, _ in width * 2 / 3 }
+            SkeletonBlock(height: Theme.Space.regular).containerRelativeFrame(.horizontal) { width, _ in width / 2 }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, Web.space3)
+        .padding(.top, Theme.Space.medium)
     }
 }
 
@@ -164,8 +166,9 @@ struct TimeEdit: View {
             touched = false
             picking = true
         } label: {
-            Text(display ?? value).foregroundStyle(unset ? Web.fgTertiary : Web.fgSecondary).monospacedDigit()
-                .frame(minHeight: Web.touch)
+            Text(display ?? value).foregroundStyle(unset ? Theme.Palette.secondaryLabel : Theme.Palette.secondaryLabel)
+                .monospacedDigit()
+                .frame(minHeight: Theme.Size.touch)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -176,7 +179,7 @@ struct TimeEdit: View {
                 .datePickerStyle(.wheel)
                 .labelsHidden()
                 .environment(\.locale, Locale(identifier: "zh_CN"))
-                .padding(Web.space2)
+                .padding(Theme.Space.small)
                 .presentationCompactAdaptation(.popover)
                 .onChange(of: chosen) { _, _ in touched = true }
                 .onDisappear {
@@ -205,6 +208,8 @@ struct DateEdit: View {
     /// 「2026-09-15」
     let value: String
     var display: String?
+    /// 能选的那一段（「2026-01-01」…「2026-10-27」）；不给就不限
+    var range: ClosedRange<String>?
     let onSave: (String) -> Void
 
     @State private var picking = false
@@ -215,25 +220,34 @@ struct DateEdit: View {
             chosen = Self.date(value) ?? Date()
             picking = true
         } label: {
-            Text(display ?? value).foregroundStyle(Web.fgSecondary).frame(minHeight: Web.touch).contentShape(
-                Rectangle())
+            Text(display ?? value).foregroundStyle(Theme.Palette.secondaryLabel).frame(minHeight: Theme.Size.touch)
+                .contentShape(
+                    Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("修改\(label)"))
         .accessibilityValue(Text(display ?? value))
         .popover(isPresented: $picking) {
-            DatePicker(label, selection: $chosen, displayedComponents: .date)
+            picker
                 .datePickerStyle(.graphical)
                 .labelsHidden()
                 .environment(\.locale, Locale(identifier: "zh_CN"))
-                .tint(Web.accent)
-                .padding(Web.space2)
+                .tint(Theme.Palette.accent)
+                .padding(Theme.Space.small)
                 .presentationCompactAdaptation(.popover)
                 .onChange(of: chosen) { _, now in
                     let day = Self.day(now)
                     picking = false
                     if day != value { onSave(day) }
                 }
+        }
+    }
+
+    @ViewBuilder private var picker: some View {
+        if let range, let from = Self.date(range.lowerBound), let to = Self.date(range.upperBound), from <= to {
+            DatePicker(label, selection: $chosen, in: from...to, displayedComponents: .date)
+        } else {
+            DatePicker(label, selection: $chosen, displayedComponents: .date)
         }
     }
 
@@ -266,7 +280,7 @@ struct Loaded<Value: Sendable, Content: View>: View {
             if let shown = value ?? LoadedCache.values[ObjectIdentifier(Value.self)] as? Value {
                 content(shown) { version += 1 }
             } else if let problem {
-                WebErrorState(problem) { version += 1 }
+                ErrorState(problem.contains("连") ? .serverOff : .other) { version += 1 }
             } else {
                 SettingsSkeleton()
             }
@@ -312,7 +326,7 @@ func spans(_ parts: [(String, Color)], bold: Int = 0) -> AttributedString {
     parts.enumerated().reduce(into: AttributedString()) { text, item in
         var part = AttributedString(Show.spaced(item.element.0))
         part.foregroundColor = item.element.1
-        if item.offset < bold { part.font = Web.captionMedium }
+        if item.offset < bold { part.font = Theme.Typeface.footnoteSemibold }
         text += part
     }
 }

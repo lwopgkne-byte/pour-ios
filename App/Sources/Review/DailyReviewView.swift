@@ -3,8 +3,9 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 每日回顾（docs/prd-review.md）：把昨天整理成一页。
-/// 一页只有一个视觉焦点——关键数字；全部展开，靠留白分组，空的部分不出现。数字和列表是服务器现算的
+/// 每日回顾的整页（docs/prd-review.md；3.0 故事最后「看整页」、页面地址 /review/2026-10-18）：一块一张卡——
+/// 这一天的样子（一句话 + 关键数字）、一天的样子、做了什么、目标、心情和感悟、一个观察、还没收尾的（含自动检查）、
+/// 今天（只在昨天那一页）、你说过、最下面来自几段话 · 看这一天的画布 · 这一周的周报。空的部分不出现，数字和列表是服务器现算的
 struct DailyReviewView: View {
     @Environment(AppModel.self) private var model
     let day: String
@@ -18,9 +19,9 @@ struct DailyReviewView: View {
             if let page {
                 content(page)
             } else if let problem {
-                WebErrorState(problem) { Task { await load() } }
+                ErrorState(problem.contains("连") ? .serverOff : .other) { Task { await load() } }
             } else {
-                ReviewSkeleton()
+                ProgressView().frame(maxWidth: .infinity, minHeight: Theme.Size.goalCard)
             }
         }
         .reviewPage(
@@ -32,113 +33,104 @@ struct DailyReviewView: View {
 
     @ViewBuilder private func content(_ page: API.DailyReviewPage) -> some View {
         let review = page.review
-        VStack(alignment: .leading, spacing: 0) {
-            ReviewHead(
-                kicker: "每日回顾", updated: review.updated, title: Show.dayTitle(day, today: model.today),
-                relative: Show.relative(day, today: model.today), overview: ""
-            ) { navigate("/review") }
-            // 这一天的总结和关键数字（以前在画布上的「今天的样子」，产品主人 2026-10-21 挪到回顾里）
-            DayLook(overview: review.overview, numbers: review.numbers, levels: review.moods.map(\.mood))
-                .padding(.top, Theme.Space.large)
-            if review.entries.contains(where: { $0.kind == "event" }) {
-                ReviewSection(title: "一天的样子") {
-                    TimelineStrip(day: day, entries: review.entries, categories: model.categories)
+        ReviewHead(
+            title: Show.dayTitle(day, today: model.today), relative: Show.relative(day, today: model.today),
+            updated: review.updated)
+        // 这一天的总结和关键数字（以前在画布上的「今天的样子」，产品主人 2026-10-21 挪到回顾里）
+        DayLook(overview: review.overview, numbers: review.numbers, levels: review.moods.map(\.mood))
+        let bars = StoryDayBars.bars(review)
+        if !bars.isEmpty {
+            ReviewSection(title: "一天的样子") {
+                DayBars(
+                    bars.map { item in
+                        DayBars.Bar(
+                            id: item.entry.id, time: item.time, label: item.label, start: item.start,
+                            width: item.width,
+                            color: Theme.tag(Show.meta(item.entry.category, model.categories).color).solid)
+                    }, ink: Theme.Palette.label)
+                let loose = StoryDayBars.untimed(review)
+                if !loose.isEmpty {
+                    Text("没说时间的：\(loose.joined(separator: " · "))").font(Theme.Typeface.footnote)
+                        .foregroundStyle(Theme.Palette.secondaryLabel).fixedSize(horizontal: false, vertical: true)
                 }
             }
-            if !review.groups.isEmpty { groups(review.groups) }
-            if !review.goals.isEmpty {
-                ReviewSection(title: "目标") {
-                    VStack(alignment: .leading, spacing: Web.space4) {
-                        ForEach(review.goals) { ReviewGoalRow(goal: $0) }
-                    }
-                }
-            }
-            if !review.moods.isEmpty || !review.insights.isEmpty { moods(review) }
-            rest(page)
         }
+        if !review.groups.isEmpty { groups(review.groups) }
+        if !review.goals.isEmpty {
+            ReviewSection(title: "目标") { ForEach(review.goals) { ReviewGoalRow(goal: $0) } }
+        }
+        if !review.moods.isEmpty || !review.insights.isEmpty { moods(review) }
+        if let observation = review.observation {
+            ReviewSection(title: "一个观察") {
+                Text(Show.spaced(observation)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                    .lineSpacing(Theme.Leading.body).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        rest(page)
     }
 
-    /// 后半页：一个观察、还没收尾的、今天、最下面一行
+    /// 后半页：还没收尾的、今天、你说过、最下面一行
     @ViewBuilder private func rest(_ page: API.DailyReviewPage) -> some View {
         let review = page.review
-        let past = day < model.today
-        let yesterday = day == PourDate.addDays(model.today, -1)
-        VStack(alignment: .leading, spacing: 0) {
-            if let observation = review.observation {
-                ReviewSection(title: "一个观察") {
-                    Text(Show.spaced(observation)).font(Web.body).foregroundStyle(Web.fg).lineSpacing(
-                        Web.quoteLineSpacing)
-                }
-            }
-            // 过去的日子才有「还没收尾的」；「今天」只放在昨天那一页
-            if past, !review.open.todos.isEmpty || !review.open.pending.isEmpty || !findings.isEmpty {
-                ReviewSection(title: "还没收尾的") {
-                    OpenItems(open: review.open, findings: findings) { await load() }
-                }
-            }
-            if yesterday, !review.today.todos.isEmpty || !review.today.goals.isEmpty {
-                ReviewSection(title: "今天") {
-                    VStack(alignment: .leading, spacing: Web.space1) {
-                        ForEach(review.today.todos, id: \.self) { Text(Show.spaced($0)).foregroundStyle(Web.fg) }
-                        // 目标只列最要紧的两个：多了就不像一句提醒了
-                        ForEach(review.today.goals.prefix(2), id: \.self) {
-                            Text(Show.spaced($0)).foregroundStyle(Web.fgSecondary)
-                        }
+        // 过去的日子才有「还没收尾的」；「今天」只放在昨天那一页
+        if day < model.today, !review.open.todos.isEmpty || !review.open.pending.isEmpty || !findings.isEmpty {
+            ReviewSection(title: "还没收尾的") { OpenItems(open: review.open, findings: findings, reload: load) }
+        }
+        if day == PourDate.addDays(model.today, -1), !review.today.todos.isEmpty || !review.today.goals.isEmpty {
+            ReviewSection(title: "今天") {
+                VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                    ForEach(review.today.todos, id: \.self) {
+                        Text(Show.spaced($0)).foregroundStyle(Theme.Palette.label)
                     }
-                    .font(Web.body)
-                }
-            }
-            if let quote = page.quote { saidSection(quote) }
-            ReviewFoot {
-                Text("来自这一天的 \(review.notes) 段话 · ")
-                WebTextButton("看这一天的画布", font: Web.caption, color: Web.fgSecondary) {
-                    model.page = .canvas
-                    model.show(day)
-                }
-                if let weekly = page.weekly {
-                    Text(" · ")
-                    WebTextButton("这一周的周报", font: Web.caption, color: Web.fgSecondary) {
-                        navigate(Show.reportPath("weekly", from: weekly))
+                    // 目标只列最要紧的两个：多了就不像一句提醒了
+                    ForEach(review.today.goals.prefix(2), id: \.self) {
+                        Text(Show.spaced($0)).foregroundStyle(Theme.Palette.secondaryLabel)
                     }
                 }
+                .font(Theme.Typeface.body)
+            }
+        }
+        if let quote = page.quote {
+            ReviewSection(title: "你说过") {
+                VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                    Text("「\(Show.spaced(quote.text))」").font(Theme.Typeface.quoteLarge)
+                        .foregroundStyle(Theme.Palette.label).lineSpacing(Theme.Leading.quote)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("\(Show.dayTitle(quote.day, today: model.today)) \(quote.asked ? "记进语录的" : "说的")")
+                        .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                }
+                .accessibilityElement(children: .combine)
+            }
+        }
+        ReviewFoot {
+            Text("来自这一天的 \(review.notes) 段话").frame(minHeight: Theme.Size.touch)
+            ThemeTextButton("看这一天的画布") {
+                model.goHome()
+                model.show(day)
+            }
+            if let weekly = page.weekly {
+                ThemeTextButton("这一周的周报") { navigate(Show.reportPath("weekly", from: weekly)) }
             }
         }
     }
 
-    /// 最后一句「你说过」：自己说过的一句话，服务器按日子轮着挑（docs/模块/产品优化.md R4）
-    private func saidSection(_ quote: API.MyQuote) -> some View {
-        ReviewSection(title: "你说过") {
-            VStack(alignment: .leading, spacing: Web.space1) {
-                Text(Show.spaced("「\(quote.text)」")).font(Web.body).foregroundStyle(Web.fg)
-                    .lineSpacing(Web.quoteLineSpacing)
-                Text("\(Show.dayTitle(quote.day, today: model.today))\(quote.asked ? "让记下的" : "说的")")
-                    .font(Web.caption).foregroundStyle(Web.fgTertiary)
-            }
-            .accessibilityElement(children: .combine)
-        }
-    }
-
-    /// 做了什么：上面是领域，下面是这一天做的事（手机上一列）
+    /// 做了什么：一个领域一组，组里一条一条能点开
     private func groups(_ groups: [API.ReviewGroup]) -> some View {
         ReviewSection(title: "做了什么") {
-            VStack(alignment: .leading, spacing: Web.space3) {
-                ForEach(groups, id: \.key) { group in
-                    VStack(alignment: .leading, spacing: 0) {
-                        HStack(spacing: Web.space2) {
-                            Text(group.emoji)
-                            Text(group.name)
-                        }
-                        .font(Web.caption).foregroundStyle(Web.fgTertiary)
-                        // 一个领域的小标题：读屏只念名字（表情是图）
-                        .accessibilityElement(children: .ignore)
+            ForEach(groups, id: \.key) { group in
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("\(group.emoji) \(group.name)").font(Theme.Typeface.footnote)
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityLabel(Text(group.name))
                         .accessibilityAddTraits(.isHeader)
-                        ForEach(group.items ?? [], id: \.entryId) { item in
-                            ReviewLine {
-                                model.openEntry(item.entryId, day: day)
-                            } label: {
-                                Text(Show.spaced(item.text)).font(Web.body).foregroundStyle(Web.fg)
-                            }
+                        .accessibilityIdentifier("canWrap")
+                    ForEach(group.items ?? [], id: \.entryId) { item in
+                        ReviewLine {
+                            model.openEntry(item.entryId, day: day)
+                        } label: {
+                            Text(Show.spaced(item.text)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                                .multilineTextAlignment(.leading)
                         }
                     }
                 }
@@ -146,23 +138,24 @@ struct DailyReviewView: View {
         }
     }
 
-    /// 心情和感悟：每条心情一行，和画布同一个样子；感悟的原话
+    /// 心情和感悟：每条心情一行（点了打开那一条）；感悟的那一句
     private func moods(_ review: API.DailyReview) -> some View {
         let quotes = review.insights.map(\.quote)
-        let showTimes = Set(review.moods.compactMap(\.at)).count > 1
+        let showTime = Set(review.moods.compactMap(\.at)).count > 1
         return ReviewSection(title: "心情和感悟") {
             ForEach(review.moods, id: \.entryId) { mood in
                 ReviewLine {
                     model.openEntry(mood.entryId, day: day)
                 } label: {
-                    MoodLine(mood: mood.data, quotes: quotes, time: showTimes ? mood.at : nil)
+                    ReviewMoodRow(mood: mood, quotes: quotes, showTime: showTime)
                 }
             }
             ForEach(review.insights, id: \.entryId) { insight in
                 ReviewLine {
                     model.openEntry(insight.entryId, day: day)
                 } label: {
-                    QuoteText(text: insight.quote)
+                    Text("「\(Show.spaced(insight.quote))」").font(Theme.Typeface.quote)
+                        .foregroundStyle(Theme.Palette.label).multilineTextAlignment(.leading)
                 }
             }
         }
@@ -188,55 +181,33 @@ private struct OpenItems: View {
     @Environment(AppModel.self) private var model
     let open: API.DailyReview.Open
     let findings: [API.AuditFinding]
-    let reload: () async -> Void
+    let reload: @MainActor () async -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach(open.todos, id: \.entryId) { todo in
-                row(pending: false) {
-                    Text(Show.spaced(todo.content)).font(Web.body).foregroundStyle(Web.fg)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    WebTextButton("带到今天") {
-                        act("「\(todo.content)」带到今天了") { try await $0.carry(entry: todo.entryId) }
-                    }
-                }
-            }
-            ForEach(open.pending, id: \.entryId) { item in
-                row(pending: true) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(Show.spaced(item.question)).font(Web.body).foregroundStyle(Web.fg)
-                        Text(Show.spaced(item.text)).font(Web.caption).foregroundStyle(Web.fgTertiary)
-                    }
+        ForEach(open.todos, id: \.entryId) { todo in
+            HStack(spacing: Theme.Space.medium) {
+                OpenDot(pending: false)
+                Text(Show.spaced(todo.content)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    WebTextButton("对") { act("确认了") { try await $0.confirm(entry: item.entryId) } }
-                    WebTextButton("改") { model.openEntry(item.entryId, day: nil) }
+                ThemeTextButton("带到今天") { model.carryToToday(todo.entryId, content: todo.content, after: reload) }
+            }
+            .frame(minHeight: Theme.Size.touch)
+        }
+        ForEach(open.pending, id: \.entryId) { item in
+            HStack(spacing: Theme.Space.medium) {
+                OpenDot(pending: true)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(Show.spaced(item.question)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                    Text(Show.spaced(item.text)).font(Theme.Typeface.footnote)
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                ThemeTextButton("对") { model.confirmOpen(item.entryId, after: reload) }
+                ThemeTextButton("改") { model.openEntry(item.entryId, day: nil) }
             }
-            AuditFindingsView(findings: findings, reload: reload)
+            .frame(minHeight: Theme.Size.touch)
         }
-    }
-
-    private func row<Content: View>(pending: Bool, @ViewBuilder content: () -> Content) -> some View {
-        HStack(spacing: Web.space3) {
-            OpenDot(pending: pending)
-            content()
-        }
-        .frame(minHeight: Web.touch)
-        .overlay(alignment: .bottom) { Rectangle().fill(Web.line).frame(height: 1) }
-    }
-
-    private func act(_ done: String, _ work: @escaping @Sendable (APIClient) async throws -> Void) {
-        let client = model.client
-        Task {
-            do {
-                try await work(client)
-                model.dataChanged()
-                await reload()
-                model.toast(done)
-            } catch {
-                model.toast(error.readable)
-            }
-        }
+        AuditFindingsView(findings: findings, reload: reload)
     }
 }
 
@@ -247,9 +218,10 @@ struct OpenDot: View {
     var body: some View {
         Circle()
             .strokeBorder(
-                Web.lineStrong, style: StrokeStyle(lineWidth: 1, dash: pending ? [Web.space1 / 2, Web.space1 / 2] : [])
+                Theme.Palette.tertiaryLabel,
+                style: StrokeStyle(lineWidth: 1.5, dash: pending ? [Theme.Space.hairline, Theme.Space.hairline] : [])
             )
-            .frame(width: Web.space3, height: Web.space3)
+            .frame(width: Theme.Size.check - Theme.Space.tight, height: Theme.Size.check - Theme.Space.tight)
             .accessibilityHidden(true)
     }
 }

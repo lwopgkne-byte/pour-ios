@@ -52,7 +52,7 @@ struct CanvasCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            CardHeader(card: card)
+            CardHeader(card: card, size: size)
             // 健康 App 的步数写在运动卡上（docs/模块/产品优化.md R5）：只有步数时写大字
             if card.id == CanvasPlan.exerciseKey, let steps = day.health?.steps {
                 StepsLine(steps: steps, alone: card.entries.isEmpty)
@@ -100,22 +100,80 @@ struct CanvasCard: View {
     }
 }
 
-/// 卡片标题：图标小方块 + 类别名 + 右边一个小数（「还有 1 件」「14 次」「4 笔」「AI 推测」）
+/// 卡片标题：图标小方块 + 类别名 + 右边一个小数（「还有 1 件」「14 次」「4 笔」「AI 推测」）。
+/// 3.0（docs/3.0/06-交互细节.md 第 1 节）：待办、钱、心情、感悟的标题能点进那一页（「钱 ›」），待办、钱、心情右上角直接记
+/// （「＋」「＋ 记一笔」「记心情」：第 1 步先打开对话填好开头，第 2–4 步换成正式的弹层）
 private struct CardHeader: View {
     @Environment(AppModel.self) private var model
     let card: CanvasPlan.Card
+    /// 半宽的卡片放不下「3 笔」和「＋ 记一笔」：右上角只放一个「＋」，标题不让挤
+    let size: CanvasPlan.Size
 
     var body: some View {
         let meta = CanvasPlan.meta(card.id, model.categories)
         HStack(spacing: Theme.Space.small) {
-            CategoryIcon.tile(card.id, model.categories)
-            Text(Show.spaced(meta.name)).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.label)
+            if let page = Self.page[card.template] {
+                Button {
+                    model.open(page)
+                } label: {
+                    HStack(spacing: Theme.Space.small) {
+                        title(meta.name)
+                        Image(systemName: "chevron.right").font(Theme.Typeface.glyph)
+                            .foregroundStyle(Theme.Palette.tertiaryLabel)
+                    }
+                    .frame(minHeight: Theme.Size.touch)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("card.title.\(card.template)")
+            } else {
+                title(meta.name)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isHeader)
+            }
             Spacer(minLength: Theme.Space.tight)
-            side
+            let quick = Self.quick[card.template]
+            // 心情卡的「AI 推测」一直留着（说清楚是猜的）；别的半宽卡片把「3 笔」让给「＋」
+            if quick == nil || size == .full || card.template == .mood { side }
+            if let quick {
+                Button {
+                    // 加待办、记一笔、记心情是正式的弹层（第 2–4 步）
+                    switch card.template {
+                    case .todo: model.todoSheet = .add("")
+                    case .money: model.recordMoney()
+                    case .mood: model.checkinMood()
+                    default: model.startSaying(quick.start)
+                    }
+                } label: {
+                    Label(quick.title, systemImage: "plus")
+                        .labelStyle(QuickCapsule(iconOnly: quick.title == "加待办" || size == .half))
+                }
+                .buttonStyle(PressScale())
+                .accessibilityLabel(Text(quick.title))
+                .accessibilityIdentifier("card.quick.\(card.template)")
+            }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
     }
+
+    private func title(_ name: String) -> some View {
+        HStack(spacing: Theme.Space.small) {
+            CategoryIcon.tile(card.id, model.categories)
+            Text(Show.spaced(name)).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.label)
+                .lineLimit(1).fixedSize()
+        }
+        .layoutPriority(1)
+    }
+
+    /// 标题点进哪一页（心情页第 4 步做，先是关于我里的心情）
+    private static let page: [CanvasPlan.Template: String] = [
+        .todo: "/todos", .money: "/money", .mood: "/mood", .insight: "/insights",
+    ]
+
+    /// 右上角直接记什么、对话里先填好的开头
+    private static let quick: [CanvasPlan.Template: (title: String, start: String)] = [
+        .todo: ("加待办", "待办："), .money: ("记一笔", "/记 "), .mood: ("记心情", "心情："),
+    ]
 
     /// 标题右边：心情卡写「AI 推测」，别的写一个小数
     @ViewBuilder private var side: some View {
@@ -145,12 +203,32 @@ private struct CardHeader: View {
     }
 }
 
+/// 卡片右上角的「＋ 记一笔」「记心情」：浅蓝的小胶囊；待办只有一个「＋」（点的范围照样 44）
+private struct QuickCapsule: LabelStyle {
+    let iconOnly: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: Theme.Space.hairline) {
+            configuration.icon.font(Theme.Typeface.glyph)
+            if !iconOnly { configuration.title.font(Theme.Typeface.footnoteSemibold) }
+        }
+        .foregroundStyle(Theme.Palette.accent)
+        .padding(.horizontal, iconOnly ? 0 : Theme.Space.medium)
+        .frame(minWidth: Theme.Size.capsule, minHeight: Theme.Size.capsule)
+        .background(Theme.Palette.bubble, in: Capsule())
+        .frame(minWidth: Theme.Size.touch, minHeight: Theme.Size.touch)
+        .contentShape(Rectangle())
+    }
+}
+
 /// 一行记录：点一下看详情，长按出「修改 / 查看来源 / 删除」；待确认的下面一行追问 +「对」「改一下」
 struct CardRow<Content: View>: View {
     @Environment(AppModel.self) private var model
     let entry: API.Entry
     /// 追问和上一行一样：问的话不再写一遍，只在这一行末尾放一个「对」
     var quiet = false
+    /// 待办（3.0）：点了打开待办的详情、按住是待办的菜单（和待办页一样）
+    var todo: API.TodoRow?
     @ViewBuilder let content: () -> Content
 
     var body: some View {
@@ -158,10 +236,14 @@ struct CardRow<Content: View>: View {
             HStack(spacing: Theme.Space.small) {
                 content().frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
-                    .onTapGesture { model.detail = .init(id: entry.id) }
+                    .onTapGesture {
+                        if let todo { model.todoSheet = .detail(todo) } else { model.detail = .init(id: entry.id) }
+                    }
                     .contextMenu {
-                        // 健康 App 记的只能看（改、删在健康 App 里）
-                        if entry.fromHealthApp {
+                        if let todo {
+                            TodoMenu(row: todo)
+                        } else if entry.fromHealthApp {
+                            // 健康 App 记的只能看（改、删在健康 App 里）
                             Button("查看", systemImage: "heart.text.square") { model.detail = .init(id: entry.id) }
                         } else {
                             Button("修改", systemImage: "pencil") { model.detail = .init(id: entry.id) }

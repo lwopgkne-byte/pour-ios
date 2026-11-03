@@ -7,6 +7,8 @@
         mutating func settingsReply(_ method: String, _ path: String, _ body: [String: Any]) -> Any? {
             switch (method, path) {
             case ("GET", "/api/reminders"): return reminders
+            // 3.0 第 10 步：反馈（没填 GitHub 令牌的样子）
+            case ("POST", "/api/feedback"): return ["id": 1, "issue": NSNull(), "toast": "收到了，谢谢"] as [String: Any]
             case ("PUT", "/api/reminders"):
                 reminders.merge(body) { _, new in new }
                 return reminders
@@ -34,7 +36,7 @@
                     "lastRun": NSNull(),
                 ] as [String: Any],
                 "/api/evals": [
-                    "runs": [Any](),
+                    "runs": [evalRun],
                     "progress": [
                         "running": false, "startedAt": NSNull(), "done": 0, "total": NSNull(), "error": NSNull(),
                     ],
@@ -44,6 +46,25 @@
                     "mode": "real", "backups": [Any](), "backupCount": 0, "dayBoundary": 240, "notes": 0,
                 ] as [String: Any],
                 "/api/llm/runs": ["runs": [Any]()],
+            ]
+        }
+
+        /// 最近一次检查：两句没答对（设置 → 关于 Pour → AI 表现 → 没答对的句子）
+        private static var evalRun: [String: Any] {
+            [
+                "file": "2026-10-30T13-05-12.json", "at": "2026-10-30T13:05:12.000Z", "model": "deepseek-v4-pro",
+                "overall": 0.983, "cases": 120, "costCny": 0.6,
+                "summary": ["category": ["rate": 0.99, "checks": 118], "time": ["rate": 0.97, "checks": 64]],
+                "failures": [
+                    [
+                        "id": "c-041", "text": "下午三点到四点开了个会",
+                        "problems": [["dim": "time", "what": "结束记成了第二天 4:00"]],
+                    ],
+                    [
+                        "id": "c-087", "text": "给妈妈转了 1000，她说不用",
+                        "problems": [["dim": "category", "what": "记成了人情，应该是家人"]],
+                    ],
+                ],
             ]
         }
 
@@ -70,6 +91,7 @@
                 "dnd": ["enabled": true, "from": "23:00", "to": "07:00"] as [String: Any],
                 "bedtime": "00:00", "channels": ["serverchan": true, "bark": true],
                 "keys": ["serverchan": NSNull(), "bark": NSNull()] as [String: Any],
+                "review": ["enabled": true, "weekday": 6, "time": "20:00"] as [String: Any],
             ]
         }
 

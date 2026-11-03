@@ -175,12 +175,14 @@ struct MentionRows: View {
         }
         if !empty.isEmpty {
             PeekRow(label: "添加") {
-                HStack(spacing: Web.space2) {
+                HStack(spacing: Theme.Space.small) {
                     ForEach(Array(empty.enumerated()), id: \.element) { index, field in
-                        if index > 0 { Text("·").foregroundStyle(Web.fgTertiary).accessibilityHidden(true) }
+                        if index > 0 {
+                            Text("·").foregroundStyle(Theme.Palette.secondaryLabel).accessibilityHidden(true)
+                        }
                         Button(field.label) { adding = field }
-                            .buttonStyle(.plain).foregroundStyle(Web.fgSecondary)
-                            .frame(minHeight: Web.touch)
+                            .buttonStyle(.plain).foregroundStyle(Theme.Palette.secondaryLabel)
+                            .frame(minHeight: Theme.Size.touch)
                             .accessibilityLabel(Text("添加\(field.label)"))
                     }
                 }
@@ -221,7 +223,7 @@ private struct TodoFields: View {
             MentionRows(values: mentions) { field, text in save([field.key: .array(splitWords(text))]) }
             PeekRow(label: "状态") {
                 Button(todo.done ? "已完成 · 改为未完成" : "未完成 · 标记为完成") { model.setDone(entry.id, !todo.done) }
-                    .font(Web.bodyMedium).foregroundStyle(Web.accent).buttonStyle(.plain)
+                    .font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.accent).buttonStyle(.plain)
             }
         }
     }
@@ -242,7 +244,7 @@ private struct InsightFields: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            QuoteText(text: insight.quote).padding(.bottom, Web.space4)
+            QuoteText(text: insight.quote).padding(.bottom, Theme.Space.regular)
             PeekRow(label: "标题") {
                 InlineEdit(label: "标题", value: insight.title) {
                     model.update(entry.id, ["title": .string($0.trimmingCharacters(in: .whitespaces))])

@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 心情从哪来（shared mood-sources.ts 的 MoodSources），字段名一字不差
 extension API {

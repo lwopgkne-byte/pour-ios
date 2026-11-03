@@ -29,7 +29,9 @@ final class BackfillUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter().wait(for: [filled], timeout: 3), .completed, "输入框里没填好时间：\(input.value ?? "")")
         XCTAssertTrue(input.label.hasPrefix("补记"), "前天的输入框没写补记：\(input.label)")
         attach(app, "补记-点空当")
-        // 退出样张，不留给别的测试
+        // 3.0：填好开头时对话就展开了（说一句就是对话），先收起来再退出样张，不留给别的测试
+        let chat = app.buttons["pourbar.chat"]
+        if chat.exists, chat.label == "收起对话" { chat.tap() }
         app.buttons["canvas.samples"].firstMatch.tap()
     }
 
@@ -51,7 +53,8 @@ final class BackfillUITests: XCTestCase {
         XCTAssertTrue(chip.waitForExistence(timeout: 5), "撤销了小李没回来")
     }
 
-    /// 不再显示以后，关于我的「改过的名字」里看得到，点「恢复」回到画布上
+    /// 不再显示以后，「关于我 → Pour 认识的」的「改过的名字」里看得到（3.0 第 8 步从关于我主页搬进那一页），
+    /// 点「恢复」回到画布上
     @MainActor func testRestoreInAbout() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest", "-canvasSample", "上班族"]
@@ -64,12 +67,19 @@ final class BackfillUITests: XCTestCase {
         let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: chip)
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed, "小李还在")
         go(to: "关于我", in: app)
+        let known = app.buttons["about.known.sayings"]
+        app.reveal(known)
+        known.tap()
+        XCTAssertTrue(app.navigationBars["Pour 认识的"].waitForExistence(timeout: 5), "Pour 认识的没打开")
         let rule = app.staticTexts["小李 · 不再显示"]
-        for _ in 0..<10 where !(rule.exists && rule.isHittable) { app.swipeUp(velocity: .slow) }
-        XCTAssertTrue(rule.waitForExistence(timeout: 5), "关于我里没有改过的名字")
+        let restore = app.buttons["恢复小李"]
+        // 滚到「恢复」整个露出来：只露出一半时，点下去点到的是浮在底部的「说一句」（2026-10-31 查出来的，
+        // 第 0 步的全部检查里这个测试两次都没过就是这样）
+        app.reveal(restore)
+        XCTAssertTrue(rule.waitForExistence(timeout: 5), "Pour 认识的里没有改过的名字")
         settle()
         attach(app, "关于我-改过的名字")
-        app.buttons["恢复小李"].tap()
+        restore.tap()
         XCTAssertEqual(
             XCTWaiter().wait(
                 for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: rule)],
@@ -84,13 +94,13 @@ final class BackfillUITests: XCTestCase {
     /// 测试工具会点偏、菜单打不开（2026-10-26 对照实验：按坐标点能打开，手机上也正常）
     @MainActor
     private func go(to page: String, in app: XCUIApplication) {
-        let menu = app.descendants(matching: .any)["today.menu"]
-        let item = app.buttons[page].firstMatch
-        for _ in 0..<3 where !item.exists {
-            menu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-            _ = item.waitForExistence(timeout: 2)
+        // 3.0 外壳：画布是首页（返回到底），别的页从「我」进
+        switch page {
+        case "生活画布": app.goBackToCanvas()
+        case "关于我": app.openTile("about")
+        case "回顾": app.openTile("review")
+        default: XCTFail("测试里没写怎么去「\(page)」")
         }
-        item.tap()
     }
 
     /// 等动画、滚动停下来

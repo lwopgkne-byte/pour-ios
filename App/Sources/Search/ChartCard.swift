@@ -13,8 +13,8 @@ struct ChartCard: View {
         if case .unknown = spec {
             EmptyView()
         } else {
-            VStack(alignment: .leading, spacing: Web.space2) {
-                Text(spec.title).font(Web.captionMedium).foregroundStyle(Web.fgSecondary)
+            VStack(alignment: .leading, spacing: Theme.Space.small) {
+                Text(spec.title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
                 switch spec {
                 case .series(let series): SeriesChart(spec: series)
                 case .ring(let ring): RingChart(spec: ring)
@@ -23,10 +23,11 @@ struct ChartCard: View {
                 case .unknown: EmptyView()
                 }
             }
-            .padding(Web.space3)
+            .padding(Theme.Space.medium)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: Web.radiusCard).fill(Web.bg))
-            .overlay(RoundedRectangle(cornerRadius: Web.radiusCard).strokeBorder(Web.line, lineWidth: 1))
+            .background(RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(Theme.Palette.card))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.Corner.tile).strokeBorder(Theme.Palette.separator, lineWidth: 1))
         }
     }
 
@@ -53,15 +54,18 @@ private struct SeriesChart: View {
             ForEach(Array(spec.points.enumerated()), id: \.offset) { index, point in
                 if let value = point.value {
                     if spec.type == "bar" {
-                        BarMark(x: .value("日子", label(index)), y: .value(spec.title, value), width: .fixed(Web.space6))
-                            .foregroundStyle(Web.accent)
-                            .clipShape(UnevenRoundedRectangle(topLeadingRadius: 3, topTrailingRadius: 3))
+                        BarMark(
+                            x: .value("日子", label(index)), y: .value(spec.title, value),
+                            width: .fixed(Theme.Space.xLarge)
+                        )
+                        .foregroundStyle(Theme.Palette.accent)
+                        .clipShape(UnevenRoundedRectangle(topLeadingRadius: 3, topTrailingRadius: 3))
                     } else {
                         LineMark(x: .value("日子", label(index)), y: .value(spec.title, value), series: .value("线", "数据"))
-                            .foregroundStyle(Web.accent).lineStyle(StrokeStyle(lineWidth: 2))
+                            .foregroundStyle(Theme.Palette.accent).lineStyle(StrokeStyle(lineWidth: 2))
                         if spec.points.count <= 14 {
                             PointMark(x: .value("日子", label(index)), y: .value(spec.title, value))
-                                .foregroundStyle(Web.accent).symbolSize(Web.space6)
+                                .foregroundStyle(Theme.Palette.accent).symbolSize(Theme.Space.xLarge)
                         }
                     }
                 }
@@ -69,21 +73,24 @@ private struct SeriesChart: View {
             ForEach(Array((spec.trend ?? []).enumerated()), id: \.offset) { index, value in
                 if let value, index < spec.points.count {
                     LineMark(x: .value("日子", label(index)), y: .value("趋势", value), series: .value("线", "趋势"))
-                        .foregroundStyle(Web.fgTertiary)
-                        .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [Web.space1, Web.space1]))
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                        .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [Theme.Space.tight, Theme.Space.tight]))
                 }
             }
             if let target = spec.target {
-                RuleMark(y: .value("目标", target)).foregroundStyle(Web.lineStrong).lineStyle(StrokeStyle(lineWidth: 1))
-                    .annotation(position: .top, alignment: .trailing) {
-                        Text("目标 \(ChartCard.value(target, unit: spec.unit))").font(Web.caption).foregroundStyle(
-                            Web.fgTertiary)
-                    }
+                RuleMark(y: .value("目标", target)).foregroundStyle(Theme.Palette.separator).lineStyle(
+                    StrokeStyle(lineWidth: 1)
+                )
+                .annotation(position: .top, alignment: .trailing) {
+                    Text("目标 \(ChartCard.value(target, unit: spec.unit))").font(Theme.Typeface.footnote)
+                        .foregroundStyle(
+                            Theme.Palette.secondaryLabel)
+                }
             }
         }
         .chartXAxis {
             AxisMarks { _ in
-                AxisValueLabel().font(Web.caption).foregroundStyle(Web.fgTertiary)
+                AxisValueLabel().font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
         }
         .chartYAxis {
@@ -95,7 +102,7 @@ private struct SeriesChart: View {
             }
         }
         .chartYScale(domain: mood ? 1...5 : yDomain)
-        .frame(height: Web.space16 * 2.5)
+        .frame(height: (Theme.Space.section * 2) * 2.5)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("\(spec.title)的图表"))
         .accessibilityValue(
@@ -104,10 +111,10 @@ private struct SeriesChart: View {
     }
 
     @AxisMarkBuilder private func yMark(_ value: AxisValue) -> some AxisMark {
-        AxisGridLine().foregroundStyle(Web.line)
+        AxisGridLine().foregroundStyle(Theme.Palette.separator)
         AxisValueLabel {
             if let number = value.as(Double.self) {
-                Text(axis(number)).font(Web.caption).foregroundStyle(Web.fgTertiary)
+                Text(axis(number)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
         }
     }
@@ -142,23 +149,29 @@ private struct RingChart: View {
 
     var body: some View {
         let share = min(1, max(0, spec.pct))
-        HStack(spacing: Web.space4) {
+        HStack(spacing: Theme.Space.regular) {
             ZStack {
-                Circle().stroke(Web.bgHover, lineWidth: Web.space1 + Web.space1 / 2)
+                Circle().stroke(Theme.Palette.fill, lineWidth: Theme.Space.tight + Theme.Space.tight / 2)
                 Circle().trim(from: 0, to: share)
                     .stroke(
-                        Web.status(spec.tone),
-                        style: StrokeStyle(lineWidth: Web.space1 + Web.space1 / 2, lineCap: .round)
+                        Theme.Palette.status(spec.tone),
+                        style: StrokeStyle(lineWidth: Theme.Space.tight + Theme.Space.tight / 2, lineCap: .round)
                     )
                     .rotationEffect(.degrees(-90))
-                Text("\(Int((share * 100).rounded()))%").font(Web.bodySemibold).foregroundStyle(Web.fg)
+                Text("\(Int((share * 100).rounded()))%").font(Theme.Typeface.bodySemibold).foregroundStyle(
+                    Theme.Palette.label)
             }
-            .padding(Web.space1 / 2)
-            .frame(width: Web.space16 + Web.space4, height: Web.space16 + Web.space4)
+            .padding(Theme.Space.tight / 2)
+            .frame(
+                width: (Theme.Space.section * 2) + Theme.Space.regular,
+                height: (Theme.Space.section * 2) + Theme.Space.regular)
             VStack(alignment: .leading, spacing: 0) {
-                Text("\(Show.fmtNum(spec.value)) / \(Show.fmtNum(spec.target)) \(spec.unit)").font(Web.bodyMedium)
-                    .foregroundStyle(Web.fg).monospacedDigit()
-                Text(Show.spaced(spec.headline)).font(Web.caption).foregroundStyle(Web.fgSecondary)
+                Text("\(Show.fmtNum(spec.value)) / \(Show.fmtNum(spec.target)) \(spec.unit)").font(
+                    Theme.Typeface.bodyMedium
+                )
+                .foregroundStyle(Theme.Palette.label).monospacedDigit()
+                Text(Show.spaced(spec.headline)).font(Theme.Typeface.footnote).foregroundStyle(
+                    Theme.Palette.secondaryLabel)
             }
         }
         .accessibilityElement(children: .combine)
@@ -172,27 +185,31 @@ private struct HeatChart: View {
     var body: some View {
         let most = max(1, spec.days.map(\.value).max() ?? 1)
         let weeks = columns
-        HStack(alignment: .top, spacing: Web.space1 / 2) {
+        HStack(alignment: .top, spacing: Theme.Space.tight / 2) {
             // 星期几画在图里（整张图读屏念的是每天的值）
             Canvas { context, _ in
                 for (row, name) in ["一", "", "三", "", "五", "", "日"].enumerated() where !name.isEmpty {
-                    let middle = (Web.space4 + Web.space1 / 2) * CGFloat(row) + Web.space4 / 2
+                    let middle = (Theme.Space.regular + Theme.Space.tight / 2) * CGFloat(row) + Theme.Space.regular / 2
                     context.draw(
-                        Text(name).font(Web.caption).foregroundStyle(Web.fgTertiary), at: CGPoint(x: 0, y: middle),
+                        Text(name).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel),
+                        at: CGPoint(x: 0, y: middle),
                         anchor: .leading)
                 }
             }
-            .frame(width: Web.space4, height: Web.space4 * 7 + Web.space1 / 2 * 6)
+            .frame(width: Theme.Space.regular, height: Theme.Space.regular * 7 + Theme.Space.tight / 2 * 6)
             .accessibilityHidden(true)
             // 一格一天、方的；很多周放不下就横着滑，先看到最近的
             ScrollView(.horizontal) {
-                HStack(spacing: Web.space1 / 2) {
+                HStack(spacing: Theme.Space.tight / 2) {
                     ForEach(Array(weeks.enumerated()), id: \.offset) { _, week in
-                        VStack(spacing: Web.space1 / 2) {
+                        VStack(spacing: Theme.Space.tight / 2) {
                             ForEach(Array(week.enumerated()), id: \.offset) { _, cell in
-                                RoundedRectangle(cornerRadius: Web.space1 / 2)
-                                    .fill(cell.map { Web.accent.opacity(0.08 + 0.92 * $0.value / most) } ?? .clear)
-                                    .frame(width: Web.space4, height: Web.space4)
+                                RoundedRectangle(cornerRadius: Theme.Space.tight / 2)
+                                    .fill(
+                                        cell.map { Theme.Palette.accent.opacity(0.08 + 0.92 * $0.value / most) }
+                                            ?? .clear
+                                    )
+                                    .frame(width: Theme.Space.regular, height: Theme.Space.regular)
                             }
                         }
                     }
@@ -232,14 +249,16 @@ private struct TimelineChart: View {
     var body: some View {
         let days = Array(Set(spec.items.map(\.day))).sorted()
         if days.isEmpty {
-            Text("这段时间没有带起止时间的事件。").font(Web.caption).foregroundStyle(Web.fgTertiary)
+            Text("这段时间没有带起止时间的事件。").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         } else {
-            VStack(alignment: .leading, spacing: Web.space2) {
+            VStack(alignment: .leading, spacing: Theme.Space.small) {
                 ForEach(days, id: \.self) { day in
-                    HStack(spacing: Web.space2) {
-                        Text("\(Int(day.dropFirst(5).prefix(2)) ?? 0)/\(Int(day.suffix(2)) ?? 0)").font(Web.caption)
-                            .foregroundStyle(Web.fgTertiary).monospacedDigit().frame(
-                                minWidth: Web.space8, alignment: .leading)
+                    HStack(spacing: Theme.Space.small) {
+                        Text("\(Int(day.dropFirst(5).prefix(2)) ?? 0)/\(Int(day.suffix(2)) ?? 0)").font(
+                            Theme.Typeface.footnote
+                        )
+                        .foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit().frame(
+                            minWidth: Theme.Space.section, alignment: .leading)
                         track(day)
                     }
                 }
@@ -249,8 +268,8 @@ private struct TimelineChart: View {
                         if mark != "24" { Spacer() }
                     }
                 }
-                .font(Web.caption).foregroundStyle(Web.fgTertiary)
-                .padding(.leading, Web.space8 + Web.space2)
+                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                .padding(.leading, Theme.Space.section + Theme.Space.small)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(spec.title))
@@ -264,17 +283,17 @@ private struct TimelineChart: View {
     private func track(_ day: String) -> some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
-                Capsule().fill(Web.bgHover)
+                Capsule().fill(Theme.Palette.fill)
                 ForEach(Array(spec.items.filter { $0.day == day }.enumerated()), id: \.offset) { _, item in
                     let from = item.start.prefix(10) < day ? 0 : minute(item.start)
                     let until = item.end.prefix(10) > day ? 1440 : minute(item.end)
-                    Capsule().fill(Web.tag(item.color).solid)
+                    Capsule().fill(Theme.tag(item.color).solid)
                         .frame(width: max(proxy.size.width * 0.008, proxy.size.width * Double(until - from) / 1440))
                         .offset(x: proxy.size.width * Double(from) / 1440)
                 }
             }
         }
-        .frame(height: Web.space3)
+        .frame(height: Theme.Space.medium)
     }
 
     private func minute(_ stamp: String) -> Int {

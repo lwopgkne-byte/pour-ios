@@ -9,7 +9,7 @@ final class ShareViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         let context = extensionContext
-        Task { @MainActor in
+        Task { @MainActor [self] in
             let shared = await Self.sharedText(from: context)
             let sheet = ShareSheet(text: shared) { [weak self] in
                 self?.extensionContext?.completeRequest(returningItems: nil)
@@ -50,15 +50,22 @@ private struct ShareSheet: View {
     let close: () -> Void
     @State private var sending = false
     @State private var result: String?
+    /// 3.0 第 10 步：记成感悟（原话前面加「记一句：」，和感悟页的「记一句」一样走整理）
+    @State private var asInsight = false
 
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: Theme.Space.medium) {
-                TextEditor(text: $text).font(Theme.Typeface.body)
+                Picker("记成什么", selection: $asInsight) {
+                    Text("整理成记录").tag(false)
+                    Text("记成感悟").tag(true)
+                }
+                .pickerStyle(.segmented)
+                TextEditor(text: $text).font(asInsight ? Theme.Typeface.quote : Theme.Typeface.body)
                     .frame(minHeight: Theme.Size.touch * 3)
                     .padding(Theme.Space.small)
                     .background(Theme.Palette.fill, in: Theme.rounded(Theme.Corner.card))
-                Text("可以补一句为什么存它，Pour 会一起整理").font(Theme.Typeface.footnote)
+                Text(asInsight ? "记成一条感悟，在「我的 → 感悟」里" : "可以补一句为什么存它，Pour 会一起整理").font(Theme.Typeface.footnote)
                     .foregroundStyle(Theme.Palette.secondaryLabel)
                 if let result {
                     Text(result).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
@@ -81,7 +88,8 @@ private struct ShareSheet: View {
 
     private func send() {
         sending = true
-        let words = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let said = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let words = asInsight ? "记一句：\(said)" : said
         Task { @MainActor in
             result = await SharedClient.say(words)
             try? await Task.sleep(for: .seconds(1.2))

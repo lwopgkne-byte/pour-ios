@@ -9,12 +9,12 @@ import UIKit
 @MainActor
 struct AppTests {
     /// 启动画面的底色在资源目录里另写了一份（系统画启动画面时还没运行我们的代码），必须和页面底色一致：
-    /// 背景是白（Web.bg）；App 现在只用亮色，系统是暗色模式时也是白
+    /// 页面底色是画布的暖灰（Theme.Palette.background）；App 只用亮色，系统是暗色模式时也是它
     @Test(arguments: [UIUserInterfaceStyle.light, .dark])
     func launchScreenColorMatchesPageBackground(style: UIUserInterfaceStyle) throws {
         let asset = try #require(UIColor(named: "Canvas"))
         let resolved = asset.resolvedColor(with: UITraitCollection(userInterfaceStyle: style))
-        #expect(Self.rgb(resolved) == Self.rgb(UIColor(Web.bg)))
+        #expect(Self.rgb(resolved) == Self.rgb(UIColor(Theme.Palette.background)))
     }
 
     private static func rgb(_ color: UIColor) -> [Int] {

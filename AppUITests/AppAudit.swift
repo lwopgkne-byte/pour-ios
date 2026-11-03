@@ -1,10 +1,10 @@
 import XCTest
 
-/// App 的无障碍审计：系统的审计有几类误报，画廊的实验证明过（GalleryUITests 的 testAudit… 几个实验，
-/// 哪天苹果修好了它们会失败），这里照同样的规矩放过，别的一律算数。放过的也打出来，数得清
+/// App 的无障碍审计：系统的审计有几类误报，第一阶段设计画廊里的实验证明过（画廊在 3.0 第 0 步删掉了，
+/// 实验在 Git 标签 ios-2.8 里），这里照同样的规矩放过，别的一律算数。放过的也打出来，数得清
 enum AppAudit {
     /// 「截断」单独审：和别的一起审时，倾倒栏里的字常常给不出是哪个元素（M2b 实测：单独审就给得出），
-    /// 豁免就对不上了。画廊也是分开审的。
+    /// 豁免就对不上了。
     /// 「动态字体」不审（2026-10-21）：App 的字号封顶在 xxxLarge（产品主人：特别大的那几档不兼容），这一项只会报
     /// 「部分不支持」；它审的时候把字号调大调小，好几次把界面弄乱（输入框变高、后面的审计全部超时）。
     /// 字跟着字号变由 Theme 的字和 SwiftLint（不许写死字号）管着
@@ -51,17 +51,19 @@ enum AppAudit {
         let glass = [app.buttons["pourbar"], app.descendants(matching: .any)["undoToast"]].filter(\.exists).map(\.frame)
         let navigation = app.navigationBars.allElementsBoundByIndex.filter(\.exists).map(\.frame)
         // 底部的输入框：页面在它后面滚，压在它下面、只露出一半的字量出来对比度不准、像被截断
-        let bar = ["pourbar.input", "pourbar.chat", "pourbar.send"]
-            .map { app.descendants(matching: .any)[$0] }.filter(\.exists).map(\.frame.minY).min()
-        // 顶栏（菜单、搜索）：页面往上滚到它后面去的字也只露出一截
-        let header = app.descendants(matching: .any)["today.menu"]
+        // 3.0：往下翻时「说一句」收起来（挪到屏幕外面），这时页面的最下沿是屏幕底边淡出的那一截（系统的 scrollEdgeEffect）
+        let screenBottom = app.frame.height - Self.bottomFade
+        let bar =
+            (["pourbar.input", "pourbar.chat", "pourbar.send"]
+            .map { app.descendants(matching: .any)[$0] }.filter(\.exists).map(\.frame.minY) + [screenBottom]).min()
+        // 画布顶上那一行（「我」、日子、搜索）：页面往上滚到它后面去的字也只露出一截
+        let header = app.descendants(matching: .any)["today.me"]
         let headerBottom = header.exists ? header.frame.maxY + Self.headerPadding : nil
         // 对话面板开着：面板里的字往上滚到面板上沿后面，只露出一截
         let chatOpen = app.buttons["pourbar.chat"].exists && app.buttons["pourbar.chat"].label == "收起对话"
-        let panelTop =
-            chatOpen
-            ? app.scrollViews.allElementsBoundByIndex.filter { $0.exists && $0.frame.height > 200 }
-                .map(\.frame.minY).max() : nil
+        // 按名字认（键盘弹着时面板很矮，按高度认不出来，2026-10-31）
+        let chatScroll = app.scrollViews["chat.scroll"]
+        let panelTop = chatOpen && chatScroll.exists ? chatScroll.frame.minY : nil
         var place = Place(
             glass: glass, navigation: navigation, barTop: bar.map { $0 - Self.barPadding }, headerBottom: headerBottom)
         place.panelTop = panelTop
@@ -109,7 +111,7 @@ enum AppAudit {
             guard let element = issue.element else { return unresolved(issue) }
             // 审计的时候页面还在动（数据刚拿回来、重新排了一遍），报出来的元素已经不在了：当成指不出元素的，拉回顶上再审
             guard element.exists else { return unresolved(issue) }
-            // 辅助文字（Web.fgTertiary，60% 的墨色，对比度约 3.6:1）：产品主人 2026-10-19 要界面 1 比 1 照原来的样子，
+            // 辅助文字（以前网页那套的第三层字色，60% 的墨色，对比度约 3.6:1）：产品主人 2026-10-19 要界面 1 比 1 照原来的样子，
             // 这个值是定过的；只放过「差一点」的，差得多的照样算（下一阶段统一设计系统时重新定）
             if issue.auditType == .contrast, issue.compactDescription.contains("nearly") {
                 print("放过（辅助文字）[\(name)] \(issue.compactDescription) ← \(element.label)")
@@ -119,13 +121,8 @@ enum AppAudit {
             var place = place
             if element.identifier.hasPrefix("pourbar") { place.barTop = nil }
             place.oneLine = element.identifier == "webOneLine"
-            // 顶栏自己的菜单、搜索也照样审
-            if element.identifier == "today.menu" || element.label == "搜索" { place.headerBottom = nil }
-            // 类别小标签（WebChip）：字是令牌色、对比度够；前面的彩色表情让审计量不准（和「表情不是字」一样）
-            if issue.auditType == .contrast, element.identifier == "webChip" {
-                print("放过（表情不是字）[\(name)] \(issue.compactDescription) ← \(element.label)")
-                return true
-            }
+            // 顶栏自己的「我」、搜索也照样审
+            if element.identifier == "today.me" || element.label == "搜索" { place.headerBottom = nil }
             // 能折行的字（canWrap：没有 lineLimit，放不下就换行，不会出现「…」）：书名号「《》」排版时被挤窄，
             // 审计按没挤的宽度量、以为字被截了（截图核实是完整的，2026-10-26 我的卡片）。只放过「被截」，对比度照样审
             if issue.auditType == .textClipped, element.identifier == "canWrap" {
@@ -158,8 +155,12 @@ enum AppAudit {
     /// 输入框里的字、按钮到整条输入栏上沿那条分隔线的距离（Composer：上下各 4 点、外面再 8 点，再加分隔线上下几点：
     /// 检查用的模拟器上，压着分隔线的那一行字量出来对比度不够）
     private static let barPadding: CGFloat = 18
+    /// 屏幕底边淡出的那一截：底下的横条（34）+ 淡出的边（约 30）
+    private static let bottomFade: CGFloat = 64
     /// 顶栏 48 点高，菜单按钮 44 点、上下各空 2 点
     private static let headerPadding: CGFloat = 2
+    /// 导航栏下沿往下淡出的那一截（系统的 scrollEdgeEffect）：滚到这里的字也只露出一半（2026-10-31 上班族的画布第 3 屏）
+    private static let navigationFade: CGFloat = 16
 
     /// 屏幕上系统的栏在哪
     struct Place {
@@ -212,20 +213,27 @@ enum AppAudit {
         if type == .textClipped, place.oneLine { return "本来就是一行" }
         // 会换行的字一律被报截断（testAuditProbeStillMisreportsWrappedText）
         if type == .textClipped && frame.height >= 30 { return "审计自己的毛病" }
-        // 带全角括号的一行字一律被报截断（testAuditProbeParentheses）
-        if type == .textClipped && (label.contains("（") || label.contains("）")) { return "审计自己的毛病" }
+        // 带全角括号、书名号、引号的一行字一律被报截断（testAuditProbeParentheses；《》「」排版时被挤窄，同一个毛病；
+        // 宋体下好以后（2026-11-02 起「Pour 检查」那台也有了）宋体原话的「」最明显）
+        if type == .textClipped && ["（", "）", "《", "》", "「", "」"].contains(where: label.contains) {
+            return "审计自己的毛病"
+        }
         return nil
     }
 
     /// 页面滚到输入框、顶栏、对话面板上沿后面，只露出一截：量出来的对比度、截断都不准；滚出来以后照样审
     private static func edge(type: XCUIAccessibilityAuditType, frame: CGRect, place: Place) -> String? {
-        guard [.textClipped, .contrast].contains(type) else { return nil }
-        // 压在底部输入框下面的（页面滚到它后面了）：露出来的那一截量不准；滚上来以后照样审
-        if let top = place.barTop, frame.maxY > top {
+        // 压在底部输入框下面的（页面滚到它后面了）：露出来的那一截量不准，点的地方也只剩一截；滚上来以后照样审
+        if let top = place.barTop, frame.maxY > top, [.textClipped, .contrast, .hitRegion].contains(type) {
             return "在输入框后面"
         }
+        guard [.textClipped, .contrast].contains(type) else { return nil }
         if let bottom = place.headerBottom, frame.minY < bottom {
             return "在顶栏后面"
+        }
+        // 3.0 外壳：推进来的页往上滚，内容从导航栏、状态栏底下滑过去（系统把那一截淡化了）：露出来的那一截量不准
+        if let bottom = place.navigation.map(\.maxY).max(), frame.minY < bottom + Self.navigationFade {
+            return "在导航栏后面"
         }
         // 对话开着时，面板里往上滚出面板上沿的（整个在上沿上面，被面板裁掉、看不见）：后面的页面压暗了、读屏不读
         if let top = place.panelTop, frame.maxY <= top + 2 {

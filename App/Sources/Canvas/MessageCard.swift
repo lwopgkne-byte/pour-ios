@@ -11,7 +11,8 @@ struct MessageCard: View {
     var body: some View {
         if let link {
             Button {
-                model.open(link.path)
+                // 3.0：每日回顾、周报月报打开全屏的故事
+                model.openStory(path: link.path)
             } label: {
                 HStack(spacing: Theme.Space.small) {
                     Text(Show.messageEmoji(message.kind)).accessibilityHidden(true)

@@ -74,27 +74,29 @@ private struct DataRows: View {
             }
             SettingRow(label: "导出全部数据", hint: "原话 Markdown + 整理结果 JSON（不含密钥）") {
                 if busy == "export" {
-                    Dots(label: "正在导出").foregroundStyle(Web.accent)
+                    Dots(label: "正在导出").foregroundStyle(Theme.Palette.accent)
                 } else {
-                    WebTextButton("导出") { export() }
+                    ThemeTextButton("导出", font: Theme.Typeface.bodyMedium) { export() }
                 }
             }
             ReparseRows(today: model.today)
             SettingRow(label: "演示数据", hint: "一个产品经理连续 9 周的生活，每个功能都用到：给别人看看 Pour 用久了是什么样") {
                 if demo {
-                    WebTextButton("重新生成") { switchMode("demo", regenerate: true) }
-                    WebButton("回到真实数据", variant: .primary, loading: busy == "real") { switchMode("real") }
+                    ThemeTextButton("重新生成", font: Theme.Typeface.bodyMedium) { switchMode("demo", regenerate: true) }
+                    ThemeButton("回到真实数据", variant: .primary, loading: busy == "real") { switchMode("real") }
                 } else if busy == "demo" {
-                    Dots(label: "正在切换").foregroundStyle(Web.accent)
+                    Dots(label: "正在切换").foregroundStyle(Theme.Palette.accent)
                 } else {
-                    WebTextButton("切换到演示数据") { switchMode("demo") }
+                    ThemeTextButton("切换到演示数据", font: Theme.Typeface.bodyMedium) { switchMode("demo") }
                 }
             }
             FieldMessage(
                 text: "演示数据放在单独的数据库里，你的真实数据不会被改动。每次切过来都生成到此刻；演示时不发提醒和推送，待办里的日程、健康的数据也是演示里那个人的，你的不会露出来。")
             #if DEBUG
                 SettingRow(label: "画布样张", hint: "看生活画布的每一种卡片：这一周每天是一种人的一天，左右滑着看") {
-                    WebTextButton(CanvasSamples.isOn ? "关掉样张" : "打开样张") { model.showSamples(!CanvasSamples.isOn) }
+                    ThemeTextButton(CanvasSamples.isOn ? "关掉样张" : "打开样张", font: Theme.Typeface.bodyMedium) {
+                        model.showSamples(!CanvasSamples.isOn)
+                    }
                 }
                 FieldMessage(text: "样张在 App 里，不连服务器；在样张里说的话也不会发出去。")
             #endif
@@ -111,9 +113,9 @@ private struct DataRows: View {
         _ key: String, title: String, _ work: @escaping @Sendable (APIClient) async throws -> String
     ) -> some View {
         if busy == key {
-            Dots(label: "\(title)，正在处理").foregroundStyle(Web.accent)
+            Dots(label: "\(title)，正在处理").foregroundStyle(Theme.Palette.accent)
         } else {
-            WebTextButton(title) {
+            ThemeTextButton(title, font: Theme.Typeface.bodyMedium) {
                 busy = key
                 let client = model.client
                 Task {
@@ -167,22 +169,9 @@ private struct DataRows: View {
     /// 切换真实数据、演示数据：服务器会重新启动，等它回来再整个重新拿
     private func switchMode(_ mode: String, regenerate: Bool = false) {
         busy = mode
-        model.toast(mode == "demo" ? "正在切换到演示数据…" : "正在回到真实数据…")
-        let client = model.client
         Task {
             defer { busy = nil }
-            do {
-                try await client.switchData(to: mode, regenerate: regenerate)
-                try? await Task.sleep(for: .milliseconds(800))
-                for _ in 0..<60 {
-                    if let meta = try? await client.meta(), meta.mode == mode { break }
-                    try? await Task.sleep(for: .milliseconds(500))
-                }
-                await model.refreshAll()
-                reload()
-            } catch {
-                model.toast(error.readable)
-            }
+            if await model.switchData(to: mode, regenerate: regenerate) { reload() }
         }
     }
 
@@ -209,16 +198,16 @@ private struct ReparseRows: View {
         VStack(alignment: .leading, spacing: 0) {
             SettingRow(label: "重新解析", hint: "改了整理规则以后，用新规则重新整理一段时间的原话") {
                 if busy && estimate == nil {
-                    Dots(label: "正在估算").foregroundStyle(Web.accent)
+                    Dots(label: "正在估算").foregroundStyle(Theme.Palette.accent)
                 } else {
-                    WebTextButton("估算") { check() }
+                    ThemeTextButton("估算", font: Theme.Typeface.bodyMedium) { check() }
                 }
             }
-            HStack(spacing: Web.space3) {
+            HStack(spacing: Theme.Space.medium) {
                 dayField("从", value: $from, range: ...(Self.date(until) ?? .now))
                 dayField("到", value: $until, range: (Self.date(from) ?? .distantPast)...)
             }
-            .padding(.bottom, Web.space2)
+            .padding(.bottom, Theme.Space.small)
             if let estimate {
                 SetupBox {
                     Text(
@@ -228,13 +217,15 @@ private struct ReparseRows: View {
                                 + "大约用 \(Numbers.grouped(Double(estimate.tokens))) token（\(estimate.model)，"
                                 + "约 ¥\(String(format: "%.2f", estimate.cny))）。原话不变，整理结果会换成新的。")
                     )
-                    .font(Web.body).foregroundStyle(Web.fg)
-                    HStack(spacing: Web.space3) {
-                        WebButton("开始重新解析", variant: .primary, loading: busy, disabled: estimate.notes == 0) { start() }
-                        WebTextButton("取消") { self.estimate = nil }
+                    .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                    HStack(spacing: Theme.Space.medium) {
+                        ThemeButton("开始重新解析", variant: .primary, loading: busy, disabled: estimate.notes == 0) {
+                            start()
+                        }
+                        ThemeTextButton("取消", font: Theme.Typeface.bodyMedium) { self.estimate = nil }
                     }
                 }
-                .padding(.vertical, Web.space2)
+                .padding(.vertical, Theme.Space.small)
             }
         }
         .onAppear {
@@ -247,8 +238,8 @@ private struct ReparseRows: View {
 
     /// 日期输入框：点开是系统的日期选择
     private func dayField(_ label: String, value: Binding<String>, range: some RangeExpression<Date>) -> some View {
-        VStack(alignment: .leading, spacing: Web.space1) {
-            Text(label).font(Web.captionMedium).foregroundStyle(Web.fgSecondary)
+        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+            Text(label).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
             DatePicker(
                 label,
                 selection: Binding(

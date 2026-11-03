@@ -16,12 +16,13 @@ struct MoodFields: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             StackedRow(label: "心情") {
-                VStack(alignment: .trailing, spacing: Web.space1) {
+                VStack(alignment: .trailing, spacing: Theme.Space.tight) {
                     choices(Show.moodWords, selected: Int(mood.mood.rounded()) - 1) { index in
                         model.update(entry.id, ["mood": .number(Double(index + 1))])
                     }
                     if let basis {
-                        Text(Show.spaced("依据：\(basis)")).font(Web.caption).foregroundStyle(Web.fgTertiary)
+                        Text(Show.spaced("依据：\(basis)")).font(Theme.Typeface.footnote).foregroundStyle(
+                            Theme.Palette.secondaryLabel)
                     }
                 }
             }
@@ -41,8 +42,8 @@ struct MoodFields: View {
                     model.update(entry.id, ["moment": .string(text.trimmingCharacters(in: .whitespaces))])
                 }
             }
-            Text("这是 AI 从你的话里听出来的，不准就改。").font(Web.caption).foregroundStyle(Web.fgTertiary)
-                .padding(.top, Web.space1)
+            Text("这是 AI 从你的话里听出来的，不准就改。").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                .padding(.top, Theme.Space.tight)
         }
     }
 
@@ -60,20 +61,20 @@ struct MoodFields: View {
 
     /// 一排写着字的按钮；选中的边框深一点、字重一点
     private func choices(_ words: [String], selected: Int, pick: @escaping (Int) -> Void) -> some View {
-        PourFlowLayout(spacing: Web.space1, lineSpacing: Web.space1) {
+        PourFlowLayout(spacing: Theme.Space.tight, lineSpacing: Theme.Space.tight) {
             ForEach(Array(words.enumerated()), id: \.offset) { index, word in
                 let chosen = index == selected
                 Button {
                     if !chosen { pick(index) }
                 } label: {
-                    Text(word).font(chosen ? Web.bodyMedium : Web.body).foregroundStyle(
-                        chosen ? Web.fg : Web.fgSecondary
+                    Text(word).font(chosen ? Theme.Typeface.bodyMedium : Theme.Typeface.body).foregroundStyle(
+                        chosen ? Theme.Palette.label : Theme.Palette.secondaryLabel
                     )
-                    .padding(.horizontal, Web.space3)
-                    .frame(minHeight: Web.touch)
+                    .padding(.horizontal, Theme.Space.medium)
+                    .frame(minHeight: Theme.Size.touch)
                     .overlay(
-                        RoundedRectangle(cornerRadius: Web.radiusControl).strokeBorder(
-                            chosen ? Web.lineStrong : Web.line, lineWidth: 1))
+                        RoundedRectangle(cornerRadius: Theme.Corner.tile).strokeBorder(
+                            chosen ? Theme.Palette.separator : Theme.Palette.separator, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(chosen ? .isSelected : [])
@@ -88,10 +89,10 @@ private struct StackedRow<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Web.space2) {
-            Text(label).font(Web.body).foregroundStyle(Web.fg)
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            Text(label).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
             content().frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .padding(.vertical, Web.space2)
+        .padding(.vertical, Theme.Space.small)
     }
 }

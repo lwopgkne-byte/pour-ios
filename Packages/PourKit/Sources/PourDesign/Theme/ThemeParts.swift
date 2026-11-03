@@ -175,3 +175,79 @@ public struct PressScale: ButtonStyle {
             .animation(Theme.Motion.quick, value: configuration.isPressed)
     }
 }
+
+/// 「我」的圆头像（3.0：画布左上角进全部功能、「我的」页头；docs/3.0/01-需求文档.md 2.1、2.3）：
+/// 还没有头像时是蓝色圆里一个白色的「我」字。点的范围至少 44
+public struct MeAvatar: View {
+    let size: CGFloat
+
+    public init(size: CGFloat = Theme.Size.touch) {
+        self.size = size
+    }
+
+    public var body: some View {
+        Text("我")
+            .font(size > Theme.Size.touch ? Theme.Typeface.section : Theme.Typeface.bodySemibold)
+            .dynamicTypeSize(...DynamicTypeSize.xLarge)
+            .foregroundStyle(Theme.Palette.onAccent)
+            .frame(width: size, height: size)
+            .background(
+                LinearGradient(
+                    colors: [Theme.Palette.accentFill, Theme.Palette.accent], startPoint: .topLeading,
+                    endPoint: .bottomTrailing),
+                in: Circle()
+            )
+            .overlay(Circle().strokeBorder(Theme.Palette.card, lineWidth: Theme.Space.hairline))
+            .accessibilityHidden(true)
+    }
+}
+
+#Preview("我") {
+    HStack(spacing: Theme.Space.regular) {
+        MeAvatar()
+        MeAvatar(size: Theme.Size.avatar)
+    }
+    .padding()
+    .background(Theme.Palette.background)
+}
+
+/// 三个点（Dots）：正在整理、正在保存、加载中。三个小圆点轮流亮起，用文字的颜色；
+/// 系统设了「减弱动态效果」就不动
+public struct Dots: View {
+    let label: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// label：读屏念的（旁边已经写了字就不用给，三个点读屏跳过）
+    public init(label: String? = nil) {
+        self.label = label
+    }
+
+    public var body: some View {
+        TimelineView(.animation(paused: reduceMotion)) { context in
+            let time = context.date.timeIntervalSinceReferenceDate
+            HStack(spacing: Theme.Space.tight) {
+                ForEach(0..<3, id: \.self) { index in
+                    Circle().frame(width: Theme.Space.tight, height: Theme.Space.tight)
+                        .opacity(reduceMotion ? 1 : Self.opacity(time - Double(index) * Self.stagger))
+                }
+            }
+        }
+        .accessibilityElement()
+        .accessibilityLabel(Text(label ?? ""))
+        .accessibilityHidden(label == nil)
+    }
+
+    /// 一圈 1.2 秒，每个点晚 0.15 秒
+    private static let period = 1.2
+    private static let stagger = 0.15
+
+    /// 一个点的明暗：0%、80%、100% 是 0.25，40% 是 1，中间缓入缓出
+    static func opacity(_ time: Double) -> Double {
+        let phase = (time / period).truncatingRemainder(dividingBy: 1)
+        let step = phase < 0 ? phase + 1 : phase
+        func ease(_ value: Double) -> Double { value * value * (3 - 2 * value) }
+        if step < 0.4 { return 0.25 + 0.75 * ease(step / 0.4) }
+        if step < 0.8 { return 1 - 0.75 * ease((step - 0.4) / 0.4) }
+        return 0.25
+    }
+}

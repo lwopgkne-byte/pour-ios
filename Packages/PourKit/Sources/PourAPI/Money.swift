@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 钱（shared money.ts、money-watch.ts、money-worth.ts、money-days.ts、renqing.ts），字段名一字不差
 extension API {
@@ -33,6 +33,9 @@ extension API {
         public var renqing: Renqing?
         public var returned: Metric.Returned?
         public var people: [String]?
+        /// 提到的东西、地方（一笔的详情里「地方」、值不值的「这样东西」）
+        public var things: [String]?
+        public var places: [String]?
     }
 
     public struct MoneyDomain: Codable, Hashable, Sendable {
@@ -141,6 +144,8 @@ extension API {
         public var amount: Double
         public var sub: String
         public var entryId: Int?
+        /// 右边的按钮办的是哪几笔（都报销了、已经还了、不再算固定的；快扣的只提醒，是空的）；服务器太旧没有是 nil
+        public var refs: [WatchRef]?
     }
 
     public struct MoneyWhoRow: Codable, Hashable, Sendable {

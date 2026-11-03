@@ -9,9 +9,9 @@ struct HealthSettings: View {
         VStack(alignment: .leading, spacing: 0) {
             SettingRow(label: "健康 App", hint: "只读步数、睡眠、锻炼，不往健康里写；送到电脑上的 Pour，算进画布、目标、回顾和问答") {
                 if model.health.connected {
-                    WebTextButton("断开") { model.disconnectHealth() }
+                    ThemeTextButton("断开", font: Theme.Typeface.bodyMedium) { model.disconnectHealth() }
                 } else if model.health.available {
-                    WebButton("接上", variant: .primary) { model.connectHealth() }
+                    ThemeButton("接上", variant: .primary) { model.connectHealth() }
                 } else {
                     Text("这台设备上没有健康 App")
                 }
@@ -31,9 +31,9 @@ struct CalendarSettings: View {
         VStack(alignment: .leading, spacing: 0) {
             SettingRow(label: "日历", hint: "今天的日程出现在待办里；只读，不改日历，不送到电脑上的 Pour") {
                 if model.calendar.connected {
-                    WebTextButton("断开") { model.calendar.disconnect() }
+                    ThemeTextButton("断开", font: Theme.Typeface.bodyMedium) { model.calendar.disconnect() }
                 } else {
-                    WebButton("接上", variant: .primary) { model.connectCalendar() }
+                    ThemeButton("接上", variant: .primary) { model.connectCalendar() }
                 }
             }
             if model.calendar.connected {

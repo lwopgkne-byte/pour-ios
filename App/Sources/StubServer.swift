@@ -58,7 +58,10 @@
         struct State {
             var notes: [[String: Any]] = []
             /// 平时是空的；「-canvasSample 带孩子」时是那个人的今天（StubServer+Canvas）
-            var entries: [[String: Any]] = Self.sampleEntries(today: PourDate.logicalDay(Date(), in: .current))
+            var entries: [[String: Any]] =
+                Self.sampleEntries(today: PourDate.logicalDay(Date(), in: .current))
+                + (ProcessInfo.processInfo.arguments.contains("-todoSample")
+                    ? Self.sampleTodos(today: PourDate.logicalDay(Date(), in: .current)) : [])
             var trash: [[String: Any]] = []
             var nextId = 1
             /// 对话里的系统消息：今天早上来的「昨天的回顾好了」
@@ -73,6 +76,10 @@
             var quotes: [[String: Any]] = Self.sampleQuotes
             /// 健康 App 送来的（StubServer+Health）
             var health: [String: Any]?
+            /// 3.0「我的」：管理过的常用（nil 是没管理过，StubServer+Hub）
+            var hubFavorites: [String]?
+            /// 说了「全部断网」以后：所有请求都连不上（测没网时页面用缓存、顶上的细条）
+            var offlineAll = false
             /// 最近一个请求带的请求头（单元测试看 App 有没有说自己照哪一版接口写的）
             var seenHeaders: [String: String] = [:]
 
@@ -83,7 +90,9 @@
                 seenHeaders = request.allHTTPHeaderFields ?? [:]
                 let method = request.httpMethod ?? "GET"
                 let body = Self.body(request)
+                if let reply = offlineReply(body) { return reply }
                 if let reply = basic(method, url, body) { return reply }
+                if let value = todoReply(method, url, body) { return ok(value) }
                 let parts = url.path.split(separator: "/").map(String.init)
                 if parts.count == 3, parts[1] == "day" {
                     let health = healthOf(parts[2])
@@ -110,9 +119,12 @@
             /// 不带编号的接口：今天是哪天、类别表、说过的话、说一句
             private mutating func basic(_ method: String, _ url: URL, _ body: [String: Any]) -> Reply? {
                 let query = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
-                if let value = settingsReply(method, url.path, body) ?? namesReply(method, url.path, body)
+                if let value = goals3Reply(method, url.path, body) ?? insightsReply(method, url)
+                    ?? reviewListReply(method, url)
+                    ?? settingsReply(method, url.path, body)
+                    ?? namesReply(method, url.path, body)
                     ?? cardsReply(method, url.path, body) ?? healthReply(method, url.path, body)
-                    ?? pageReply(method, url.path)
+                    ?? hubReply(method, url.path, body) ?? pageReply(method, url.path)
                 {
                     return ok(value)
                 }
@@ -176,9 +188,11 @@
                     "id": noteId, "text": text, "createdAt": now, "day": backfill ?? today, "status": "done",
                 ]
                 if backfill != nil { note["backfill"] = true }
-                if text.contains("余额") {
-                    note["status"] = "failed"
-                    note["error"] = "没整理成：大模型账户余额不足。"
+                // 余额不足：没整理成；记一句（感悟页）：还在整理（最上面那张「整理中」一直在，界面测试看得到）
+                if text.contains("余额") || text.hasPrefix("记一句：") {
+                    let failed = text.contains("余额")
+                    note["status"] = failed ? "failed" : "pending"
+                    if failed { note["error"] = "没整理成：大模型账户余额不足。" }
                     notes.append(note)
                     return note
                 }
@@ -256,37 +270,6 @@
                 {
                     result["undone"] = true
                     notes[index]["result"] = result
-                }
-                return ["ok": true]
-            }
-
-            private mutating func patch(entry id: Int, _ body: [String: Any]) -> [String: Any] {
-                guard let index = entries.firstIndex(where: { $0["id"] as? Int == id }) else { return [:] }
-                if body["confirm"] as? Bool == true {
-                    entries[index]["status"] = "ok"
-                    entries[index]["question"] = nil
-                }
-                if let done = body["done"] as? Bool, var data = entries[index]["data"] as? [String: Any] {
-                    data["done"] = done
-                    entries[index]["data"] = data
-                }
-                if let fields = body["fields"] as? [String: Any], var data = entries[index]["data"] as? [String: Any] {
-                    if let label = fields["label"] as? String { data["label"] = label }
-                    entries[index]["data"] = data
-                }
-                return entries[index]
-            }
-
-            private mutating func delete(entry id: Int) -> [String: Any] {
-                if let index = entries.firstIndex(where: { $0["id"] as? Int == id }) {
-                    trash.append(entries.remove(at: index))
-                }
-                return ["ok": true]
-            }
-
-            private mutating func restore(entry id: Int) -> [String: Any] {
-                if let index = trash.firstIndex(where: { $0["id"] as? Int == id }) {
-                    entries.append(trash.remove(at: index))
                 }
                 return ["ok": true]
             }
