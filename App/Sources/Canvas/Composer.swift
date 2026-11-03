@@ -30,7 +30,10 @@ struct Composer: View {
         VStack(spacing: open ? 0 : Theme.Space.small) {
             let commands = Show.slashMenu(model.draft)
             let chips = open && commands.isEmpty && model.draft.isEmpty && !voice.active
-            let chatHeight = visibleHeight * 0.55 - (commands.isEmpty ? (chips ? chipsHeight : 0) : menuHeight)
+            // 对话占八成高（产品主人 2026-11-03：「太小了看和操作不方便」）；键盘弹着时照看得见的那一截算，
+            // 最高到顶上那一排（我、日期、搜索）下面，不压着它们
+            let room = min(visibleHeight * 0.8, visibleHeight - Theme.Size.touch * 3 - Theme.Space.section)
+            let chatHeight = room - (commands.isEmpty ? (chips ? chipsHeight : 0) : menuHeight)
             if open, chatHeight >= Theme.Size.touch {
                 ChatPanel(drag: $drag)
                     .frame(height: chatHeight)
@@ -69,14 +72,17 @@ struct Composer: View {
                     sendWords: { use($0, send: true) })
             }
         }
-        // 对话开着：面板上面两个圆角。收着时不裁——裁了玻璃边上那圈柔光会被切成一个方块
-        .modifier(PanelTop(open: open))
-        .offset(y: max(0, drag))
-        .padding(.horizontal, open ? 0 : Theme.Space.medium)
-        .padding(.bottom, open ? 0 : Theme.Space.small)
+        // 对话开着：一张浮着的卡片，离两边、离底一点，四个角都是大圆角（和收着时两头圆的输入条一个样子；
+        // 产品主人 2026-11-03：「左右两边那种椭圆，视觉效果更好」）。收着时不裁——裁了玻璃边上那圈柔光会被切成一个方块
         .background {
-            if open { Theme.Palette.background.ignoresSafeArea(edges: .bottom) }
+            if open { Theme.Palette.background }
         }
+        .modifier(PanelShape(open: open))
+        .shadow(color: open ? Theme.Palette.shadowNear : .clear, radius: 1, y: 1)
+        .shadow(color: open ? Theme.Palette.shadowFar : .clear, radius: Theme.Space.regular, y: Theme.Space.tight)
+        .offset(y: max(0, drag))
+        .padding(.horizontal, open ? Theme.Space.small : Theme.Space.medium)
+        .padding(.bottom, Theme.Space.small)
         // 收起对话是要看画布：键盘一起收起来
         .onChange(of: model.chatOpen) { _, open in
             if !open { focused = false }
@@ -223,7 +229,8 @@ private struct ComposerBar: View {
                 // 对话开着：输入的那一块是暖灰底上一块白的圆角（收着时整条是玻璃，不另加）
                 .padding(.horizontal, open ? Theme.Space.medium : 0)
                 .background {
-                    if open { Theme.rounded(Theme.Corner.bubble).fill(Theme.Palette.card) }
+                    // 一行时两头圆（圆角比一半高还大就是胶囊），长成几行时四个圆角
+                    if open { Theme.rounded(Theme.Corner.composer).fill(Theme.Palette.card) }
                 }
                 .focused(focused)
                 .accessibilityLabel(Text(backfilling ? "补记 \(Show.monthDay(model.shownDay))" : "说一句"))
@@ -295,18 +302,16 @@ private struct ComposerBar: View {
     }
 }
 
-/// 对话开着时，面板（连着输入框）上面两个圆角
+/// 对话开着时，面板（连着输入框）是四个角都圆的一张卡片
 /// 收着时不裁（裁了玻璃边上那圈柔光会被切成一个方块）：用一个比自己大一圈的框，等于不裁。
 /// 同一个修饰只换形状，不换成另一个视图——换了的话输入框会重建，点「说一句」展开对话时键盘的焦点就丢了
-private struct PanelTop: ViewModifier {
+private struct PanelShape: ViewModifier {
     let open: Bool
 
     func body(content: Content) -> some View {
         content.clipShape(
             open
-                ? AnyShape(
-                    UnevenRoundedRectangle(
-                        topLeadingRadius: Theme.Corner.card, topTrailingRadius: Theme.Corner.card, style: .continuous))
+                ? AnyShape(RoundedRectangle(cornerRadius: Theme.Corner.composer, style: .continuous))
                 : AnyShape(Rectangle().inset(by: -Theme.Space.section)))
     }
 }

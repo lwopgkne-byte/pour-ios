@@ -68,12 +68,13 @@ struct SayChips: View {
 
     private func chip(_ title: String, symbol: String?, lit: Bool) -> some View {
         HStack(spacing: Theme.Space.tight) {
-            if let symbol { Image(systemName: symbol).font(Theme.Typeface.glyph) }
-            Text(title).font(Theme.Typeface.footnoteSemibold).lineLimit(1)
+            if let symbol { Image(systemName: symbol).font(Theme.Typeface.subheadline) }
+            Text(title).font(Theme.Typeface.cardTitle).lineLimit(1)
         }
         .foregroundStyle(lit ? Theme.Palette.accent : Theme.Palette.label)
-        .padding(.horizontal, Theme.Space.medium)
-        .frame(minHeight: Theme.Size.capsule)
+        .padding(.horizontal, Theme.Space.regular)
+        // 字大一号、高 40 点：手指好点（产品主人 2026-11-03：「太小了看和操作不方便」）
+        .frame(minHeight: Theme.Size.touch - Theme.Space.tight)
         .background(lit ? Theme.Palette.bubble : Theme.Palette.card, in: Capsule())
         .frame(minHeight: Theme.Size.touch)
         .contentShape(Rectangle())

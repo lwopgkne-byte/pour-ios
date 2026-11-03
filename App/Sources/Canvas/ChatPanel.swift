@@ -47,9 +47,11 @@ struct ChatPanel: View {
                     .padding(.horizontal, Theme.Space.regular)
                     .padding(.bottom, Theme.Space.regular)
                 }
-                .scrollDismissesKeyboard(.interactively)
-                // 话少时贴着下面（输入框）排，不在上面留一大片空
-                .defaultScrollAnchor(.bottom)
+                // 一滑就收起键盘：边滑边收的话面板跟着键盘一帧一帧变高，下面会闪
+                .scrollDismissesKeyboard(.immediately)
+                // 话少时贴着下面（输入框）排、打开时在最下面；内容长短变了不跟着挪（跟着挪的话往上翻时下面会跳）
+                .defaultScrollAnchor(.bottom, for: .alignment)
+                .defaultScrollAnchor(.bottom, for: .initialOffset)
                 // 界面测试认对话面板用（AppAudit：面板里滚到上沿后面、只露出一截的字不量）
                 .accessibilityIdentifier("chat.scroll")
                 .onAppear { reader.scrollTo("bottom", anchor: .bottom) }
@@ -74,7 +76,7 @@ struct ChatPanel: View {
                             }
                         }
                         .padding(.bottom, Theme.Space.small)
-                        .themeTransition(.scale(scale: 0.8).combined(with: .opacity))
+                        .themeTransition(.opacity)
                     }
                 }
                 .animation(Theme.Motion.pick(Theme.Motion.quick, reduceMotion: reduceMotion), value: atBottom)
@@ -90,7 +92,7 @@ struct ChatPanel: View {
                 .frame(width: Theme.Space.section + Theme.Space.tight, height: Theme.Space.tight + 1)
                 .accessibilityHidden(true)
             HStack(spacing: Theme.Space.small) {
-                Text("对话").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                Text("对话").font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label)
                     .accessibilityAddTraits(.isHeader)
                 Spacer(minLength: 0)
                 Button {
@@ -98,11 +100,13 @@ struct ChatPanel: View {
                         model.chatOpen = false
                     }
                 } label: {
-                    Image(systemName: "xmark").font(Theme.Typeface.glyph).foregroundStyle(Theme.Palette.secondaryLabel)
-                        .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
-                        .background(Theme.Palette.fill, in: Circle())
-                        .frame(width: Theme.Size.touch, height: Theme.Size.touch)
-                        .contentShape(Circle())
+                    Image(systemName: "xmark").font(Theme.Typeface.bodySemibold).foregroundStyle(
+                        Theme.Palette.secondaryLabel
+                    )
+                    .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
+                    .background(Theme.Palette.fill, in: Circle())
+                    .frame(width: Theme.Size.touch, height: Theme.Size.touch)
+                    .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(Text("关闭对话"))

@@ -177,7 +177,7 @@ private struct Reply: View {
     }
 
     private func muted(_ text: String) -> some View {
-        Text(Show.spaced(text)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+        Text(Show.spaced(text)).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
     }
 }
 
@@ -192,7 +192,7 @@ private struct ReceiptCard: View {
             HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
                 Image(systemName: undone ? "arrow.uturn.backward" : "checkmark.circle.fill")
                     .foregroundStyle(undone ? Theme.Palette.secondaryLabel : Theme.Palette.good)
-                Text(Show.spaced(text)).font(Theme.Typeface.subheadline)
+                Text(Show.spaced(text)).font(Theme.Typeface.body)
                     .foregroundStyle(undone ? Theme.Palette.secondaryLabel : Theme.Palette.label)
                     .strikethrough(undone).lineSpacing(Theme.Leading.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -202,12 +202,12 @@ private struct ReceiptCard: View {
                 Text("已撤销，原话还在").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
         }
-        .padding(.horizontal, Theme.Space.medium).padding(.vertical, Theme.Space.tight)
+        .padding(.horizontal, Theme.Space.regular).padding(.vertical, Theme.Space.small)
         .background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.receipt))
     }
 
     private var undoButton: some View {
-        Button("撤销", action: undo).font(Theme.Typeface.footnoteSemibold)
+        Button("撤销", action: undo).font(Theme.Typeface.cardTitle)
             .foregroundStyle(Theme.Palette.accent).buttonStyle(.plain).frame(minHeight: Theme.Size.touch)
     }
 }
