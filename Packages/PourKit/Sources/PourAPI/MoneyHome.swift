@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 /// 3.0 钱的主页（docs/3.0/01-需求文档.md 5.2；服务器 2.11.0 的 `/api/money/home`、`/api/money/quick`，
 /// 字段和 shared/src/money-home.ts 一字不差）

@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 import PourCore
 
 // 钱的几页（「留意的」、一样东西、人情往来）和接口

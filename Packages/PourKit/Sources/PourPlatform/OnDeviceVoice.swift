@@ -15,7 +15,7 @@
         /// 说到现在的字（按录音时间拼，同一段识别两遍不会重复）
         private var transcript = VoiceTranscript()
         /// 来电话、换耳机这些打断：听着的时候才盯着
-        private var observers: [NSObjectProtocol] = []
+        private var observers: [any NSObjectProtocol] = []
 
         public init(locale: Locale = Locale(identifier: "zh_CN")) {
             self.locale = locale

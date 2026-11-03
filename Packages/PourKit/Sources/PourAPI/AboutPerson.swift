@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 一个人一页（GET /api/about/person/:name，shared me-person.ts，3.0 第 8 步），字段名一字不差
 extension API {

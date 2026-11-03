@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 import PourCore
 
 // 回顾（服务器 shared daily.ts、period.ts；DailyReviewPage、PeriodReviewPage、AuditFinding），字段名一字不差

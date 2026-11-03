@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 钱（shared money.ts、money-watch.ts、money-worth.ts、money-days.ts、renqing.ts），字段名一字不差
 extension API {

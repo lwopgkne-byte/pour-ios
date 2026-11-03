@@ -104,18 +104,18 @@ struct MoneyMonthRuler: View {
                         Circle().fill(mark.paid ? Theme.Palette.tertiaryLabel : Theme.Palette.label)
                             .frame(width: size, height: size)
                             .offset(x: place(mark.day) - size / 2, y: lineY + Theme.Space.tight / 2 - size / 2)
+                        let at = place(mark.day)
                         Text(mark.name).font(Theme.Typeface.caption).foregroundStyle(Theme.Palette.secondaryLabel)
                             .fixedSize()
-                            .alignmentGuide(.leading) { label in
-                                centered(label.width, at: place(mark.day), width: width)
-                            }
+                            .alignmentGuide(.leading) { label in Self.centered(label.width, at: at, width: width) }
                             .offset(y: index % 2 == 1 ? Theme.Space.large - Theme.Space.tight : 0)
                     }
                 }
             }
             .frame(height: lineY + Theme.Space.large)
             GeometryReader { proxy in
-                let at = CGFloat((today ?? 1) - 1) / CGFloat(max(1, days - 1)) * proxy.size.width
+                let width = proxy.size.width
+                let at = CGFloat((today ?? 1) - 1) / CGFloat(max(1, days - 1)) * width
                 ZStack(alignment: .topLeading) {
                     Text("1日").frame(maxWidth: .infinity, alignment: .leading)
                     Text("\(days)日").frame(maxWidth: .infinity, alignment: .trailing)
@@ -124,7 +124,7 @@ struct MoneyMonthRuler: View {
                             Theme.Palette.accent
                         )
                         .fixedSize()
-                        .alignmentGuide(.leading) { label in centered(label.width, at: at, width: proxy.size.width) }
+                        .alignmentGuide(.leading) { label in Self.centered(label.width, at: at, width: width) }
                     }
                 }
             }
@@ -139,7 +139,8 @@ struct MoneyMonthRuler: View {
     }
 
     /// 一段字放在 at 的正下方；挨着两头的不出界
-    private func centered(_ label: CGFloat, at: CGFloat, width: CGFloat) -> CGFloat {
+    /// 只是算数：对齐的闭包不在主线程上也能调
+    nonisolated private static func centered(_ label: CGFloat, at: CGFloat, width: CGFloat) -> CGFloat {
         -min(max(0, at - label / 2), max(0, width - label))
     }
 }

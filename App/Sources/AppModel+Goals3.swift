@@ -80,7 +80,7 @@ extension AppModel {
     /// 删一个目标：大目标连子目标一起删、一起撤销
     func deleteGoal(_ id: Int, title: String) {
         let client = self.client
-        Task {
+        Task { [self] in
             do throws(APIError) {
                 try await client.deleteGoal(id)
                 dataChanged()
@@ -96,7 +96,7 @@ extension AppModel {
     /// 每周回顾的「下周最重要的一件」放进待办：撤销是删掉这条待办
     func weeklyTodo(_ todo: API.WeeklyTodo) {
         let client = self.client
-        Task {
+        Task { [self] in
             do throws(APIError) {
                 let made = try await client.weeklyTodo(todo)
                 dataChanged()
@@ -112,7 +112,7 @@ extension AppModel {
     /// 这个季度打几分：撤销把原来的分放回去
     func careScore(_ key: String, _ value: Int) {
         let client = self.client
-        Task {
+        Task { [self] in
             do throws(APIError) {
                 let out = try await client.careScore(key, value)
                 dataChanged()
@@ -128,7 +128,7 @@ extension AppModel {
     /// 改了以后：轻提示那一句 +「撤销」（恢复到改之前的版本）
     private func goalChange(_ work: @escaping @Sendable (APIClient) async throws -> API.GoalDone) {
         let client = self.client
-        Task {
+        Task { [self] in
             do {
                 let out = try await work(client)
                 dataChanged()

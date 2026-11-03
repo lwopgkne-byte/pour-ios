@@ -72,7 +72,7 @@ extension AppModel {
     /// 自动检查查出的：「确实错了」——按审核员的改法改好、记进「你改过的地方」；说不清怎么改的打开那条记录自己改。能撤销
     func confirmFinding(_ finding: API.AuditFinding, after: @escaping @MainActor () async -> Void) {
         let client = self.client
-        Task {
+        Task { [self] in
             do {
                 let result = try await client.confirmFinding(finding.id)
                 dataChanged()

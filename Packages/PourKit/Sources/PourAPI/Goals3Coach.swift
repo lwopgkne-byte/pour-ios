@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 3.0 目标的弹层和我在乎的（服务器 shared/src/goals3.ts、care.ts）：WOOP、GROW、每周回顾、领域页、理解卡
 extension API {

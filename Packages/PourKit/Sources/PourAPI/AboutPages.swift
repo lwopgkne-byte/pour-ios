@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 关于我点进去的几页：心情、人、你说的话、你的一年、一块生活（shared me-pages.ts、me-talk.ts、me-themes.ts、me-year.ts）
 extension API {

@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 /// 中文和数字、英文之间的空（服务器 shared/src/format.ts 原样）。别的写法都由服务器写好再给 App（ADR A22），
 /// 3.0 第 0 步删掉了第一阶段手机自己写的那些

@@ -31,7 +31,7 @@ extension AppModel {
     /// 删掉：轻提示上能「撤销」
     func removeGoal(_ id: Int) {
         let client = self.client
-        Task {
+        Task { [self] in
             do {
                 try await client.deleteGoal(id)
                 dataChanged()

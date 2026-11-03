@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 /// 3.0 待办（docs/3.0/01-需求文档.md 第 4 章、06 交互细节第 2 节；服务器 2.10.0 的 `/api/todos`，
 /// 字段和 shared/src/todos.ts、when.ts 一字不差）

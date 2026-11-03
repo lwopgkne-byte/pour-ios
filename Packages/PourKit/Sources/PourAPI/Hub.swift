@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 /// 3.0「我的」= 全部功能（docs/3.0/01-需求文档.md 2.3；服务器 `GET /api/me/hub`、`PUT /api/me/hub/favorites`，
 /// 字段和 shared/src/hub.ts 一字不差）

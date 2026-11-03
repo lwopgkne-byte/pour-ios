@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 笔记库（LibraryNote、InsightItem、MomentItem，服务器 routes/library.ts），字段名一字不差
 extension API {

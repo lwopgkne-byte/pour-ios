@@ -66,7 +66,7 @@ struct StoryDayBars: View {
     }
 
     /// 这一天有时间的事：从 0 点画到 24 点（前一晚开始的那一觉从 0 点画起）
-    static func bars(_ review: API.DailyReview) -> [Item] {
+    nonisolated static func bars(_ review: API.DailyReview) -> [Item] {
         let dayStart = "\(review.day)T00:00"
         let span = 24.0 * 60
         return review.entries.compactMap { entry -> Item? in

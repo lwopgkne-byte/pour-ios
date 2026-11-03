@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // MARK: - 请求
 

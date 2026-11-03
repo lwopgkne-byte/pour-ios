@@ -144,10 +144,7 @@ struct GoalHead: View {
                     state: page.card.ringState, progress: page.card.pct, label: page.card.ring ?? "",
                     size: Theme.Size.bigRing, spinIn: model.goals.fresh == page.card.id)
                 VStack(alignment: .leading, spacing: Theme.Space.tight) {
-                    (Text(page.head.big).font(Theme.Typeface.bigNumber).foregroundStyle(Theme.Palette.label)
-                        + Text(page.head.bigUnit).font(Theme.Typeface.unit).foregroundStyle(
-                            Theme.Palette.secondaryLabel))
-                        .monospacedDigit().minimumScaleFactor(0.7).lineLimit(2)
+                    headline.monospacedDigit().minimumScaleFactor(0.7).lineLimit(2)
                     Text(page.head.line).font(Theme.Typeface.bodySemibold)
                         .foregroundStyle(
                             page.card.state == "behind" ? Theme.Palette.warn : Theme.Palette.secondaryLabel
@@ -167,6 +164,13 @@ struct GoalHead: View {
             if page.card.lagging && !page.card.paused { growCard }
         }
         .themeCard()
+    }
+
+    /// 大数和单位拼成一段字（「92.4 / 500」+「公里」）：放不下就折行
+    private var headline: Text {
+        let big = Text(page.head.big).font(Theme.Typeface.bigNumber).foregroundStyle(Theme.Palette.label)
+        let unit = Text(page.head.bigUnit).font(Theme.Typeface.unit).foregroundStyle(Theme.Palette.secondaryLabel)
+        return Text("\(big)\(unit)")
     }
 
     private var nums: some View {

@@ -109,7 +109,7 @@ final class TourShotsUITests: XCTestCase {
     }
 
     /// 截图里状态栏以下的那一块（比较滑没滑动用）
-    private static func content(of shot: XCUIScreenshot) -> Data {
+    @MainActor private static func content(of shot: XCUIScreenshot) -> Data {
         let image = shot.image
         guard let bitmap = image.cgImage else { return shot.pngRepresentation }
         let cut = Int(60 * image.scale)

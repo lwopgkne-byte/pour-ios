@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 import PourCore
 
 // 3.0 心情页（服务器 shared/src/mood-page.ts，字段名一字不差）：一次拿全今天的每一刻、这个月每天的心情和那天的每一刻、

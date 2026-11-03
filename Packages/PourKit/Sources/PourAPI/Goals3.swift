@@ -1,4 +1,4 @@
-public import Foundation
+import Foundation
 
 // 3.0 目标（服务器 shared/src/goals3.ts、care.ts，2.15.0 起；docs/3.0/01-需求文档.md 第 9 章），字段名一字不差
 extension API {

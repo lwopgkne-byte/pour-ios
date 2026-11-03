@@ -193,7 +193,8 @@ struct GoalsHomePage: View {
                     .foregroundStyle(done ? Theme.Palette.label : Theme.Palette.secondaryLabel)
                 Group {
                     if let why = card.why {
-                        Text("\(card.closed ?? "") · 放下的 · ") + Text("「\(why)」").font(Theme.Typeface.quote)
+                        let quote = Text("「\(why)」").font(Theme.Typeface.quote)
+                        Text("\(card.closed ?? "") · 放下的 · \(quote)")
                     } else {
                         Text(card.closed ?? "")
                     }

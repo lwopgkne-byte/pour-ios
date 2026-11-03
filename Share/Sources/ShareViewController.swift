@@ -9,7 +9,7 @@ final class ShareViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         let context = extensionContext
-        Task { @MainActor in
+        Task { @MainActor [self] in
             let shared = await Self.sharedText(from: context)
             let sheet = ShareSheet(text: shared) { [weak self] in
                 self?.extensionContext?.completeRequest(returningItems: nil)

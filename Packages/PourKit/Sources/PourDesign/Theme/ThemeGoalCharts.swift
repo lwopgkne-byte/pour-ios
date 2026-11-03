@@ -1,4 +1,4 @@
-public import Charts
+import Charts
 public import SwiftUI
 
 // 3.0 目标的图（docs/3.0/06-交互细节.md 12.3）：都能**按住左右拖**看每一天、每一周，竖着划照常滚页面（系统的 chartXSelection）
