@@ -47,7 +47,7 @@ struct DailyReviewView: View {
             ReviewSection(title: "一天的样子") {
                 let timed = items.filter { $0.span != nil }
                 let loose = items.filter { $0.span == nil }
-                if !timed.isEmpty { RibbonTrack(day: day, items: timed) }
+                if !timed.isEmpty { RibbonTrack(day: day, items: timed, fillGaps: false) }
                 if !loose.isEmpty { UntimedRow(day: day, items: loose, wrap: true) }
             }
         }

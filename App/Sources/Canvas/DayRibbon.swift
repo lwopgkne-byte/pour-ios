@@ -118,12 +118,16 @@ struct RibbonTrack: View {
     @ScaledMetric(relativeTo: .caption2) private var tickRow = Theme.Size.tickRow
     let day: String
     let items: [RibbonItem]
+    /// 没记的空当画「＋」点了补记：画布上要；回顾里只是看（原型的回顾没有，一个「＋」在带子中间看着像没画完）
+    var fillGaps = true
 
     var body: some View {
         let range = Self.range(day, items)
         let lanes = Self.lanes(items)
         let twoLanes = lanes.values.contains(1)
-        let gaps = CanvasPlan.ribbonGaps(items.compactMap(\.span), day: day, today: model.today, now: Self.nowStamp())
+        let gaps =
+            fillGaps
+            ? CanvasPlan.ribbonGaps(items.compactMap(\.span), day: day, today: model.today, now: Self.nowStamp()) : []
         VStack(alignment: .leading, spacing: Theme.Space.snug) {
             GeometryReader { proxy in
                 ZStack(alignment: .topLeading) {
