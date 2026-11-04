@@ -147,7 +147,7 @@ final class MoneyEachUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(app.staticTexts["keypad.amount"].waitForExistence(timeout: 3), "记一笔没打开")
         pause()
         shot("大字-记一笔", of: app.screenshot())
-        app.buttons["取消"].tap()
+        app.buttons["sheet.close"].tap()
         let list = app.buttons["money.list"]
         app.reveal(list)
         list.tap()

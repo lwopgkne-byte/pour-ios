@@ -160,6 +160,8 @@ struct TodosPage: View {
                 } label: {
                     Label("删除", systemImage: Theme.Symbol.delete)
                 }
+                // 删除是红的：不写的话跟着整页的强调色变蓝（2026-11-05 走一遍时看到的）
+                .tint(Theme.Palette.bad)
                 if !row.done {
                     if group == "overdue" {
                         Button {

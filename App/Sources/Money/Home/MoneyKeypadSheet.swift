@@ -53,8 +53,9 @@ struct MoneyKeypadSheet: View {
                 Text(value > 0 ? "记下 \(Show.yuan(value))" : "记下").font(Theme.Typeface.bodySemibold)
                     .foregroundStyle(value > 0 ? Theme.Palette.onAccent : Theme.Palette.tertiaryLabel)
                     .frame(maxWidth: .infinity, minHeight: Theme.Size.composer)
+                    // 照原型：「记下」是钱的颜色
                     .background(
-                        value > 0 ? Theme.Palette.accentFill : Theme.Palette.fill,
+                        value > 0 ? Theme.Quick.moneyButton : Theme.Palette.fill,
                         in: Theme.rounded(Theme.Corner.hubTile))
             }
             .buttonStyle(PressScale())
@@ -71,16 +72,9 @@ struct MoneyKeypadSheet: View {
 
     private var value: Double { Double(amount) ?? 0 }
 
+    /// 照原型：左边「记一笔」，右上角灰圆的关闭
     private var header: some View {
-        HStack {
-            ThemeTextButton("取消", font: Theme.Typeface.body) { dismiss() }
-            Spacer()
-            Text("记一笔").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
-                .accessibilityAddTraits(.isHeader)
-            Spacer()
-            Color.clear.frame(width: Theme.Size.touch, height: Theme.Size.touch)
-        }
-        .padding(.top, Theme.Space.small)
+        LeadingSheetHeader("记一笔") { SheetCloseButton { dismiss() } }
     }
 
     /// 买了什么（可以不填）；选了「借给别人」或点了「给谁」：写给谁

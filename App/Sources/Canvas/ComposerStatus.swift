@@ -10,10 +10,11 @@ struct ComposerStatus: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// 小条说什么
+    /// 小条说什么。waiting：服务器说这段话在排队、还没开始（比如还没填大模型的密钥），不说「正在整理」
     enum Stage: Equatable {
         case offline
-        case processing(String)
+        case processing(verb: String, text: String)
+        case waiting(String)
         case failed(noteId: Int, reason: String)
     }
 
@@ -36,18 +37,30 @@ struct ComposerStatus: View {
             row(symbol: "icloud.slash", text: "没网，先存在手机上 · 连上自动发", tint: Theme.Palette.secondaryLabel) {
                 retry { Task { await model.flushOutbox() } }
             }
-        case .processing(let text):
+        case .processing(let verb, let text):
             Button {
                 withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
                     model.chatOpen = true
                 }
             } label: {
-                row(symbol: "sparkles", text: "正在整理：\(text)", tint: Theme.Palette.accent, breathing: true) {
+                row(symbol: "sparkles", text: "\(verb)：\(text)", tint: Theme.Palette.accent, breathing: true) {
                     EmptyView()
                 }
             }
             .buttonStyle(.plain)
             .accessibilityHint(Text("打开对话"))
+        case .waiting(let text):
+            Button {
+                withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
+                    model.chatOpen = true
+                }
+            } label: {
+                row(symbol: "hourglass", text: "还在排队：\(text)", tint: Theme.Palette.secondaryLabel) {
+                    EmptyView()
+                }
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text("打开对话，看为什么还没整理"))
         case .failed(let noteId, let reason):
             let said = reason.hasPrefix("没整理成") ? reason : "没整理成：\(reason)"
             row(symbol: "exclamationmark.circle", text: said, tint: Theme.Palette.bad) {
@@ -81,9 +94,15 @@ struct ComposerStatus: View {
     private var state: Stage? {
         if model.outbox.contains(where: { $0.failed != nil }) { return .offline }
         guard let last = model.chat.last, last.day == model.today else { return nil }
+        // 「/问 这个月花了多少」：小条上不露「/问」，说成在找答案
+        let asking = last.text.hasPrefix("/问")
+        let said = asking ? String(last.text.dropFirst(2)).trimmingCharacters(in: .whitespaces) : last.text
+        let text = String(said.prefix(14)) + (said.count > 14 ? "…" : "")
         switch last.status {
+        case "pending" where last.error != nil:
+            return .waiting(text)
         case "processing", "pending":
-            return .processing(String(last.text.prefix(14)) + (last.text.count > 14 ? "…" : ""))
+            return .processing(verb: asking ? "正在找答案" : "正在整理", text: text)
         case "failed":
             return .failed(noteId: last.id, reason: last.error ?? "原因不明")
         default:

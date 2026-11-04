@@ -188,6 +188,7 @@ struct LibraryPage3: View {
             } label: {
                 Label("删除", systemImage: "trash")
             }
+            .tint(Theme.Palette.bad)
             Button {
                 LibraryRow3.reorganize(note, model)
             } label: {

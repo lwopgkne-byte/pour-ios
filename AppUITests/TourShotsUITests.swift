@@ -29,6 +29,18 @@ final class TourShotsUITests: XCTestCase {
             pages(app, name)
         }
 
+        // 说一句：底下那一条左边的对话按钮，打开对话
+        try open(app, "/")
+        sleep(2)
+        let chat = app.buttons["pourbar.chat"].firstMatch
+        if chat.waitForExistence(timeout: 5) {
+            chat.tap()
+            sleep(3)
+            shot("72-说一句")
+            app.buttons["chat.close"].firstMatch.tap()
+            sleep(1)
+        }
+
         // 搜索：画布右上角
         try open(app, "/")
         sleep(2)
@@ -52,6 +64,7 @@ final class TourShotsUITests: XCTestCase {
             ("11-回顾-昨天", "/review/\(days.yesterday)"),
             ("12-回顾-周报", "/review/week/\(days.lastWeekMonday)"),
             ("13-回顾-月报", "/review/month/\(days.lastMonth)"),
+            ("15-日历", "/calendar"),
             ("20-钱-主页", "/money"),
             ("21-钱-留意的", "/money/watch"),
             ("22-钱-一天", "/money/day/\(days.yesterday)"),
@@ -65,6 +78,7 @@ final class TourShotsUITests: XCTestCase {
             paths.append(("26-钱-和一个人", "/money/renqing/\(person)"))
         }
         paths += [
+            ("26b-钱-值不值", "/money/worth"),
             ("27-心情", "/mood"),
             ("28-心情-分析", "/mood/analysis"),
             ("29-心情-好时刻", "/mood/moments"),
@@ -95,6 +109,7 @@ final class TourShotsUITests: XCTestCase {
             ("42-目标-坚持", "/goals/streaks"),
             ("43-目标-预算", "/goals/budgets"),
             ("44-目标-我在乎的", "/goals/care/health"),
+            ("45-健康", "/health"),
             ("50-笔记库-原话", "/library"),
             ("52-笔记库-好时刻", "/library?view=moments"),
             ("60-设置", "/settings"),

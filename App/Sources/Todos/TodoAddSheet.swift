@@ -52,29 +52,13 @@ struct TodoAddSheet: View {
 
     private var trimmed: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
 
+    /// 照原型：左边「加待办」，右边蓝色胶囊「加上」；不加了往下拉就关掉
     private var header: some View {
-        HStack {
-            // 能点的范围撑在按钮里面（外面加的尺寸不算）
-            ThemeTextButton("取消", font: Theme.Typeface.body) { dismiss() }
-            Spacer()
-            Text("加待办").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
-                .accessibilityAddTraits(.isHeader)
-            Spacer()
-            Button(action: add) {
-                Text("加上").font(Theme.Typeface.bodySemibold)
-                    .foregroundStyle(trimmed.isEmpty ? Theme.Palette.tertiaryLabel : Theme.Palette.onAccent)
-                    .padding(.horizontal, Theme.Space.regular)
-                    .frame(minHeight: Theme.Size.capsule)
-                    .background(trimmed.isEmpty ? Theme.Palette.fill : Theme.Palette.accentFill, in: Capsule())
-                    .frame(minHeight: Theme.Size.touch)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(PressScale())
-            .disabled(trimmed.isEmpty)
-            .accessibilityIdentifier("todoAdd.add")
+        LeadingSheetHeader("加待办") {
+            SheetPillButton("加上", color: Theme.Palette.accentFill, enabled: !trimmed.isEmpty, action: add)
+                .accessibilityIdentifier("todoAdd.add")
         }
         .padding(.horizontal, Theme.Space.small)
-        .padding(.top, Theme.Space.small)
     }
 
     private var field: some View {

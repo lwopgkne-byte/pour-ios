@@ -13,6 +13,9 @@ struct DailyReviewView: View {
     @State private var page: API.DailyReviewPage?
     @State private var findings: [API.AuditFinding] = []
     @State private var problem: String?
+    /// 这一天的钱（「花了」那一格）
+    @State private var money: API.MoneyDayPage?
+    @AppStorage(MoneyHidden.key) private var hideMoney = false
 
     var body: some View {
         Group {
@@ -36,22 +39,16 @@ struct DailyReviewView: View {
         ReviewHead(
             title: "每日回顾", relative: Show.relative(day, today: model.today), updated: review.updated, compact: true)
         // 这一天的总结和关键数字（以前在画布上的「今天的样子」，产品主人 2026-10-21 挪到回顾里）
-        DayLook(overview: review.overview, numbers: review.numbers, levels: review.moods.map(\.mood))
-        let bars = StoryDayBars.bars(review)
-        if !bars.isEmpty {
+        DayLook(overview: review.overview, numbers: review.numbers + spent, levels: review.moods.map(\.mood))
+        let items = review.entries.compactMap(RibbonItem.init)
+        if !items.isEmpty {
+            // 照原型：和画布上「一天的时间」一样的带子（类别色的色块、下面刻度）；没说时间的是一个个小胶囊，
+            // 点了打开那一条（以前是一长串「·」隔开的字，2026-11-05 当成真的用户走一遍时看着费劲）
             ReviewSection(title: "一天的样子") {
-                DayBars(
-                    bars.map { item in
-                        DayBars.Bar(
-                            id: item.entry.id, time: item.time, label: item.label, start: item.start,
-                            width: item.width,
-                            color: Theme.tag(Show.meta(item.entry.category, model.categories).color).solid)
-                    }, ink: Theme.Palette.label)
-                let loose = StoryDayBars.untimed(review)
-                if !loose.isEmpty {
-                    Text("没说时间的：\(loose.joined(separator: " · "))").font(Theme.Typeface.footnote)
-                        .foregroundStyle(Theme.Palette.secondaryLabel).fixedSize(horizontal: false, vertical: true)
-                }
+                let timed = items.filter { $0.span != nil }
+                let loose = items.filter { $0.span == nil }
+                if !timed.isEmpty { RibbonTrack(day: day, items: timed) }
+                if !loose.isEmpty { UntimedRow(day: day, items: loose, wrap: true) }
             }
         }
         if !review.groups.isEmpty { groups(review.groups) }
@@ -78,13 +75,17 @@ struct DailyReviewView: View {
         if day == PourDate.addDays(model.today, -1), !review.today.todos.isEmpty || !review.today.goals.isEmpty {
             ReviewSection(title: "今天") {
                 VStack(alignment: .leading, spacing: Theme.Space.tight) {
-                    ForEach(review.today.todos, id: \.self) {
-                        Text(Show.spaced($0)).foregroundStyle(Theme.Palette.label)
+                    ForEach(review.today.todos, id: \.self) { todo($0) }
+                    // 目标只列最要紧的两个：多了就不像一句提醒了。照原型小一号的灰字，和要做的事分得开
+                    // （以前一样大，一整段分不清哪句是事、哪句是目标）
+                    VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+                        ForEach(review.today.goals.prefix(2), id: \.self) {
+                            Text(Show.spaced($0)).font(Theme.Typeface.footnote)
+                                .foregroundStyle(Theme.Palette.secondaryLabel)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
-                    // 目标只列最要紧的两个：多了就不像一句提醒了
-                    ForEach(review.today.goals.prefix(2), id: \.self) {
-                        Text(Show.spaced($0)).foregroundStyle(Theme.Palette.secondaryLabel)
-                    }
+                    .padding(.top, Theme.Space.tight)
                 }
                 .font(Theme.Typeface.body)
             }
@@ -111,6 +112,16 @@ struct DailyReviewView: View {
                 ThemeTextButton("这一周的周报") { navigate(Show.reportPath("weekly", from: weekly)) }
             }
         }
+    }
+
+    /// 今天要做的一件：「交水费（本来是 11 月 2 日 周一 要做的）」括号里那句小一号的灰字（原型）
+    private func todo(_ text: String) -> Text {
+        let parts = text.components(separatedBy: "（本来是")
+        let main = Text(Show.spaced(parts[0])).foregroundStyle(Theme.Palette.label)
+        guard parts.count > 1 else { return main }
+        let note = Text(" （本来是\(Show.spaced(parts.dropFirst().joined(separator: "（本来是")))")
+            .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+        return Text("\(main)\(note)")
     }
 
     /// 做了什么：一个领域一组，组里一条一条能点开
@@ -160,10 +171,26 @@ struct DailyReviewView: View {
         }
     }
 
+    /// 照原型的第四格「花了」：钱那边这一天的日常花的（和「钱 · 一天」是同一个数），等报销的另说一句；
+    /// 钱遮住了也遮住；这一天没花钱就不放
+    private var spent: [API.KeyNumber] {
+        guard let money, money.spent > 0 else { return [] }
+        let waiting = money.items.filter { $0.kind == "reimburse" && $0.settled != true }.reduce(0) { $0 + $1.amount }
+        let figure = Show.yuan(money.spent, hide: hideMoney)
+        return [
+            API.KeyNumber(
+                key: "money", label: "花了", parts: [API.NumberPart(number: figure, unit: "")], text: figure,
+                compare: waiting > 0 ? "等报销另有 \(Show.yuan(waiting, hide: hideMoney))" : nil)
+        ]
+    }
+
     private func load() async {
+        // 「花了」那一格：拿不到不碍事，少一格
+        async let dayMoney = try? model.client.moneyDay(day)
         do {
             let fresh = try await model.client.dailyReview(day)
             page = fresh
+            money = await dayMoney
             problem = nil
             // 打开就算看过
             if let id = fresh.messageId, !fresh.read { try? await model.client.markRead(message: id) }

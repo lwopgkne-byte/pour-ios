@@ -148,7 +148,9 @@ final class TodosUITests: XCTestCase, TodoTesting {
         plus.tap()
         let field = addField(app)
         XCTAssertTrue(field.waitForExistence(timeout: 3), "卡片右上角的「＋」没打开加待办")
-        app.buttons["取消"].tap()
+        // 照原型加待办没有「取消」：按住头往下拖到底关掉（轻轻一扫只收键盘）
+        app.staticTexts["加待办"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(
+            forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.99)))
         XCTAssertTrue(field.waitForNonExistence(timeout: 3))
         // 画布上的一行：点了是同一个详情（不是左边的圆圈：圆圈也叫「回邮件」，点了是勾上）
         let line = app.descendants(matching: .any).matching(

@@ -12,6 +12,11 @@ extension API {
             case number = "n"
             case unit = "u"
         }
+
+        public init(number: String, unit: String) {
+            self.number = number
+            self.unit = unit
+        }
     }
 
     /// 一个关键数字：大号的数字和小号的单位分开（「8 小时 20 分」）
@@ -23,6 +28,15 @@ extension API {
         public var text: String
         /// 和平时比：「比平时少 30 分钟」；前面没有数据时是 nil
         public var compare: String?
+
+        /// App 自己拼的一格（每日回顾的「花了」：钱那边的数）
+        public init(key: String, label: String, parts: [NumberPart], text: String, compare: String?) {
+            self.key = key
+            self.label = label
+            self.parts = parts
+            self.text = text
+            self.compare = compare
+        }
     }
 
     /// 做了什么里的一个领域（每日回顾：一条一条；周报月报：一行字）

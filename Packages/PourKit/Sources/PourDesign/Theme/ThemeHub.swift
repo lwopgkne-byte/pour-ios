@@ -39,6 +39,13 @@ extension Theme {
         public static let todo = Tokens.accent.color
         /// 浅底：同一个颜色淡成一层
         public static func soft(_ color: Color) -> Color { color.opacity(0.12) }
+
+        /// 弹层里那一块的主按钮的底（记一笔的「记下」钱色、记心情的粉、记一句的金，照原型）：白字至少 4.5:1——
+        /// 原型的钱色、感悟色上白字差一点点，按钮的底深一点点（ThemeColorTests.quickButtons）
+        public static let buttonTokens = [Tokens.one(0xA5670A), Tokens.one(0xBC4A7E), Tokens.one(0x9A6A05)]
+        public static let moneyButton = buttonTokens[0].color
+        public static let moodButton = buttonTokens[1].color
+        public static let ideaButton = buttonTokens[2].color
     }
 }
 

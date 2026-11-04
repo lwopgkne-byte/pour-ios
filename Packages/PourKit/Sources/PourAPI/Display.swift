@@ -57,6 +57,27 @@ public enum Show {
     /// 中文和数字、英文挨着时中间留一点空（浏览器的 text-autospace）
     public static func spaced(_ text: String) -> String { WebText.spaced(text) }
 
+    /// 目标进度那一句里的大数加千位分隔：「+72772 步」→「+72,772 步」，和健康卡的「2,828 步」一样
+    /// （服务器的 fmtNum 不加，一周走的步数五位数不好读；2026-11-05 走一遍时看到的）。
+    /// 只动四位以上的整数，挨着小数点、逗号的不动
+    public static func grouped(_ text: String) -> String {
+        guard let regex = try? NSRegularExpression(pattern: "(?<![\\d.,])\\d{4,}(?![\\d.,])") else { return text }
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "en_US")
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        let source = text as NSString
+        var out = ""
+        var last = 0
+        for match in regex.matches(in: text, range: NSRange(location: 0, length: source.length)) {
+            let digits = source.substring(with: match.range)
+            out += source.substring(with: NSRange(location: last, length: match.range.location - last))
+            out += Int(digits).flatMap { formatter.string(from: NSNumber(value: $0)) } ?? digits
+            last = match.range.location + match.range.length
+        }
+        return out + source.substring(from: last)
+    }
+
     // MARK: - 类别
 
     public struct Meta: Hashable, Sendable {

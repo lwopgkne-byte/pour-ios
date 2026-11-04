@@ -100,7 +100,8 @@ struct MoneyThingPage: View {
                 chart(thing, perUse: perUse)
             } else if thing.durable {
                 big(count > 0 ? "用了 \(count) 次" : "还没说到用它")
-                Text("之后说到用它（「用空气炸锅烤了鸡翅」），这里就会算每次多少钱。").font(Theme.Typeface.subheadline)
+                // 例子用这样东西自己的名字（以前写死「用空气炸锅烤了鸡翅」，运动鞋那一页也这么写；2026-11-05 走一遍时看到的）
+                Text("之后说到用它（比如「今天用了\(thing.name)」），这里就会算每次多少钱。").font(Theme.Typeface.subheadline)
                     .foregroundStyle(Theme.Palette.secondaryLabel)
             } else {
                 big(count > 0 ? "之后又说起 \(count) 次" : "之后还没再说起")

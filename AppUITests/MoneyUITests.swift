@@ -147,7 +147,7 @@ final class MoneyUITests: XCTestCase {
         XCTAssertTrue(
             app.staticTexts.matching(NSPredicate(format: "label CONTAINS '「58 能报销」'")).firstMatch.exists,
             "原话不是「58 能报销」")
-        app.buttons["取消"].tap()
+        app.buttons["sheet.close"].tap()
         XCTAssertTrue(amount.waitForNonExistence(timeout: 3))
     }
 

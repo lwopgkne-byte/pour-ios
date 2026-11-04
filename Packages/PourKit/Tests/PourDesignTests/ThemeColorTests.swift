@@ -79,6 +79,14 @@ struct ThemeColorTests {
         }
     }
 
+    /// 弹层里的主按钮：钱、心情、感悟色的底上白字（17 号半粗）
+    @Test func quickButtons() {
+        for token in Theme.Quick.buttonTokens {
+            let fill = token.resolved(dark: false).rgb
+            #expect(RGB.white.contrast(with: fill) >= 4.5, "白字在 \(fill) 上不够")
+        }
+    }
+
     /// 填满的蓝色上的白字（今天那个圆、发送按钮）；气泡里的字
     @Test func filledBackgrounds() {
         let fill = Theme.Tokens.accentFill.resolved(dark: false).rgb

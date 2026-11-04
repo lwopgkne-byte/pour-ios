@@ -53,24 +53,31 @@ struct RibbonItem: Identifiable {
     }
 }
 
-/// 没说时间的：一行小胶囊，左右滑
-private struct UntimedRow: View {
+/// 没说时间的：一行小胶囊，左右滑。wrap（每日回顾，照原型）：一行放不下就换行，全都看得见
+struct UntimedRow: View {
     @Environment(AppModel.self) private var model
     let day: String
     let items: [RibbonItem]
+    var wrap = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             Text("没说时间").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-            // 滑到卡片两边：列表撑满卡片宽，内容两边留出卡片的内边距
-            ScrollView(.horizontal) {
-                HStack(spacing: Theme.Space.small) {
+            if wrap {
+                PourFlowLayout {
                     ForEach(items) { item in chip(item) }
                 }
+            } else {
+                // 滑到卡片两边：列表撑满卡片宽，内容两边留出卡片的内边距
+                ScrollView(.horizontal) {
+                    HStack(spacing: Theme.Space.small) {
+                        ForEach(items) { item in chip(item) }
+                    }
+                }
+                .contentMargins(.horizontal, Theme.Space.inset, for: .scrollContent)
+                .scrollIndicators(.hidden)
+                .padding(.horizontal, -Theme.Space.inset)
             }
-            .contentMargins(.horizontal, Theme.Space.inset, for: .scrollContent)
-            .scrollIndicators(.hidden)
-            .padding(.horizontal, -Theme.Space.inset)
         }
     }
 

@@ -80,8 +80,24 @@ struct ChatPanel: View {
                     }
                 }
                 .animation(Theme.Motion.pick(Theme.Motion.quick, reduceMotion: reduceMotion), value: atBottom)
+                // 键盘起来、面板变矮：原来停在最下面就还停在最下面。点底下的输入框打开时键盘晚一步起来，
+                // 不跟着的话最新的几条被挤到键盘后面、出来「回到最新」（2026-11-05 当成真的用户走一遍时看到的）
+                .onScrollGeometryChange(for: Fit.self) { geometry in
+                    Fit(
+                        height: geometry.containerSize.height,
+                        gap: geometry.contentSize.height - geometry.contentOffset.y - geometry.containerSize.height)
+                } action: { old, new in
+                    guard new.height < old.height, old.gap < old.height / 4 else { return }
+                    reader.scrollTo("bottom", anchor: .bottom)
+                }
             }
         }
+    }
+
+    /// 面板有多高、离最下面还差多少（键盘起来时看原来是不是停在最下面）
+    private struct Fit: Equatable {
+        let height: CGFloat
+        let gap: CGFloat
     }
 
     /// 上面一条（原型 .grab + .shead）：小横条、「说一句」、右上角灰圆的关闭；整条都能往下拖收起

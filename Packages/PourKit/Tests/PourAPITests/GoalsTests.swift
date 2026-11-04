@@ -6,6 +6,17 @@ import Testing
 /// 目标（Fixtures/goals.json、goal-1.json、goal-2.json：演示数据的 /api/goals、/api/goals/1、/api/goals/2）
 @Suite("目标")
 struct GoalsTests {
+    /// 进度那一句的大数加千位分隔；年份那样的四位数只在单独出现时也会分——只用在 delta 上
+    @Test func groupedDigits() {
+        #expect(Show.grouped("+72772 步") == "+72,772 步")
+        #expect(Show.grouped("+2828 步") == "+2,828 步")
+        #expect(Show.grouped("+314974 步") == "+314,974 步")
+        #expect(Show.grouped("+5 次") == "+5 次")
+        #expect(Show.grouped("+8.4 公里") == "+8.4 公里")
+        #expect(Show.grouped("¥16,495") == "¥16,495")
+        #expect(Show.grouped("当天 1234.5 步") == "当天 1234.5 步")
+    }
+
     func fixture<T: Decodable>(_ name: String, as type: T.Type) throws -> T {
         let url = try #require(Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures"))
         return try JSONDecoder().decode(T.self, from: try Data(contentsOf: url))

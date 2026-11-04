@@ -155,7 +155,9 @@ struct StoryGoalRow: View {
         VStack(alignment: .leading, spacing: Theme.Space.tight) {
             HStack(alignment: .firstTextBaseline) {
                 Text(Show.spaced(goal.title)).font(Theme.Typeface.body).frame(maxWidth: .infinity, alignment: .leading)
-                if let delta = goal.delta { Text(delta).font(Theme.Typeface.bodySemibold).monospacedDigit() }
+                if let delta = goal.delta {
+                    Text(Show.grouped(delta)).font(Theme.Typeface.bodySemibold).monospacedDigit()
+                }
             }
             GeometryReader { proxy in
                 Capsule().fill(Theme.Story.darkInk.opacity(0.18))

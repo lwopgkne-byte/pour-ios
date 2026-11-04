@@ -102,8 +102,10 @@ struct TodoDetailSheet: View {
             ForEach(choices, id: \.0) { choice in
                 FilterChip(choice.0, selected: row.day == choice.1) { model.editTodo(row.id, day: choice.1) }
             }
+            // 过去的日子写几月几号：「周一」和旁边的「下周一」放在一起分不清是哪个周一（2026-11-05 走一遍时看到的）
             FilterChip(
-                choices.contains { $0.1 == row.day } ? "选日子" : TodoBoard.dayName(row.day, today: today),
+                choices.contains { $0.1 == row.day }
+                    ? "选日子" : row.day < today ? Show.monthDay(row.day) : TodoBoard.dayName(row.day, today: today),
                 selected: !choices.contains { $0.1 == row.day }
             ) { pickingDay.toggle() }
             .accessibilityHint(Text("选别的日子"))

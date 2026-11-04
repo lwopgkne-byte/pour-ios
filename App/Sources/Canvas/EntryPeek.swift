@@ -154,7 +154,9 @@ struct EntryPeek: View {
                 ToneDot(tone: goal.tone)
                 Text(Show.spaced(goal.title)).foregroundStyle(Theme.Palette.label).lineLimit(1)
                 Spacer(minLength: 0)
-                if let delta = goal.delta { Text(Show.spaced(delta)).foregroundStyle(Theme.Palette.secondaryLabel) }
+                if let delta = goal.delta {
+                    Text(Show.spaced(Show.grouped(delta))).foregroundStyle(Theme.Palette.secondaryLabel)
+                }
             }
             .font(Theme.Typeface.body)
             GoalBar(pct: goal.pct, tone: goal.tone)

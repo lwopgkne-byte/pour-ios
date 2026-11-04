@@ -34,7 +34,7 @@ public struct ThemeButton: View {
         styled(
             Button(action: action) {
                 // 转圈叠在字上、字变透明：宽度和有字时一样
-                Text(title).font(Theme.Typeface.bodySemibold).opacity(loading ? 0 : 1)
+                Text(title).font(Theme.Typeface.bodySemibold).foregroundStyle(ink).opacity(loading ? 0 : 1)
                     .overlay { if loading { ProgressView() } }
                     .frame(maxWidth: block ? .infinity : nil)
                     // 只有字的按钮没有底，点的地方撑到 44 点高（撑在按钮里面才算数）
@@ -45,6 +45,13 @@ public struct ThemeButton: View {
         .controlSize(block ? .large : .regular)
         .disabled(disabled || loading)
         .accessibilityValue(Text(loading ? "正在处理" : ""))
+    }
+
+    /// 字的颜色写死：按钮放在设置的一行里时，那一行给右边的值统一了灰字，不写死会盖过系统按钮的字色
+    /// （蓝底上灰字看不清，2026-11-05 走一遍时看到的「接上」「回到真实数据」）
+    private var ink: Color {
+        if disabled || loading { return Theme.Palette.secondaryLabel }
+        return variant == .primary ? Theme.Palette.onAccent : Theme.Palette.accent
     }
 
     @ViewBuilder private func styled<Label: View>(_ button: Button<Label>) -> some View {

@@ -107,7 +107,7 @@ struct ReviewGoalRow: View {
                     Text(Show.spaced(goal.title)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     if let delta = goal.delta {
-                        Text(Show.spaced(delta)).font(Theme.Typeface.bodySemibold).monospacedDigit()
+                        Text(Show.spaced(Show.grouped(delta))).font(Theme.Typeface.bodySemibold).monospacedDigit()
                             .foregroundStyle(Theme.Palette.label)
                     }
                 }

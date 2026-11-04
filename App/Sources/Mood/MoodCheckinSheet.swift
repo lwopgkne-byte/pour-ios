@@ -54,8 +54,9 @@ struct MoodCheckinSheet: View {
             Text("记下").font(Theme.Typeface.bodySemibold)
                 .foregroundStyle(level == nil ? Theme.Palette.tertiaryLabel : Theme.Palette.onAccent)
                 .frame(maxWidth: .infinity, minHeight: Theme.Size.composer)
+                // 照原型：「记下」是心情的颜色
                 .background(
-                    level == nil ? Theme.Palette.fill : Theme.Palette.accentFill,
+                    level == nil ? Theme.Palette.fill : Theme.Quick.moodButton,
                     in: Theme.rounded(Theme.Corner.hubTile))
         }
         .buttonStyle(PressScale())
@@ -63,16 +64,9 @@ struct MoodCheckinSheet: View {
         .accessibilityIdentifier("moodCheckin.save")
     }
 
+    /// 照原型：左边问一句「现在心情怎么样？」，右上角灰圆的关闭
     private var header: some View {
-        HStack {
-            ThemeTextButton("取消", font: Theme.Typeface.body) { dismiss() }
-            Spacer()
-            Text("记心情").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
-                .accessibilityAddTraits(.isHeader)
-            Spacer()
-            Color.clear.frame(width: Theme.Size.touch, height: Theme.Size.touch)
-        }
-        .padding(.top, Theme.Space.small)
+        LeadingSheetHeader("现在心情怎么样？") { SheetCloseButton { dismiss() } }
     }
 
     /// 好的、不好的两排（心情不好时不好的排前面）：点一下选上，再点一下去掉

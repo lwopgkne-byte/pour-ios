@@ -38,11 +38,6 @@ struct InsightAddSheet: View {
             }
             .scrollDismissesKeyboard(.interactively)
         }
-        // 「记下」钉在最下面：打字时跟着键盘上来，不被盖住
-        .safeAreaInset(edge: .bottom) {
-            saveButton.padding(.horizontal, Theme.Space.regular).padding(.vertical, Theme.Space.small)
-                .background(Theme.Palette.background)
-        }
         .background(Theme.Palette.background)
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
@@ -52,16 +47,15 @@ struct InsightAddSheet: View {
         }
     }
 
+    /// 照原型：左边「记一句」，右边金色胶囊「记下」（打字时键盘挡不住它）；不记了往下拉就关掉
     private var header: some View {
-        HStack {
-            ThemeTextButton("取消", font: Theme.Typeface.body) { dismiss() }
-            Spacer()
-            Text("记一句").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
-                .accessibilityAddTraits(.isHeader)
-            Spacer()
-            Color.clear.frame(width: Theme.Size.touch, height: Theme.Size.touch)
+        LeadingSheetHeader("记一句") {
+            SheetPillButton("记下", color: Theme.Quick.ideaButton, enabled: ready) {
+                model.recordSaying(text.trimmingCharacters(in: .whitespacesAndNewlines))
+                dismiss()
+            }
+            .accessibilityIdentifier("insightAdd.save")
         }
-        .padding(.top, Theme.Space.small)
     }
 
     /// 麦克风：点了开始说，再点说完（转成字只在这台手机上）
@@ -86,21 +80,5 @@ struct InsightAddSheet: View {
         }
         .buttonStyle(PressScale())
         .accessibilityLabel(Text(voice.active ? "说完了" : "说话"))
-    }
-
-    private var saveButton: some View {
-        Button {
-            model.recordSaying(text.trimmingCharacters(in: .whitespacesAndNewlines))
-            dismiss()
-        } label: {
-            Text("记下").font(Theme.Typeface.bodySemibold)
-                .foregroundStyle(ready ? Theme.Palette.onAccent : Theme.Palette.tertiaryLabel)
-                .frame(maxWidth: .infinity, minHeight: Theme.Size.composer)
-                .background(
-                    ready ? Theme.Palette.accentFill : Theme.Palette.fill, in: Theme.rounded(Theme.Corner.hubTile))
-        }
-        .buttonStyle(PressScale())
-        .disabled(!ready)
-        .accessibilityIdentifier("insightAdd.save")
     }
 }

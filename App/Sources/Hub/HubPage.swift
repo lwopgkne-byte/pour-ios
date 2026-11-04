@@ -13,6 +13,7 @@ struct HubPage: View {
     @State private var favorites = HubCatalog.defaultFavorites
     @State private var editing = false
     @State private var query = ""
+    @State private var searching = false
     @State private var confirmReal = false
     @State private var feedback: FeedbackDraft?
 
@@ -36,7 +37,13 @@ struct HubPage: View {
             .padding(.bottom, Theme.Space.section)
         }
         .background(Theme.Palette.background.ignoresSafeArea())
-        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "搜功能，比如：报销")
+        .searchable(
+            text: $query, isPresented: $searching, placement: .navigationBarDrawer(displayMode: .automatic),
+            prompt: "搜功能，比如：报销"
+        )
+        // 搜功能时说一句让开：不然键盘上面叠着两个输入框（和感悟、每一笔一样；2026-11-05 走一遍时看到的）
+        .onChange(of: searching) { _, now in model.pageSearching = now }
+        .onDisappear { model.pageSearching = false }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {

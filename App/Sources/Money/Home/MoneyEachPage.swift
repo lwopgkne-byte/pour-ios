@@ -190,6 +190,7 @@ struct MoneyEachPage: View {
             } label: {
                 Label("删除", systemImage: Theme.Symbol.delete)
             }
+            .tint(Theme.Palette.bad)
             if let done = settleTitle(item) {
                 Button(done) { settle(item) }.tint(Theme.Palette.accentFill)
             }
