@@ -64,31 +64,32 @@ struct MoodWhenCard: View {
     var body: some View {
         let most = Double(max(1, when.parts.map { max($0.good, $0.bad) }.max() ?? 1))
         PageSection(title: "一天里什么时候", meta: "只算说了几点的 \(when.timed) 刻") {
-        VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            HStack(alignment: .bottom, spacing: Theme.Space.regular) {
-                ForEach(when.parts, id: \.name) { part in
-                    VStack(spacing: Theme.Space.tight) {
-                        HStack(alignment: .bottom, spacing: Theme.Space.tight) {
-                            // 照原型：好时刻粉（心情的颜色）、不好的灰
-                            bar(Double(part.good) / most, Theme.Mood.fill(4))
-                            bar(Double(part.bad) / most, Theme.Palette.tertiaryLabel)
+            VStack(alignment: .leading, spacing: Theme.Space.medium) {
+                HStack(alignment: .bottom, spacing: Theme.Space.regular) {
+                    ForEach(when.parts, id: \.name) { part in
+                        VStack(spacing: Theme.Space.tight) {
+                            HStack(alignment: .bottom, spacing: Theme.Space.tight) {
+                                // 照原型：好时刻粉（心情的颜色）、不好的灰
+                                bar(Double(part.good) / most, Theme.Mood.fill(4))
+                                bar(Double(part.bad) / most, Theme.Palette.tertiaryLabel)
+                            }
+                            .frame(height: Theme.Size.curve * 1.5, alignment: .bottom)
+                            Text(part.name).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.label)
+                            // 上下两行：四段一样宽，放不下一行
+                            VStack(spacing: 0) {
+                                Text("好 \(part.good)")
+                                Text("不好 \(part.bad)")
+                            }
+                            .font(Theme.Typeface.caption).monospacedDigit().foregroundStyle(
+                                Theme.Palette.secondaryLabel)
                         }
-                        .frame(height: Theme.Size.curve * 1.5, alignment: .bottom)
-                        Text(part.name).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.label)
-                        // 上下两行：四段一样宽，放不下一行
-                        VStack(spacing: 0) {
-                            Text("好 \(part.good)")
-                            Text("不好 \(part.bad)")
-                        }
-                        .font(Theme.Typeface.caption).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("\(part.name)：好时刻 \(part.good) 个，不好的时刻 \(part.bad) 个"))
                     }
-                    .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("\(part.name)：好时刻 \(part.good) 个，不好的时刻 \(part.bad) 个"))
                 }
+                Text(note).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
-            Text(note).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-        }
         }
     }
 
@@ -111,33 +112,34 @@ struct MoodDomainsCard: View {
     var body: some View {
         let most = Double(max(1, moments.rows.map(\.count).max() ?? 1))
         PageSection(title: "好时刻多在做什么", meta: "\(moments.rows.map(\.count).reduce(0, +)) 个 · 点一行看那几刻") {
-        VStack(alignment: .leading, spacing: Theme.Space.small) {
-            ForEach(moments.rows, id: \.key) { row in
-                Button {
-                    withAnimation(Theme.Motion.standard) { open = open == row.key ? nil : row.key }
-                } label: {
-                    HStack(spacing: Theme.Space.small) {
-                        Circle().fill(Theme.tag(row.color).solid).frame(width: Theme.Size.dot, height: Theme.Size.dot)
-                        Text(row.name).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
-                            .frame(minWidth: Theme.Size.touch * 1.5, alignment: .leading)
-                        GeometryReader { proxy in
-                            Capsule().fill(Theme.tag(row.color).solid)
-                                .frame(width: max(Theme.Size.bar, proxy.size.width * Double(row.count) / most))
+            VStack(alignment: .leading, spacing: Theme.Space.small) {
+                ForEach(moments.rows, id: \.key) { row in
+                    Button {
+                        withAnimation(Theme.Motion.standard) { open = open == row.key ? nil : row.key }
+                    } label: {
+                        HStack(spacing: Theme.Space.small) {
+                            Circle().fill(Theme.tag(row.color).solid).frame(
+                                width: Theme.Size.dot, height: Theme.Size.dot)
+                            Text(row.name).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                                .frame(minWidth: Theme.Size.touch * 1.5, alignment: .leading)
+                            GeometryReader { proxy in
+                                Capsule().fill(Theme.tag(row.color).solid)
+                                    .frame(width: max(Theme.Size.bar, proxy.size.width * Double(row.count) / most))
+                            }
+                            .frame(height: Theme.Size.bar)
+                            Text("\(row.count)").font(Theme.Typeface.subheadline).monospacedDigit()
+                                .foregroundStyle(Theme.Palette.secondaryLabel)
                         }
-                        .frame(height: Theme.Size.bar)
-                        Text("\(row.count)").font(Theme.Typeface.subheadline).monospacedDigit()
-                            .foregroundStyle(Theme.Palette.secondaryLabel)
+                        .frame(minHeight: Theme.Size.touch).contentShape(Rectangle())
                     }
-                    .frame(minHeight: Theme.Size.touch).contentShape(Rectangle())
+                    .buttonStyle(.plain)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityValue(Text(open == row.key ? "展开了" : "收着"))
+                    if open == row.key { MoodQuotes(list: row.moments) }
                 }
-                .buttonStyle(.plain)
-                .accessibilityElement(children: .combine)
-                .accessibilityValue(Text(open == row.key ? "展开了" : "收着"))
-                if open == row.key { MoodQuotes(list: row.moments) }
+                Text("\(moments.sentence) · 点一行看那几刻").font(Theme.Typeface.footnote)
+                    .foregroundStyle(Theme.Palette.secondaryLabel)
             }
-            Text("\(moments.sentence) · 点一行看那几刻").font(Theme.Typeface.footnote)
-                .foregroundStyle(Theme.Palette.secondaryLabel)
-        }
         }
     }
 }
@@ -183,28 +185,28 @@ struct MoodFeelingsCard: View {
 
     var body: some View {
         PageSection(title: "你说出过的感受", meta: "\(feelings.words.count) 种") {
-        VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            // 每个胶囊点按区域 44 点高（胶囊本身不变）：一行和一行之间就不用再空
-            PourFlowLayout(spacing: Theme.Space.small, lineSpacing: 0) {
-                ForEach(feelings.words, id: \.word) { word in
-                    if (word.moments ?? []).isEmpty {
-                        capsule(word, shown: false).frame(minHeight: Theme.Size.touch)
-                    } else {
-                        button(word)
+            VStack(alignment: .leading, spacing: Theme.Space.medium) {
+                // 每个胶囊点按区域 44 点高（胶囊本身不变）：一行和一行之间就不用再空
+                PourFlowLayout(spacing: Theme.Space.small, lineSpacing: 0) {
+                    ForEach(feelings.words, id: \.word) { word in
+                        if (word.moments ?? []).isEmpty {
+                            capsule(word, shown: false).frame(minHeight: Theme.Size.touch)
+                        } else {
+                            button(word)
+                        }
                     }
                 }
+                if let word = feelings.words.first(where: { $0.word == open }), let list = word.moments, !list.isEmpty {
+                    Text(
+                        word.count > list.count
+                            ? "说「\(word.word)」的 \(word.count) 次里，最近的 \(list.count) 次" : "说「\(word.word)」的那几次"
+                    )
+                    .font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
+                    MoodQuotes(list: list)
+                }
+                Text(canOpen ? "\(feelings.sentence) · 点一个看那几次" : feelings.sentence)
+                    .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
-            if let word = feelings.words.first(where: { $0.word == open }), let list = word.moments, !list.isEmpty {
-                Text(
-                    word.count > list.count
-                        ? "说「\(word.word)」的 \(word.count) 次里，最近的 \(list.count) 次" : "说「\(word.word)」的那几次"
-                )
-                .font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
-                MoodQuotes(list: list)
-            }
-            Text(canOpen ? "\(feelings.sentence) · 点一个看那几次" : feelings.sentence)
-                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-        }
         }
     }
 

@@ -50,13 +50,13 @@ struct MicButton: View {
         .frame(width: Theme.Size.touch, height: Theme.Size.touch)
         .contentShape(Circle())
         .gesture(press)
-            .animation(Theme.Motion.quick, value: holding)
-            .accessibilityElement()
-            .accessibilityLabel(Text("说话"))
-            .accessibilityHint(Text("点一下说，说完了可以改；也可以按住说，松开就发"))
-            .accessibilityAddTraits(.isButton)
-            .accessibilityAction { tap() }
-            .accessibilityIdentifier("pourbar.mic")
+        .animation(Theme.Motion.quick, value: holding)
+        .accessibilityElement()
+        .accessibilityLabel(Text("说话"))
+        .accessibilityHint(Text("点一下说，说完了可以改；也可以按住说，松开就发"))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { tap() }
+        .accessibilityIdentifier("pourbar.mic")
     }
 
     /// 一个手势管两种：按下 0.35 秒还没松开就是「按住说」，在那之前松开是「点一下」

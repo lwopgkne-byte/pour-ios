@@ -103,13 +103,13 @@ struct MoodChangesCard: View {
         PageSection(title: "变化") {
             VStack(alignment: .leading, spacing: Theme.Space.small) {
                 ForEach(changes, id: \.key) { change in
-                VStack(alignment: .leading, spacing: Theme.Space.tight) {
-                    Text(change.text).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
-                    MoodSpark(points: change.points, from: change.from, to: change.to)
-                    Text(change.sub).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-                }
-                .padding(.vertical, Theme.Space.tight)
-                .accessibilityElement(children: .combine)
+                    VStack(alignment: .leading, spacing: Theme.Space.tight) {
+                        Text(change.text).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                        MoodSpark(points: change.points, from: change.from, to: change.to)
+                        Text(change.sub).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    }
+                    .padding(.vertical, Theme.Space.tight)
+                    .accessibilityElement(children: .combine)
                 }
             }
         }

@@ -144,7 +144,8 @@ public struct RoundAction: View {
                     .shadow(color: filled ? .clear : Theme.Palette.shadowNear, radius: 1, y: 1)
                     .shadow(
                         color: filled ? .clear : Theme.Palette.shadowFar, radius: Theme.Space.tight,
-                        y: Theme.Space.hairline)
+                        y: Theme.Space.hairline
+                    )
                     .overlay(alignment: .topTrailing) {
                         if let badge, badge > 0 {
                             Text("\(badge)").font(Theme.Typeface.caption).monospacedDigit()
