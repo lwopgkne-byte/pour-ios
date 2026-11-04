@@ -86,35 +86,89 @@ struct KnownBlock<Content: View, Foot: View>: View {
     }
 }
 
-/// 一条：上面一句话，下面一行灰字；整行能点。确认过的句子后面跟一个淡淡的 ✓
+/// 一行右边直接点的（照原型「Pour 认识的」）：常做的事、作息是「对 / 不对」，常去的地方是「不用列出」
+enum KnownInline {
+    case judge(right: Bool, toggleRight: () -> Void, wrong: () -> Void)
+    case unlist(() -> Void)
+}
+
+/// 一条：上面一句话，下面一行灰字；点字那一块看依据。确认过的句子后面跟一个淡淡的 ✓；
+/// 右边是箭头，或者直接点的「对 / 不对」「不用列出」
 struct KnownRow: View {
     let title: AttributedString
     var meta: String?
     var confirmed = false
+    var inline: KnownInline?
     let open: () -> Void
 
     var body: some View {
-        Button(action: open) {
-            HStack(spacing: Theme.Space.small) {
-                VStack(alignment: .leading, spacing: Theme.Space.hairline) {
-                    Text(title + (confirmed ? AttributedString(" ✓") : AttributedString())).font(Theme.Typeface.body)
+        HStack(spacing: Theme.Space.small) {
+            Button(action: open) {
+                HStack(spacing: Theme.Space.small) {
+                    VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+                        Text(title + (confirmed ? AttributedString(" ✓") : AttributedString())).font(
+                            Theme.Typeface.body
+                        )
                         .foregroundStyle(Theme.Palette.label).multilineTextAlignment(.leading)
-                    if let meta, !meta.isEmpty {
-                        Text(meta).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-                            .monospacedDigit().multilineTextAlignment(.leading)
+                        if let meta, !meta.isEmpty {
+                            Text(meta).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                                .monospacedDigit().multilineTextAlignment(.leading)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    if inline == nil {
+                        Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
+                            .foregroundStyle(Theme.Palette.tertiaryLabel)
                     }
                 }
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
-                    .foregroundStyle(Theme.Palette.tertiaryLabel)
+                .padding(.vertical, Theme.Space.small)
+                .frame(maxWidth: .infinity, minHeight: Theme.Size.touch, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .padding(.vertical, Theme.Space.small)
-            .frame(maxWidth: .infinity, minHeight: Theme.Size.touch, alignment: .leading)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityHint(Text(confirmed ? "你确认过" : ""))
+            switch inline {
+            case .judge(let right, let toggleRight, let wrong):
+                small("对", lit: right, action: toggleRight)
+                small("不对", lit: false, action: wrong)
+            case .unlist(let unlist):
+                ThemeTextButton("不用列出", font: Theme.Typeface.footnoteSemibold, action: unlist)
+            case nil:
+                EmptyView()
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityHint(Text(confirmed ? "你确认过" : ""))
+    }
+
+    /// 原型的小胶囊（浅墨底；「对」点过的是深色底）
+    private func small(_ title: String, lit: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title).font(Theme.Typeface.footnoteMedium)
+                .foregroundStyle(lit ? Theme.Palette.onAccent : Theme.Palette.label)
+                .padding(.horizontal, Theme.Space.medium).frame(minHeight: Theme.Size.badge + Theme.Space.snug)
+                .background(lit ? Theme.Palette.label : Theme.Palette.fill, in: Capsule())
+                .frame(minHeight: Theme.Size.touch)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(PressScale())
+        .accessibilityAddTraits(lit ? .isSelected : [])
+    }
+}
+
+extension KnownStore {
+    /// 行内「对 / 不对」（和点开以后的一样：不对有轻提示能撤销）
+    func judge(_ key: String, mark: String?, basis: String, sentence: String, _ model: AppModel) -> KnownInline {
+        let right = mark == "right"
+        return .judge(
+            right: right,
+            toggleRight: { self.mark(key, right ? nil : "right", basis: basis, sentence: sentence, model) },
+            wrong: { self.markWrong(key, basis: basis, sentence: sentence, model, toast: "不再显示「\(sentence)」") })
+    }
+
+    /// 说不对 / 不用列出：轻提示带撤销
+    func markWrong(_ key: String, basis: String, sentence: String, _ model: AppModel, toast: String) {
+        mark(key, "wrong", basis: basis, sentence: sentence, model)
+        model.toast(toast, action: "撤销") { self.mark(key, nil, basis: basis, sentence: sentence, model) }
     }
 }
 
@@ -150,8 +204,12 @@ struct KnownSleep: View {
                 if let sleep = about.sleep {
                     KnownRow(
                         title: AttributedString(Show.sleepSentence(sleep)), meta: Show.sleepMeta(sleep),
-                        confirmed: sleep.mark == "right"
+                        confirmed: sleep.mark == "right",
+                        inline: store.judge(
+                            sleep.key, mark: sleep.mark, basis: sleep.basis, sentence: Show.sleepSentence(sleep), model)
                     ) { store.open("sleep") }
+                    // 照原型：下面一晚一条线，看得出哪几晚和平时不一样
+                    if !sleep.nights.isEmpty { KnownNights(sleep: sleep) { store.open("sleep") } }
                 }
             } foot: {
                 if let sleep = about.sleep { Text("根据最近 4 周的 \(sleep.nights.count) 个晚上") }
@@ -176,7 +234,10 @@ struct KnownHabits: View {
                 ForEach(habits, id: \.key) { habit in
                     KnownRow(
                         title: AttributedString(habit.name), meta: Show.habitMeta(habit),
-                        confirmed: habit.mark == "right"
+                        confirmed: habit.mark == "right",
+                        inline: store.judge(
+                            habit.key, mark: habit.mark, basis: habit.basis,
+                            sentence: "\(habit.name)：\(Show.habitMeta(habit))", model)
                     ) {
                         store.open(habit.key)
                     }
@@ -249,7 +310,12 @@ struct KnownPlaces: View {
                 ForEach(places, id: \.key) { place in
                     KnownRow(
                         title: AttributedString(place.name), meta: Show.placeMeta(place),
-                        confirmed: place.mark == "right"
+                        confirmed: place.mark == "right",
+                        inline: .unlist {
+                            store.markWrong(
+                                place.key, basis: place.basis, sentence: place.name, model,
+                                toast: "「\(place.name)」不用列出了")
+                        }
                     ) {
                         store.open(place.key)
                     }

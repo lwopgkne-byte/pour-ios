@@ -7,7 +7,8 @@ final class SettingsUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    /// 3.0（第 10 步）：系统设置那样的分组列表，第一屏看得到全部分组；点一行推进那一页（大模型：手机上不能填密钥）
+    /// 3.0（第 10 步）：系统设置那样的分组列表；3.0.1 首页照原型——提醒直接开关、每一行写着现在的值；
+    /// 点一行推进那一页（大模型：手机上不能填密钥）
     @MainActor func testSettingsPage() throws {
         let app = XCUIApplication()
         app.launchArguments += ["-uiTest"]
@@ -19,11 +20,18 @@ final class SettingsUITests: XCTestCase {
         XCTAssertTrue(reminders.waitForExistence(timeout: 5), "设置没打开")
         RunLoop.current.run(until: Date().addingTimeInterval(2))
         attach(app, "设置-分组")
-        for group in ["提醒和通知", "记录", "隐私和数据", "AI 和用量", "这台手机"] {
+        for group in ["提醒和通知", "记录"] {
             XCTAssertTrue(app.staticTexts[group].exists, "第一屏没有「\(group)」")
         }
+        // 照原型：常用的开关就在第一层
+        for name in ["每日回顾", "晚上问一句", "预警", "周报和月报"] {
+            XCTAssertTrue(app.switches[name].exists, "第一层没有「\(name)」的开关")
+        }
         try AppAudit.run(app, name: "设置-分组")
-        app.buttons["settings.row.llm"].tap()
+        // 首页照原型变长了：下面几行先滚到再点（列表是懒加载的，不在屏幕上的还没有）
+        let llm = app.buttons["settings.row.llm"]
+        app.reveal(llm)
+        llm.tap()
         // 密钥那一行：名称下面一句「在电脑上用「Pour 设置」填」（和名称一起念）
         let keyHint = app.staticTexts.matching(NSPredicate(format: "label CONTAINS '在电脑上用「Pour 设置」填'")).firstMatch
         XCTAssertTrue(keyHint.waitForExistence(timeout: 5), "手机上不该能填密钥")
@@ -39,7 +47,7 @@ final class SettingsUITests: XCTestCase {
             attach(app, "设置-\(row)")
             try AppAudit.run(app, name: "设置-\(row)")
             app.navigationBars.buttons.firstMatch.tap()
-            XCTAssertTrue(reminders.waitForExistence(timeout: 5), "返回没回到分组列表")
+            XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 5), "返回没回到分组列表")
         }
     }
 
@@ -54,12 +62,12 @@ final class SettingsUITests: XCTestCase {
         app.buttons["hub.settings"].tap()
         let reminders = app.buttons["settings.row.reminders"]
         XCTAssertTrue(reminders.waitForExistence(timeout: 5), "设置没打开")
-        for row in ["categories", "privacy", "phone"] {
+        for row in ["categories", "health", "phone"] {
             open(row, in: app)
             attach(app, "设置-\(row)")
             try AppAudit.run(app, name: "设置-\(row)")
             app.navigationBars.buttons.firstMatch.tap()
-            XCTAssertTrue(reminders.waitForExistence(timeout: 5), "返回没回到分组列表")
+            XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout: 5), "返回没回到分组列表")
         }
         open("llm", in: app)
         peek("settings.llm.log", title: "处理日志", in: app)

@@ -196,45 +196,53 @@ struct MoneyFrequentSection: View {
     let rows: [API.FrequentRow]
     let today: String
 
+    /// 照原型：一样一张卡（只有第一张上面写「常买的」）
     var body: some View {
-        Section {
-            ForEach(rows, id: \.name) { row($0) }
-        } header: {
-            MoneySectionHeader("常买的")
+        ForEach(Array(rows.enumerated()), id: \.element.name) { index, item in
+            Section {
+                row(item)
+            } header: {
+                if index == 0 { MoneySectionHeader("常买的") }
+            }
         }
     }
 
     private func row(_ row: API.FrequentRow) -> some View {
         let every = row.every >= 14 ? "大约 \(Int((Double(row.every) / 7).rounded())) 周买一次" : "大约 \(row.every) 天买一次"
-        let next = Show.monthDay(row.next)
         return VStack(alignment: .leading, spacing: Theme.Space.small) {
             HStack(alignment: .firstTextBaseline) {
                 Text(row.name).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
                 Spacer()
                 Text(every).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
-            HStack(spacing: Theme.Space.small) {
+            // 最近几次：一个一个小胶囊「9月2日 ¥39」（原型）
+            PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) {
                 ForEach(row.recent, id: \.day) { buy in
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(Show.monthDay(buy.day)).font(Theme.Typeface.caption)
-                            .foregroundStyle(Theme.Palette.secondaryLabel)
-                        Text(Show.yuan(buy.amount, hide: hide)).font(Theme.Typeface.subheadline)
-                            .foregroundStyle(Theme.Palette.label)
-                    }
-                    .monospacedDigit()
-                    .padding(.vertical, Theme.Space.tight).padding(.horizontal, Theme.Space.small)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Theme.Palette.background, in: Theme.rounded(Theme.Corner.tile))
-                    .accessibilityElement(children: .combine)
+                    Text("\(Show.monthDay(buy.day)) \(Show.yuan(buy.amount, hide: hide))")
+                        .font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(Theme.Palette.label)
+                        .padding(.horizontal, Theme.Space.medium).frame(minHeight: Theme.Size.badge + Theme.Space.snug)
+                        .background(Theme.Palette.fill, in: Capsule())
                 }
             }
-            Text(LocalizedStringKey(row.next >= today ? "按平常，**\(next)前后**又该买了" : "按平常，**\(next)**就该买了"))
-                .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
-            if let price = row.price {
-                Text(Show.maskYuan(price, hide: hide)).font(Theme.Typeface.footnote)
-                    .foregroundStyle(Theme.Palette.secondaryLabel)
-            }
+            nextLine(row)
         }
         .padding(.vertical, Theme.Space.small)
+    }
+
+    /// 「按平常，11月9日前后又该买了 · 比 9 月贵了 ¥11」：贵了那半句琥珀色（原型）
+    private func nextLine(_ row: API.FrequentRow) -> some View {
+        let next = Show.monthDay(row.next)
+        var line = AttributedString("按平常，")
+        var day = AttributedString(row.next >= today ? "\(next)前后" : next)
+        day.font = Theme.Typeface.subheadline.weight(.semibold)
+        line += day
+        line += AttributedString(row.next >= today ? "又该买了" : "就该买了")
+        if let price = row.price {
+            var more = AttributedString(" · \(Show.maskYuan(price, hide: hide))")
+            more.foregroundColor = Theme.Palette.warn
+            line += more
+        }
+        return Text(line).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }

@@ -56,21 +56,22 @@ struct MoodAnalysisPage: View {
     }
 }
 
-/// 一天里什么时候：早上、中午、下午、晚上四段，每段两根柱子（好时刻绿、不好的时刻黄），下面写「好 5 · 不好 0」；
+/// 一天里什么时候：早上、中午、下午、晚上四段，每段两根柱子（好时刻粉、不好的时刻灰，照原型），下面写「好 5 · 不好 0」；
 /// 只算说了几点的几刻
 struct MoodWhenCard: View {
     let when: API.MeWhenMood
 
     var body: some View {
         let most = Double(max(1, when.parts.map { max($0.good, $0.bad) }.max() ?? 1))
+        PageSection(title: "一天里什么时候", meta: "只算说了几点的 \(when.timed) 刻") {
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            MoodCardHeader("一天里什么时候")
             HStack(alignment: .bottom, spacing: Theme.Space.regular) {
                 ForEach(when.parts, id: \.name) { part in
                     VStack(spacing: Theme.Space.tight) {
                         HStack(alignment: .bottom, spacing: Theme.Space.tight) {
-                            bar(Double(part.good) / most, Theme.Palette.good)
-                            bar(Double(part.bad) / most, Theme.Palette.warn)
+                            // 照原型：好时刻粉（心情的颜色）、不好的灰
+                            bar(Double(part.good) / most, Theme.Mood.fill(4))
+                            bar(Double(part.bad) / most, Theme.Palette.tertiaryLabel)
                         }
                         .frame(height: Theme.Size.curve * 1.5, alignment: .bottom)
                         Text(part.name).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.label)
@@ -88,7 +89,7 @@ struct MoodWhenCard: View {
             }
             Text(note).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
-        .themeCard()
+        }
     }
 
     private var note: String {
@@ -109,8 +110,8 @@ struct MoodDomainsCard: View {
 
     var body: some View {
         let most = Double(max(1, moments.rows.map(\.count).max() ?? 1))
+        PageSection(title: "好时刻多在做什么", meta: "\(moments.rows.map(\.count).reduce(0, +)) 个 · 点一行看那几刻") {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
-            MoodCardHeader("好时刻多在做什么")
             ForEach(moments.rows, id: \.key) { row in
                 Button {
                     withAnimation(Theme.Motion.standard) { open = open == row.key ? nil : row.key }
@@ -137,7 +138,7 @@ struct MoodDomainsCard: View {
             Text("\(moments.sentence) · 点一行看那几刻").font(Theme.Typeface.footnote)
                 .foregroundStyle(Theme.Palette.secondaryLabel)
         }
-        .themeCard()
+        }
     }
 }
 
@@ -181,8 +182,8 @@ struct MoodFeelingsCard: View {
     ]
 
     var body: some View {
+        PageSection(title: "你说出过的感受", meta: "\(feelings.words.count) 种") {
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            MoodCardHeader("你说出过的感受")
             // 每个胶囊点按区域 44 点高（胶囊本身不变）：一行和一行之间就不用再空
             PourFlowLayout(spacing: Theme.Space.small, lineSpacing: 0) {
                 ForEach(feelings.words, id: \.word) { word in
@@ -204,7 +205,7 @@ struct MoodFeelingsCard: View {
             Text(canOpen ? "\(feelings.sentence) · 点一个看那几次" : feelings.sentence)
                 .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
-        .themeCard()
+        }
     }
 
     /// 服务器 2.19.0 以前不带那几次：胶囊照旧，不能点

@@ -45,7 +45,8 @@ struct AboutTalkView: View {
                     VStack(spacing: 0) { ForEach(page.themes, id: \.key) { theme($0) } }
                 }
             }
-            if !page.words.isEmpty { AboutCardSection(title: "小词里的你") { words(page.words) } }
+            // 照原型：小词是一张张白卡（两列），外面不再套一张卡
+            if !page.words.isEmpty { AboutCardSection(title: "小词里的你", card: false) { words(page.words) } }
             if !page.chains.isEmpty {
                 AboutCardSection(title: "连锁反应") {
                     VStack(spacing: Theme.Space.medium) { ForEach(page.chains, id: \.key) { ChainCard(chain: $0) } }
@@ -144,12 +145,12 @@ private struct WordCard: View {
             } label: {
                 VStack(alignment: .leading, spacing: Theme.Space.tight) {
                     MeNote(word.title)
-                    Text(word.label).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                    Text(word.label).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
                     Text(word.value).font(Theme.Typeface.largeTitle).foregroundStyle(Theme.Palette.label)
                 }
-                .padding(Theme.Space.regular)
+                .padding(Theme.Space.inset)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: Theme.Corner.chip).fill(Theme.Palette.fill))
+                .background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.smallCard))
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)

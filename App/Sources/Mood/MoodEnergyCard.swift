@@ -16,23 +16,25 @@ struct MoodEnergyCard: View {
     private static let dims = [("day", "日"), ("week", "周"), ("month", "月"), ("year", "年")]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            MoodCardHeader("心情和精力")
-            Picker("按什么看", selection: $dim) {
-                ForEach(Self.dims, id: \.0) { key, name in Text(name).tag(key) }
-            }
-            .pickerStyle(.segmented)
-            Text(caption).font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
+        PageSection(title: "心情和精力") {
+            VStack(alignment: .leading, spacing: Theme.Space.medium) {
+                Picker("按什么看", selection: $dim) {
+                    ForEach(Self.dims, id: \.0) { key, name in Text(name).tag(key) }
+                }
+                .pickerStyle(.segmented)
+                Text(caption).font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(
+                    Theme.Palette.secondaryLabel
+                )
                 .lineLimit(2)
-            if let mood, mood.points.contains(where: { $0.value != nil }) {
-                chart(mood)
-            } else {
-                Text("这段时间还没说到心情。").font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
+                if let mood, mood.points.contains(where: { $0.value != nil }) {
+                    chart(mood)
+                } else {
+                    Text("这段时间还没说到心情。").font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
+                }
+                Text("从很差到很好，是 AI 从你的话里听出来的；精力只在你说到时才有。按住拖动看每一个点。")
+                    .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
             }
-            Text("从很差到很好，是 AI 从你的话里听出来的；精力只在你说到时才有。按住拖动看每一个点。")
-                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
-        .themeCard()
         .task(id: "\(dim)-\(model.dataVersion)") {
             picked = nil
             mood = try? await model.client.trend("mood:mood", dim: dim)

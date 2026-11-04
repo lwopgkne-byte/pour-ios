@@ -199,9 +199,19 @@ final class MoneyUITests: XCTestCase {
         app.openTile("money")
         XCTAssertTrue(app.buttons["遮住金额"].waitForExistence(timeout: 5), "钱没打开")
         let thing = app.buttons.matching(NSPredicate(format: "label BEGINSWITH '空气炸锅'")).firstMatch
-        scroll(app, to: thing)
+        // 值不值是横着滑的一排（照原型，一张 236 宽）：先滚到那一排的第一张（在屏幕里），再在那一排上往左拨到这张露出来
+        let cards = app.buttons.matching(NSPredicate(format: "label CONTAINS '你说值' OR label CONTAINS '你说后悔'"))
+        scroll(app, to: cards.firstMatch)
+        let origin = app.coordinate(withNormalizedOffset: .zero)
+        for _ in 0..<6 where thing.frame.maxX > app.frame.width - 8 {
+            let row = cards.firstMatch.frame.midY
+            origin.withOffset(CGVector(dx: app.frame.width * 0.85, dy: row)).press(
+                forDuration: 0.05, thenDragTo: origin.withOffset(CGVector(dx: app.frame.width * 0.15, dy: row)),
+                withVelocity: .slow, thenHoldForDuration: 0.3)
+        }
         thing.tap()
-        XCTAssertTrue(app.navigationBars["一样东西"].waitForExistence(timeout: 5), "一样东西没打开")
+        // 照原型：大标题是那样东西的名字
+        XCTAssertTrue(app.navigationBars["空气炸锅"].waitForExistence(timeout: 5), "一样东西没打开")
         XCTAssertTrue(app.staticTexts["每次 ¥33"].waitForExistence(timeout: 3), "没写每次多少钱")
         settle()
         audit(app, "一样东西")

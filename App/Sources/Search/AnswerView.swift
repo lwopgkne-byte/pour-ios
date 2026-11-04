@@ -6,8 +6,9 @@ import SwiftUI
 /// 下面是图表、「查看完整报告」、来源（原话片段和日期，点一下在笔记库里看）
 struct AnswerView: View {
     @Environment(AppModel.self) private var model
-    @Environment(\.dynamicTypeSize) private var typeSize
     let answer: API.Answer
+    /// 正文的字：搜索里 17，说一句的白气泡里 16（原型）
+    var font = Theme.Typeface.body
 
     private var sources: [API.AnswerSource] { answer.sources ?? [] }
 
@@ -27,7 +28,7 @@ struct AnswerView: View {
                     }
                 }
             }
-            .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+            .font(font).foregroundStyle(Theme.Palette.label)
             .environment(
                 \.openURL,
                 OpenURLAction { url in
@@ -59,8 +60,9 @@ struct AnswerView: View {
                         minHeight: Theme.Space.regular + Theme.Space.tight
                     )
                     .background(Circle().fill(Theme.Palette.fill))
+                // 3.0.1 的气泡窄了（最宽八成）：原话放不下就折行，不截成「…」
                 Text(source.text).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-                    .lineLimit(typeSize > .large ? nil : 1)
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Text(Show.dayTitle(source.day, today: model.today)).font(Theme.Typeface.footnote).foregroundStyle(
                     Theme.Palette.secondaryLabel

@@ -3,15 +3,25 @@ import PourDesign
 import SwiftUI
 
 /// 回顾里「这一天的样子」（产品主人 2026-10-21：一天过完了才知道做了什么，总结放在回顾里，不放在画布上）：
-/// 一句话总结 + 关键数字的小块（和平常比的那句写在下面），底色是这一天的心情（没记心情是平的暖灰，不猜）。
-/// 卡上的字只用主字色：心情的底色上次要色不稳（ThemeColorTests.moodWashText）
+/// 一句话总结（宋体，底色是这一天的心情，没记心情是平的暖灰，不猜）+ 下面一张白卡里关键数字的小块（和平常比的那句写在下面）。
+/// 心情底色上的字只用主字色：次要色不稳（ThemeColorTests.moodWashText）
 struct DayLook: View {
     let overview: String
     let numbers: [API.KeyNumber]
     /// 这一天每条心情的五级
     let levels: [Double]
 
+    /// 照原型：上面心情底色的一张，写一句话（宋体）；关键数字另起一张白卡，浅灰的小块两列
     var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Space.cardGap) {
+            hero
+            if !numbers.isEmpty {
+                tiles.themeCard(radius: Theme.Corner.smallCard, padding: Theme.Space.medium)
+            }
+        }
+    }
+
+    private var hero: some View {
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
             Label("这一天的样子", systemImage: "sparkles").font(Theme.Typeface.footnoteSemibold)
                 .foregroundStyle(Theme.Palette.label)
@@ -19,10 +29,9 @@ struct DayLook: View {
                 .background(Theme.Palette.statFill, in: Theme.rounded(Theme.Corner.tile))
                 .accessibilityAddTraits(.isHeader)
             if !overview.isEmpty {
-                Text(Show.spaced(overview)).font(Theme.Typeface.summary).foregroundStyle(Theme.Palette.label)
-                    .lineSpacing(Theme.Leading.summary)
+                Text(Show.spaced(overview)).font(Theme.Typeface.quote).foregroundStyle(Theme.Palette.label)
+                    .lineSpacing(Theme.Leading.quote)
             }
-            if !numbers.isEmpty { tiles }
         }
         .padding(Theme.Space.regular)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -31,9 +40,9 @@ struct DayLook: View {
                 Theme.Palette.card
                 MoodWash(Self.tone(levels))
             }
-            .clipShape(Theme.rounded(Theme.Corner.hero))
+            .clipShape(Theme.rounded(Theme.Corner.smallCard))
         }
-        .themeEdge(radius: Theme.Corner.hero)
+        .themeEdge(radius: Theme.Corner.smallCard)
         .accessibilityElement(children: .contain)
     }
 
@@ -57,17 +66,19 @@ struct DayLook: View {
 
     private func tile(_ number: API.KeyNumber) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.hairline) {
-            Text(Show.spaced(number.label)).font(Theme.Typeface.caption).foregroundStyle(Theme.Palette.label)
+            Text(Show.spaced(number.label)).font(Theme.Typeface.caption).foregroundStyle(
+                Theme.Palette.secondaryLabel)
             FigureText(
                 number.parts.map { ($0.number, $0.unit) }, numberFont: Theme.Typeface.heroMetric,
                 unitFont: Theme.Typeface.caption, unitColor: Theme.Palette.label)
             if let compare = number.compare {
-                Text(Show.spaced(compare)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.label)
+                Text(Show.spaced(compare)).font(Theme.Typeface.footnote).foregroundStyle(
+                    Theme.Palette.secondaryLabel)
             }
         }
         .padding(.horizontal, Theme.Space.medium).padding(.vertical, Theme.Space.small)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.Palette.statFill, in: Theme.rounded(Theme.Corner.stat))
+        .background(Theme.Palette.background, in: Theme.rounded(Theme.Corner.stat))
         .accessibilityElement(children: .combine)
     }
 

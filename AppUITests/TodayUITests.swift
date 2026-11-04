@@ -128,7 +128,9 @@ final class TodayUITests: XCTestCase {
         let input = app.descendants(matching: .any)["pourbar.input"]
         input.tap()
         input.typeText("还没想好")
-        app.buttons["pourbar.chat"].tap()
+        // 打字时对话就拉上来了：右上角 × 收起，左边「对话」再打开
+        app.buttons["chat.close"].tap()
+        XCTAssertTrue(app.buttons["pourbar.chat"].waitForExistence(timeout: 3), "对话没收起来")
         app.buttons["pourbar.chat"].tap()
         // 键盘的联想可能在后面补几个字：前面的草稿在就行
         XCTAssertTrue((input.value as? String)?.hasPrefix("还没想好") == true, "草稿没了")
@@ -148,7 +150,8 @@ final class TodayUITests: XCTestCase {
         let close = app.buttons["story.close"]
         XCTAssertTrue(close.waitForExistence(timeout: 5), "没打开那一天的回顾")
         close.tap()
-        XCTAssertEqual(app.buttons["pourbar.chat"].label, "展开对话", "对话没收起来")
+        XCTAssertTrue(app.buttons["pourbar.chat"].waitForExistence(timeout: 3), "对话没收起来")
+        XCTAssertFalse(app.buttons["chat.close"].exists, "对话没收起来")
     }
 
     /// 斜杠命令：输入「/」列出命令，点一个填进输入框；「/撤销」撤掉最近那一段整理出的记录（不发给 AI）
@@ -199,13 +202,12 @@ final class TodayUITests: XCTestCase {
         return XCTWaiter().wait(for: [shown], timeout: 3) == .completed
     }
 
-    /// 收起对话，看画布
+    /// 收起对话（弹层右上角 ×），看画布
     @MainActor
     private func closeChat(_ app: XCUIApplication) {
-        let toggle = app.buttons["pourbar.chat"]
-        if toggle.label == "收起对话" { toggle.tap() }
-        let closed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == '展开对话'"), object: toggle)
-        XCTAssertEqual(XCTWaiter().wait(for: [closed], timeout: 3), .completed, "对话没收起来")
+        let close = app.buttons["chat.close"]
+        if close.exists { close.tap() }
+        XCTAssertTrue(app.buttons["pourbar.chat"].waitForExistence(timeout: 3), "对话没收起来")
         settle()
     }
 

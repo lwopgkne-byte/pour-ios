@@ -9,7 +9,7 @@ struct EvalSettings: View {
 
     var body: some View {
         let client = model.client
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Theme.Space.large) {
             Loaded(
                 load: { () async throws(APIError) in try await client.growth() },
                 content: { growth, _ in
@@ -18,7 +18,7 @@ struct EvalSettings: View {
             Loaded(
                 load: { () async throws(APIError) in try await client.auditStatus() },
                 content: { audit, _ in
-                    AuditRow(status: audit)
+                    AuditRow(status: audit).settingsCard()
                 })
             Loaded(
                 load: { () async throws(APIError) in try await client.evals() },
@@ -129,6 +129,7 @@ private struct EvalRows: View {
                 FieldMessage(text: error, tone: Theme.Palette.bad)
             }
         }
+        .settingsCard()
         .task { await countCandidates() }
         .task(id: evals.progress.running) {
             // 跑检查时每 2 秒看一次进度
@@ -226,6 +227,7 @@ private struct GrowthRows: View {
                 }
             }
         }
+        .settingsCard()
     }
 
     /// 能点的一行：去「关于我」

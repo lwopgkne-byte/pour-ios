@@ -3,7 +3,7 @@ import PourDesign
 import SwiftUI
 
 /// 全局搜索（规格第九章）：右上角的放大镜、「/找 三体」打开。不经过 AI，即时显示结果：
-/// 同时找原话、感悟（关键词 + 按意思）、目标和日期。浮在页面上面的一张卡片，后面压暗，点暗处收起
+/// 同时找原话、感悟（关键词 + 按意思）、目标和日期。照可交互原型是盖住整屏的一页：左上返回、白色圆角的搜索框
 struct SearchPalette: View {
     @Environment(AppModel.self) private var model
     @Environment(\.visibleHeight) private var visibleHeight
@@ -31,13 +31,18 @@ struct SearchPalette: View {
     }
 
     var body: some View {
-        ZStack(alignment: .top) {
-            Theme.Palette.dim.ignoresSafeArea()
-                .onTapGesture { close() }
-                .accessibilityLabel(Text("关闭搜索"))
-                .accessibilityAddTraits(.isButton)
-            card.padding(.horizontal, Theme.Space.small).padding(.top, Theme.Space.small)
+        VStack(spacing: 0) {
+            top
+            ScrollView {
+                list.padding(.horizontal, Theme.Space.screen).padding(.bottom, Theme.Space.section)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .scrollBounceBehavior(.basedOnSize)
         }
+        .background(Theme.Palette.background.ignoresSafeArea())
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("搜索"))
+        .accessibilityAddTraits(.isModal)
         .onAppear {
             text = initial
             searched = initial.trimmingCharacters(in: .whitespaces)
@@ -51,13 +56,15 @@ struct SearchPalette: View {
         .task(id: searched) { await load() }
     }
 
-    private var card: some View {
-        VStack(spacing: 0) {
+    /// 顶上一行（原型）：玻璃圆的返回、白色圆角的搜索框（放大镜、输入、在搜的小点、有字时清空）
+    private var top: some View {
+        HStack(spacing: Theme.Space.small) {
+            GlassCircleButton("chevron.left", label: "关闭搜索") { close() }
             HStack(spacing: Theme.Space.small) {
-                Image(systemName: "magnifyingglass").foregroundStyle(Theme.Palette.secondaryLabel).accessibilityHidden(
-                    true)
-                TextField("找说过的话、感悟、目标，或者输入日期（9月3日）", text: $text, axis: .vertical)
-                    .font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label)
+                Image(systemName: "magnifyingglass").font(Theme.Typeface.bodyMedium)
+                    .foregroundStyle(Theme.Palette.tertiaryLabel).accessibilityHidden(true)
+                TextField("找说过的话，或者问一句", text: $text, axis: .vertical)
+                    .font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                     .focused($typing)
                     .submitLabel(.search)
                     // 能折行（字很大时提示不被截断），但回车不换行：打开第一项
@@ -69,42 +76,55 @@ struct SearchPalette: View {
                     }
                     .accessibilityLabel(Text("搜索"))
                 if searching { Dots(label: "正在搜索").foregroundStyle(Theme.Palette.secondaryLabel) }
+                if !text.isEmpty {
+                    Button {
+                        text = ""
+                        typing = true
+                    } label: {
+                        Image(systemName: "xmark").font(Theme.Typeface.footnoteSemibold)
+                            .foregroundStyle(Theme.Palette.secondaryLabel)
+                            .frame(
+                                width: Theme.Space.section - Theme.Space.tight,
+                                height: Theme.Space.section - Theme.Space.tight
+                            )
+                            .background(Theme.Palette.fillStrong, in: Circle())
+                            .frame(width: Theme.Size.touch, height: Theme.Size.touch).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    // 点的范围 44，但不把框撑高（框照原型 44 高）
+                    .padding(.vertical, -Theme.Space.small)
+                    .padding(.trailing, -Theme.Space.small)
+                    .accessibilityLabel(Text("清空"))
+                }
             }
-            .padding(.vertical, Theme.Space.medium).padding(.horizontal, Theme.Space.regular)
-            .overlay(alignment: .bottom) { Rectangle().fill(Theme.Palette.separator).frame(height: 1) }
-            ScrollView {
-                list.padding(Theme.Space.small)
-            }
-            .scrollBounceBehavior(.basedOnSize)
+            .padding(.horizontal, Theme.Space.inset)
+            .padding(.vertical, Theme.Space.small)
+            .frame(minHeight: Theme.Size.touch)
+            .background(Theme.Palette.card, in: Theme.rounded(Theme.Size.touch / 2))
+            .overlay { Theme.rounded(Theme.Size.touch / 2).strokeBorder(Theme.Palette.separator, lineWidth: 0.5) }
         }
-        .frame(maxHeight: visibleHeight * 0.8, alignment: .top)
-        .fixedSize(horizontal: false, vertical: true)
-        .background(RoundedRectangle(cornerRadius: Theme.Corner.chip).fill(Theme.Palette.card))
-        .shadow(color: Theme.Palette.shadowFar, radius: Theme.Space.regular, y: Theme.Space.tight)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text("搜索"))
-        .accessibilityAddTraits(.isModal)
+        .padding(.horizontal, Theme.Space.screen).padding(.top, Theme.Space.tight).padding(.bottom, Theme.Space.small)
     }
 
     @ViewBuilder private var list: some View {
         let items = items
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
             if searched.isEmpty {
                 start
             } else {
                 // 回答在最上面：问 Pour 这一句（在对话里答，带来源编号和图）
                 askRow("问 Pour：\(searched)") { ask(searched) }
-                if result != nil && items.isEmpty { hint("没有找到相关的内容。") }
+                if result != nil && items.isEmpty { hint("没有找到「\(searched)」。换个说法试试，或者直接问一句") }
             }
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                if index == 0 || items[index - 1].group != item.group {
-                    Text(item.group).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-                        .padding(.horizontal, Theme.Space.small).padding(.top, Theme.Space.small).padding(
-                            .bottom, Theme.Space.tight
-                        )
-                        .accessibilityAddTraits(.isHeader)
+            ForEach(groups(items), id: \.name) { group in
+                groupTitle(group.name, meta: group.name == "原话" ? "\(group.items.count) 条" : nil)
+                VStack(spacing: 0) {
+                    ForEach(Array(group.items.enumerated()), id: \.element.id) { index, item in
+                        if index > 0 { Divider().padding(.leading, Theme.Space.regular) }
+                        row(item)
+                    }
                 }
-                row(item)
+                .background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.smallCard))
             }
             if result?.semantic?.state == "loading" {
                 hint("第一次按意思搜索要准备一下本地模型，稍等片刻结果会更全。")
@@ -114,7 +134,20 @@ struct SearchPalette: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    /// 没输入时：可以这样问、最近搜过
+    /// 结果按组排（日期、目标、原话、感悟）：组按第一次出现的先后，同一组的合在一起（服务器给的原话、感悟是交错的）
+    private func groups(_ items: [Item]) -> [(name: String, items: [Item])] {
+        var out: [(name: String, items: [Item])] = []
+        for item in items {
+            if let index = out.firstIndex(where: { $0.name == item.group }) {
+                out[index].items.append(item)
+            } else {
+                out.append((item.group, [item]))
+            }
+        }
+        return out
+    }
+
+    /// 没输入时（原型）：可以这样问（一行一个白胶囊）、最近搜过（带小钟的胶囊）
     @ViewBuilder private var start: some View {
         groupTitle("可以这样问")
         ForEach(Self.questions, id: \.self) { question in askRow(question) { ask(question) } }
@@ -122,31 +155,49 @@ struct SearchPalette: View {
             groupTitle("最近搜过")
             PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) {
                 ForEach(recent, id: \.self) { word in
-                    FilterChip("↺ \(word)", selected: false) { text = word }
+                    Button {
+                        text = word
+                    } label: {
+                        Label(word, systemImage: "clock.arrow.circlepath").font(Theme.Typeface.subheadline)
+                            .foregroundStyle(Theme.Palette.label)
+                            .padding(.horizontal, Theme.Space.medium).frame(minHeight: Theme.Size.capsule)
+                            .background(Theme.Palette.fillStrong, in: Capsule())
+                            .frame(minHeight: Theme.Size.touch).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, Theme.Space.small)
         }
         hint("按意思也能找到：搜「运动后的心情」，会找到「跑完步神清气爽」。")
     }
 
-    private func groupTitle(_ title: String) -> some View {
-        Text(title).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-            .padding(.horizontal, Theme.Space.small).padding(.top, Theme.Space.small).padding(
-                .bottom, Theme.Space.tight
-            )
-            .accessibilityAddTraits(.isHeader)
+    private func groupTitle(_ title: String, meta: String? = nil) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 0)
+            if let meta {
+                Text(meta).font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
+            }
+        }
+        .padding(.horizontal, Theme.Space.tight).padding(.top, Theme.Space.medium)
     }
 
+    /// 问一句（原型）：白色的胶囊，左边蓝色的对话图标、字是黑的
     private func askRow(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Label(title, systemImage: "bubble.left.and.text.bubble.right").font(Theme.Typeface.body)
-                .foregroundStyle(Theme.Palette.accent).multilineTextAlignment(.leading)
-                .padding(.vertical, Theme.Space.tight).padding(.horizontal, Theme.Space.small)
-                .frame(maxWidth: .infinity, minHeight: Theme.Size.touch, alignment: .leading)
-                .contentShape(Rectangle())
+            HStack(spacing: Theme.Space.small) {
+                Image(systemName: "bubble.left.and.text.bubble.right").font(Theme.Typeface.subheadline)
+                    .foregroundStyle(Theme.Palette.accent).accessibilityHidden(true)
+                Text(title).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding(.vertical, Theme.Space.small).padding(.horizontal, Theme.Space.inset)
+            .frame(maxWidth: .infinity, minHeight: Theme.Size.touch, alignment: .leading)
+            .background(Theme.Palette.card, in: Theme.rounded(Theme.Size.touch / 2))
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressScale())
         .accessibilityIdentifier("search.ask")
     }
 
@@ -161,7 +212,7 @@ struct SearchPalette: View {
 
     private func hint(_ text: String) -> some View {
         Text(text).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-            .padding(.vertical, Theme.Space.medium).padding(.horizontal, Theme.Space.small)
+            .padding(.vertical, Theme.Space.small).padding(.horizontal, Theme.Space.tight)
     }
 
     private func row(_ item: Item) -> some View {
@@ -176,23 +227,51 @@ struct SearchPalette: View {
                 : AnyLayout(HStackLayout(spacing: Theme.Space.medium))
             layout {
                 // 平时一行放不下用省略号；字很大时折行，不截断
-                Text(item.label).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label).lineLimit(
-                    typeSize > .large ? nil : 1
+                Text(item.label).font(
+                    item.group == "原话" || item.group == "感悟" ? Theme.Typeface.quote : Theme.Typeface.body
                 )
+                .foregroundStyle(Theme.Palette.label).lineLimit(typeSize > .large ? nil : 1)
                 .accessibilityIdentifier("webOneLine")
                 .frame(maxWidth: .infinity, alignment: .leading)
                 if item.similar { MoneyTag(text: "意思相近") }
                 if let meta = item.meta {
-                    Text(meta).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel).fixedSize()
+                    Text(meta).font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(
+                        Theme.Palette.secondaryLabel
+                    )
+                    .fixedSize()
                 }
             }
-            .padding(.vertical, Theme.Space.tight).padding(.horizontal, Theme.Space.small)
+            .padding(.vertical, Theme.Space.small).padding(.horizontal, Theme.Space.regular)
             .frame(minHeight: Theme.Size.touch)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
     }
+
+    private func open(day: String) {
+        close()
+        model.goHome()
+        model.show(day)
+    }
+
+    private func close() { model.search = nil }
+}
+
+/// 最近搜过的几个词（只存在手机上，最多 8 个，新的在前）
+enum SearchRecent {
+    private static let key = "pour.search.recent"
+
+    static func load() -> [String] { UserDefaults.standard.stringArray(forKey: key) ?? [] }
+
+    static func add(_ word: String) {
+        let word = word.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !word.isEmpty else { return }
+        UserDefaults.standard.set(Array(([word] + load().filter { $0 != word }).prefix(8)), forKey: key)
+    }
+}
+
+extension SearchPalette {
 
     private var items: [Item] {
         guard let result, !searched.isEmpty else { return [] }
@@ -227,30 +306,6 @@ struct SearchPalette: View {
         }
         return out
     }
-
-    private func open(day: String) {
-        close()
-        model.goHome()
-        model.show(day)
-    }
-
-    private func close() { model.search = nil }
-}
-
-/// 最近搜过的几个词（只存在手机上，最多 8 个，新的在前）
-enum SearchRecent {
-    private static let key = "pour.search.recent"
-
-    static func load() -> [String] { UserDefaults.standard.stringArray(forKey: key) ?? [] }
-
-    static func add(_ word: String) {
-        let word = word.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !word.isEmpty else { return }
-        UserDefaults.standard.set(Array(([word] + load().filter { $0 != word }).prefix(8)), forKey: key)
-    }
-}
-
-extension SearchPalette {
 
     private func load() async {
         guard !searched.isEmpty else {

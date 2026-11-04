@@ -248,6 +248,15 @@ extension Show {
         hide ? text.replacing(/¥[\d,.]+/, with: "¥•••") : text
     }
 
+    /// 值不值卡片下面那一行（原型）：「你说值 · 用了 5 次 · 每次 ¥180」「你说值 · 之后又说起 3 次」「你说后悔 · 之后还没说到用它」。
+    /// 后半句是服务器的 sub 去掉前面的日子（「10月14日买的 · 用了 5 次，每次 ¥180」）
+    public static func worthLine(_ thing: API.MoneyThing, good: Bool) -> String {
+        let said = good ? "你说值" : "你说后悔"
+        guard let cut = thing.sub.range(of: " · ") else { return said }
+        let rest = thing.sub[cut.upperBound...].replacingOccurrences(of: "，", with: " · ")
+        return rest.isEmpty ? said : "\(said) · \(rest)"
+    }
+
     /// 「8月10日」
     public static func monthDay(_ day: String) -> String {
         "\(Int(day.dropFirst(5).prefix(2)) ?? 0)月\(Int(day.suffix(2)) ?? 0)日"

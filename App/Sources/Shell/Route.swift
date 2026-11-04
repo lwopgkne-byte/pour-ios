@@ -1,5 +1,6 @@
 import Foundation
 import PourAPI
+import PourCore
 
 /// 3.0 外壳里推进来的一页（docs/3.0/01-需求文档.md 2.6 页面地图、07 开发任务清单 1.6）。
 /// 根是生活画布，不在这里；别的页都推进同一个导航栈，返回一路回到画布。
@@ -22,6 +23,10 @@ enum Route: Hashable {
     case library(LibraryAsk)
     /// 设置：打开时滚到哪一块（「data」）
     case settings(String?)
+    /// 日历（3.0.1 照原型补的一页）：nil 是这个月
+    case calendar(String?)
+    /// 健康（3.0.1 照原型补的一页；要服务器 2.20.0）
+    case health
 
     /// 页面地址 → 推哪一页；认不得的是 nil。「/」是画布（不推页，回到底）
     init?(path: String) {
@@ -46,12 +51,21 @@ enum Route: Hashable {
         // 以前「笔记库 → 感悟」搬成了自己的一页
         case "library" where LibraryAsk(path: base).view == "insights": .insights
         case "goals": GoalRoute(head).map { .goals($0) }
+        case "calendar": calendarPage(head)
         default:
             [
-                "/me": .hub, "/todos": .todos, "/insights": .insights,
+                "/me": .hub, "/todos": .todos, "/insights": .insights, "/health": .health,
                 "/library": .library(LibraryAsk(path: base)), "/settings": .settings(anchor),
             ][head]
         }
+    }
+
+    /// 「/calendar」「/calendar/2026-10」（不叫 calendar：和那一页同名时「.calendar(月)」会被当成又调一次这里）
+    private static func calendarPage(_ head: String) -> Route? {
+        let parts = head.split(separator: "/").map(String.init)
+        if parts.count == 1 { return .calendar(nil) }
+        guard parts.count == 2, parts[1].wholeMatch(of: /\d{4}-(0[1-9]|1[0-2])/) != nil else { return nil }
+        return .calendar(parts[1])
     }
 
     /// 这一页的名字：导航栏上、下一页的返回按钮上（「‹ 人情往来」；太长的由系统换成「返回」）
@@ -60,7 +74,8 @@ enum Route: Hashable {
         case .hub: "我的"
         case .todos: "待办"
         case .review(nil): "回顾"
-        case .review(.daily?): "每日回顾"
+        // 照原型：每日回顾的大标题是那一天（「10月26日 周一」），「每日回顾 · 昨天」写在下面一行
+        case .review(.daily(let day)?): Show.dayTitle(day, today: PourDate.logicalDay(Date(), in: .current))
         case .review(.period(let kind, _)?): kind == "monthly" ? "月报" : "周报"
         case .money(let money): money.title
         case .mood(let mood): mood.title
@@ -69,6 +84,8 @@ enum Route: Hashable {
         case .goals(let goal): goal.title
         case .library: "笔记库"
         case .settings(let anchor): anchor.flatMap(SettingsPageKey.init(rawValue:))?.title ?? "设置"
+        case .calendar: "日历"
+        case .health: "健康"
         }
     }
 
@@ -83,7 +100,8 @@ enum Route: Hashable {
         case (.goals(let left), .goals(let right)): left.kind == right.kind && left.kind != "goal"
         // 设置：分组列表和点进去的一页不是一种（点一行推进去，返回回到列表）
         case (.settings(let left), .settings(let right)): (left == nil) == (right == nil)
-        case (.library, .library), (.hub, .hub), (.todos, .todos), (.insights, .insights):
+        case (.library, .library), (.hub, .hub), (.todos, .todos), (.insights, .insights), (.calendar, .calendar),
+            (.health, .health):
             true
         default: false
         }
@@ -132,8 +150,9 @@ extension MoneyRoute {
         switch self {
         case .month: "钱"
         case .day(let day): Show.monthDay(day)
-        case .list: "每一笔"
+        case .list(let month, _): "\(Show.monthName(month))的每一笔"
         case .watch: "留意的"
+        case .worth: "值不值"
         case .thing: "一样东西"
         case .renqing: "人情往来"
         case .person(let name): "和\(name)的来往"
@@ -147,6 +166,7 @@ extension MoneyRoute {
         case .day: "day"
         case .list: "list"
         case .watch: "watch"
+        case .worth: "worth"
         case .thing: "thing"
         case .renqing: "renqing"
         case .person: "person"

@@ -30,8 +30,8 @@ final class BackfillUITests: XCTestCase {
         XCTAssertTrue(input.label.hasPrefix("补记"), "前天的输入框没写补记：\(input.label)")
         attach(app, "补记-点空当")
         // 3.0：填好开头时对话就展开了（说一句就是对话），先收起来再退出样张，不留给别的测试
-        let chat = app.buttons["pourbar.chat"]
-        if chat.exists, chat.label == "收起对话" { chat.tap() }
+        let close = app.buttons["chat.close"]
+        if close.exists { close.tap() }
         app.buttons["canvas.samples"].firstMatch.tap()
     }
 

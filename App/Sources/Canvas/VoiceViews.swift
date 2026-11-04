@@ -2,43 +2,47 @@ import PourDesign
 import SwiftUI
 import UIKit
 
-/// 点一下说：输入框长成录音卡（docs/模块/生活画布2.0.md 第 6 节）——红点「正在听」、计时、声波、
-/// 说的字一边说一边出（还没定下来的字浅一点）；✕ 不要了、✓ 转成字再改、↑ 直接发
+/// 点一下说（docs/模块/生活画布2.0.md 第 6 节；样子照原型「说一句」的听写）：弹层最下面那一块换成听写——
+/// 红点「正在听」和计时、说的字居中一边说一边出（还没定下来的字浅一点）、一小排蓝色的声波；
+/// 下面三个胶囊：不要了、转成字（放进输入框再改）、发送。接着说的时候上面浅浅地写着前面说过的
 struct VoiceCard: View {
     @Environment(VoiceSession.self) private var voice
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// 输入框里已经有的字：接着说的时候浅浅地写在上面，说的接在后面
     var before = ""
-    /// ✓：字放进输入框；↑：发出去
+    /// 在说一句的弹层里（白底那一块）；不在的话是一张玻璃卡
+    var open = true
+    /// 转成字：字放进输入框；发送：发出去
     let useText: (String, _ send: Bool) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+        VStack(spacing: Theme.Space.small + Theme.Space.hairline) {
             header
-            Waveform(levels: voice.levels).frame(height: Theme.Size.waveform)
             if !before.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 Text("接着说 · \(before)").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-                    .lineLimit(2).truncationMode(.head)
+                    .lineLimit(2).truncationMode(.head).multilineTextAlignment(.center)
                     .accessibilityIdentifier("voice.before")
             }
             words
-            HStack(spacing: Theme.Space.medium) {
-                round("xmark", label: "不要了", id: "voice.cancel", filled: false) { voice.cancel() }
-                Spacer(minLength: 0)
-                round("checkmark", label: "转成字再改", id: "voice.text", filled: false) { finish(send: false) }
-                round("arrow.up", label: "发送", id: "voice.send", filled: true) { finish(send: true) }
+            VoiceBars(levels: voice.levels)
+            HStack(spacing: Theme.Space.small) {
+                chip("xmark", "不要了", id: "voice.cancel", filled: false) { voice.cancel() }
+                chip("character.cursor.ibeam", "转成字", id: "voice.text", filled: false) { finish(send: false) }
+                chip("arrow.up", "发送", id: "voice.send", filled: true) { finish(send: true) }
             }
             .disabled(voice.phase != .listening)
         }
-        .padding(Theme.Space.regular)
-        .themeGlass(radius: Theme.Corner.composer)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, open ? Theme.Space.snug : Theme.Space.regular)
+        .padding(.horizontal, open ? 0 : Theme.Space.regular)
+        .themeGlass(radius: Theme.Corner.card, active: !open)
         .sensoryFeedback(Theme.Haptics.warning, trigger: voice.nearLimit) { _, near in near }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(Text("正在听你说"))
     }
 
     @ViewBuilder private var header: some View {
-        HStack(spacing: Theme.Space.small) {
+        HStack(spacing: Theme.Space.snug) {
             switch voice.phase {
             case .preparing(let progress):
                 ProgressRing(progress: progress, color: Theme.Palette.accent, lineWidth: 3)
@@ -48,7 +52,6 @@ struct VoiceCard: View {
                 Image(systemName: "circle.fill").font(Theme.Typeface.tick).foregroundStyle(Theme.Palette.bad)
                     .symbolEffect(.pulse, options: .repeating, isActive: !reduceMotion)
                 Text("正在听")
-                Spacer(minLength: 0)
                 if let start = voice.startedAt {
                     Text(timerInterval: start...start.addingTimeInterval(VoiceSession.limit), countsDown: false)
                         .monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
@@ -58,27 +61,27 @@ struct VoiceCard: View {
         .font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.label)
     }
 
-    /// 说的字：定下来的主字色，还没定下来的次要色；还没说时一句提示。
+    /// 说的字（原型 18 号、居中）：定下来的主字色，还没定下来的次要色；还没说时「在听……」。
     /// 一直没听到声音、说完停了一会儿：下面一行小字提示（VoiceSession.hint）
     private var words: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+        VStack(spacing: Theme.Space.tight) {
             Group {
                 if voice.text.isEmpty {
-                    Text(voice.hint ?? "说吧，我在听").foregroundStyle(Theme.Palette.secondaryLabel)
+                    Text(voice.hint ?? "在听……").foregroundStyle(Theme.Palette.secondaryLabel)
                 } else {
                     let settled = Text(voice.settled).foregroundStyle(Theme.Palette.label)
                     let pending = Text(voice.pending).foregroundStyle(Theme.Palette.secondaryLabel)
                     Text("\(settled)\(pending)")
                 }
             }
-            .font(Theme.Typeface.body).lineSpacing(Theme.Leading.body)
+            .font(Theme.Typeface.body).lineSpacing(Theme.Leading.body).multilineTextAlignment(.center)
             .accessibilityIdentifier("voice.words")
             if !voice.text.isEmpty, let hint = voice.hint {
                 Text(hint).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                     .transition(.opacity)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity)
         .animation(Theme.Motion.quick, value: voice.hint)
     }
 
@@ -88,73 +91,89 @@ struct VoiceCard: View {
         }
     }
 
-    private func round(
-        _ symbol: String, label: String, id: String, filled: Bool, action: @escaping () -> Void
+    /// 下面的胶囊（原型 .chip：32 高、浅墨底；发送是蓝底白字），点的地方 44 高
+    private func chip(
+        _ symbol: String, _ title: String, id: String, filled: Bool, action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            // 圆是固定大小：图标封顶，不出圆；字号很大的人长按看大图标
-            Image(systemName: symbol).font(Theme.Typeface.bodySemibold)
-                .dynamicTypeSize(...DynamicTypeSize.xLarge)
-                .foregroundStyle(filled ? Theme.Palette.onAccent : Theme.Palette.label)
-                .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
-                .background(filled ? Theme.Palette.accentFill : Theme.Palette.fill, in: Circle())
-                .frame(width: Theme.Size.touch, height: Theme.Size.touch)
-                .contentShape(Circle())
+            HStack(spacing: Theme.Space.tight) {
+                Image(systemName: symbol).font(Theme.Typeface.footnoteSemibold)
+                Text(title).font(filled ? Theme.Typeface.cardTitle : Theme.Typeface.subheadline)
+            }
+            .foregroundStyle(filled ? Theme.Palette.onAccent : Theme.Palette.label)
+            .padding(.horizontal, Theme.Space.medium + Theme.Space.tight)
+            .frame(minHeight: Theme.Size.capsule)
+            .background(filled ? Theme.Palette.accentFill : Theme.Palette.fill, in: Capsule())
+            .frame(minHeight: Theme.Size.touch)
+            .contentShape(Rectangle())
         }
         .buttonStyle(PressScale())
-        .accessibilityLabel(Text(label))
-        .accessibilityShowsLargeContentViewer { Label(label, systemImage: symbol) }
+        .accessibilityLabel(Text(title))
         .accessibilityIdentifier(id)
     }
 }
 
-/// 按住说：输入框上面一张玻璃卡「松开发送 / 手指往上滑，取消」，往上滑过了变成「松开取消」
+/// 按住说（原型的听写）：说的字居中、一小排蓝色的声波、下面一个胶囊「松开发送 · 手指往上滑，取消」，往上滑过了变成红的「松开取消」
 struct HoldCard: View {
     @Environment(VoiceSession.self) private var voice
     let cancelling: Bool
+    /// 在说一句的弹层里；不在的话是一张玻璃卡
+    var open = true
 
     var body: some View {
-        VStack(spacing: Theme.Space.small) {
-            Waveform(levels: voice.levels).frame(height: Theme.Size.waveform)
-            Text(voice.text.isEmpty ? (voice.hint ?? "说吧，我在听") : voice.text).font(Theme.Typeface.body)
+        VStack(spacing: Theme.Space.small + Theme.Space.hairline) {
+            Text(voice.text.isEmpty ? (voice.hint ?? "在听……") : voice.text).font(Theme.Typeface.body)
                 .foregroundStyle(voice.text.isEmpty ? Theme.Palette.secondaryLabel : Theme.Palette.label)
+                .multilineTextAlignment(.center)
                 .lineLimit(3)
-            Text(cancelling ? "松开取消" : "松开发送 · 手指往上滑，取消").font(Theme.Typeface.footnoteSemibold)
-                .foregroundStyle(cancelling ? Theme.Palette.bad : Theme.Palette.secondaryLabel)
+            VoiceBars(levels: voice.levels)
+            Text(cancelling ? "松开取消" : "松开发送 · 手指往上滑，取消").font(Theme.Typeface.subheadline)
+                .foregroundStyle(cancelling ? Theme.Palette.badInk : Theme.Palette.label)
+                .padding(.horizontal, Theme.Space.medium + Theme.Space.tight)
+                .frame(minHeight: Theme.Size.capsule)
+                .background(cancelling ? Theme.Palette.badFill : Theme.Palette.fill, in: Capsule())
         }
-        .padding(Theme.Space.regular)
+        .padding(.vertical, open ? Theme.Space.snug : Theme.Space.regular)
+        .padding(.horizontal, open ? 0 : Theme.Space.regular)
         .frame(maxWidth: .infinity)
-        .themeGlass(radius: Theme.Corner.card)
+        .themeGlass(radius: Theme.Corner.card, active: !open)
         .sensoryFeedback(Theme.Haptics.select, trigger: cancelling)
         .accessibilityElement(children: .combine)
     }
 }
 
-/// 声波：一排竖条，越新的越靠右（最近大约 3 秒）。不说话时是一排淡淡的圆点，开口说话就立起来，
-/// 声音越大越高、越实（音量扣掉了底噪：LevelMeter）；小声也看得出来（高度按音量的 0.8 次方）
-struct Waveform: View {
+/// 听写时的声波（原型 .wave）：七根 4 点宽的蓝条，跟着最近的声音高低（8 到 36 点）；不说话时是一排短短的。
+/// 音量扣掉了底噪（LevelMeter）；小声也看得出来（高度按音量的 0.8 次方）
+struct VoiceBars: View {
     let levels: [Double]
+    static let count = 7
 
     var body: some View {
-        Canvas { context, size in
-            let count = CGFloat(levels.count)
-            let gap: CGFloat = 2
-            let width = max(1, (size.width - gap * (count - 1)) / count)
-            for (index, level) in levels.enumerated() {
-                let shown = pow(min(1, max(0, level)), 0.8)
-                let height = width + (size.height - width) * shown
-                let rect = CGRect(
-                    x: CGFloat(index) * (width + gap), y: (size.height - height) / 2, width: width, height: height)
-                context.fill(Capsule().path(in: rect), with: .color(Theme.Palette.accent.opacity(0.3 + shown * 0.7)))
+        let recent = Array(levels.suffix(Self.count))
+        let shown = [Double](repeating: 0, count: max(0, Self.count - recent.count)) + recent
+        HStack(spacing: Theme.Space.tight) {
+            ForEach(Array(shown.enumerated()), id: \.offset) { _, level in
+                Capsule().fill(Theme.Palette.accent)
+                    .frame(width: Theme.Space.tight, height: Self.height(level))
             }
         }
+        .frame(height: Theme.Size.touch)
+        .animation(Theme.Motion.quick, value: levels)
         .accessibilityHidden(true)
+    }
+
+    static func height(_ level: Double) -> CGFloat {
+        let low = Theme.Space.small
+        let high = Theme.Size.capsule + Theme.Space.tight
+        return low + (high - low) * pow(min(1, max(0, level)), 0.8)
     }
 }
 
 /// 第一次点麦克风：先说清楚（只在手机上转字，录音不存不传），再请系统权限。
 /// 说明放不下（屏幕小、字大）就能上下滑，两个按钮一直在下面
 struct VoiceIntro: View {
+    /// 在说一句的弹层里：暖白底的一块；不在的话是一张玻璃卡
+    var open = true
     let start: () -> Void
     let later: () -> Void
 
@@ -172,7 +191,10 @@ struct VoiceIntro: View {
             .font(Theme.Typeface.footnoteSemibold).buttonBorderShape(.capsule)
         }
         .padding(Theme.Space.regular)
-        .themeGlass(radius: Theme.Corner.card)
+        .background {
+            if open { Theme.rounded(Theme.Corner.card).fill(Theme.Palette.sheet) }
+        }
+        .themeGlass(radius: Theme.Corner.card, active: !open)
     }
 
     private var message: some View {
@@ -193,6 +215,8 @@ struct VoiceFailure: View {
     @Environment(\.openURL) private var openURL
     let message: String
     let settings: Bool
+    /// 在说一句的弹层里：暖白底的一条；不在的话是玻璃
+    var open = true
 
     var body: some View {
         HStack(spacing: Theme.Space.small) {
@@ -206,7 +230,10 @@ struct VoiceFailure: View {
         .buttonStyle(.plain)
         .padding(.leading, Theme.Space.inset)
         .frame(minHeight: Theme.Size.touch)
-        .themeGlass(radius: Theme.Corner.composer)
+        .background {
+            if open { Theme.rounded(Theme.Corner.composer).fill(Theme.Palette.sheet) }
+        }
+        .themeGlass(radius: Theme.Corner.composer, active: !open)
         .sensoryFeedback(Theme.Haptics.failed, trigger: message)
     }
 

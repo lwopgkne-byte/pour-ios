@@ -30,6 +30,12 @@ struct MoneyTests {
         #expect(page.worth.good.first?.perUse == 225)
         #expect(page.worth.regret.first?.verdict?.tone == "regret")
         #expect(page.renqing?.into == 3100)
+        // 值不值卡片下面那一行（原型「值不值」）
+        let good = try #require(page.worth.good.first)
+        #expect(Show.worthLine(good, good: true).hasPrefix("你说值 · 用了 "))
+        #expect(Show.worthLine(good, good: true).contains(" · 每次 ¥"))
+        let regret = try #require(page.worth.regret.first)
+        #expect(Show.worthLine(regret, good: false).hasPrefix("你说后悔 · "))
     }
 
     @Test func watch() throws {

@@ -17,8 +17,9 @@ struct GoalsRoutePage: View {
     }
 }
 
-/// 3.0 目标首页（docs/3.0/01-需求文档.md 9.2、06 交互细节 12.1）：这周一句话、每周回顾那一行、我在乎的、
-/// 按我在乎的分组的目标（一行一个：系统的左滑只认一整行）、坚持、做到的 · 放下的。按住出菜单、左滑暂停，都能撤销
+/// 3.0 目标首页（docs/3.0/01-需求文档.md 9.2、06 交互细节 12.1；3.0.1 照可交互原型）：这周一句话、每周回顾那一行、我在乎的、
+/// 按我在乎的分组的目标——一个目标一张小卡、两列排（GoalBlock：落后要调的占一整行，只有一个目标的两块左右并排）、坚持、
+/// 做到的 · 放下的。按住出菜单、左滑暂停（GoalSwipe），都能撤销
 struct GoalsHomePage: View {
     @Environment(AppModel.self) private var model
     @State private var home: API.GoalsHome?
@@ -26,28 +27,27 @@ struct GoalsHomePage: View {
     @State private var closedOpen = false
 
     var body: some View {
-        List {
-            if let home {
-                if let empty = home.empty {
-                    GoalsEmptyView(empty: empty, care: home.care)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                if let home {
+                    if let empty = home.empty {
+                        GoalsEmptyView(empty: empty, care: home.care)
+                    } else {
+                        top(home)
+                        ForEach(GoalBlock.blocks(home.groups)) { block in blockView(block) }
+                        if !home.streaks.isEmpty { streaks(home.streaks) }
+                    }
+                    closed(home)
+                } else if let problem {
+                    ErrorState(problem.contains("连") ? .serverOff : .other) { Task { await load() } }
                 } else {
-                    top(home)
-                    ForEach(home.groups, id: \.name) { group in groupSection(group) }
-                    if !home.streaks.isEmpty { streaks(home.streaks) }
+                    ProgressView().frame(maxWidth: .infinity).padding(.top, Theme.Space.section)
                 }
-                closed(home)
-            } else if let problem {
-                ErrorState(problem.contains("连") ? .serverOff : .other) { Task { await load() } }
-                    .listRowBackground(Color.clear)
-            } else {
-                ProgressView().frame(maxWidth: .infinity).listRowBackground(Color.clear)
             }
+            .padding(.horizontal, Theme.Space.screen)
+            .padding(.bottom, Theme.Space.section)
         }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        // 组和组之间、组名上下留得少：iPhone 15 第一屏要看得到 5 个目标（01 需求文档 9.14 第 6 条）
-        .listSectionSpacing(Theme.Space.small)
-        .environment(\.defaultMinListHeaderHeight, 0)
+        .background(Theme.Palette.background)
         .environment(
             \.openURL,
             OpenURLAction { url in
@@ -71,43 +71,36 @@ struct GoalsHomePage: View {
         .task(id: model.dataVersion) { await load() }
     }
 
-    /// 一行上下留得少一点：第一屏要放得下 5 个目标（01 需求文档 9.14 第 6 条）
-    static let rowInsets = EdgeInsets(
-        top: Theme.Space.small, leading: Theme.Space.regular, bottom: Theme.Space.small, trailing: Theme.Space.regular)
-    /// 组名：上面留一点、下面紧挨着卡片
-    static let headerInsets = EdgeInsets(
-        top: Theme.Space.small, leading: Theme.Space.regular, bottom: Theme.Space.tight, trailing: Theme.Space.regular)
+    /// 卡片之间（原型 10）
+    private static let gap = Theme.Space.small + Theme.Space.hairline
 
     // MARK: - 这周一句话、每周回顾、我在乎的
 
     @ViewBuilder private func top(_ home: API.GoalsHome) -> some View {
-        Section {
-            VStack(alignment: .leading, spacing: Theme.Space.small) {
-                Text(summary(home.summary)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
-                    .lineSpacing(Theme.Leading.body).fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("goals.summary")
-                if let weekly = home.weekly {
-                    Button {
-                        model.goals.sheet = .weekly
-                    } label: {
-                        Label {
-                            Text("\(weekly.text) ›")
-                        } icon: {
-                            Image(systemName: "calendar")
-                        }
-                        .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.accent)
-                        .frame(minHeight: Theme.Size.touch, alignment: .leading)
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            Text(summary(home.summary)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                .lineSpacing(Theme.Leading.body).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("goals.summary")
+            if let weekly = home.weekly {
+                Button {
+                    model.goals.sheet = .weekly
+                } label: {
+                    Label {
+                        Text("\(weekly.text) ›")
+                    } icon: {
+                        Image(systemName: "calendar")
                     }
-                    .buttonStyle(.borderless)
-                    .accessibilityIdentifier("goals.weekly")
+                    .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.accent)
+                    .frame(minHeight: Theme.Size.touch, alignment: .leading)
                 }
-                Text("我在乎的").font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
-                    .padding(.top, Theme.Space.tight)
-                CareChips(chips: home.care)
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("goals.weekly")
             }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 0, leading: Theme.Space.tight, bottom: 0, trailing: Theme.Space.tight))
+            Text("我在乎的").font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
+                .padding(.top, Theme.Space.tight)
+            CareChips(chips: home.care)
         }
+        .padding(.horizontal, Theme.Space.tight)
     }
 
     /// 「这周 7 个目标里 4 个在正轨上；「今年跑 500 公里」落后两周了，聊聊怎么调？」后半句点了进 GROW
@@ -127,60 +120,106 @@ struct GoalsHomePage: View {
 
     // MARK: - 进行中、坚持
 
-    private func groupSection(_ group: API.GoalGroup) -> some View {
-        Section {
-            ForEach(group.cards) { card in
-                GoalRow(card: card).goalActions(card, model: model).listRowInsets(Self.rowInsets)
+    /// 一块：单个、两个单个并排、好几个（两列，占一整行的单独一行）
+    @ViewBuilder private func blockView(_ block: GoalBlock) -> some View {
+        switch block {
+        case .single(let group, let card):
+            VStack(alignment: .leading, spacing: Theme.Space.snug) {
+                GoalGroupLabel(group: group)
+                GoalCardView(card: card, wide: true)
             }
-        } header: {
-            Label(group.name, systemImage: CareIcon.symbol(group.icon)).font(Theme.Typeface.footnoteSemibold)
-                .foregroundStyle(Theme.Palette.secondaryLabel)
-                .listRowInsets(Self.headerInsets)
+            .padding(.top, Theme.Space.inset)
+        case .pair(let left, let leftCard, let right, let rightCard):
+            Grid(alignment: .topLeading, horizontalSpacing: Self.gap, verticalSpacing: Theme.Space.snug) {
+                GridRow {
+                    GoalGroupLabel(group: left)
+                    GoalGroupLabel(group: right)
+                }
+                GridRow {
+                    GoalCardView(card: leftCard)
+                    GoalCardView(card: rightCard)
+                }
+            }
+            .padding(.top, Theme.Space.inset)
+        case .group(let group):
+            VStack(alignment: .leading, spacing: Theme.Space.snug) {
+                GoalGroupLabel(group: group)
+                Grid(alignment: .topLeading, horizontalSpacing: Self.gap, verticalSpacing: Self.gap) {
+                    ForEach(Array(GoalBlock.rows(group.cards).enumerated()), id: \.offset) { _, row in
+                        GridRow {
+                            if row.count == 1, let card = row.first {
+                                GoalCardView(card: card, wide: true).gridCellColumns(2)
+                            } else {
+                                ForEach(row) { card in GoalCardView(card: card) }
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.top, Theme.Space.inset)
         }
     }
 
+    /// 坚持：小标题和图例，下面一张卡一行一个（按住出菜单、左滑暂停）
     private func streaks(_ cards: [API.GoalCard]) -> some View {
-        Section {
-            ForEach(cards) { card in
-                StreakRowView(card: card).goalActions(card, model: model).listRowInsets(Self.rowInsets)
-            }
-        } header: {
+        VStack(alignment: .leading, spacing: Theme.Space.snug) {
             HStack {
                 Text("坚持").font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .accessibilityAddTraits(.isHeader)
                 Spacer()
                 DayCellLegend()
             }
-            .listRowInsets(Self.headerInsets)
+            .padding(.horizontal, Theme.Space.tight)
+            VStack(spacing: 0) {
+                ForEach(Array(cards.enumerated()), id: \.element.id) { index, card in
+                    if index > 0 { Divider().padding(.leading, Theme.Space.regular) }
+                    StreakRowView(card: card)
+                        .padding(.horizontal, Theme.Space.regular).padding(.vertical, Theme.Space.medium)
+                        .background(Theme.Palette.card)
+                        .contextMenu { GoalMenu(card: card) }
+                        .modifier(GoalSwipe(card: card))
+                }
+            }
+            .clipShape(Theme.rounded(Theme.Corner.smallCard))
+            .themeEdge(radius: Theme.Corner.smallCard)
         }
+        .padding(.top, Theme.Space.inset)
     }
 
     // MARK: - 做到的 · 放下的
 
     @ViewBuilder private func closed(_ home: API.GoalsHome) -> some View {
         if !home.done.isEmpty || !home.letgo.isEmpty {
-            Section {
+            VStack(alignment: .leading, spacing: Theme.Space.small) {
                 Button {
                     withAnimation(Theme.Motion.standard) { closedOpen.toggle() }
                 } label: {
-                    HStack {
+                    HStack(spacing: Theme.Space.tight) {
                         // 能折行（canWrap）：「·」排版时被挤窄，审计按没挤的宽度量、以为字被截了
                         Text("做到的 \(home.done.count) · 放下的 \(home.letgo.count)").font(Theme.Typeface.body)
                             .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("canWrap")
-                        Spacer()
                         Image(systemName: closedOpen ? "chevron.down" : "chevron.right").font(
                             Theme.Typeface.footnoteSemibold)
                     }
                     .foregroundStyle(Theme.Palette.accent)
+                    .frame(minHeight: Theme.Size.touch)
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
                 .accessibilityIdentifier("goals.closed")
                 if closedOpen {
-                    ForEach(home.done) { card in closedRow(card, done: true) }
-                    ForEach(home.letgo) { card in closedRow(card, done: false) }
+                    VStack(spacing: Theme.Space.medium) {
+                        ForEach(home.done) { card in closedRow(card, done: true) }
+                        ForEach(home.letgo) { card in closedRow(card, done: false) }
+                    }
+                    .themeCard(radius: Theme.Corner.smallCard)
                 }
-            } footer: {
                 Text("按住一个目标：改 · 暂停 · 标记完成 · 删除；左滑暂停。删了、暂停、放下都能撤销。")
                     .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .padding(.horizontal, Theme.Space.tight)
+            .padding(.top, Theme.Space.medium)
         }
     }
 

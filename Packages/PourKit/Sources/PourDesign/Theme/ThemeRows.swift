@@ -193,14 +193,15 @@ public struct FilterChip: View {
 
     public var body: some View {
         Button(action: action) {
+            // 照原型 .chip / .chip.on：浅墨底，选中的深色底白字
             HStack(spacing: Theme.Space.tight) {
-                Text(title).font(Theme.Typeface.footnoteSemibold)
+                Text(title).font(Theme.Typeface.subheadline)
                 if let count { Text("\(count)").font(Theme.Typeface.footnote).monospacedDigit().opacity(0.8) }
             }
             .foregroundStyle(selected ? Theme.Palette.onAccent : Theme.Palette.label)
             .padding(.horizontal, Theme.Space.medium)
             .frame(minHeight: Theme.Size.capsule)
-            .background(selected ? Theme.Palette.accentFill : Theme.Palette.fill, in: Capsule())
+            .background(selected ? Theme.Palette.label : Theme.Palette.fill, in: Capsule())
             .frame(minHeight: Theme.Size.touch)
             .contentShape(Rectangle())
         }

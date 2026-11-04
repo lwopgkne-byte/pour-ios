@@ -14,13 +14,20 @@ struct ReviewHead: View {
     let relative: String?
     let updated: Bool
     var overview = ""
+    /// 一行小字（每日回顾：大标题已经是那一天，这里只写「每日回顾 · 昨天」）
+    var compact = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
-                Text(Show.spaced(title)).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label)
-                if let relative {
-                    Text(relative).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.secondaryLabel)
+                if compact {
+                    Text([title, relative].compactMap { $0 }.joined(separator: " · ")).font(Theme.Typeface.footnote)
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                } else {
+                    Text(Show.spaced(title)).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label)
+                    if let relative {
+                        Text(relative).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.secondaryLabel)
+                    }
                 }
                 Spacer(minLength: 0)
                 if updated {
@@ -39,18 +46,15 @@ struct ReviewHead: View {
     }
 }
 
-/// 一块卡片：标题 + 内容（每一块都是一张卡）
+/// 一块：标题在卡片外面，下面一张卡（照原型「每日回顾」）
 struct ReviewSection<Content: View>: View {
     let title: String
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            Text(title).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.label)
-                .accessibilityAddTraits(.isHeader)
-            content()
+        PageSection(title: title) {
+            VStack(alignment: .leading, spacing: Theme.Space.medium) { content() }
         }
-        .themeCard()
     }
 }
 

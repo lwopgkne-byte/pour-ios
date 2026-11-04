@@ -13,15 +13,20 @@ struct KnownQuotes: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if !quotes.isEmpty {
-                LegacySection(title: "我的语录") {
-                    VStack(alignment: .leading, spacing: Theme.Space.medium) {
-                        ForEach(all ? quotes : Array(quotes.prefix(5))) { quote in row(quote) }
-                        if !all && quotes.count > 5 {
-                            LinkButton("看全部 \(quotes.count) 句") { all = true }
-                        }
-                        Text("说「记一句：……」、在感悟里点 ★ 就记进来；只放你说过的话")
-                            .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                // 照原型：标题在外面、一张白卡（一句一行，中间细线），说明在卡片下面
+                let shown = all ? quotes : Array(quotes.prefix(5))
+                KnownBlock(title: "我的语录") {
+                    ForEach(Array(shown.enumerated()), id: \.element.id) { index, quote in
+                        if index > 0 { Divider() }
+                        row(quote)
                     }
+                    if !all && quotes.count > 5 {
+                        Divider()
+                        LinkButton("看全部 \(quotes.count) 句") { all = true }
+                            .frame(minHeight: Theme.Size.touch)
+                    }
+                } foot: {
+                    Text("说「记一句：……」、在感悟里点 ★ 就记进来；只放你说过的话")
                 }
             }
         }
@@ -42,6 +47,7 @@ struct KnownQuotes: View {
                     .accessibilityLabel(Text("不放进语录：\(quote.text)"))
             }
         }
+        .padding(.vertical, Theme.Space.small)
     }
 
     private func hide(_ quote: API.MyQuote) {

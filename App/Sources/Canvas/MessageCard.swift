@@ -2,8 +2,8 @@ import PourAPI
 import PourDesign
 import SwiftUI
 
-/// 对话里的一条系统消息（规格 12.1：所有提醒同时也出现在对话里）：左边一张小卡（图标、标题、一句话、几点）；
-/// 每日回顾、周报月报只留一行，点了去「回顾」看完整的
+/// 对话里的一条系统消息（规格 12.1：所有提醒同时也出现在对话里）：Pour 说的，左边白气泡（原型 .bub.pour）——
+/// 图标、标题、一句话、几点；每日回顾、周报月报只留一行，点了去「回顾」看完整的
 struct MessageCard: View {
     @Environment(AppModel.self) private var model
     let message: API.SystemMessage
@@ -21,31 +21,30 @@ struct MessageCard: View {
                     Image(systemName: "chevron.right").font(Theme.Typeface.caption)
                         .foregroundStyle(Theme.Palette.secondaryLabel)
                 }
-                .padding(.horizontal, Theme.Space.medium)
-                .frame(minHeight: Theme.Size.touch)
-                .card()
+                .frame(minHeight: Theme.Size.touch - Theme.Space.small * 2 - Theme.Space.hairline)
                 .contentShape(Rectangle())
+                .pourBubble()
             }
             .buttonStyle(PressScale())
         } else {
             VStack(alignment: .leading, spacing: Theme.Space.tight) {
                 HStack(spacing: Theme.Space.small) {
                     Text(Show.messageEmoji(message.kind)).accessibilityHidden(true)
-                    Text(Show.spaced(message.title)).font(Theme.Typeface.bodySemibold).foregroundStyle(
+                    Text(Show.spaced(message.title)).font(Theme.Typeface.cardTitle).foregroundStyle(
                         Theme.Palette.label)
                     Spacer(minLength: 0)
                     time
                 }
-                Text(Show.spaced(message.body)).font(Theme.Typeface.subheadline)
-                    .foregroundStyle(Theme.Palette.secondaryLabel).fixedSize(horizontal: false, vertical: true)
+                Text(Show.spaced(message.body)).font(Theme.Typeface.message)
+                    .foregroundStyle(Theme.Palette.label).lineSpacing(Theme.Leading.body)
+                    .fixedSize(horizontal: false, vertical: true)
                 if !failed.isEmpty {
                     Text("推送没有发出去：\(failed.joined(separator: "；"))").font(Theme.Typeface.footnote)
                         .foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
-            .padding(Theme.Space.medium)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .card()
+            .pourBubble()
             .accessibilityElement(children: .combine)
         }
     }
@@ -73,18 +72,11 @@ struct MessageCard: View {
 
     private func line(_ title: String, _ detail: String) -> AttributedString {
         var head = AttributedString(title)
-        head.font = Theme.Typeface.bodySemibold
+        head.font = Theme.Typeface.cardTitle
         head.foregroundColor = Theme.Palette.label
         var tail = AttributedString(Show.spaced(" · \(detail)"))
-        tail.font = Theme.Typeface.subheadline
+        tail.font = Theme.Typeface.footnote
         tail.foregroundColor = Theme.Palette.secondaryLabel
         return head + tail
-    }
-}
-
-extension View {
-    /// 系统消息的样子：暖灰的对话面板上一张白卡片，小卡的圆角
-    fileprivate func card() -> some View {
-        background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.receipt))
     }
 }

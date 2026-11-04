@@ -48,6 +48,18 @@ extension Theme {
         public static let quickIcon = Font.title2.weight(.semibold)
         /// 你说的原话（宋体 17）
         public static let quote = Font.custom("Songti SC", size: 17, relativeTo: .body)
+        /// 对话里的话（原型 16）
+        public static let message = Font.callout
+        /// 弹层的标题「说一句」（原型 18 粗）
+        public static let sheetTitle = Font.headline.weight(.bold)
+        /// 一页里一块的标题，在卡片外面（原型 .sh h3：18 粗）
+        public static let pageSection = Font.headline.weight(.bold)
+        /// 说一句里的小胶囊（原型 13.5）；亮起来的（补记到别的日子）半粗
+        public static let chip = Font.footnote
+        public static let chipLit = Font.footnote.weight(.semibold)
+        /// 蓝色圆按钮里的麦克风、发送（原型 22 / 20 的图标）
+        public static let micIcon = Font.title3.weight(.medium)
+        public static let sendIcon = Font.body.weight(.semibold)
         /// 处理日志：等宽，一行一行好对齐
         public static let mono = Font.system(.footnote, design: .monospaced)
         /// 只写了一句感悟那天的大引用（宋体 21）
@@ -108,6 +120,13 @@ extension Theme {
         /// 输入框；右边发送的圆
         public static let composer: CGFloat = 56
         public static let sendButton: CGFloat = 36
+        /// 说一句弹层里：蓝色圆按钮（麦克风、发送）、输入框、小胶囊的高（照原型 40 / 42 / 30）
+        public static let micButton: CGFloat = 40
+        public static let field: CGFloat = 42
+        public static let smallChip: CGFloat = 30
+        /// 收着时浮在页面底下的「说一句」条（原型 .say 50 高）；左边「对话」图标的方块（原型 38）
+        public static let sayBar: CGFloat = 50
+        public static let sayIcon: CGFloat = 38
         /// 说话时的声波
         public static let waveform: CGFloat = 32
         /// 一天的带子
@@ -169,6 +188,10 @@ extension Theme {
         /// 「我的」功能格子的彩色方块（3.0，01 需求文档 2.3）、快捷大按钮的浅底
         public static let hubTile: CGFloat = 12
         public static let quick: CGFloat = 17
+        /// 从下面拉上来的弹层上面两个角（照原型 .sheet 30）
+        public static let sheet: CGFloat = 30
+        /// 对话气泡贴着说话人那一角（原型 6）
+        public static let tail: CGFloat = 6
     }
 
     /// 一个连续圆角的矩形

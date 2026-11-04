@@ -41,7 +41,10 @@ struct RootView: View {
     private static let widgetSamples = ProcessInfo.processInfo.arguments.contains("-widgetSamples")
 
     private var barHidden: Bool {
-        (model.sayBarHidden || model.pageSearching) && !model.chatOpen && model.draft.isEmpty && model.notice == nil
+        // 搜索浮层开着时说一句让开（原型的搜索页没有说一句；不然两个输入框叠在键盘上面）
+        if model.search != nil { return true }
+        return (model.sayBarHidden || model.pageSearching) && !model.chatOpen && model.draft.isEmpty
+            && model.notice == nil
     }
 
     private var shell: some View {
@@ -65,15 +68,16 @@ struct RootView: View {
             }
         }
         .animation(Theme.Motion.standard, value: model.staleSince)
+        // 压暗后面的页面（原型 .backdrop）：铺满，弹层上面两个圆角外面露出来的也是暗的；底下的说一句画在它上面。
+        // 一直在、只变透明度：收起的那一下就不挡手指了（不然刚点 × 马上点「我」，点在正在淡出的这一层上，2026-11-03 测出来的）
         .overlay {
-            if model.chatOpen {
-                // 只压暗上面的页面，不盖住底下的输入框（不然点「收起」会同时点到压暗的那一层）
-                Theme.Palette.dim.ignoresSafeArea(edges: .top)
-                    .onTapGesture { withAnimation(Theme.Motion.standard) { model.chatOpen = false } }
-                    .accessibilityLabel(Text("收起对话"))
-                    .accessibilityAddTraits(.isButton)
-                    .transition(.opacity)
-            }
+            Theme.Palette.backdrop.ignoresSafeArea()
+                .opacity(model.chatOpen ? 1 : 0)
+                .allowsHitTesting(model.chatOpen)
+                .onTapGesture { withAnimation(Theme.Motion.standard) { model.chatOpen = false } }
+                .accessibilityLabel(Text("收起对话"))
+                .accessibilityAddTraits(.isButton)
+                .accessibilityHidden(!model.chatOpen)
         }
         // 底下的输入框是一条「栏」（safeAreaBar）：页面滑到它下面时自动柔化淡出，玻璃上的提示语不和后面的字叠在一起
         .safeAreaBar(edge: .bottom, spacing: 0) {
@@ -145,7 +149,7 @@ struct RootView: View {
         } message: { row in
             Text(row.repeatText.map { "「\(row.content)」\($0)都会有" } ?? row.content)
         }
-        // 画布右上角的搜索、「/找 三体」：浮在页面上面，后面压暗
+        // 画布右上角的搜索、「/找 三体」：盖住整屏的一页（照原型）
         .overlay {
             if let search = model.search {
                 SearchPalette(initial: search).transition(.opacity)

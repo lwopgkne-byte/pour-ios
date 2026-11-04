@@ -8,6 +8,10 @@ import SwiftUI
 /// 白底细边的卡片，上面一行小标题；颜色用设计令牌
 struct ChartCard: View {
     let spec: API.ChartSpec
+    /// 柱子、线的颜色（领域页用领域的颜色）
+    var tint: Color = Theme.Palette.accent
+    /// 自己带白底细边；放在别的白卡里时不要
+    var framed = true
 
     var body: some View {
         if case .unknown = spec {
@@ -16,18 +20,19 @@ struct ChartCard: View {
             VStack(alignment: .leading, spacing: Theme.Space.small) {
                 Text(spec.title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
                 switch spec {
-                case .series(let series): SeriesChart(spec: series)
+                case .series(let series): SeriesChart(spec: series, tint: tint)
                 case .ring(let ring): RingChart(spec: ring)
                 case .heatmap(let heat): HeatChart(spec: heat)
                 case .timeline(let timeline): TimelineChart(spec: timeline)
                 case .unknown: EmptyView()
                 }
             }
-            .padding(Theme.Space.medium)
+            .padding(framed ? Theme.Space.medium : 0)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(Theme.Palette.card))
+            .background(RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(framed ? Theme.Palette.card : .clear))
             .overlay(
-                RoundedRectangle(cornerRadius: Theme.Corner.tile).strokeBorder(Theme.Palette.separator, lineWidth: 1))
+                RoundedRectangle(cornerRadius: Theme.Corner.tile).strokeBorder(
+                    framed ? Theme.Palette.separator : .clear, lineWidth: 1))
         }
     }
 
@@ -46,6 +51,7 @@ struct ChartCard: View {
 /// 折线 / 柱状：实线是数据，虚线是趋势（移动平均），极浅的横线是目标
 private struct SeriesChart: View {
     let spec: API.ChartSpec.Series
+    var tint: Color = Theme.Palette.accent
 
     private var mood: Bool { spec.unit == "mood" || spec.unit == "energy" }
 
@@ -58,14 +64,14 @@ private struct SeriesChart: View {
                             x: .value("日子", label(index)), y: .value(spec.title, value),
                             width: .fixed(Theme.Space.xLarge)
                         )
-                        .foregroundStyle(Theme.Palette.accent)
+                        .foregroundStyle(tint)
                         .clipShape(UnevenRoundedRectangle(topLeadingRadius: 3, topTrailingRadius: 3))
                     } else {
                         LineMark(x: .value("日子", label(index)), y: .value(spec.title, value), series: .value("线", "数据"))
-                            .foregroundStyle(Theme.Palette.accent).lineStyle(StrokeStyle(lineWidth: 2))
+                            .foregroundStyle(tint).lineStyle(StrokeStyle(lineWidth: 2))
                         if spec.points.count <= 14 {
                             PointMark(x: .value("日子", label(index)), y: .value(spec.title, value))
-                                .foregroundStyle(Theme.Palette.accent).symbolSize(Theme.Space.xLarge)
+                                .foregroundStyle(tint).symbolSize(Theme.Space.xLarge)
                         }
                     }
                 }

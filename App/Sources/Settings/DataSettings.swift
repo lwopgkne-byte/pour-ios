@@ -28,6 +28,7 @@ struct LanSettings: View {
                     }
                     SettingRow(label: "记住设备") { Text("\(info.rememberDays) 天") }
                 }
+                .settingsCard()
             })
     }
 }
@@ -101,6 +102,7 @@ private struct DataRows: View {
                 FieldMessage(text: "样张在 App 里，不连服务器；在样张里说的话也不会发出去。")
             #endif
         }
+        .settingsCard()
         .sheet(item: $exported) { file in ShareSheet(items: [file.url]) }
     }
 
@@ -228,6 +230,7 @@ private struct ReparseRows: View {
                 .padding(.vertical, Theme.Space.small)
             }
         }
+        .settingsCard()
         .onAppear {
             if from.isEmpty {
                 from = PourDate.addDays(today, -6)

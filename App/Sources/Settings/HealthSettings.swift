@@ -20,6 +20,7 @@ struct HealthSettings: View {
                 FieldMessage(text: "断开以后不再读，电脑上的 Pour 里送过去的都删掉。系统给 Pour 的读取权限在「设置 → 健康 → 数据访问与设备」里关。")
             }
         }
+        .settingsCard()
     }
 }
 
@@ -40,5 +41,6 @@ struct CalendarSettings: View {
                 FieldMessage(text: "断开以后不再读。系统给 Pour 的读取权限在 iPhone 的「设置 → 隐私与安全性 → 日历」里关。")
             }
         }
+        .settingsCard()
     }
 }

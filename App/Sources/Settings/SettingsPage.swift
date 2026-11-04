@@ -3,10 +3,9 @@ import PourDesign
 import PourPlatform
 import SwiftUI
 
-/// 设置（3.0 第 10 步，docs/3.0/01-需求文档.md 第 13 章）：系统设置那样的分组列表，左边彩色小图标，第一屏能看到全部分组；
-/// 点一行推进那一页（「/settings#reminders」）。以前的链接「/settings#data」「#health」「#privacy」直接打开那一页
+/// 设置（3.0 第 10 步，docs/3.0/01-需求文档.md 第 13 章；3.0.1 首页照原型：SettingsHome）：系统设置那样的分组列表，
+/// 左边彩色小图标；点一行推进那一页（「/settings#reminders」）。以前的链接「/settings#data」「#health」「#privacy」直接打开那一页
 struct SettingsPage: View {
-    @Environment(AppModel.self) private var model
     /// 哪一页；nil 是分组列表
     let anchor: String?
 
@@ -20,79 +19,14 @@ struct SettingsPage: View {
             }
             .scrollDismissesKeyboard(.interactively)
         } else {
-            list
+            SettingsHome()
         }
-    }
-
-    private var list: some View {
-        List {
-            ForEach(SettingsPageKey.groups, id: \.title) { group in
-                Section {
-                    ForEach(group.rows, id: \.self) { row in settingsRow(row) }
-                } header: {
-                    header(group.title)
-                }
-            }
-            Section {
-                settingsRow(.eval)
-                settingsRow(.widgets)
-            } header: {
-                header("关于 Pour")
-            } footer: {
-                Text(
-                    ["App \(model.appVersionText)", model.serverVersionText.map { "电脑上的 Pour \($0)" }].compactMap { $0 }
-                        .joined(separator: " · ")
-                )
-                .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-            }
-        }
-        .listStyle(.insetGrouped)
-        // 第一屏要看得到全部分组（01 需求文档第 13 章）
-        .listSectionSpacing(.compact)
-        .environment(\.defaultMinListRowHeight, Theme.Size.touch)
-        .scrollContentBackground(.hidden)
-    }
-
-    /// 组名：系统默认的灰在这个底上不够清楚（审计量过），用主题的第二层字色
-    private func header(_ title: String) -> some View {
-        Text(title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
-    }
-
-    private func settingsRow(_ row: SettingsPageKey) -> some View {
-        Button {
-            model.open(row.path)
-        } label: {
-            HStack(spacing: Theme.Space.medium) {
-                Image(systemName: row.symbol).font(Theme.Typeface.footnoteSemibold).foregroundStyle(
-                    Theme.Palette.onAccent
-                )
-                .frame(width: Theme.Size.tile, height: Theme.Size.tile)
-                .background(
-                    Theme.tag(row.color).solid,
-                    in: RoundedRectangle(cornerRadius: Theme.Corner.tile, style: .continuous))
-                Text(row.title).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
-                Spacer()
-                Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
-                    .foregroundStyle(Theme.Palette.tertiaryLabel)
-            }
-            .frame(minHeight: Theme.Size.touch)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .listRowInsets(EdgeInsets(top: 0, leading: Theme.Space.regular, bottom: 0, trailing: Theme.Space.regular))
-        .accessibilityIdentifier("settings.row.\(row.rawValue)")
     }
 }
 
 /// 设置的一页：名字、图标、颜色、里面放什么
 enum SettingsPageKey: String, CaseIterable {
-    case reminders, categories, sayings, privacy, health, calendar, data, llm, phone, lan, eval, widgets
-
-    /// 分组（关于 Pour 单独写：上面还有版本）
-    static let groups: [(title: String, rows: [SettingsPageKey])] = [
-        ("提醒和通知", [.reminders]), ("记录", [.categories, .sayings]),
-        ("隐私和数据", [.privacy, .health, .data]), ("AI 和用量", [.llm]), ("这台手机", [.phone]),
-    ]
+    case reminders, categories, sayings, privacy, health, calendar, data, llm, phone, lan, eval, widgets, about
 
     var path: String { self == .sayings ? "/about/known#sayings" : "/settings#\(rawValue)" }
 
@@ -110,6 +44,7 @@ enum SettingsPageKey: String, CaseIterable {
         case .lan: "局域网访问"
         case .eval: "AI 表现"
         case .widgets: "小组件和捷径"
+        case .about: "关于 Pour"
         }
     }
 
@@ -127,6 +62,7 @@ enum SettingsPageKey: String, CaseIterable {
         case .lan: "wifi"
         case .eval: "checkmark.seal.fill"
         case .widgets: "square.on.square"
+        case .about: "info.circle.fill"
         }
     }
 
@@ -136,7 +72,7 @@ enum SettingsPageKey: String, CaseIterable {
         case .categories, .eval: "orange"
         case .sayings, .llm: "purple"
         case .privacy, .data: "gray"
-        case .calendar, .phone, .lan: "blue"
+        case .calendar, .phone, .lan, .about: "blue"
         case .widgets: "green"
         }
     }
@@ -159,7 +95,43 @@ enum SettingsPageKey: String, CaseIterable {
         case .lan: LanSettings()
         case .eval: EvalSettings()
         case .widgets: WidgetsGuide()
+        case .about: AboutPourSettings()
         }
+    }
+}
+
+/// 关于 Pour（照原型「关于 Pour」；「我的」最下面一行进来）：小组件和捷径、AI 表现点进去；版本；隐私一句话
+struct AboutPourSettings: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            link(.widgets, hint: "桌面、锁屏、控制中心、通知、分享、Siri")
+            link(.eval, hint: "整理得准不准、你改过的地方、自动检查")
+            SettingRow(label: "版本") {
+                Text(
+                    ["App \(model.appVersionText)", model.serverVersionText.map { "电脑上的 Pour \($0)" }].compactMap { $0 }
+                        .joined(separator: " · ")
+                )
+                .font(Theme.Typeface.footnote)
+            }
+            SettingRow(label: "隐私", hint: "原话和整理结果都在你的电脑上；发给大模型的只有要整理的那段话") { EmptyView() }
+        }
+        .settingsCard()
+    }
+
+    private func link(_ page: SettingsPageKey, hint: String) -> some View {
+        Button {
+            model.open(page.path)
+        } label: {
+            SettingRow(label: page.title, hint: hint) {
+                Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
+                    .foregroundStyle(Theme.Palette.tertiaryLabel)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("settings.about.\(page.rawValue)")
     }
 }
 
@@ -172,9 +144,10 @@ struct PrivacySettings: View {
             label: "打开钱要面容 ID",
             hint: MoneyLock.available ? "只在这台手机上验；App 退到后台再回来要重新验" : "这台手机没设密码，开了也锁不上"
         ) {
-            Toggle("打开钱要面容 ID", isOn: $moneyLock).labelsHidden().tint(Theme.Palette.accentFill)
+            Toggle("打开钱要面容 ID", isOn: $moneyLock).labelsHidden().tint(Theme.Palette.switchOn)
                 .accessibilityIdentifier("settings.moneyLock")
         }
+        .settingsCard()
     }
 }
 
@@ -207,6 +180,7 @@ struct PhoneSettings: View {
             // 电脑上的 Pour 是哪个版本（docs/模块/产品优化.md R8）
             if let server = model.serverVersionText { SettingRow(label: "电脑上的 Pour") { Text(server) } }
         }
+        .settingsCard()
     }
 
     private static func checkAddress(_ text: String) -> String? {

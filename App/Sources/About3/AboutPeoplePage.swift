@@ -73,7 +73,7 @@ struct AboutPeoplePage: View {
                 Text(String(person.name.prefix(1))).font(Theme.Typeface.bodySemibold)
                     .foregroundStyle(Theme.Palette.label)
                     .frame(width: Theme.Size.hubIcon, height: Theme.Size.hubIcon)
-                    .background(Theme.Palette.fill, in: Circle())
+                    .background(Self.avatar(person.group), in: Circle())
                 VStack(alignment: .leading, spacing: Theme.Space.hairline) {
                     HStack(spacing: Theme.Space.tight) {
                         Text(person.name).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
@@ -103,6 +103,15 @@ struct AboutPeoplePage: View {
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
         .accessibilityIdentifier("people.row.\(person.name)")
+    }
+
+    /// 头像圆的底色（照原型）：家人浅粉、工作浅米、朋友和其他浅蓝
+    static func avatar(_ group: String) -> Color {
+        switch group {
+        case "family": Theme.Palette.personFamily
+        case "work": Theme.Palette.personWork
+        default: Theme.Palette.personOther
+        }
     }
 
     /// 「31 天 · 多是接放学、上篮球课、看电影」

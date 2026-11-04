@@ -127,22 +127,6 @@ struct ReviewSkeleton: View {
     }
 }
 
-/// 一部分：大留白 + 一个安静的小标题（原来回顾里的样子；回顾 3.0 第 6 步换成了卡片，「关于我」那几页第 8 步再换）
-struct LegacySection<Content: View>: View {
-    let title: String
-    @ViewBuilder let content: () -> Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            Text(title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
-                .accessibilityAddTraits(.isHeader)
-            content()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, (Theme.Size.touch + Theme.Space.tight))
-    }
-}
-
 extension View {
     /// 原来回顾一页的外框（「关于我」那几页还在用）：能上下滚，左右滑翻上一页（往右滑）、下一页（往左滑）
     func legacyPage(prev: (() -> Void)?, next: (() -> Void)?) -> some View {

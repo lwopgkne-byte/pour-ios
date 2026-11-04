@@ -11,8 +11,11 @@ struct MoodTodayCard: View {
 
     var body: some View {
         let pending = model.mood.pending.filter { $0.day == page.today }
+        PageSection(title: "今天", meta: page.todaySummary) { moments(pending) }
+    }
+
+    @ViewBuilder private func moments(_ pending: [PendingMood]) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
-            MoodCardHeader("今天", detail: page.todaySummary)
             if page.todayMoments.isEmpty && pending.isEmpty {
                 Text("今天还没说心情。点上面一个表情就记下了，想说为什么再说。").font(Theme.Typeface.subheadline)
                     .foregroundStyle(Theme.Palette.secondaryLabel)
@@ -28,7 +31,6 @@ struct MoodTodayCard: View {
             }
             ForEach(pending) { MoodPendingRow(pending: $0) }
         }
-        .themeCard()
     }
 }
 
@@ -117,13 +119,20 @@ struct MoodMonthCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             HStack(alignment: .firstTextBaseline) {
-                Text(page.current ? "这个月 · \(Show.monthName(page.month))" : Show.monthName(page.month))
-                    .font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.label)
+                Text(Show.monthName(page.month)).font(Theme.Typeface.pageSection).foregroundStyle(Theme.Palette.label)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 arrow("chevron.left", label: "上个月", to: page.prevMonth)
                 arrow("chevron.right", label: "下个月", to: page.nextMonth)
             }
+            .padding(.leading, Theme.Space.tight)
+            .padding(.top, Theme.Space.medium)
+            grid
+        }
+    }
+
+    private var grid: some View {
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
             Text(page.monthLine ?? "\(Show.monthName(page.month))还没说到心情。").font(Theme.Typeface.footnote)
                 .foregroundStyle(Theme.Palette.secondaryLabel)
             MoodMonthGrid(blanks: blanks, days: days, today: page.current ? page.today : nil, selected: picked) { day in
@@ -137,7 +146,7 @@ struct MoodMonthCard: View {
                 })
             if let picked { dayMoments(picked) }
         }
-        .themeCard()
+        .themeCard(radius: Theme.Corner.smallCard)
     }
 
     private func arrow(_ symbol: String, label: String, to month: String?) -> some View {

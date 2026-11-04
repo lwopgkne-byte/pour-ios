@@ -97,8 +97,9 @@ final class ShellUITests: XCTestCase {
         canvasShot.lifetime = .keepAlways
         add(canvasShot)
         app.buttons["today.me"].tap()
-        let settings = app.buttons["hub.row.settings"]
-        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        // 最后一行是「关于 Pour」（照原型：设置、反馈、关于 Pour）
+        let last = app.buttons["hub.row.about"]
+        XCTAssertTrue(last.waitForExistence(timeout: 5))
         for _ in 0..<6 { app.swipeUp(velocity: .fast) }
         RunLoop.current.run(until: Date().addingTimeInterval(1.5))
         let shot = XCTAttachment(screenshot: app.screenshot())
@@ -111,7 +112,7 @@ final class ShellUITests: XCTestCase {
             forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.53)),
             withVelocity: .slow, thenHoldForDuration: 0.3)
         RunLoop.current.run(until: Date().addingTimeInterval(1))
-        XCTAssertLessThanOrEqual(settings.frame.maxY, bar.frame.minY + 1, "「设置」那一行压在「说一句」下面")
+        XCTAssertLessThanOrEqual(last.frame.maxY, bar.frame.minY + 1, "最后一行「关于 Pour」压在「说一句」下面")
     }
 
     /// 全部旧链接照旧能打开（pour://open?path=）：推进来那一页，返回一下就回到画布
@@ -121,7 +122,7 @@ final class ShellUITests: XCTestCase {
             ("/review", "回顾"), ("/money", "遮住金额"), ("/money/watch", "留意的"), ("/money/renqing", "和谁来往"),
             ("/about", "你的生活由什么组成"), ("/about/mood", "心情和精力"), ("/goals", "定目标"),
             ("/library?view=insights", "感悟"), ("/settings", "提醒和通知"), ("/settings#data", "数据"),
-            ("/todos", "今天的时间线"), ("/money/list/2026-10?kind=fixed", "每一笔"), ("/money/thing/22", "一样东西"),
+            ("/todos", "今天的时间线"), ("/money/list/2026-10?kind=fixed", "10月的每一笔"), ("/money/thing/22", "空气炸锅"),
             ("/money/renqing/小李", "和小李的来往"), ("/money/day/2026-10-18", "10月18日"),
         ]
         for (path, sign) in links {
@@ -222,8 +223,8 @@ final class ShellUITests: XCTestCase {
         input.typeText("全部断网")
         app.buttons["pourbar.send"].tap()
         // 发出去对话就展开了：收起来再去「我的」
-        let chat = app.buttons["pourbar.chat"]
-        if chat.waitForExistence(timeout: 3), chat.label == "收起对话" { chat.tap() }
+        let close = app.buttons["chat.close"]
+        if close.waitForExistence(timeout: 3) { close.tap() }
         app.buttons["today.me"].tap()
         XCTAssertTrue(days.waitForExistence(timeout: 5), "没网时「我的」没有用上次存的")
         let stale = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '没连上 · 显示的是'")).firstMatch

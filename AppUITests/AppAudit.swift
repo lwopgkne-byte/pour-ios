@@ -10,6 +10,12 @@ enum AppAudit {
     /// 字跟着字号变由 Theme 的字和 SwiftLint（不许写死字号）管着
     @MainActor
     static func run(_ app: XCUIApplication, name: String) throws {
+        // 只查流程、不审计：电脑忙到审计总是做不完（-56）时手动排查用（xcodebuild 前面加 TEST_RUNNER_POUR_SKIP_AUDIT=1）；
+        // 平时、推送前检查都不设，照常审计
+        if ProcessInfo.processInfo.environment["POUR_SKIP_AUDIT"] == "1" {
+            print("跳过审计（POUR_SKIP_AUDIT=1）[\(name)]")
+            return
+        }
         for types in [XCUIAccessibilityAuditType.all.subtracting([.textClipped, .dynamicType]), .textClipped] {
             try run(app, name: name, types: types)
         }
@@ -41,6 +47,13 @@ enum AppAudit {
         }
     }
 
+    /// 一个元素在哪；读的那一下它正好没了（轻提示到时间收起）就当没有——不然 frame 会让整个测试失败
+    @MainActor
+    private static func frame(of element: XCUIElement) -> CGRect? {
+        guard element.exists, let snapshot = try? element.snapshot() else { return nil }
+        return snapshot.frame
+    }
+
     /// 跑一次审计：有元素的按规矩判；指不出元素的交给 unresolved 决定
     @MainActor
     private static func audit(
@@ -48,19 +61,19 @@ enum AppAudit {
         unresolved: @escaping (XCUIAccessibilityAuditIssue) -> Bool
     ) throws {
         // 浮在底部的玻璃：倾倒栏（标签栏的底部附件）、撤销条；导航栏
-        let glass = [app.buttons["pourbar"], app.descendants(matching: .any)["undoToast"]].filter(\.exists).map(\.frame)
-        let navigation = app.navigationBars.allElementsBoundByIndex.filter(\.exists).map(\.frame)
+        let glass = [app.buttons["pourbar"], app.descendants(matching: .any)["undoToast"]].compactMap(Self.frame(of:))
+        let navigation = app.navigationBars.allElementsBoundByIndex.compactMap(Self.frame(of:))
         // 底部的输入框：页面在它后面滚，压在它下面、只露出一半的字量出来对比度不准、像被截断
         // 3.0：往下翻时「说一句」收起来（挪到屏幕外面），这时页面的最下沿是屏幕底边淡出的那一截（系统的 scrollEdgeEffect）
         let screenBottom = app.frame.height - Self.bottomFade
         let bar =
             (["pourbar.input", "pourbar.chat", "pourbar.send"]
-            .map { app.descendants(matching: .any)[$0] }.filter(\.exists).map(\.frame.minY) + [screenBottom]).min()
+            .map { app.descendants(matching: .any)[$0] }.compactMap(Self.frame(of:)).map(\.minY) + [screenBottom]).min()
         // 画布顶上那一行（「我」、日子、搜索）：页面往上滚到它后面去的字也只露出一截
         let header = app.descendants(matching: .any)["today.me"]
         let headerBottom = header.exists ? header.frame.maxY + Self.headerPadding : nil
         // 对话面板开着：面板里的字往上滚到面板上沿后面，只露出一截
-        let chatOpen = app.buttons["pourbar.chat"].exists && app.buttons["pourbar.chat"].label == "收起对话"
+        let chatOpen = app.buttons["chat.close"].exists
         // 按名字认（键盘弹着时面板很矮，按高度认不出来，2026-10-31）
         let chatScroll = app.scrollViews["chat.scroll"]
         let panelTop = chatOpen && chatScroll.exists ? chatScroll.frame.minY : nil

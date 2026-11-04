@@ -43,6 +43,30 @@ extension Theme {
         public static let badFill = one(0xFBEFEE)
         public static let badInk = one(0x9E322B)
         public static let bad = one(0xAA3831)
+        /// 从下面拉上来的弹层（说一句）：比页面底再暖白一点；输入框的底也是它（照原型 --sheet）
+        public static let sheet = one(0xF7F6F3)
+        /// 弹层上面那条小横条
+        public static let grabber = one(0x1D1C1A, opacity: 0.2)
+        /// 深一档的浅墨：弹层右上角关闭的圆底（原型 --fill2）
+        public static let fillStrong = one(0x1D1C1A, opacity: 0.09)
+        /// 开关打开的颜色：系统那种亮绿（照原型设置页）
+        public static let switchOn = one(0x34C759)
+        /// 目标的环（照原型 G_OK / G_WARN / G_PAUSE）：只是图形不是字，比字用的绿、黄亮一档
+        public static let ringGood = one(0x2E9A6B)
+        public static let ringWarn = one(0xC98A1B)
+        public static let ringPaused = one(0xB5B0A6)
+        /// 收据小方块：待办、钱、心情、感悟、别的（照原型「说一句」里的五种颜色，上面是白的小图标）
+        public static let kindTodo = one(0x2F6FD6)
+        public static let kindMoney = one(0xC27E12)
+        public static let kindMood = one(0xBC4A7E)
+        public static let kindInsight = one(0xB07A0E)
+        public static let kindNote = one(0x7A808A)
+        /// 人的头像圆（照原型「人」）：家人浅粉、工作浅米、朋友和其他浅蓝，上面是深色的字
+        public static let personFamily = one(0xF3D9E4)
+        public static let personWork = one(0xEADFD3)
+        public static let personOther = one(0xDDE7F5)
+        /// 引用左边那道细线（照原型 .moment：15% 的墨）
+        public static let quoteRule = one(0x1D1C1A, opacity: 0.15)
 
         /// 一个颜色（只有一种样子：亮、暗用同一个值）
         static func one(_ hex: UInt32, opacity: Double = 1) -> ColorToken {
@@ -76,11 +100,32 @@ extension Theme {
         public static let badFill = Tokens.badFill.color
         public static let badInk = Tokens.badInk.color
         public static let bad = Tokens.bad.color
+        public static let sheet = Tokens.sheet.color
+        public static let grabber = Tokens.grabber.color
+        public static let fillStrong = Tokens.fillStrong.color
+        public static let switchOn = Tokens.switchOn.color
+        public static let ringGood = Tokens.ringGood.color
+        public static let ringWarn = Tokens.ringWarn.color
+        public static let ringPaused = Tokens.ringPaused.color
+        public static let personFamily = Tokens.personFamily.color
+        public static let personWork = Tokens.personWork.color
+        public static let personOther = Tokens.personOther.color
+        public static let quoteRule = Tokens.quoteRule.color
+        public static let kindTodo = Tokens.kindTodo.color
+        public static let kindMoney = Tokens.kindMoney.color
+        public static let kindMood = Tokens.kindMood.color
+        public static let kindInsight = Tokens.kindInsight.color
+        public static let kindNote = Tokens.kindNote.color
         /// 卡片的两层影子（只在亮色）
         public static let shadowNear = Color.black.opacity(0.04)
         public static let shadowFar = Color.black.opacity(0.05)
         /// 浮层后面压暗的那一层
         public static let dim = Color.black.opacity(0.18)
+        /// 说一句弹层后面压暗的那一层、弹层往上的影子（照原型 .backdrop 0.28、.sheet 的影子 0.18）
+        public static let backdrop = Color.black.opacity(0.28)
+        public static let sheetShadow = Color.black.opacity(0.18)
+        /// 说一句弹层最下面那一块（快捷、输入框）：九成的白（原型 rgba(255,255,255,.9)）
+        public static let dock = Color.white.opacity(0.9)
 
         /// 目标的状态色：不落后、稍微落后、落后较多；还没有状态的是第三层字的灰
         public static func status(_ tone: String) -> Color {

@@ -76,6 +76,45 @@ extension API {
         public var syncedAt: String?
     }
 
+    /// 健康一页（服务器 2.20.0 `/api/health/page`；照可交互原型「健康」）：走了多少步、那一觉、最近 7 天的锻炼。
+    /// 你说的为准，同一次只算一次；今天还没有步数、那一觉的给昨天的（day 写着是哪天）
+    public struct HealthPage: Codable, Hashable, Sendable {
+        public struct Steps: Codable, Hashable, Sendable {
+            public var day: String
+            public var count: Double
+            /// 你自己说的步数（不是健康 App 的）
+            public var said: Bool
+            /// 「每天走 8000 步」这样的目标
+            public var goal: Double?
+        }
+
+        public var connected: Bool
+        public var syncedAt: String?
+        public var today: String
+        public var steps: Steps?
+        public var sleep: HealthItem?
+        public var workouts: [HealthItem]
+    }
+
+    /// 健康一页的一觉、一次锻炼
+    public struct HealthItem: Codable, Hashable, Sendable {
+        public var day: String
+        public var label: String
+        public var start: String?
+        public var end: String?
+        public var minutes: Double?
+        public var kilometers: Double?
+        /// 你说过的；false 是只有健康 App 记的
+        public var said: Bool
+        /// 你说的这条里健康 App 补上的几样（「时间」「时长」「距离」）
+        public var fromHealth: [String]
+
+        enum CodingKeys: String, CodingKey {
+            case day, label, start, end, minutes, said, fromHealth
+            case kilometers = "km"
+        }
+    }
+
     /// 画布上这一天健康 App 的：步数（锻炼、睡眠在 entries 里，`origin` 是 health）
     public struct DayHealth: Codable, Hashable, Sendable {
         public var steps: Int?
@@ -100,6 +139,9 @@ extension APIClient {
     }
 
     public func healthStatus() async throws(APIError) -> API.HealthStatus { try await get("/api/health") }
+
+    /// 健康一页（要服务器 2.20.0）
+    public func healthPage() async throws(APIError) -> API.HealthPage { try await get("/api/health/page") }
 
     /// 断开健康：服务器上的全部删掉
     public func forgetHealth() async throws(APIError) {

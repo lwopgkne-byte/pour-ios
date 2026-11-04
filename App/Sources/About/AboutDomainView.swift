@@ -33,21 +33,18 @@ struct AboutDomainView: View {
 
     @ViewBuilder private func content(_ page: API.MeDomainPage) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.cardGap) {
-            MeHead(title: page.name, color: page.color) {
-                navigate("/about")
-            } sub: {
-                EmptyView()
-            }
+            // 照原型：标题下面一行小字，没有大数字卡
+            MeNote("\(page.span)\(page.headline) · \(page.sub)").accessibilityIdentifier("domain.sub")
             calendarPanel(page)
             if let when = page.when {
-                AboutCardSection(title: "什么时候") {
+                VStack(alignment: .leading, spacing: Theme.Space.small) {
+                    AboutSection(title: "什么时候", meta: "一周七天 × 上午下午晚上，各有几天")
                     WhenGrid(cells: when.cells, color: page.color)
                         .accessibilityElement(children: .contain)
                         .accessibilityLabel(Text("一周七天里，上午、下午、晚上各有几天"))
-                    if !when.sentence.isEmpty {
-                        Text(Show.spaced(when.sentence)).font(Theme.Typeface.footnote).foregroundStyle(
-                            Theme.Palette.label)
-                    }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .themeCard()
+                    if !when.sentence.isEmpty { MeNote(when.sentence) }
                 }
             }
             if !page.acts.isEmpty || !page.chips.isEmpty {
@@ -58,7 +55,7 @@ struct AboutDomainView: View {
             }
             if let mood = page.mood { AboutCardSection(title: "那些日子的心情") { MoodScale(mood: mood, color: page.color) } }
             if !page.quotes.isEmpty { AboutCardSection(title: "你说过的话") { MeQuotes(quotes: page.quotes) } }
-            DomainTrend(domain: key)
+            DomainTrend(domain: key, color: page.color)
             knownSection
             if !page.findings.isEmpty { AboutCardSection(title: "发现") { MeFindings(findings: page.findings) } }
             if !page.changes.isEmpty {
@@ -85,13 +82,11 @@ struct AboutDomainView: View {
         }
     }
 
-    /// 和谁、在哪：小圆标签带天数；点开看那几天
-    /// 大数字和每一天（上面一排「全部 · 和儿子」只亮那几天）
+    /// 每一天（照原型「10月每一天」）：标题右边一句「说到它的那天上色」；「全部 · 和儿子」在卡片外，点一个只亮那几天
     private func calendarPanel(_ page: API.MeDomainPage) -> some View {
-        MePanel {
-            MeNote(page.span)
-            Text(Show.spaced(page.headline)).font(Theme.Typeface.largeTitle).foregroundStyle(Theme.Palette.label)
-            MeNote(page.sub)
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            AboutSection(
+                title: "\(page.span)每一天", meta: page.person == nil ? "说到它的那天上色" : "在一起的那天上色")
             if !page.chips.isEmpty { withChips(page.chips) }
             let lit = page.chips.first { $0.name == with }.map { Set($0.days) }
             MeCalendar(
@@ -106,7 +101,10 @@ struct AboutDomainView: View {
             )
             .accessibilityElement(children: .contain)
             .accessibilityLabel(
-                Text("\(page.span)每一天：\(page.person.map { "和\($0)在一起" } ?? "说到\(page.name)")的那天是彩色的"))
+                Text("\(page.span)每一天：\(page.person.map { "和\($0)在一起" } ?? "说到\(page.name)")的那天是彩色的")
+            )
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .themeCard()
         }
     }
 
@@ -166,14 +164,14 @@ private struct WhenGrid: View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             Grid(horizontalSpacing: Theme.Space.tight, verticalSpacing: Theme.Space.tight) {
                 GridRow {
-                    Color.clear.frame(width: Theme.Space.xLarge, height: 1)
+                    Color.clear.frame(width: Theme.Space.section, height: 1)
                     ForEach(MeStyle.weekHead, id: \.self) { PaintedText(text: $0) }
                 }
                 .accessibilityHidden(true)
                 ForEach(Array(Self.parts.enumerated()), id: \.offset) { index, part in
                     GridRow {
-                        Text(String(part.prefix(1))).font(Theme.Typeface.footnote).foregroundStyle(
-                            Theme.Palette.secondaryLabel)
+                        Text(part).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                            .fixedSize()
                         ForEach(cells.filter { $0.part == index }, id: \.weekday) { cell in self.cell(cell, part: part)
                         }
                     }
@@ -191,7 +189,14 @@ private struct WhenGrid: View {
             Button {
                 withAnimation(Theme.Motion.standard) { open = open == cell ? nil : cell }
             } label: {
-                shape.fill(Theme.tag(color).solid.opacity(Self.shades[min(5, max(0, Int(cell.level)))]))
+                // 照原型：格子里写几天（深色字：白字在类别色上不到 4.5:1）
+                let level = min(5, max(0, Int(cell.level)))
+                shape.fill(Theme.tag(color).solid.opacity(Self.shades[level]))
+                    .overlay {
+                        Text("\(cell.count)").font(Theme.Typeface.tick).monospacedDigit()
+                            .foregroundStyle(Theme.Palette.label)
+                            .accessibilityHidden(true)
+                    }
                     .frame(height: Theme.Space.section).frame(maxWidth: .infinity).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -253,6 +258,8 @@ private struct MoodScale: View {
 private struct DomainTrend: View {
     @Environment(AppModel.self) private var model
     let domain: String
+    /// 领域的颜色（柱子、线照原型用它）
+    let color: String
     @State private var metrics: [API.BoardMetric] = []
     @State private var picked: String?
     @State private var dim = "week"
@@ -280,7 +287,14 @@ private struct DomainTrend: View {
         VStack(alignment: .leading, spacing: 0) {
             Color.clear.frame(height: 0)
             if !metrics.isEmpty {
-                AboutCardSection(title: metrics.count > 1 ? "这些数的变化" : "\(metrics[0].name)的变化") { content }
+                VStack(alignment: .leading, spacing: Theme.Space.small) {
+                    AboutSection(title: metrics.count > 1 ? "这些数的变化" : "\(metrics[0].name)的变化")
+                    if metrics.count > 1 { metricChips }
+                    VStack(alignment: .leading, spacing: Theme.Space.small) { content }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .themeCard()
+                    if let trend, let note = note(trend) { MeNote(note) }
+                }
             }
         }
         .task(id: model.dataVersion) {
@@ -292,21 +306,33 @@ private struct DomainTrend: View {
         }
     }
 
-    @ViewBuilder private var content: some View {
-        if metrics.count > 1 {
-            ScrollView(.horizontal) {
-                HStack(spacing: Theme.Space.small) {
-                    ForEach(metrics, id: \.id) { metric in
-                        FilterChip(Self.shortName(metric), selected: metric.id == id) { picked = metric.id }
-                    }
+    /// 时长 · 次数 · 距离（照原型在卡片外面）
+    private var metricChips: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: Theme.Space.small) {
+                ForEach(metrics, id: \.id) { metric in
+                    FilterChip(Self.shortName(metric), selected: metric.id == id) { picked = metric.id }
                 }
-                .padding(.vertical, (Theme.Size.touch - Theme.Size.capsule) / 2)
             }
-            .scrollIndicators(.hidden)
-            .padding(.vertical, -(Theme.Size.touch - Theme.Size.capsule) / 2)
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel(Text("看哪个数"))
+            .padding(.vertical, (Theme.Size.touch - Theme.Size.capsule) / 2)
         }
+        .scrollIndicators(.hidden)
+        .padding(.vertical, -(Theme.Size.touch - Theme.Size.capsule) / 2)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("看哪个数"))
+    }
+
+    /// 卡片下面一句：虚线、横线是什么
+    private func note(_ trend: API.BoardTrend) -> String? {
+        guard !trend.points.allSatisfy({ ($0.value ?? 0) == 0 }) else { return nil }
+        let notes = [
+            trend.trend == nil ? nil : "虚线是\(Self.spans[dim] ?? "")移动平均",
+            trend.target.map { "横线是目标 \(ChartCard.value($0, unit: trend.metric.unit))" },
+        ].compactMap { $0 }
+        return notes.isEmpty ? nil : notes.joined(separator: "，")
+    }
+
+    @ViewBuilder private var content: some View {
         Picker("维度", selection: $dim) {
             ForEach(Self.dims, id: \.key) { option in Text(option.label).tag(option.key) }
         }
@@ -324,12 +350,8 @@ private struct DomainTrend: View {
                         .init(
                             type: trend.metric.how == "sum" ? "bar" : "line", title: trend.metric.name,
                             unit: trend.metric.unit,
-                            points: trend.points, trend: trend.trend, target: trend.target)))
-                let notes = [
-                    trend.trend == nil ? nil : "虚线是\(Self.spans[dim] ?? "")移动平均",
-                    trend.target.map { "横线是目标 \(ChartCard.value($0, unit: trend.metric.unit))" },
-                ].compactMap { $0 }
-                if !notes.isEmpty { MeNote(notes.joined(separator: "，")) }
+                            points: trend.points, trend: trend.trend, target: trend.target)),
+                    tint: Theme.tag(color).solid, framed: false)
             }
         } else {
             SkeletonBlock(height: (Theme.Space.section * 2) * 2)

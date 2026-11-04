@@ -110,6 +110,7 @@ private struct LlmRows: View {
                     .accessibilityIdentifier("settings.llm.log")
             }
         }
+        .settingsCard()
         .sheet(isPresented: $logOpen) { RunLogPeek() }
     }
 

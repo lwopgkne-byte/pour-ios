@@ -253,39 +253,56 @@ struct HubPage: View {
     }
 
     private func openTile(_ tile: HubTile) {
-        if tile.id == "calendar" {
-            model.pickDay()
-        } else {
-            model.open(tile.path(today: model.today))
-        }
+        model.open(tile.path(today: model.today))
     }
 }
 
 extension HubPage {
     // MARK: - 最下面
 
-    /// 最下面：反馈（3.0 第 10 步）、设置
+    /// 最下面（照原型）：设置、反馈（3.0 第 10 步；旁边写截图和页面自动带上）、关于 Pour（旁边写版本）
     private var bottomRows: some View {
         VStack(spacing: 0) {
-            bottomRow("反馈", symbol: "bubble.left.and.exclamationmark.bubble.right.fill", id: "hub.row.feedback") {
+            bottomRow("设置", symbol: "gearshape.fill", id: "hub.row.settings") { model.open("/settings") }
+            divider
+            bottomRow(
+                "反馈", symbol: "exclamationmark.bubble.fill", value: "截图和页面自动带上", id: "hub.row.feedback"
+            ) {
                 // 截下现在的样子（「我的」这一页），在哪一页写打开「我的」以前的那一页
                 feedback = FeedbackDraft(
                     page: model.stack.dropLast().last?.title ?? "画布", screenshot: FeedbackSheet.snapshot())
             }
-            Divider().padding(.leading, Theme.Space.regular + Theme.Size.tile + Theme.Space.medium)
-            bottomRow("设置", symbol: "gearshape.fill", id: "hub.row.settings") { model.open("/settings") }
+            divider
+            bottomRow("关于 Pour", symbol: "info.circle.fill", value: Self.shortVersion, id: "hub.row.about") {
+                model.open("/settings#about")
+            }
         }
         .themeCard(padding: 0)
         .sheet(item: $feedback) { FeedbackSheet(page: $0.page, screenshot: $0.screenshot) }
     }
 
-    private func bottomRow(_ title: String, symbol: String, id: String, action: @escaping () -> Void) -> some View {
+    private var divider: some View {
+        Divider().padding(.leading, Theme.Space.regular + Theme.Size.tile + Theme.Space.medium)
+    }
+
+    /// 「3.0.1」
+    private static var shortVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+    }
+
+    private func bottomRow(
+        _ title: String, symbol: String, value: String? = nil, id: String, action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             HStack(spacing: Theme.Space.medium) {
                 Image(systemName: symbol).font(Theme.Typeface.body)
                     .foregroundStyle(Theme.Palette.secondaryLabel).frame(width: Theme.Size.tile)
                 Text(title).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
-                Spacer(minLength: 0)
+                Spacer(minLength: Theme.Space.small)
+                if let value {
+                    Text(value).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                        .lineLimit(1)
+                }
                 Image(systemName: "chevron.right").font(Theme.Typeface.glyph)
                     .foregroundStyle(Theme.Palette.tertiaryLabel)
             }
@@ -355,39 +372,4 @@ extension HubPage {
 private enum HubCell: Hashable {
     case tile(HubTile, inFavorites: Bool)
     case empty
-}
-
-/// 一个格子的样子：图标（角上的字、管理时的 −、+）+ 名字（最多 4 个字，一行）
-private struct HubTileView: View {
-    let tile: HubTile
-    let badge: String?
-    /// nil：没在管理；true：点了放进去（+）；false：点了拿出来（−）
-    let mark: Bool?
-
-    var body: some View {
-        VStack(spacing: Theme.Space.small) {
-            HubTileIcon(symbol: tile.symbol, color: tile.color)
-                .overlay(alignment: .topTrailing) {
-                    if let badge { HubBadge(badge).offset(x: Theme.Space.small, y: -Theme.Space.snug) }
-                }
-                .overlay(alignment: .topLeading) {
-                    if let mark { HubMark(adding: mark).offset(x: -Theme.Space.small, y: -Theme.Space.small) }
-                }
-                .hubJiggle(mark != nil)
-            Text(tile.name).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.label).lineLimit(1)
-        }
-        .frame(maxWidth: .infinity)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(label))
-        .accessibilityAddTraits(.isButton)
-    }
-
-    private var label: String {
-        switch mark {
-        case true?: "\(tile.name)，放进常用"
-        case false?: "\(tile.name)，从常用拿出来"
-        case nil: badge.map { "\(tile.name)，\($0)" } ?? tile.name
-        }
-    }
 }

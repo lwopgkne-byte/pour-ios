@@ -47,15 +47,14 @@ struct GoalIfThenSettings: View {
     @State private var locating = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            SettingsHeading(title: "目标的「如果就」").padding(.top, Theme.Space.small)
+        SettingsGroup(title: "目标的「如果就」", footer: "这些提醒是手机自己排的，到点不用连网；暂停的目标不提醒。") {
             if let list {
                 if list.ifthen.isEmpty {
                     FieldMessage(text: "还没有目标设了提醒：在一个目标的「花 1 分钟想清楚」第三屏里选。")
+                        .padding(.vertical, Theme.Space.small)
                 }
                 ForEach(list.ifthen) { item in row(item) }
                 if list.ifthen.contains(where: { $0.remind.kind == "place" }) || home != nil { homeRow }
-                FieldMessage(text: "这些提醒是手机自己排的，到点不用连网；暂停的目标不提醒。")
             } else {
                 Dots(label: "正在拿目标的提醒").foregroundStyle(Theme.Palette.accent).frame(minHeight: Theme.Size.touch)
             }

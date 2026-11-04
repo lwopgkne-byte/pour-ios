@@ -114,14 +114,34 @@ struct AboutPersonPage: View {
         }
         relation(page)
         if !page.recent.isEmpty { recent(page) }
-        if let money = page.money {
-            AboutSection(title: "花在\(name)身上的")
-            AboutLinkRow(title: money.text, identifier: "person.money") { model.open("/money") }
-                .padding(.horizontal, Theme.Space.inset).themeCard(padding: 0)
+        more(page)
+    }
+
+    /// 最后一张卡（照原型）：在笔记库看和他有关的原话、花在他身上的钱、红字「不用列出」
+    private func more(_ page: API.MePersonPage) -> some View {
+        VStack(spacing: 0) {
+            AboutLinkRow(title: "在笔记库看和\(name)有关的原话", identifier: "person.library") {
+                model.open("/library?q=\(name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? name)")
+            }
+            if let money = page.money {
+                Divider()
+                AboutLinkRow(title: money.text, identifier: "person.money") { model.open("/money") }
+            }
+            if let person = known.about?.people.first(where: { $0.name == name }) {
+                Divider()
+                Button {
+                    known.open(person.key)
+                } label: {
+                    Text("不用列出\(name)").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.bad)
+                        .frame(maxWidth: .infinity, minHeight: Theme.Size.touch, alignment: .leading)
+                        .padding(.vertical, Theme.Space.tight).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("person.hide")
+            }
         }
-        if let person = known.about?.people.first(where: { $0.name == name }) {
-            LinkButton("不用列出\(name)", identifier: "person.hide") { known.open(person.key) }
-        }
+        .padding(.horizontal, Theme.Space.inset)
+        .themeCard(padding: 0)
     }
 
     /// 关系：你说过的（「儿子 · 家人」+ 你哪天说的那句原话）；没说过的「添加关系」（打开 Pour 认识的那一条）
@@ -136,28 +156,54 @@ struct AboutPersonPage: View {
                     .foregroundStyle(Theme.Palette.secondaryLabel).fixedSize(horizontal: false, vertical: true)
             }
             if let person {
-                Button(person.relation == nil ? "添加关系" : "改关系") { known.open(person.key) }
-                    .buttonStyle(.bordered).accessibilityIdentifier("person.relation")
+                // 照原型：浅蓝的小胶囊
+                Button {
+                    known.open(person.key)
+                } label: {
+                    Text(person.relation == nil ? "添加关系" : "改关系").font(Theme.Typeface.footnoteSemibold)
+                        .foregroundStyle(Theme.Palette.accent)
+                        .padding(.horizontal, Theme.Space.medium).frame(
+                            minHeight: Theme.Size.capsule - Theme.Space.tight
+                        )
+                        .background(Theme.Palette.bubble, in: Capsule())
+                        .frame(minHeight: Theme.Size.touch).contentShape(Rectangle())
+                }
+                .buttonStyle(PressScale())
+                .padding(.vertical, -Theme.Space.small)
+                .accessibilityIdentifier("person.relation")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .themeCard()
     }
 
+    /// 最近的记录（照原型）：左边灰色的日子，右边那条记录，点了开那条记录
     private func recent(_ page: API.MePersonPage) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             AboutSection(title: "最近的记录")
             VStack(spacing: 0) {
                 ForEach(Array(page.recent.enumerated()), id: \.element.id) { index, item in
                     if index > 0 { Divider() }
-                    AboutLinkRow(title: item.text, value: Show.monthDay(item.day), identifier: "person.recent") {
+                    Button {
                         model.openEntry(item.entryId, day: item.day)
+                    } label: {
+                        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.medium) {
+                            Text(Show.monthDay(item.day)).font(Theme.Typeface.footnote).monospacedDigit()
+                                .foregroundStyle(Theme.Palette.secondaryLabel)
+                                .frame(minWidth: Theme.Size.label - Theme.Space.small, alignment: .leading)
+                            Text(item.text).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
+                                .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
+                                .foregroundStyle(Theme.Palette.tertiaryLabel)
+                        }
+                        .padding(.vertical, Theme.Space.medium)
+                        .frame(minHeight: Theme.Size.touch)
+                        .contentShape(Rectangle())
                     }
-                }
-                Divider()
-                AboutLinkRow(title: "在笔记库看和\(name)有关的原话", identifier: "person.library") {
-                    model.open(
-                        "/library?q=\(name.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? name)")
+                    .buttonStyle(.plain)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("person.recent")
                 }
             }
             .padding(.horizontal, Theme.Space.inset)

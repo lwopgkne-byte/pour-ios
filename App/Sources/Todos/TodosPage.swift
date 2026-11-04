@@ -127,7 +127,8 @@ struct TodosPage: View {
             ForEach(items) { item in
                 switch item {
                 case .todo(let row): todoRow(row, group: group.key, today: page.today)
-                case .event(let event): CalendarLine(event.title, time: TodayItem.time(event))
+                case .event(let event):
+                    CalendarLine(event.title, time: TodayItem.time(event)).listRowInsets(Self.rowInsets)
                 }
             }
         } else {
@@ -135,8 +136,13 @@ struct TodosPage: View {
         }
     }
 
+    private static let rowInsets = EdgeInsets(
+        top: 0, leading: Theme.Space.regular, bottom: 0, trailing: Theme.Space.regular)
+
     private func todoRow(_ row: API.TodoRow, group: String, today: String) -> some View {
         TodoRowView(row: row, today: today)
+            // 照原型：一行上下不再多留系统列表的空（行本身上下各 8，至少 44 高）
+            .listRowInsets(Self.rowInsets)
             .listRowBackground(model.todoFlash == row.id ? Theme.Palette.bubble : Theme.Palette.card)
             .swipeActions(edge: .leading, allowsFullSwipe: true) {
                 if !row.done {

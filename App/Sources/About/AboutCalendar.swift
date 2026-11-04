@@ -27,19 +27,25 @@ struct MeCalendar: View {
                 }
             }
         }
-        .padding(.top, Theme.Space.regular)
+        // 领域页的每一天自己一张卡（照原型），上面不用再空一截
+        .padding(.top, kind == "domain" ? 0 : Theme.Space.regular)
     }
 
     @ViewBuilder private func cell(_ day: API.MeCalDay) -> some View {
         let shape = RoundedRectangle(cornerRadius: Theme.Corner.tile)
         switch day.state {
-        case "future": Color.clear.frame(height: Theme.Space.xLarge).accessibilityHidden(true)
+        case "future": Color.clear.frame(height: height).accessibilityHidden(true)
+        case "none" where kind == "domain":
+            // 领域页照原型：那天没说话也是浅灰的一格、写几号（和「说了话，没说到它」一样）
+            shape.fill(Theme.Palette.fill).overlay { number(day, lit: false) }
+                .frame(height: height)
+                .accessibilityLabel(Text("\(MeStyle.dayLabel(day.day))：没说话"))
         case "none":
             shape.strokeBorder(
                 Theme.Palette.separator,
                 style: StrokeStyle(lineWidth: 1, dash: [Theme.Space.tight / 2, Theme.Space.tight / 2])
             )
-            .frame(height: Theme.Space.xLarge)
+            .frame(height: height)
             .accessibilityLabel(Text("\(MeStyle.dayLabel(day.day))：没说话"))
         default:
             Button {
@@ -51,17 +57,28 @@ struct MeCalendar: View {
                     } else if kind == "mood" {
                         shape.fill(Theme.tag("gray").tint)
                     } else {
-                        shape.fill(Theme.Palette.card).overlay(
-                            shape.strokeBorder(Theme.Palette.separator, lineWidth: 1))
+                        shape.fill(Theme.Palette.fill)
                     }
                 }
-                .frame(height: Theme.Space.xLarge)
+                .overlay { if kind == "domain" { number(day, lit: paint(day) != nil) } }
+                .frame(height: height)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text(MeStyle.dayLabel(day.day)))
         }
+    }
+
+    /// 领域页的格子高一点，里面写几号
+    private var height: CGFloat { kind == "domain" ? Theme.Size.tile : Theme.Space.xLarge }
+
+    /// 格子里的几号：上了色的深色字（原型是白字，但白字在九种类别色上都不到 4.5:1，深色字够），没上色的灰字；
+    /// 读屏念的是整个日子，这个数不单独念
+    private func number(_ day: API.MeCalDay, lit: Bool) -> some View {
+        Text("\(Int(day.day.suffix(2)) ?? 0)").font(Theme.Typeface.tick).monospacedDigit()
+            .foregroundStyle(lit ? Theme.Palette.label : Theme.Palette.secondaryLabel)
+            .accessibilityHidden(true)
     }
 }
 

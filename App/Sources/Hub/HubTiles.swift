@@ -10,9 +10,8 @@ struct HubTile: Identifiable, Hashable {
     let color: Color
     let aliases: [String]
 
-    /// 点了去哪（页面地址，today 是服务器的今天）。还没重做的页先去最近的地方，做到那一步换成正式的页：
-    /// 待办页第 2 步做（先回到画布的待办卡）、心情页第 4 步（先是关于我里的心情）、感悟页第 5 步（先是笔记库的感悟）、
-    /// 坚持和预算第 7 步（先是目标、留意的）、健康页第 10 步（先是设置里的健康）
+    /// 点了去哪（页面地址，today 是服务器的今天）。3.0.1 照原型补上了健康、日历、值不值三页；
+    /// 固定的去每一笔里只看固定的，新发现去关于我（原型也是这样）
     func path(today: String) -> String {
         let month = String(today.prefix(7))
         if id == "money-list" { return "/money/list/\(month)" }
@@ -21,10 +20,10 @@ struct HubTile: Identifiable, Hashable {
     }
 
     private static let paths = [
-        "todos": "/todos", "money": "/money", "mood": "/mood", "insights": "/insights",
-        "health": "/settings#health", "review": "/review", "library": "/library", "moments": "/mood/moments",
+        "todos": "/todos", "money": "/money", "mood": "/mood", "insights": "/insights", "calendar": "/calendar",
+        "health": "/health", "review": "/review", "library": "/library", "moments": "/mood/moments",
         "year": "/about/year", "about": "/about", "finds": "/about", "people": "/about/people", "talk": "/about/talk",
-        "watch": "/money/watch", "budget": "/goals/budgets", "renqing": "/money/renqing", "worth": "/money",
+        "watch": "/money/watch", "budget": "/goals/budgets", "renqing": "/money/renqing", "worth": "/money/worth",
         "goals": "/goals", "streak": "/goals/streaks",
     ]
 }
@@ -121,6 +120,41 @@ enum HubCatalog {
         guard !words.isEmpty else { return [] }
         return groups.flatMap(\.tiles).compactMap { tiles[$0] }.filter { tile in
             tile.name.contains(words) || tile.aliases.contains { $0.contains(words) || words.contains($0) }
+        }
+    }
+}
+
+/// 一个格子的样子：图标（角上的字、管理时的 −、+）+ 名字（最多 4 个字，一行）
+struct HubTileView: View {
+    let tile: HubTile
+    let badge: String?
+    /// nil：没在管理；true：点了放进去（+）；false：点了拿出来（−）
+    let mark: Bool?
+
+    var body: some View {
+        VStack(spacing: Theme.Space.small) {
+            HubTileIcon(symbol: tile.symbol, color: tile.color)
+                .overlay(alignment: .topTrailing) {
+                    if let badge { HubBadge(badge).offset(x: Theme.Space.small, y: -Theme.Space.snug) }
+                }
+                .overlay(alignment: .topLeading) {
+                    if let mark { HubMark(adding: mark).offset(x: -Theme.Space.small, y: -Theme.Space.small) }
+                }
+                .hubJiggle(mark != nil)
+            Text(tile.name).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.label).lineLimit(1)
+        }
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(label))
+        .accessibilityAddTraits(.isButton)
+    }
+
+    private var label: String {
+        switch mark {
+        case true?: "\(tile.name)，放进常用"
+        case false?: "\(tile.name)，从常用拿出来"
+        case nil: badge.map { "\(tile.name)，\($0)" } ?? tile.name
         }
     }
 }

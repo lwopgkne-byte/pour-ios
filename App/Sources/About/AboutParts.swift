@@ -145,14 +145,18 @@ struct MeQuotes: View {
                 Button {
                     model.open("/library?note=\(quote.noteId)")
                 } label: {
-                    VStack(alignment: .leading, spacing: Theme.Space.tight) {
-                        Text(Show.spaced("「\(quote.text)」")).font(Theme.Typeface.body).foregroundStyle(
-                            Theme.Palette.label)
+                    // 照原型 .moment：宋体、左边一道细线，日子在下面一行
+                    VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+                        Text(Show.spaced(quote.text)).font(Theme.Typeface.quote).foregroundStyle(Theme.Palette.label)
+                            .lineSpacing(Theme.Leading.body).multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
                         MeNote(MeStyle.dayLabel(quote.day))
                     }
-                    .padding(Theme.Space.regular)
+                    .padding(.leading, Theme.Space.medium)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: Theme.Corner.chip).fill(Theme.Palette.fill))
+                    .overlay(alignment: .leading) {
+                        Rectangle().fill(Theme.Palette.quoteRule).frame(width: Theme.Space.hairline)
+                    }
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

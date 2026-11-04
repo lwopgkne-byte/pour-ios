@@ -50,7 +50,8 @@ final class ReviewUITests: XCTestCase, TodoTesting {
         audit(app, "故事-每日-最后一页")
         full.tap()
         XCTAssertFalse(close.waitForExistence(timeout: 2), "看整页没关掉故事")
-        XCTAssertTrue(app.navigationBars["每日回顾"].waitForExistence(timeout: 5), "没进每日回顾的整页")
+        // 照原型：整页的大标题是那一天
+        XCTAssertTrue(app.navigationBars["10月18日 周日"].waitForExistence(timeout: 5), "没进每日回顾的整页")
         pause()
         audit(app, "每日回顾-整页")
         for name in ["每日回顾-整页-下面", "每日回顾-整页-再下面"] {

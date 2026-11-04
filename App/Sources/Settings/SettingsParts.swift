@@ -33,9 +33,10 @@ struct SettingRow<Content: View>: View {
     }
 }
 
-/// 名称和右边的东西排一行还是两行：名称 192 点 + 间距 + 右边要的宽度放得下就一行（垂直居中），放不下右边换行靠右
+/// 名称和右边的东西排一行还是两行：名称 128 点 + 间距 + 右边要的宽度放得下就一行（垂直居中），放不下右边换行靠右
+/// （照原型：名字那一栏窄一些，「看上周的 + 开关」「23:00 到 07:00 + 开关」都和名字排一行）
 private struct SettingRowLayout: Layout {
-    private let basis = (Theme.Space.section * 2) * 3
+    private let basis = (Theme.Space.section * 2) * 2
     private let gap = Theme.Space.regular
     private let rowGap = Theme.Space.small
 
@@ -107,6 +108,38 @@ struct SettingsHeading: View {
     }
 }
 
+/// 设置里的一组（照原型 .grp）：组名在卡片外面（小字、次要色），下面一张白色圆角卡，一行一行；说明写在卡片下面
+struct SettingsGroup<Content: View>: View {
+    var title: String?
+    var footer: String?
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Theme.Space.snug) {
+            if let title {
+                Text(title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .padding(.horizontal, Theme.Space.tight)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            VStack(alignment: .leading, spacing: 0) { content() }.settingsCard()
+            if let footer {
+                FieldMessage(text: footer).padding(.horizontal, Theme.Space.tight)
+            }
+        }
+    }
+}
+
+extension View {
+    /// 设置的一张白卡（照原型 .grp：白底、圆角 16，左右留 16）
+    func settingsCard() -> some View {
+        self
+            .padding(.horizontal, Theme.Space.regular)
+            .padding(.vertical, Theme.Space.tight)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.stat))
+    }
+}
+
 /// 一行下面的小字说明
 struct FieldMessage: View {
     let text: String
@@ -153,6 +186,8 @@ struct TimeEdit: View {
     var display: String?
     /// 还没设过（显示的是「不检查」这种灰字）：滚轮动过就算设上（停在 00:00 也算）
     var unset = false
+    /// 跟在名字后面（「每日回顾 07:30」）：黑字，不把那一行撑到 44 高（点的范围照样 44）
+    var inline = false
     let onSave: (String) -> Void
 
     @State private var picking = false
@@ -166,12 +201,15 @@ struct TimeEdit: View {
             touched = false
             picking = true
         } label: {
-            Text(display ?? value).foregroundStyle(unset ? Theme.Palette.secondaryLabel : Theme.Palette.secondaryLabel)
-                .monospacedDigit()
-                .frame(minHeight: Theme.Size.touch)
-                .contentShape(Rectangle())
+            Text(display ?? value).foregroundStyle(
+                inline && !unset ? Theme.Palette.label : Theme.Palette.secondaryLabel
+            )
+            .monospacedDigit()
+            .frame(minHeight: Theme.Size.touch)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .padding(.vertical, inline ? -Theme.Space.medium : 0)
         .accessibilityLabel(Text("修改\(label)"))
         .accessibilityValue(Text(display ?? value))
         .popover(isPresented: $picking) {

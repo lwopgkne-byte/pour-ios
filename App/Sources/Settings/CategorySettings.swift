@@ -25,20 +25,26 @@ private struct CategoryList: View {
 
     var body: some View {
         let categories = page.categories
-        VStack(alignment: .leading, spacing: 0) {
+        // 照原型：说明在最上面；整理建议一张浅蓝的卡；类别一张白卡，一行一个，中间细线
+        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+            FieldMessage(text: "说到新的活动时，AI 会自动新建类别；这里可以改名、改图标和颜色、合并或删除。")
+                .padding(.horizontal, Theme.Space.tight)
             if let suggestions = page.suggestions, !suggestions.isEmpty {
-                SetupBox {
-                    Text("整理建议").font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.label)
+                VStack(alignment: .leading, spacing: Theme.Space.medium) {
+                    Text("整理建议").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
                     ForEach(suggestions, id: \.self) { suggestion($0, categories) }
                 }
-                .padding(.bottom, Theme.Space.regular)
+                .padding(Theme.Space.regular)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.Palette.remindFill, in: Theme.rounded(Theme.Corner.stat))
             }
-            ForEach(categories.filter { $0.parent == nil }, id: \.key) { top in
-                row(top, child: false)
-                ForEach(categories.filter { $0.parent == top.key }, id: \.key) { row($0, child: true) }
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(rows(categories).enumerated()), id: \.element.category.key) { index, item in
+                    if index > 0 { Divider().padding(.leading, Self.textInset) }
+                    row(item.category, child: item.child)
+                }
             }
-            FieldMessage(text: "说到新的活动时，AI 会自动新建类别；这里可以改名、改图标和颜色、合并或删除。")
-                .padding(.top, Theme.Space.small)
+            .settingsCard()
         }
         .sheet(item: Binding(get: { openKey.map(Key.init) }, set: { openKey = $0?.id })) { key in
             if let category = categories.first(where: { $0.key == key.id }) {
@@ -55,49 +61,76 @@ private struct CategoryList: View {
         let id: String
     }
 
-    /// 一个类别：表情、名字、几条、颜色点；子类别往里缩
+    /// 顶级类别后面跟着它的子类别
+    private func rows(_ all: [API.Category]) -> [(category: API.Category, child: Bool)] {
+        all.filter { $0.parent == nil }.flatMap { top in
+            [(top, false)] + all.filter { $0.parent == top.key }.map { ($0, true) }
+        }
+    }
+
+    /// 名字从哪里开始（小方块 + 间距）：细线和子类别都从这里起
+    private static let textInset = Theme.Size.tile + Theme.Space.medium
+
+    /// 一个类别（照原型）：左边它颜色的实心小方块和白图标、名字、右边「41 条 ›」；
+    /// 子类别没有小方块，「└ 跑步」灰一点、对齐上面的名字
     private func row(_ category: API.Category, child: Bool) -> some View {
         Button {
             openKey = category.key
         } label: {
-            HStack(spacing: Theme.Space.small) {
-                Text(category.emoji).accessibilityHidden(true)
-                Text(category.name).foregroundStyle(Theme.Palette.label).frame(maxWidth: .infinity, alignment: .leading)
-                if let count = category.count, count > 0 {
-                    Text("\(count) 条").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+            HStack(spacing: Theme.Space.medium) {
+                if child {
+                    Text("└ \(category.name)").font(Theme.Typeface.subheadline)
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    IconTile(
+                        symbol: CategoryIcon.symbol(key: category.key, name: category.name), emoji: category.emoji,
+                        color: Theme.tag(category.color))
+                    Text(category.name).foregroundStyle(Theme.Palette.label)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                Circle().fill(Theme.tag(category.color).solid).frame(
-                    width: Theme.Space.small, height: Theme.Space.small
-                )
-                .accessibilityHidden(true)
+                if let count = category.count {
+                    Text("\(count) 条").font(Theme.Typeface.subheadline).monospacedDigit()
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                }
+                Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
+                    .foregroundStyle(Theme.Palette.tertiaryLabel).accessibilityHidden(true)
             }
             .font(Theme.Typeface.body)
-            .padding(.leading, child ? Theme.Space.section : Theme.Space.small)
-            .padding(.trailing, Theme.Space.small)
+            .padding(.leading, child ? Self.textInset : 0)
             .frame(minHeight: Theme.Size.touch)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, -Theme.Space.small)
     }
 
+    /// 一条建议（照原型）：一段话，下面一个浅蓝的小胶囊按钮（合并 / 重新归类 / 删除）
     @ViewBuilder private func suggestion(_ item: API.CategorySuggestion, _ all: [API.Category]) -> some View {
-        HStack(spacing: Theme.Space.small) {
-            Text(Show.spaced(item.text)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+            Text(Show.spaced(item.text)).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
+                .lineSpacing(Theme.Leading.body).fixedSize(horizontal: false, vertical: true)
             switch item.kind {
             case "merge":
-                ThemeTextButton("合并", font: Theme.Typeface.bodyMedium) { merge(item.keys, all) }
+                chip("合并") { merge(item.keys, all) }
             case "tidy-other":
-                ThemeTextButton("重新归类", font: Theme.Typeface.bodyMedium) {
-                    run(done: "正在重新归类，完成后记录会自动更新") { try await $0.tidyOther() }
-                }
+                chip("重新归类") { run(done: "正在重新归类，完成后记录会自动更新") { try await $0.tidyOther() } }
             default:
-                ThemeTextButton("删除", font: Theme.Typeface.bodyMedium) {
+                chip("删除") {
                     let key = item.keys.first ?? ""
                     run(done: "已删除这个类别") { try await $0.deleteCategory(key) }
                 }
             }
         }
+    }
+
+    private func chip(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.accent)
+                .padding(.horizontal, Theme.Space.medium).frame(minHeight: Theme.Size.capsule)
+                .background(Theme.Palette.bubble, in: Capsule())
+                .frame(minHeight: Theme.Size.touch).contentShape(Rectangle())
+        }
+        .buttonStyle(PressScale())
     }
 
     /// 合并建议：把用得少的合并到用得多的

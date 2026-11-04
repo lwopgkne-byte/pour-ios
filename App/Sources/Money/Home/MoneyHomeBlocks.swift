@@ -13,20 +13,19 @@ struct MoneyThisMonth: View {
     var body: some View {
         let rows = lines
         if !rows.isEmpty {
-            VStack(alignment: .leading, spacing: 0) {
-                MoneyCardHeader(page.current ? "这个月" : Show.monthName(page.month))
-                    .padding(.bottom, Theme.Space.tight)
-                ForEach(rows, id: \.title) { row in
-                    Button {
-                        model.open(row.path)
-                    } label: {
-                        ThemeListRow(row.title, subtitle: row.text, symbol: row.symbol, color: row.color)
+            PageSection(title: page.current ? "这个月" : Show.monthName(page.month), padded: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(rows, id: \.title) { row in
+                        Button {
+                            model.open(row.path)
+                        } label: {
+                            ThemeListRow(row.title, subtitle: row.text, symbol: row.symbol, color: row.color)
+                        }
+                        .buttonStyle(PressScale())
                     }
-                    .buttonStyle(PressScale())
-                    .padding(.horizontal, -Theme.Space.regular)
                 }
+                .padding(.vertical, Theme.Space.tight)
             }
-            .themeCard()
         }
     }
 
@@ -80,8 +79,11 @@ struct MoneyWatchCard: View {
     let done: (String) -> Void
 
     var body: some View {
+        PageSection(title: "留意", link: "全部 ›", open: { model.open("/money/watch") }, content: { rows })
+    }
+
+    @ViewBuilder private var rows: some View {
         VStack(alignment: .leading, spacing: 0) {
-            MoneyCardHeader("留意", link: "全部 ›") { model.open("/money/watch") }
             if lines.isEmpty {
                 Text("没有要你马上办的。课时、常买的在「全部」里").font(Theme.Typeface.footnote)
                     .foregroundStyle(Theme.Palette.secondaryLabel).padding(.vertical, Theme.Space.small)
@@ -111,7 +113,6 @@ struct MoneyWatchCard: View {
                 .padding(.vertical, Theme.Space.tight)
             }
         }
-        .themeCard()
     }
 
     /// 右边的按钮：等报销的「都报销了」、借出去的「已经还了」、没在用的「不再算固定的」；快扣的只提醒
@@ -145,22 +146,26 @@ struct MoneyDomainsCard: View {
         if page.count >= MoneyLaterCard.enough, page.domains.count >= 2 {
             let total = max(1, page.domains.map(\.amount).reduce(0, +))
             let most = max(1, page.domains.map(\.amount).max() ?? 1)
-            VStack(alignment: .leading, spacing: Theme.Space.small) {
-                MoneyCardHeader("花在哪")
-                ForEach(page.domains, id: \.key) { domain in
-                    Button {
-                        model.open("/money/list/\(page.month)?domain=\(domain.key)")
-                    } label: {
-                        row(domain, share: domain.amount / total, bar: domain.amount / most)
-                    }
-                    .buttonStyle(PressScale())
-                }
-                if let note = page.domainNote {
-                    Text(Show.maskYuan(note, hide: hide)).font(Theme.Typeface.footnote)
-                        .foregroundStyle(Theme.Palette.secondaryLabel)
-                }
+            PageSection(title: "花在哪", meta: "\(Show.monthName(page.month)) · 点一行看那几笔") {
+                domains(total: total, most: most)
             }
-            .themeCard()
+        }
+    }
+
+    @ViewBuilder private func domains(total: Double, most: Double) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            ForEach(page.domains, id: \.key) { domain in
+                Button {
+                    model.open("/money/list/\(page.month)?domain=\(domain.key)")
+                } label: {
+                    row(domain, share: domain.amount / total, bar: domain.amount / most)
+                }
+                .buttonStyle(PressScale())
+            }
+            if let note = page.domainNote {
+                Text(Show.maskYuan(note, hide: hide)).font(Theme.Typeface.footnote)
+                    .foregroundStyle(Theme.Palette.secondaryLabel)
+            }
         }
     }
 
@@ -196,8 +201,11 @@ struct MoneyWhoCard: View {
 
     var body: some View {
         let most = max(who.people.map(\.amount).max() ?? 1, 1)
+        PageSection(title: "花给了谁", meta: Show.monthName(String(who.from.prefix(7)))) { people(most: most) }
+    }
+
+    @ViewBuilder private func people(most: Double) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
-            MoneyCardHeader("花给了谁")
             Text("\(Show.monthDay(who.from))以来日常花的 \(Show.yuan(who.total, hide: hide))").font(Theme.Typeface.footnote)
                 .monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
             if let family = who.family {
@@ -225,49 +233,32 @@ struct MoneyWhoCard: View {
                     .foregroundStyle(Theme.Palette.secondaryLabel)
             }
         }
-        .themeCard()
     }
 }
 
-/// 值不值：横着滑的卡片——东西、价钱、你说的话、「你说值 · 用了 5 次 · 每次 ¥180」；点了进那样东西
+/// 值不值 · 你自己说的（原型钱主页）：标题在卡片外面，下面横着滑一张张白卡（MoneyWorthCard，236 宽，一样高），
+/// 一直滑到屏幕边；点一张进那样东西
 struct MoneyWorthStrip: View {
-    @Environment(AppModel.self) private var model
-    @AppStorage(MoneyHidden.key) private var hide = false
     let worth: API.MoneyWorth
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.small) {
-            MoneyCardHeader("值不值")
+        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+            PageSectionHeader(title: "值不值 · 你自己说的").padding(.top, Theme.Space.medium)
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: Theme.Space.small) {
-                    ForEach(worth.good + worth.regret, id: \.entryId) { thing in
-                        Button {
-                            model.open("/money/thing/\(thing.entryId)")
-                        } label: {
-                            card(thing, good: worth.good.contains(thing))
-                        }
-                        .buttonStyle(PressScale())
+                HStack(alignment: .top, spacing: Theme.Space.small + Theme.Space.hairline) {
+                    ForEach(worth.good, id: \.entryId) {
+                        MoneyWorthCard(thing: $0, good: true, width: MoneyWorthCard.stripWidth)
+                    }
+                    ForEach(worth.regret, id: \.entryId) {
+                        MoneyWorthCard(thing: $0, good: false, width: MoneyWorthCard.stripWidth)
                     }
                 }
+                .fixedSize(horizontal: false, vertical: true)
+                // 留出卡片的影子
+                .padding(.vertical, Theme.Space.small)
             }
+            .contentMargins(.horizontal, Theme.Space.screen, for: .scrollContent)
+            .padding(.horizontal, -Theme.Space.screen)
         }
-        .themeCard()
-    }
-
-    private func card(_ thing: API.MoneyThing, good: Bool) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Space.tight) {
-            Text(Show.spaced(thing.name)).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
-                .lineLimit(1)
-            Text(Show.yuan(thing.amount, hide: hide)).font(Theme.Typeface.rowNumber).monospacedDigit()
-                .foregroundStyle(Theme.Palette.label)
-            Text(good ? "你说值" : "你说后悔").font(Theme.Typeface.caption)
-                .foregroundStyle(good ? Theme.Palette.good : Theme.Palette.warnInk)
-            Text(Show.maskYuan(thing.sub, hide: hide)).font(Theme.Typeface.footnote)
-                .foregroundStyle(Theme.Palette.secondaryLabel).lineLimit(2)
-        }
-        .frame(width: Theme.Size.goalCard, alignment: .leading)
-        .padding(Theme.Space.medium)
-        .background(Theme.Palette.background, in: Theme.rounded(Theme.Corner.stat))
-        .accessibilityElement(children: .combine)
     }
 }

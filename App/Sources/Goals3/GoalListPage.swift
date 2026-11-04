@@ -86,7 +86,7 @@ struct GoalsEmptyView: View {
     @State private var agreed = false
 
     var body: some View {
-        Section {
+        VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: Theme.Space.medium) {
                 Text("说一句你想做到的").font(Theme.Typeface.section)
                 Button {
@@ -104,46 +104,50 @@ struct GoalsEmptyView: View {
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("goals.empty.say")
             }
-            .padding(.vertical, Theme.Space.small)
-        }
-        Section {
-            ForEach(empty.suggestions, id: \.title) { item in
-                HStack(spacing: Theme.Space.medium) {
-                    VStack(alignment: .leading, spacing: Theme.Space.hairline) {
-                        Text(item.from).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-                        Text("要定成「\(item.title)」吗？").font(Theme.Typeface.body).fixedSize(
-                            horizontal: false, vertical: true)
-                    }
-                    Spacer()
-                    Button("定这个") { model.goals.sheet = .define(item.title) }
-                        .font(Theme.Typeface.footnoteSemibold).buttonStyle(.borderless)
-                }
-            }
-        } header: {
-            Text("从你说过的话里找到的").font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
-        }
-        Section {
-            VStack(alignment: .leading, spacing: Theme.Space.medium) {
-                if agreed || empty.careAgreed {
-                    Text("好，就这 \(care.count) 个。以后能改名、能删，最多 6 个；没归到哪个的目标放在最后的「其他」。")
-                        .font(Theme.Typeface.body).fixedSize(horizontal: false, vertical: true)
-                } else {
-                    Text("你说得最多的是这 \(care.count) 块，就从它们开始？").font(Theme.Typeface.body)
-                    CareChips(chips: care)
-                    HStack(spacing: Theme.Space.small) {
-                        Button("对") {
-                            agreed = true
-                            Task { _ = try? await model.client.saveCare(areas: nil, agreed: true) }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        Button("改一下") { model.open("/goals/care/\(care.first?.key ?? "health")") }
-                            .buttonStyle(.bordered)
+            .themeCard(radius: Theme.Corner.smallCard)
+            .padding(.top, Theme.Space.small)
+            if !empty.suggestions.isEmpty {
+                PageSection(title: "从你说过的话里找到的") {
+                    VStack(alignment: .leading, spacing: Theme.Space.medium) {
+                        ForEach(empty.suggestions, id: \.title) { item in suggestion(item) }
                     }
                 }
             }
-            .padding(.vertical, Theme.Space.small)
-        } header: {
-            Text("我在乎的").font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
+            PageSection(title: "我在乎的") { careRows }
+        }
+    }
+
+    private func suggestion(_ item: API.GoalsHome.Suggestion) -> some View {
+        HStack(spacing: Theme.Space.medium) {
+            VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+                Text(item.from).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                Text("要定成「\(item.title)」吗？").font(Theme.Typeface.body).fixedSize(
+                    horizontal: false, vertical: true)
+            }
+            Spacer()
+            Button("定这个") { model.goals.sheet = .define(item.title) }
+                .font(Theme.Typeface.footnoteSemibold).buttonStyle(.borderless)
+        }
+    }
+
+    @ViewBuilder private var careRows: some View {
+        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+            if agreed || empty.careAgreed {
+                Text("好，就这 \(care.count) 个。以后能改名、能删，最多 6 个；没归到哪个的目标放在最后的「其他」。")
+                    .font(Theme.Typeface.body).fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("你说得最多的是这 \(care.count) 块，就从它们开始？").font(Theme.Typeface.body)
+                CareChips(chips: care)
+                HStack(spacing: Theme.Space.small) {
+                    Button("对") {
+                        agreed = true
+                        Task { _ = try? await model.client.saveCare(areas: nil, agreed: true) }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    Button("改一下") { model.open("/goals/care/\(care.first?.key ?? "health")") }
+                        .buttonStyle(.bordered)
+                }
+            }
         }
     }
 }

@@ -29,7 +29,10 @@ if [[ -z "${THING}" ]]; then
     | json 'next((str(w["entryId"]) for w in (d.get("worth") or {}).get("good", []) + (d.get("worth") or {}).get("regret", [])), "")')"
 fi
 PERSON="$(curl -fsS -m 10 "${SERVER}/api/money/renqing" | json '(d.get("people") or [{}])[0].get("name","")')"
-echo "服务器 ${SERVER}（演示数据，今天 ${TODAY}）；一样东西：记录 ${THING:-没有}；人情：${PERSON:-没有}"
+# 目标的一个、关于我的一个人：挑演示数据里的第一个（拿不到就不截那一页）
+GOAL="$(curl -fsS -m 10 "${SERVER}/api/goals/home" | json 'next((str(c["id"]) for g in d.get("groups",[]) for c in g.get("cards",[])), "")' 2>/dev/null || true)"
+ABOUT_PERSON="$(curl -fsS -m 10 "${SERVER}/api/about/people" | json '(d.get("people") or [{}])[0].get("name","")' 2>/dev/null || true)"
+echo "服务器 ${SERVER}（演示数据，今天 ${TODAY}）；一样东西：记录 ${THING:-没有}；人情：${PERSON:-没有}；目标：${GOAL:-没有}；人：${ABOUT_PERSON:-没有}"
 
 xcodegen generate --spec project.yml --quiet
 IFS=$'\t' read -r SIM_ID SIM_NAME < <(python3 scripts/simulator.py "Pour 截图" "iPhone 15" 27) \
@@ -44,6 +47,7 @@ LOG="build/tour.log"
 echo "截图中（十分钟左右）……"
 if ! TEST_RUNNER_POUR_TOUR_SERVER="${SERVER}" TEST_RUNNER_POUR_TOUR_TODAY="${TODAY}" \
   TEST_RUNNER_POUR_TOUR_THING="${THING}" TEST_RUNNER_POUR_TOUR_PERSON="${PERSON}" \
+  TEST_RUNNER_POUR_TOUR_GOAL="${GOAL}" TEST_RUNNER_POUR_TOUR_ABOUT_PERSON="${ABOUT_PERSON}" \
   xcodebuild test -project Pour.xcodeproj -scheme Pour -destination "platform=iOS Simulator,id=${SIM_ID}" \
   -derivedDataPath build/DerivedData -resultBundlePath "${RESULT}" -collect-test-diagnostics never \
   -only-testing:PourUITests/TourShotsUITests/testTour >"${LOG}" 2>&1; then

@@ -116,6 +116,8 @@ final class MoneyEachUITests: XCTestCase, TodoTesting {
         // 滚动停稳了再点：还在滑的时候点下去，开关不动（2026-11-03 全部检查里挂过一次，重跑过了）
         pause()
         toggle.tap()
+        // 第一下偶尔被吞掉（2026-11-04 又挂过一次，重跑过了）：3 秒还是关着的就再点一下
+        if !waitFor(toggle, value: "1") { toggle.tap() }
         XCTAssertTrue(waitFor(toggle, value: "1"), "开关没打开")
         app.openTile("money")
         XCTAssertTrue(app.staticTexts["钱锁上了"].waitForExistence(timeout: 5), "开了面容 ID，钱没锁")
@@ -149,7 +151,9 @@ final class MoneyEachUITests: XCTestCase, TodoTesting {
         let list = app.buttons["money.list"]
         app.reveal(list)
         list.tap()
-        XCTAssertTrue(app.navigationBars["每一笔"].waitForExistence(timeout: 5), "每一笔没打开")
+        // 标题照原型写哪个月：「10月的每一笔」
+        let page = app.navigationBars.matching(NSPredicate(format: "identifier ENDSWITH '的每一笔'")).firstMatch
+        XCTAssertTrue(page.waitForExistence(timeout: 5), "每一笔没打开")
         pause()
         shot("大字-每一笔", of: app.screenshot())
         let shoes = moneyRow(app, "给儿子买运动鞋")
@@ -179,7 +183,9 @@ final class MoneyEachUITests: XCTestCase, TodoTesting {
         let list = app.buttons["money.list"]
         XCTAssertTrue(list.waitForExistence(timeout: 5), "钱没打开")
         list.tap()
-        XCTAssertTrue(app.navigationBars["每一笔"].waitForExistence(timeout: 5), "每一笔没打开")
+        // 标题照原型写哪个月：「10月的每一笔」
+        let page = app.navigationBars.matching(NSPredicate(format: "identifier ENDSWITH '的每一笔'")).firstMatch
+        XCTAssertTrue(page.waitForExistence(timeout: 5), "每一笔没打开")
         pause()
         return app
     }

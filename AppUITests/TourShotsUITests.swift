@@ -73,12 +73,40 @@ final class TourShotsUITests: XCTestCase {
             ("32-关于我-人", "/about/people"),
             ("33-关于我-你说的话", "/about/talk"),
             ("34-关于我-你的一年", "/about/year"),
-            ("35-关于我-领域-工作", "/about/domain/工作"),
-            ("36-关于我-领域-孩子", "/about/domain/孩子"),
-            ("40-目标", "/goals"),
+            // 领域的地址是服务器的键（work、diet），不是中文名
+            ("35-关于我-领域-工作", "/about/domain/work"),
+            ("36-关于我-领域-饮食", "/about/domain/diet"),
+            ("37-关于我-认识的", "/about/known"),
+        ]
+        return paths + goalAndMorePaths()
+    }
+
+    /// 后半：关于我的一个人、目标（一个、坚持、预算、我在乎的）、笔记库、设置和它的每一页
+    private func goalAndMorePaths() -> [(String, String)] {
+        var paths: [(String, String)] = []
+        if let person = settings["POUR_TOUR_ABOUT_PERSON"], !person.isEmpty {
+            paths.append(("38-关于我-一个人", "/about/person/\(person)"))
+        }
+        paths.append(("40-目标", "/goals"))
+        if let goal = settings["POUR_TOUR_GOAL"], !goal.isEmpty {
+            paths.append(("41-目标-一个", "/goals/\(goal)"))
+        }
+        paths += [
+            ("42-目标-坚持", "/goals/streaks"),
+            ("43-目标-预算", "/goals/budgets"),
+            ("44-目标-我在乎的", "/goals/care/health"),
             ("50-笔记库-原话", "/library"),
             ("52-笔记库-好时刻", "/library?view=moments"),
             ("60-设置", "/settings"),
+            ("61-设置-提醒", "/settings#reminders"),
+            ("62-设置-类别", "/settings#categories"),
+            ("63-设置-你的说法", "/about/known#sayings"),
+            ("64-设置-隐私", "/settings#privacy"),
+            ("65-设置-健康和日历", "/settings#health"),
+            ("66-设置-数据", "/settings#data"),
+            ("67-设置-大模型", "/settings#llm"),
+            ("68-设置-电脑上的Pour", "/settings#phone"),
+            ("69-设置-AI表现", "/settings#eval"),
         ]
         return paths
     }

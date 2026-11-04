@@ -9,12 +9,9 @@ struct MoodWeekCard: View {
     let week: API.MeWeekMood
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            MoodCardHeader("一周里", link: "心情分析 ›") { model.open("/mood/analysis") }
+        PageSection(title: "这周", meta: week.sentence) {
             MoodWeekBars(values: week.bars.map(\.value), low: week.low)
-            Text(week.sentence).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
         }
-        .themeCard()
     }
 }
 
@@ -24,8 +21,12 @@ struct MoodGoodCard: View {
     let good: API.MoodPage.Good
 
     var body: some View {
+        PageSection(
+            title: "好时刻", link: "全部 \(good.total) 个 ›", open: { model.open("/mood/moments") }, content: { rows })
+    }
+
+    private var rows: some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
-            MoodCardHeader("好时刻", link: "全部 \(good.total) 个 ›") { model.open("/mood/moments") }
             ForEach(good.recent) { moment in
                 Button {
                     model.mood.detail = moment
@@ -35,7 +36,6 @@ struct MoodGoodCard: View {
                 .buttonStyle(.plain)
             }
         }
-        .themeCard()
     }
 }
 
@@ -100,9 +100,9 @@ struct MoodChangesCard: View {
     let changes: [API.MeChange]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.small) {
-            MoodCardHeader("变化")
-            ForEach(changes, id: \.key) { change in
+        PageSection(title: "变化") {
+            VStack(alignment: .leading, spacing: Theme.Space.small) {
+                ForEach(changes, id: \.key) { change in
                 VStack(alignment: .leading, spacing: Theme.Space.tight) {
                     Text(change.text).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
                     MoodSpark(points: change.points, from: change.from, to: change.to)
@@ -110,9 +110,9 @@ struct MoodChangesCard: View {
                 }
                 .padding(.vertical, Theme.Space.tight)
                 .accessibilityElement(children: .combine)
+                }
             }
         }
-        .themeCard()
     }
 }
 
@@ -145,17 +145,33 @@ struct MoodSpark: View {
     }
 }
 
-/// 心情分析：什么时候、和谁、在做什么 ›
+/// 心情分析（照原型）：一张卡，「心情分析 ›」下面几个粉色小胶囊说里面有什么；点哪里都进心情分析
 struct MoodAnalysisLink: View {
     @Environment(AppModel.self) private var model
+    static let parts = ["一天里什么时候", "好时刻多在做什么", "你说出过的感受", "心情和精力", "心情从哪来"]
 
     var body: some View {
         Button {
             model.open("/mood/analysis")
         } label: {
-            ThemeListRow(
-                "心情分析", subtitle: "什么时候、和谁、在做什么、心情从哪来", symbol: "chart.line.uptrend.xyaxis",
-                color: Theme.Tile.pink)
+            VStack(alignment: .leading, spacing: Theme.Space.small + Theme.Space.hairline) {
+                HStack {
+                    Text("心情分析").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                    Spacer()
+                    Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
+                        .foregroundStyle(Theme.Palette.tertiaryLabel)
+                }
+                PourFlowLayout(spacing: Theme.Space.snug, lineSpacing: Theme.Space.snug) {
+                    ForEach(Self.parts, id: \.self) { part in
+                        Text(part).font(Theme.Typeface.caption).foregroundStyle(Theme.Mood.ink(2))
+                            .padding(.horizontal, Theme.Space.small).frame(minHeight: Theme.Size.badge)
+                            .background(Theme.Mood.fill(1).opacity(0.6), in: Theme.rounded(Theme.Corner.tail))
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .themeCard(radius: Theme.Corner.smallCard)
+            .contentShape(Rectangle())
         }
         .buttonStyle(PressScale())
         .themeCard(padding: 0)

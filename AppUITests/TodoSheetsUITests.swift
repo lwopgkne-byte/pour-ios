@@ -36,7 +36,9 @@ final class TodoSheetsUITests: XCTestCase, TodoTesting {
         let title = app.descendants(matching: .any).matching(identifier: "todoDetail.title").firstMatch
         XCTAssertTrue(title.waitForExistence(timeout: 3), "详情没打开")
         shot("待办详情", of: app.screenshot())
-        expandSheet(app, from: app.staticTexts["日期"].firstMatch)
+        // 从右上角「关闭」往上拖（和别的弹层一样）：3.0.1 胶囊的字大了、内容变高，从「日期」拖成了滚动内容，
+        // 弹层停在半屏，审计自己一滚弹层又变高，一直不静止（审计超时，2026-11-04）
+        expandSheet(app, from: app.buttons["关闭"].firstMatch)
         try AppAudit.run(app, name: "待办详情")
         // 和谁：原地改（原来的记录详情里就能改）
         let people = app.buttons["改和谁"]

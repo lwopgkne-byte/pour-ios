@@ -21,9 +21,10 @@ struct MoodSourcesCard: View {
     private static let ranges = [("30d", "30 天"), ("90d", "90 天"), ("year", "今年")]
     private static let whens = [("purpose", "做有目标的事时"), ("daily", "日常的事里"), ("glimpse", "不算一件事的一刻")]
 
+    /// 照原型：标题、30 天 / 90 天 / 今年在卡片外面，下面每一小块各是一张白卡，说明在最下面
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            MoodCardHeader("心情从哪来")
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
+            PageSectionHeader(title: "心情从哪来")
             if fixed == nil {
                 Picker("多长时间", selection: $range) {
                     ForEach(Self.ranges, id: \.0) { key, name in Text(name).tag(key) }
@@ -38,7 +39,7 @@ struct MoodSourcesCard: View {
                 ProgressView().frame(maxWidth: .infinity, minHeight: Theme.Size.touch)
             }
         }
-        .themeCard()
+        .padding(.top, Theme.Space.medium)
         .task(id: "\(range)-\(model.dataVersion)") {
             if fixed == nil { await load() }
         }
@@ -48,6 +49,7 @@ struct MoodSourcesCard: View {
         let short = [data.short.good, data.short.bad, data.short.time].compactMap { $0 }
         ForEach(short, id: \.self) { line in
             Text(line).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                .padding(.horizontal, Theme.Space.tight)
         }
         MoodSourceBlock(title: "好时刻多出现在什么时候", columns: whenColumns(data), rows: whenRows(data))
         MoodSourceBlock(title: "醒着的时间花在哪，好时刻在哪些领域", columns: mirrorColumns(data), rows: mirrorRows(data))
@@ -61,11 +63,14 @@ struct MoodSourcesCard: View {
                 if !bad.isEmpty { Text("不好的：\(bad)").font(Theme.Typeface.subheadline) }
             }
             .foregroundStyle(Theme.Palette.label)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .themeCard(radius: Theme.Corner.smallCard)
             .accessibilityElement(children: .combine)
         }
         let notes = footNotes(data)
         if !notes.isEmpty {
             Text(notes).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                .padding(.horizontal, Theme.Space.tight)
         }
     }
 
@@ -183,7 +188,9 @@ struct MoodSourceBlock: View {
                     if open == row.key { examples(row) }
                 }
             }
-            .padding(.top, Theme.Space.tight)
+            // 照原型：一小块一张白卡
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .themeCard(radius: Theme.Corner.smallCard)
         }
     }
 

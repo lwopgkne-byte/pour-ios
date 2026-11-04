@@ -21,6 +21,10 @@ struct RouteTests {
         ("/money/list/2026-10", .money(.list("2026-10", MoneyFilter()))),
         ("/money/list/2026-10?kind=fixed", .money(.list("2026-10", MoneyFilter(kind: "fixed")))),
         ("/money/watch", .money(.watch)),
+        ("/money/worth", .money(.worth)),
+        ("/calendar", .calendar(nil)),
+        ("/calendar/2026-09", .calendar("2026-09")),
+        ("/health", .health),
         ("/money/thing/22", .money(.thing(22))),
         ("/money/renqing", .money(.renqing)),
         ("/money/renqing/小李", .money(.person("小李"))),
@@ -110,6 +114,8 @@ struct RouteTests {
         #expect(model.sayContext == "mood")
         model.open("/insights")
         #expect(model.sayContext == "insights")
+        model.open("/todos")
+        #expect(model.sayContext == "todos")
         model.open("/library")
         #expect(model.sayContext == nil)
         model.goHome()

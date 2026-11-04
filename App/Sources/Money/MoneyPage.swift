@@ -19,6 +19,7 @@ struct MoneyPage: View {
         case .day(let day): MoneyOneDayPage(day: day)
         case .list(let month, let filter): MoneyEachPage(month: month, filter: filter)
         case .watch: MoneyWatchPage()
+        case .worth: MoneyWorthPage()
         case .thing(let id): MoneyThingPage(id: id)
         case .renqing: RenqingHomePage()
         case .person(let name): RenqingPersonPage(name: name)
@@ -39,20 +40,24 @@ enum MoneyRoute: Hashable {
     case day(String)
     case list(String, MoneyFilter)
     case watch
+    /// 值不值（3.0.1：照原型补的一页）
+    case worth
     case thing(Int)
     case renqing
     case person(String)
 
     /// 「/money」「/money/2026-09」「/money/day/2026-10-18」「/money/list/2026-10?kind=fixed」「/money/watch」
-    /// 「/money/thing/22」「/money/renqing」「/money/renqing/小李」
+    /// 「/money/worth」「/money/thing/22」「/money/renqing」「/money/renqing/小李」
     init?(_ path: String) {
         let pieces = path.split(separator: "?", maxSplits: 1).map(String.init)
         let parts = pieces[0].split(separator: "/").map { String($0).removingPercentEncoding ?? String($0) }
         guard parts.first == "money" else { return nil }
+        if parts.count == 2, let page = ["watch": Self.watch, "worth": .worth, "renqing": .renqing][parts[1]] {
+            self = page
+            return
+        }
         switch (parts.count, parts.dropFirst().first) {
         case (1, _): self = .month(nil)
-        case (2, "watch"): self = .watch
-        case (2, "renqing"): self = .renqing
         case (2, let month?) where month.wholeMatch(of: /\d{4}-(0[1-9]|1[0-2])/) != nil: self = .month(month)
         case (3, "day"): self = .day(parts[2])
         case (3, "list"): self = .list(parts[2], Self.filter(pieces.count > 1 ? pieces[1] : ""))

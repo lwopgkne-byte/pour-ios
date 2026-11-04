@@ -118,22 +118,33 @@ public struct RoundAction: View {
     let symbol: String
     let color: Color
     let badge: Int?
+    /// 实心（彩色的圆、白图标）；不是的话白色的圆上一个彩色图标、一点点影子（照原型钱主页 .qa）
+    let filled: Bool
     let action: () -> Void
 
-    public init(_ title: String, symbol: String, color: Color, badge: Int? = nil, action: @escaping () -> Void) {
+    public init(
+        _ title: String, symbol: String, color: Color, badge: Int? = nil, filled: Bool = true,
+        action: @escaping () -> Void
+    ) {
         self.title = title
         self.symbol = symbol
         self.color = color
         self.badge = badge
+        self.filled = filled
         self.action = action
     }
 
     public var body: some View {
         Button(action: action) {
             VStack(spacing: Theme.Space.snug) {
-                Image(systemName: symbol).font(Theme.Typeface.quickIcon).foregroundStyle(Theme.Palette.onAccent)
+                Image(systemName: symbol).font(filled ? Theme.Typeface.quickIcon : Theme.Typeface.section)
+                    .foregroundStyle(filled ? Theme.Palette.onAccent : color)
                     .frame(width: Theme.Size.quickIcon, height: Theme.Size.quickIcon)
-                    .background(color, in: Circle())
+                    .background(filled ? color : Theme.Palette.card, in: Circle())
+                    .shadow(color: filled ? .clear : Theme.Palette.shadowNear, radius: 1, y: 1)
+                    .shadow(
+                        color: filled ? .clear : Theme.Palette.shadowFar, radius: Theme.Space.tight,
+                        y: Theme.Space.hairline)
                     .overlay(alignment: .topTrailing) {
                         if let badge, badge > 0 {
                             Text("\(badge)").font(Theme.Typeface.caption).monospacedDigit()
@@ -144,7 +155,7 @@ public struct RoundAction: View {
                                 .offset(x: Theme.Space.tight, y: -Theme.Space.tight)
                         }
                     }
-                Text(title).font(Theme.Typeface.footnoteMedium).foregroundStyle(Theme.Palette.label).lineLimit(1)
+                Text(title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.label).lineLimit(1)
                     .fixedSize()
             }
             .frame(maxWidth: .infinity, minHeight: Theme.Size.touch)

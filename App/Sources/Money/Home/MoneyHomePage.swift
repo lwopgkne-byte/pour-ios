@@ -49,10 +49,11 @@ struct MoneyHomePage: View {
         MoneyHero(home: home)
         MoneyActions(month: month, watchCount: home.overview?.watch.count ?? 0)
         MoneyMonthCalendar(page: page, picked: $picked) { go($0) }
-        MoneyThisMonth(page: page, renqing: home.overview?.renqing)
+        // 照原型：留意在前，这个月在后
         if let overview = home.overview {
             MoneyWatchCard(lines: overview.watch.filter { !settled.contains($0.key) }) { settled.insert($0) }
         }
+        MoneyThisMonth(page: page, renqing: home.overview?.renqing)
         MoneyDomainsCard(page: page)
         if let who = home.overview?.who { MoneyWhoCard(who: who) }
         if let worth = home.overview?.worth, !worth.good.isEmpty || !worth.regret.isEmpty {

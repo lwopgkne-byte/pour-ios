@@ -1,6 +1,6 @@
 public import SwiftUI
 
-/// 类别图标：28 点圆角小方块，底是类别色的浅色；预置的类别用苹果的线条图标，AI 新长出来的类别用它自己的 emoji
+/// 类别图标：28 点圆角小方块，类别色实心、白图标（照原型）；预置的类别用苹果的图标，AI 新长出来的类别用它自己的 emoji
 public struct IconTile: View {
     @ScaledMetric(relativeTo: .subheadline) private var size = Theme.Size.tile
     let symbol: String?
@@ -17,13 +17,14 @@ public struct IconTile: View {
         Group {
             if let symbol {
                 Image(systemName: symbol).font(.system(size: size * 0.54, weight: .semibold))
-                    .foregroundStyle(color.solid)
+                    .foregroundStyle(Theme.Palette.onAccent)
             } else {
                 Text(emoji).font(.system(size: size * 0.58))
             }
         }
         .frame(width: size, height: size)
-        .background(color.tint, in: Theme.rounded(Theme.Corner.tile * size / Theme.Size.tile))
+        // 照原型：彩色实心的小方块、白图标（以前是浅底彩色图标，看着发淡）
+        .background(color.solid, in: Theme.rounded(Theme.Corner.tile * size / Theme.Size.tile))
         .accessibilityHidden(true)
     }
 }

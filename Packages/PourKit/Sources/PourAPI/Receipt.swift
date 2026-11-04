@@ -9,26 +9,29 @@ extension Show {
             ("已记录", ["created", "duplicate"]), ("已修改", ["updated"]), ("已完成", ["completed"]),
             ("已确认", ["confirmed"]), ("已删除", ["deleted"]),
         ]
-        // 分组后每一项不用再重复动作：「删除 💼 被老板骂」→「💼 被老板骂」，「✅ 完成：看电影」→「✅ 看电影」
-        func bare(_ item: API.ReceiptItem) -> String {
-            var text = item.text
-            for word in ["修改 ", "确认 ", "删除 "] where text.hasPrefix(word) { text.removeFirst(word.count) }
-            if let range = text.range(of: " 完成："), text[text.startIndex..<range.lowerBound].count <= 2 {
-                text.replaceSubrange(range, with: " ")
-            }
-            return text
-        }
         var out: [String] = []
         for group in groups {
             let inGroup = items.filter { group.actions.contains($0.action) }
             guard !inGroup.isEmpty else { continue }
             let insights = inGroup.filter { $0.action == "created" && $0.kind == "insight" && !$0.pending }
-            var parts = inGroup.filter { !insights.contains($0) }.map { $0.pending ? "\(bare($0))（待确认）" : bare($0) }
+            var parts = inGroup.filter { !insights.contains($0) }.map {
+                $0.pending ? "\(receiptBare($0))（待确认）" : receiptBare($0)
+            }
             if insights.count == 1, let only = insights.first { parts.append(only.text) }
             if insights.count > 1 { parts.append("💡 \(insights.count) 条感悟") }
             out.append("\(group.label)：\(parts.joined(separator: " · "))")
         }
         return out.joined(separator: "；")
+    }
+
+    /// 一项收据去掉开头重复的动作（动作另外写）：「删除 💼 被老板骂」→「💼 被老板骂」，「✅ 完成：看电影」→「✅ 看电影」
+    public static func receiptBare(_ item: API.ReceiptItem) -> String {
+        var text = item.text
+        for word in ["修改 ", "确认 ", "删除 "] where text.hasPrefix(word) { text.removeFirst(word.count) }
+        if let range = text.range(of: " 完成："), text[text.startIndex..<range.lowerBound].count <= 2 {
+            text.replaceSubrange(range, with: " ")
+        }
+        return text
     }
 
     /// 原话下面那个状态说的是实际做了什么（doneLabel）

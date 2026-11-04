@@ -59,10 +59,11 @@ public struct GoalRing: View {
 
     private var color: Color {
         switch state {
-        case .onTrack, .done: Theme.Palette.good
-        case .behind: Theme.Palette.warn
+        // 照原型：正轨绿、落后琥珀、暂停浅灰（环是图形，比字的颜色亮一档）
+        case .onTrack, .done: Theme.Palette.ringGood
+        case .behind: Theme.Palette.ringWarn
         case .notYet: Theme.Palette.tertiaryLabel
-        case .paused: Theme.Palette.separator
+        case .paused: Theme.Palette.ringPaused
         }
     }
 

@@ -46,6 +46,7 @@ extension AppModel {
     /// 说一句的那一页（docs/3.0/01-需求文档.md 2.2）：发出去带上，意图识别作参考；输入框的提示跟着变。在画布上是 nil
     var sayContext: String? {
         switch stack.last {
+        case .todos?: "todos"
         case .money?: "money"
         case .goals?: "goals"
         case .mood?: "mood"

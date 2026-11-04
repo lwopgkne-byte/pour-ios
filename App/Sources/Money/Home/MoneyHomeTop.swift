@@ -128,14 +128,19 @@ struct MoneyActions: View {
         HStack(spacing: 0) {
             RoundAction("记一笔", symbol: Theme.Symbol.add, color: Theme.Quick.money) { model.recordMoney() }
                 .accessibilityIdentifier("money.record")
-            RoundAction("每一笔", symbol: "list.bullet", color: Theme.Tile.blue) { model.open("/money/list/\(month)") }
-                .accessibilityIdentifier("money.list")
-            RoundAction("留意的", symbol: Theme.Symbol.watch, color: Theme.Tile.gold, badge: watchCount) {
+            // 照原型：只有记一笔是实心的，另外三个白底彩色图标
+            RoundAction("每一笔", symbol: Theme.Symbol.moneyList, color: Theme.Tile.amber, filled: false) {
+                model.open("/money/list/\(month)")
+            }
+            .accessibilityIdentifier("money.list")
+            RoundAction("留意的", symbol: Theme.Symbol.watch, color: Theme.Tile.orange, badge: watchCount, filled: false) {
                 model.open("/money/watch")
             }
             .accessibilityIdentifier("money.watch")
-            RoundAction("人情往来", symbol: Theme.Symbol.renqing, color: Theme.Tile.red) { model.open("/money/renqing") }
-                .accessibilityIdentifier("money.renqing")
+            RoundAction("人情往来", symbol: Theme.Symbol.renqing, color: Theme.Tile.brick, filled: false) {
+                model.open("/money/renqing")
+            }
+            .accessibilityIdentifier("money.renqing")
         }
         .padding(.vertical, Theme.Space.small)
     }

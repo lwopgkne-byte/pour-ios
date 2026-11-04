@@ -41,10 +41,11 @@ struct MoodHomePage: View {
         MoodTodayCard(page: page)
         MoodMonthCard(page: page, picked: $picked) { other in model.open("/mood/\(other)") }
         if let week = page.week, week.bars.contains(where: { $0.value != nil }) { MoodWeekCard(week: week) }
+        // 照原型：心情分析跟在这周后面
+        MoodAnalysisLink().padding(.top, Theme.Space.tight)
         if page.good.total > 0 { MoodGoodCard(good: page.good) }
         if !page.findings.isEmpty { MoodFindingsCard(findings: page.findings) { await load() } }
         if !page.changes.isEmpty { MoodChangesCard(changes: page.changes) }
-        MoodAnalysisLink()
         Text("情绪词只写你说出来的 · 全部在你的电脑上").font(Theme.Typeface.footnote)
             .foregroundStyle(Theme.Palette.secondaryLabel)
             .frame(maxWidth: .infinity)

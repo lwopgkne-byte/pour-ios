@@ -28,8 +28,16 @@ final class WidgetsUITests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["today.header"].waitForExistence(timeout: 5), "画布没打开")
         app.open(URL(string: "pour://voice") ?? URL(fileURLWithPath: "/"))
         // 第一次用说的：先看一张说明（和点麦克风一样）
-        XCTAssertTrue(app.buttons["好，开始说"].waitForExistence(timeout: 5), "从链接打开没开始说")
-        app.buttons["好，开始说"].tap()
+        let start = app.buttons["好，开始说"]
+        XCTAssertTrue(start.waitForExistence(timeout: 5), "从链接打开没开始说")
+        // 对话弹层正往上拉，按钮还在动：等它停稳再点
+        var last = start.frame
+        for _ in 0..<15 {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+            if start.frame == last { break }
+            last = start.frame
+        }
+        start.tap()
         XCTAssertTrue(app.staticTexts["正在听"].waitForExistence(timeout: 3), "没有录音卡")
         attach(app, "从小组件打开-正在听")
     }

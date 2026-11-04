@@ -73,6 +73,8 @@ public struct ThemeSwitch: View {
     public var body: some View {
         Toggle(label, isOn: Binding(get: { isOn }, set: { onChange($0) }))
             .labelsHidden()
+            // 照原型：开关是系统那种亮绿（App 的强调色是蓝，不用在开关上）
+            .tint(Theme.Palette.switchOn)
             .disabled(disabled)
     }
 }

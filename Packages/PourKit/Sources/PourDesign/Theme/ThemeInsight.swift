@@ -116,9 +116,12 @@ public struct InsightCard: View {
 
     private func starButton(_ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: starred ? "star.fill" : "star").font(Theme.Typeface.bodySemibold)
-                .foregroundStyle(starred ? Theme.Idea.star : Theme.Palette.tertiaryLabel)
+            // 照原型：星星在一个浅灰的圆里
+            Image(systemName: starred ? "star.fill" : "star").font(Theme.Typeface.subheadline.weight(.semibold))
+                .foregroundStyle(starred ? Theme.Idea.star : Theme.Palette.secondaryLabel)
                 .contentTransition(.symbolEffect(.replace))
+                .frame(width: Theme.Size.smallRing, height: Theme.Size.smallRing)
+                .background(Theme.Palette.fill, in: Circle())
                 .frame(width: Theme.Size.touch, height: Theme.Size.touch)
                 .contentShape(Rectangle())
         }

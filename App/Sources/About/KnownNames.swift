@@ -11,13 +11,14 @@ struct KnownNames: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if !rules.isEmpty {
-                LegacySection(title: "改过的名字") {
-                    VStack(alignment: .leading, spacing: 0) {
-                        ForEach(rules) { rule in row(rule) }
-                        Text("原话没有改；画布上的「说到的」、关于我、笔记库都照这里算")
-                            .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).padding(
-                                .top, Theme.Space.small)
+                // 照原型：和上面几块一样，标题在外面、一张白卡、说明在卡片下面
+                KnownBlock(title: "改过的名字") {
+                    ForEach(Array(rules.enumerated()), id: \.element.id) { index, rule in
+                        if index > 0 { Divider() }
+                        row(rule)
                     }
+                } foot: {
+                    Text("原话没有改；画布上的「说到的」、关于我、笔记库都照这里算")
                 }
             }
         }
@@ -38,6 +39,7 @@ struct KnownNames: View {
             LinkButton("恢复") { restore(rule) }
                 .accessibilityLabel(Text("恢复\(rule.name)"))
         }
+        .padding(.vertical, Theme.Space.small)
         .frame(minHeight: Theme.Size.touch)
     }
 

@@ -39,7 +39,9 @@ struct RenqingHomePage: View {
         } else {
             Section {
                 RenqingTotals(
-                    out: page.out, into: page.into, labels: .init(out: "你送出的", into: "你收到的", intoTreat: "别人请你"))
+                    out: page.out, into: page.into, labels: .init(out: "你送出的", into: "你收到的", intoTreat: "别人请你")
+                )
+                .renqingTotalsRow()
             } footer: {
                 Text("只算你说过的\(page.started.map { " · \(Show.monthDay($0))开始记" } ?? "")")
                     .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
@@ -58,7 +60,15 @@ struct RenqingHomePage: View {
                     .accessibilityElement(children: .combine)
                 }
             } header: {
-                MoneySectionHeader("和谁来往")
+                // 照原型：右边一句小字；标题自己是一个标题（不和小字合成一句）
+                HStack(alignment: .firstTextBaseline) {
+                    Text("和谁来往").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                        .accessibilityAddTraits(.isHeader)
+                    Spacer(minLength: Theme.Space.small)
+                    Text("按最近一次 · 点一个人看每一次").font(Theme.Typeface.footnote)
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                }
+                .textCase(nil)
             } footer: {
                 Text("一起请好几个人的，钱不拆到每个人头上，只数次数。随多少你自己定，这里只记事实。")
                     .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
@@ -72,7 +82,12 @@ struct RenqingHomePage: View {
             model.open("/money/renqing/\(person.name)")
         } label: {
             HStack(spacing: Theme.Space.medium) {
-                IconTile(symbol: "person.fill", emoji: String(person.name.prefix(1)), color: Theme.tag("red"))
+                // 照原型：红色的圆、白色的人
+                Image(systemName: "person.fill").font(Theme.Typeface.footnoteSemibold)
+                    .foregroundStyle(Theme.Palette.onAccent)
+                    .frame(width: Theme.Size.tile, height: Theme.Size.tile)
+                    .background(Theme.tag("red").solid, in: Circle())
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: Theme.Space.hairline) {
                     Text(person.relation.map { "\(person.name) · \($0)" } ?? person.name).font(Theme.Typeface.body)
                         .foregroundStyle(Theme.Palette.label)
@@ -93,7 +108,7 @@ struct RenqingHomePage: View {
                 Image(systemName: "chevron.right").font(Theme.Typeface.glyph)
                     .foregroundStyle(Theme.Palette.tertiaryLabel).accessibilityHidden(true)
             }
-            .padding(.vertical, Theme.Space.tight)
+            .padding(.vertical, Theme.Space.small)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -143,7 +158,9 @@ struct RenqingPersonPage: View {
         Section {
             RenqingTotals(
                 out: page.out, into: page.into,
-                labels: .init(out: "你送的", into: "\(page.name)送的", intoTreat: "\(page.name)请你"))
+                labels: .init(out: "你送的", into: "\(page.name)送的", intoTreat: "\(page.name)请你")
+            )
+            .renqingTotalsRow()
         } footer: {
             let notes = [
                 page.relation,
@@ -214,12 +231,13 @@ struct RenqingTotals: View {
     let into: API.RenqingSide
     let labels: Labels
 
+    /// 照原型：两张白卡左右并排
     var body: some View {
-        HStack(alignment: .top, spacing: Theme.Space.regular) {
+        HStack(alignment: .top, spacing: Theme.Space.medium) {
             side(labels.out, out, times(out, gift: "送礼", treat: "请客"))
             side(labels.into, into, times(into, gift: "收礼", treat: labels.intoTreat))
         }
-        .padding(.vertical, Theme.Space.small)
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func side(_ label: String, _ side: API.RenqingSide, _ count: String) -> some View {
@@ -229,7 +247,9 @@ struct RenqingTotals: View {
                 .foregroundStyle(Theme.Palette.label).minimumScaleFactor(0.7).lineLimit(1)
             Text(count).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(Theme.Space.inset)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.smallCard))
         .accessibilityElement(children: .combine)
     }
 
@@ -240,5 +260,12 @@ struct RenqingTotals: View {
         ]
         let text = parts.compactMap { $0 }.joined(separator: " · ")
         return text.isEmpty ? "还没有" : text
+    }
+}
+
+extension View {
+    /// 放两张卡的那一行：列表本身不再画白底、不留边（两张卡自己是白的）
+    func renqingTotalsRow() -> some View {
+        listRowBackground(Color.clear).listRowInsets(EdgeInsets())
     }
 }

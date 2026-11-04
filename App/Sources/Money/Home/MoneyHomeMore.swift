@@ -12,15 +12,15 @@ struct MoneyFindingsCard: View {
     let reload: () async -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            MoneyCardHeader("钱和你的日子")
-            ForEach(page.findings, id: \.key) { finding in
-                FindingCardView(
-                    finding: finding, mask: { Show.maskYuan($0, hide: hide) },
-                    openDay: { model.open("/money/day/\($0)") }, vote: { vote(finding.key, $0) })
+        PageSection(title: "钱和你的日子", meta: "每周找一次 · 前后两段都成立才说") {
+            VStack(alignment: .leading, spacing: Theme.Space.medium) {
+                ForEach(page.findings, id: \.key) { finding in
+                    FindingCardView(
+                        finding: finding, mask: { Show.maskYuan($0, hide: hide) },
+                        openDay: { model.open("/money/day/\($0)") }, vote: { vote(finding.key, $0) })
+                }
             }
         }
-        .themeCard()
     }
 
     private func vote(_ key: String, _ vote: String?) {
@@ -148,11 +148,16 @@ struct MoneyFixedCard: View {
         let series = page.fixed.series.filter { $0.ended != true }
         let days = MoneyHero.days(in: page.month)
         let today = page.current ? Int(model.today.suffix(2)) ?? 1 : days
+        PageSection(title: "每个月固定的", meta: Show.yuan(page.fixed.monthly, hide: hide), padded: false) {
+            ruler(series: series, days: days, today: today)
+        }
+    }
+
+    private func ruler(series: [API.FixedSeries], days: Int, today: Int) -> some View {
         Button {
             model.open("/money/list/\(page.month)?kind=fixed")
         } label: {
             VStack(alignment: .leading, spacing: Theme.Space.small) {
-                MoneyCardHeader("每个月固定的 · \(Show.yuan(page.fixed.monthly, hide: hide))")
                 // 和「留意的」同一把月尺：扣钱的几天是点、上面写名字，今天一根蓝线
                 MoneyMonthRuler(
                     marks: series.map { .init(day: $0.dayOfMonth, name: $0.name, paid: $0.dayOfMonth <= today) },
@@ -166,10 +171,10 @@ struct MoneyFixedCard: View {
                         .font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
                 }
             }
+            .padding(Theme.Space.regular)
             .contentShape(Rectangle())
         }
         .buttonStyle(PressScale())
-        .themeCard()
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
             Text("每个月固定的：\(series.map { "\($0.dayOfMonth)日\($0.name)" }.joined(separator: "，"))；今天是\(today)日"))
@@ -187,19 +192,18 @@ struct MoneyLaterCard: View {
     var body: some View {
         let rows = lines
         if !rows.isEmpty {
-            VStack(alignment: .leading, spacing: Theme.Space.small) {
-                MoneyCardHeader("还在攒的")
-                ForEach(rows, id: \.0) { name, when in
-                    VStack(alignment: .leading, spacing: Theme.Space.hairline) {
-                        Text(name).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
-                        Text(when).font(Theme.Typeface.footnote).foregroundStyle(
-                            Theme.Palette.secondaryLabel)
+            PageSection(title: "还在攒的") {
+                VStack(alignment: .leading, spacing: Theme.Space.small) {
+                    ForEach(rows, id: \.0) { name, when in
+                        VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+                            Text(name).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                            Text(when).font(Theme.Typeface.footnote).foregroundStyle(
+                                Theme.Palette.secondaryLabel)
+                        }
+                        .accessibilityElement(children: .combine)
                     }
-                    .accessibilityElement(children: .combine)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .themeCard()
         }
     }
 

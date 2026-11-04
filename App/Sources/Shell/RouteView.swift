@@ -28,6 +28,8 @@ struct RouteView: View {
         case .goals(let goal): GoalsRoutePage(route: goal)
         case .library(let ask): LibraryPage3(ask: ask)
         case .settings(let anchor): SettingsPage(anchor: anchor)
+        case .calendar(let month): CalendarPage(month: month ?? String(model.today.prefix(7)))
+        case .health: HealthHomePage()
         }
     }
 }
@@ -38,7 +40,9 @@ private struct RouteTitle: ViewModifier {
 
     func body(content: Content) -> some View {
         switch route {
-        case .goals(.goal), .goals(.care), .about(.domain, _), .about(.person, _), .about(.year, _): content
+        case .goals(.goal), .goals(.care), .about(.domain, _), .about(.person, _), .about(.year, _), .calendar,
+            .money(.thing):
+            content
         default: content.navigationTitle(route.title)
         }
     }

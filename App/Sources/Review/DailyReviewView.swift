@@ -34,8 +34,7 @@ struct DailyReviewView: View {
     @ViewBuilder private func content(_ page: API.DailyReviewPage) -> some View {
         let review = page.review
         ReviewHead(
-            title: Show.dayTitle(day, today: model.today), relative: Show.relative(day, today: model.today),
-            updated: review.updated)
+            title: "每日回顾", relative: Show.relative(day, today: model.today), updated: review.updated, compact: true)
         // 这一天的总结和关键数字（以前在画布上的「今天的样子」，产品主人 2026-10-21 挪到回顾里）
         DayLook(overview: review.overview, numbers: review.numbers, levels: review.moods.map(\.mood))
         let bars = StoryDayBars.bars(review)

@@ -3,9 +3,11 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 底部的输入框（docs/模块/生活画布2.0.md 第 6 节）。收着对话时是浮在页面上的玻璃条（离两边 12、离底 8，56 高）：
-/// 左边「对话」、中间输入（最多长到 6 行）、右边发送；上面一条玻璃小条说刚才那段话整理到哪了（ComposerStatus）。
-/// 发出去就向上展开对话面板，输入框贴在面板底下（第 5 步换成系统的半屏面板）
+/// 底部的「说一句」（docs/模块/生活画布2.0.md 第 6 节；样子照可交互原型 1:1，产品主人 2026-11-03）。
+/// 收着时是浮在页面上的玻璃条（离两边 16、离底 10，50 高）：左边「对话」、中间输入（最多长到 6 行）、右边蓝色的圆
+/// （没字时是麦克风；有字时是发送，麦克风缩进输入框里）；上面一条玻璃小条说刚才那段话整理到哪了（ComposerStatus）。
+/// 点一下、发出去：从下面拉上来一张几乎满屏的弹层（原型 ChatSheet）——上面两个大圆角、暖白底、往上一层影子，后面的页面压暗；
+/// 最下面九成白的一块放快捷和输入框，上面一条细线，一直铺到屏幕底边
 struct Composer: View {
     @Environment(AppModel.self) private var model
     @Environment(VoiceSession.self) private var voice
@@ -18,71 +20,77 @@ struct Composer: View {
     @State private var intro = false
     /// 按住说的时候往上滑过了（松开就不要了）
     @State private var cancelling = false
-    /// 斜杠命令列表、上面那一排快捷有多高：对话面板让出这么多（输入框这一块往上长，对话被顶上去），
-    /// 不然键盘弹着时输入框会被挤到键盘后面。两样各量各的：打「/」时快捷收起、命令出来，
-    /// 共用一个数时快捷消失那一下把命令刚量好的高度清成 0，输入框就被挤到键盘后面了（2026-10-31 界面测试查出来的）
-    @State private var menuHeight: CGFloat = 0
-    @State private var chipsHeight: CGFloat = 0
+    /// 最下面那一块（说明、命令、快捷、输入框或听写）有多高：对话让出这么多。量的是整块，
+    /// 打「/」时快捷收起、命令出来也是一个数（分开量的话快捷消失那一下会把命令的高度清成 0，2026-10-31 界面测试查出来的）
+    @State private var dockHeight: CGFloat = 0
 
     var body: some View {
         @Bindable var model = model
         let open = model.chatOpen
         VStack(spacing: open ? 0 : Theme.Space.small) {
             let commands = Show.slashMenu(model.draft)
-            let chips = open && commands.isEmpty && model.draft.isEmpty && !voice.active
-            // 对话占八成高（产品主人 2026-11-03：「太小了看和操作不方便」）；键盘弹着时照看得见的那一截算，
-            // 最高到顶上那一排（我、日期、搜索）下面，不压着它们
-            let room = min(visibleHeight * 0.8, visibleHeight - Theme.Size.touch * 3 - Theme.Space.section)
-            let chatHeight = room - (commands.isEmpty ? (chips ? chipsHeight : 0) : menuHeight)
+            // 快捷一直在（原型：打了字也在），只有列出斜杠命令、正在听的时候让开
+            let chips = open && commands.isEmpty && !voice.active
+            // 弹层上沿离顶上安全区 10 点（原型 calc(100% - top - 10px)）；键盘弹着时照看得见的那一截算
+            let chatHeight = visibleHeight - Theme.Space.small - Theme.Space.hairline - dockHeight
             if open, chatHeight >= Theme.Size.touch {
                 ChatPanel(drag: $drag)
                     .frame(height: chatHeight)
                     .themeTransition(.move(edge: .bottom).combined(with: .opacity))
             }
             if !open { ComposerStatus() }
-            voiceExtras
-            if !commands.isEmpty {
-                SlashMenu(commands: commands, open: open) { command in
-                    model.draft = "\(command.cmd) "
-                    focused = true
+            // 最下面那一块（原型 padding 8 12 bot+12）：收着时什么都不垫，输入条自己是玻璃
+            VStack(spacing: Theme.Space.small) {
+                voiceExtras(open: open)
+                if !commands.isEmpty {
+                    SlashMenu(commands: commands, open: open) { command in
+                        model.draft = "\(command.cmd) "
+                        focused = true
+                    }
                 }
-                .onGeometryChange(for: CGFloat.self) {
-                    $0.size.height
-                } action: {
-                    menuHeight = $0
+                if chips {
+                    SayChips { prefix in
+                        model.draft = prefix
+                        focused = true
+                    }
+                }
+                if voice.active, voice.mode == .tap {
+                    VoiceCard(before: model.draft, open: open) { words, send in use(words, send: send) }
+                        .themeTransition(.opacity)
+                } else {
+                    ComposerBar(
+                        focused: $focused, open: open, cancelling: $cancelling, tapMic: tapMic,
+                        sendWords: { use($0, send: true) })
                 }
             }
-            if chips {
-                SayChips { prefix in
-                    model.draft = prefix
-                    focused = true
-                }
-                .onGeometryChange(for: CGFloat.self) {
-                    $0.size.height
-                } action: {
-                    chipsHeight = $0
-                }
+            .padding(.top, open ? Theme.Space.small : 0)
+            .padding(.horizontal, open ? Theme.Space.medium : 0)
+            .padding(.bottom, open ? Theme.Space.medium : 0)
+            .background {
+                if open { DockBackground() }
             }
-            if voice.active, voice.mode == .tap {
-                VoiceCard(before: model.draft) { words, send in use(words, send: send) }
-                    .themeTransition(.scale(scale: 0.96, anchor: .bottom).combined(with: .opacity))
-            } else {
-                ComposerBar(
-                    focused: $focused, open: open, cancelling: $cancelling, tapMic: tapMic,
-                    sendWords: { use($0, send: true) })
+            .onGeometryChange(for: CGFloat.self) {
+                $0.size.height
+            } action: {
+                dockHeight = $0
             }
         }
-        // 对话开着：一张浮着的卡片，离两边、离底一点，四个角都是大圆角（和收着时两头圆的输入条一个样子；
-        // 产品主人 2026-11-03：「左右两边那种椭圆，视觉效果更好」）。收着时不裁——裁了玻璃边上那圈柔光会被切成一个方块
+        // 开着：上面两个大圆角的暖白底，往上一层影子，铺到屏幕底边（原型 .sheet）。
+        // 只画底、不裁：裁了的话收着时玻璃边上那圈柔光会被切掉，输入框换了样子键盘的焦点也会丢
         .background {
-            if open { Theme.Palette.background }
+            if open {
+                UnevenRoundedRectangle(
+                    topLeadingRadius: Theme.Corner.sheet, topTrailingRadius: Theme.Corner.sheet, style: .continuous
+                )
+                .fill(Theme.Palette.sheet)
+                .shadow(color: Theme.Palette.sheetShadow, radius: Theme.Space.large, y: -Theme.Space.small)
+                .ignoresSafeArea(edges: .bottom)
+            }
         }
-        .modifier(PanelShape(open: open))
-        .shadow(color: open ? Theme.Palette.shadowNear : .clear, radius: 1, y: 1)
-        .shadow(color: open ? Theme.Palette.shadowFar : .clear, radius: Theme.Space.regular, y: Theme.Space.tight)
         .offset(y: max(0, drag))
-        .padding(.horizontal, open ? Theme.Space.small : Theme.Space.medium)
-        .padding(.bottom, Theme.Space.small)
+        // 收着：离两边 16、离底 10（原型 .say 的 margin）
+        .padding(.horizontal, open ? 0 : Theme.Space.regular)
+        .padding(.bottom, open ? 0 : Theme.Space.small + Theme.Space.hairline)
         // 收起对话是要看画布：键盘一起收起来
         .onChange(of: model.chatOpen) { _, open in
             if !open { focused = false }
@@ -110,9 +118,9 @@ struct Composer: View {
     }
 
     /// 输入框上面跟说话有关的：第一次的说明、按住说的卡、听不了的那句话
-    @ViewBuilder private var voiceExtras: some View {
+    @ViewBuilder private func voiceExtras(open: Bool) -> some View {
         if intro {
-            VoiceIntro {
+            VoiceIntro(open: open) {
                 intro = false
                 voice.explained = true
                 voice.start(.tap)
@@ -122,24 +130,26 @@ struct Composer: View {
             .themeTransition(.move(edge: .bottom).combined(with: .opacity))
         }
         if voice.active, voice.mode == .hold {
-            HoldCard(cancelling: cancelling)
+            HoldCard(cancelling: cancelling, open: open)
                 .themeTransition(.scale(scale: 0.96, anchor: .bottom).combined(with: .opacity))
         }
         if case .failed(let message, let settings) = voice.phase {
-            VoiceFailure(message: message, settings: settings).transition(.opacity)
+            VoiceFailure(message: message, settings: settings, open: open).transition(.opacity)
         }
     }
 
-    /// 点麦克风：第一次先看说明；键盘收起来
+    /// 小组件、控制中心叫起来的：和点麦克风一样
     private func startPendingVoice() {
         guard model.voicePending, !voice.active else { return }
         model.voicePending = false
         tapMic()
     }
 
+    /// 点麦克风：和原型一样拉上来对话，在最下面听（第一次先看说明）
     private func tapMic() {
         focused = false
         voice.dismissFailure()
+        if !model.chatOpen { model.chatOpen = true }
         if voice.explained {
             voice.start(.tap)
         } else {
@@ -183,7 +193,9 @@ struct Composer: View {
     }
 }
 
-/// 输入的那一行：左边「对话」，中间输入，右边圆的发送按钮（有字时强调色实心，没字时浅灰）
+/// 输入的那一行。收着（原型 .say）：左边「对话」、中间输入、右边蓝色的圆；开着（原型 ChatSheet 的 form）：
+/// 42 高的输入框（暖白底、一圈细线、两头圆）+ 右边蓝色的圆。蓝色的圆没字时是麦克风，有字时是发送——
+/// 有字时麦克风缩进输入框右边，说了一半停了也能接着说（产品主人 2026-11-03：「语音不能连续说」）
 private struct ComposerBar: View {
     @Environment(AppModel.self) private var model
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -201,118 +213,136 @@ private struct ComposerBar: View {
     var body: some View {
         @Bindable var model = model
         let empty = model.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        HStack(alignment: .bottom, spacing: Theme.Space.tight) {
-            Button {
-                withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
-                    model.chatOpen.toggle()
+        HStack(alignment: .bottom, spacing: Theme.Space.small) {
+            if !open { chatButton }
+            HStack(alignment: .bottom, spacing: 0) {
+                TextField(Show.spaced(placeholder), text: $model.draft, axis: .vertical)
+                    .font(Theme.Typeface.message)
+                    .foregroundStyle(Theme.Palette.label)
+                    .lineLimit(1...6)
+                    .padding(.vertical, Theme.Space.small)
+                    .frame(minHeight: open ? Theme.Size.field : Theme.Size.touch)
+                    .padding(.leading, open ? Theme.Space.regular : 0)
+                    .padding(.trailing, open && empty ? Theme.Space.regular : 0)
+                    .focused(focused)
+                    .accessibilityLabel(Text(backfilling ? "补记 \(Show.monthDay(model.shownDay))" : "说一句"))
+                    .accessibilityIdentifier("pourbar.input")
+                    // 字号调小以后（控制中心、设置里调），多行的输入框不会自己缩回去：回到 App 时换一个新的。
+                    // 不在字号一变就换：审计正看着它时换掉，后面的审计会一直等那个旧的、超时
+                    .id(fieldID)
+                    .onChange(of: typeSize) { resized = true }
+                    .onChange(of: scenePhase) { _, phase in
+                        guard phase == .active, resized else { return }
+                        resized = false
+                        fieldID += 1
+                    }
+                if !empty {
+                    MicButton(tap: tapMic, send: sendWords, cancelling: $cancelling, style: .inline)
+                        .frame(height: open ? Theme.Size.field : Theme.Size.touch)
+                        .themeTransition(.opacity)
                 }
-            } label: {
-                // 输入框上的按钮和系统的栏一样：图标封顶，字号很大的人长按看大图标（输入的字照样跟着变大）
-                Image(systemName: open ? "chevron.down" : "bubble.left.and.bubble.right")
-                    .font(Theme.Typeface.toolbarIcon).foregroundStyle(Theme.Palette.secondaryLabel)
-                    .dynamicTypeSize(...DynamicTypeSize.xLarge)
-                    .contentTransition(.symbolEffect(.replace))
-                    .frame(width: Theme.Size.touch, height: Theme.Size.touch)
-                    .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(open ? "收起对话" : "展开对话"))
-            .accessibilityShowsLargeContentViewer {
-                Label(open ? "收起对话" : "展开对话", systemImage: open ? "chevron.down" : "bubble.left.and.bubble.right")
-            }
-            .accessibilityIdentifier("pourbar.chat")
-            TextField(Show.spaced(placeholder), text: $model.draft, axis: .vertical)
-                .font(Theme.Typeface.body)
-                .foregroundStyle(Theme.Palette.label)
-                .lineLimit(1...6)
-                .padding(.vertical, Theme.Space.medium)
-                // 对话开着：输入的那一块是暖灰底上一块白的圆角（收着时整条是玻璃，不另加）
-                .padding(.horizontal, open ? Theme.Space.medium : 0)
-                .background {
-                    // 一行时两头圆（圆角比一半高还大就是胶囊），长成几行时四个圆角
-                    if open { Theme.rounded(Theme.Corner.composer).fill(Theme.Palette.card) }
+            .background {
+                if open {
+                    Theme.rounded(Theme.Size.field / 2).fill(Theme.Palette.sheet)
+                        .overlay(Theme.rounded(Theme.Size.field / 2).strokeBorder(Theme.Palette.separator))
                 }
-                .focused(focused)
-                .accessibilityLabel(Text(backfilling ? "补记 \(Show.monthDay(model.shownDay))" : "说一句"))
-                .accessibilityIdentifier("pourbar.input")
-                // 字号调小以后（控制中心、设置里调），多行的输入框不会自己缩回去：回到 App 时换一个新的。
-                // 不在字号一变就换：审计正看着它时换掉，后面的审计会一直等那个旧的、超时
-                .id(fieldID)
-                .onChange(of: typeSize) { resized = true }
-                .onChange(of: scenePhase) { _, phase in
-                    guard phase == .active, resized else { return }
-                    resized = false
-                    fieldID += 1
-                }
-            // 麦克风一直在：说了一半停了、有字了，点一下接着说（产品主人 2026-11-03：「语音不能连续说」）
-            MicButton(tap: tapMic, send: sendWords, cancelling: $cancelling)
-            if !empty {
-                sendButton.themeTransition(.scale.combined(with: .opacity))
             }
+            // 蓝色的圆：排的时候 40 宽（和原型一样贴着），点的地方 44
+            Group {
+                if empty {
+                    MicButton(tap: tapMic, send: sendWords, cancelling: $cancelling)
+                } else {
+                    sendButton
+                }
+            }
+            .padding(.horizontal, -(Theme.Size.touch - Theme.Size.micButton) / 2)
+            .padding(.vertical, open ? -(Theme.Size.touch - Theme.Size.field) / 2 : 0)
+            .themeTransition(.scale.combined(with: .opacity))
         }
-        .padding(.horizontal, Theme.Space.tight)
-        .padding(.vertical, Theme.Space.hairline)
-        .frame(minHeight: Theme.Size.composer)
+        .padding(.leading, open ? 0 : (Theme.Size.sayBar - Theme.Size.sayIcon) / 2)
+        .padding(.trailing, open ? 0 : (Theme.Size.sayBar - Theme.Size.micButton) / 2)
+        .padding(.vertical, open ? 0 : (Theme.Size.sayBar - Theme.Size.touch) / 2)
         .animation(Theme.Motion.quick, value: empty)
-        .padding(.bottom, open ? Theme.Space.tight : 0)
-        .background {
-            if open { Theme.Palette.background }
-        }
         .modifier(GlassWhenFloating(floating: !open))
     }
 
-    /// 发送（有字的时候）
+    /// 收着时左边的「对话」（原型 forum 图标，38 的方块）：点了拉上来对话
+    private var chatButton: some View {
+        Button {
+            withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
+                model.chatOpen = true
+            }
+        } label: {
+            // 输入框上的按钮和系统的栏一样：图标封顶，字号很大的人长按看大图标（输入的字照样跟着变大）
+            Image(systemName: "bubble.left.and.bubble.right")
+                .font(Theme.Typeface.toolbarIcon).foregroundStyle(Theme.Palette.secondaryLabel)
+                .dynamicTypeSize(...DynamicTypeSize.xLarge)
+                .frame(width: Theme.Size.touch, height: Theme.Size.touch)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, -(Theme.Size.touch - Theme.Size.sayIcon) / 2)
+        .accessibilityLabel(Text("展开对话"))
+        .accessibilityShowsLargeContentViewer { Label("展开对话", systemImage: "bubble.left.and.bubble.right") }
+        .accessibilityIdentifier("pourbar.chat")
+    }
+
+    /// 发送（有字的时候）：蓝色的圆里一个纸飞机（原型 send）
     private var sendButton: some View {
         Button {
             withAnimation(Theme.Motion.pick(Theme.Motion.emphasized, reduceMotion: reduceMotion)) { model.send() }
         } label: {
-            Image(systemName: "arrow.up").font(Theme.Typeface.bodySemibold)
+            Image(systemName: "paperplane.fill").font(Theme.Typeface.sendIcon)
+                .rotationEffect(.degrees(45))
                 .dynamicTypeSize(...DynamicTypeSize.xLarge)
                 .foregroundStyle(Theme.Palette.onAccent)
-                .frame(width: Theme.Size.sendButton, height: Theme.Size.sendButton)
+                .frame(width: Theme.Size.micButton, height: Theme.Size.micButton)
                 .background(Theme.Palette.accentFill, in: Circle())
                 .frame(width: Theme.Size.touch, height: Theme.Size.touch)
                 .contentShape(Circle())
         }
         .buttonStyle(PressScale())
         .accessibilityLabel(Text("发送"))
-        .accessibilityShowsLargeContentViewer { Label("发送", systemImage: "arrow.up") }
+        .accessibilityShowsLargeContentViewer { Label("发送", systemImage: "paperplane.fill") }
         .accessibilityIdentifier("pourbar.send")
     }
 
     /// 在画布上看以前的某一天：说的话补记到那一天（docs/模块/产品优化.md R1.1）
     private var backfilling: Bool { model.stack.isEmpty && model.shownDay < model.today }
 
-    /// 提示跟着页面变（docs/3.0/01-需求文档.md 2.2）：在钱、目标、心情、感悟那一页说什么；
-    /// 画布上早上问吃了什么，白天问做了什么，晚上（6 点到日界线）问哪一刻觉得挺好
+    /// 提示跟着页面变（docs/3.0/01-需求文档.md 2.2；字照原型）：收着时在待办、钱、目标、心情、感悟那一页说什么，
+    /// 画布上早上问吃了什么、白天问做了什么、晚上（6 点到日界线）问哪一刻觉得挺好，别的页「说一句……」；
+    /// 对话开着时「说点什么，比如：晚饭 35」；在画布上看以前的日子时「补记 10月25日：那天做了什么？」
     private var placeholder: String {
+        if backfilling { return "补记 \(Show.monthDay(model.shownDay))：那天做了什么？" }
+        if open { return "说点什么，比如：晚饭 35" }
         switch model.sayContext {
         case "money": return "记一笔，比如：午饭 25"
         case "goals": return "定个目标，比如：每周跑 3 次"
-        case "mood": return "说说心情，比如：今天挺开心"
-        case "insights": return "记一句，比如：慢慢来，比较快"
-        case "todos": return "说一句待办，比如：明天下午三点取快递"
+        case "mood": return "现在心情怎么样？说一句"
+        case "insights": return "想明白了什么？说一句"
+        case "todos": return "说一句待办：明天三点取快递"
         default: break
         }
-        if backfilling { return "补记 \(Show.monthDay(model.shownDay))：那天做了什么？" }
+        guard model.stack.isEmpty else { return "说一句……" }
         let now = Date()
         if Show.isEvening(now, boundary: model.dayBoundary) { return "今天哪一刻觉得挺好？" }
         let hour = Calendar.current.component(.hour, from: now)
-        return (5..<10).contains(hour) ? "早上吃了什么？" : "今天做了什么？比如：跑步1小时"
+        return (5..<10).contains(hour) ? "早上吃了什么？" : "今天做了什么？比如：跑步 1 小时"
     }
 }
 
-/// 对话开着时，面板（连着输入框）是四个角都圆的一张卡片
-/// 收着时不裁（裁了玻璃边上那圈柔光会被切成一个方块）：用一个比自己大一圈的框，等于不裁。
-/// 同一个修饰只换形状，不换成另一个视图——换了的话输入框会重建，点「说一句」展开对话时键盘的焦点就丢了
-private struct PanelShape: ViewModifier {
-    let open: Bool
+/// 弹层最下面那一块的底（原型 rgba(255,255,255,.9) + 上面一条细线）：一直铺到屏幕底边
+private struct DockBackground: View {
+    @Environment(\.displayScale) private var displayScale
 
-    func body(content: Content) -> some View {
-        content.clipShape(
-            open
-                ? AnyShape(RoundedRectangle(cornerRadius: Theme.Corner.composer, style: .continuous))
-                : AnyShape(Rectangle().inset(by: -Theme.Space.section)))
+    var body: some View {
+        VStack(spacing: 0) {
+            Theme.Palette.separator.frame(height: 1 / displayScale)
+            Theme.Palette.dock
+        }
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 
@@ -321,58 +351,6 @@ private struct GlassWhenFloating: ViewModifier {
     let floating: Bool
 
     func body(content: Content) -> some View {
-        content.themeGlass(radius: Theme.Corner.composer, active: floating)
-    }
-}
-
-/// 斜杠命令：刚输入「/」时在输入框上方浮出一张卡，每个命令一行带例子，点一下填进输入框；第一个是选中的样子
-private struct SlashMenu: View {
-    let commands: [SlashCommand]
-    let open: Bool
-    let pick: (SlashCommand) -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ForEach(Array(commands.enumerated()), id: \.element.cmd) { index, command in
-                Button {
-                    pick(command)
-                } label: {
-                    HStack(spacing: Theme.Space.medium) {
-                        Text(command.cmd).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
-                        Text(command.label).foregroundStyle(Theme.Palette.label)
-                        Spacer(minLength: 0)
-                        Text(command.example).foregroundStyle(Theme.Palette.secondaryLabel).lineLimit(1)
-                    }
-                    .font(Theme.Typeface.subheadline)
-                    .padding(.horizontal, Theme.Space.medium)
-                    .frame(minHeight: Theme.Size.touch)
-                    .background(index == 0 ? Theme.Palette.fill : .clear, in: Theme.rounded(Theme.Corner.chip))
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("\(command.cmd)，\(command.label)"))
-                .accessibilityHint(Text("比如：\(command.example)"))
-            }
-        }
-        .padding(Theme.Space.tight)
-        .background {
-            if open { Theme.Palette.card }
-        }
-        .modifier(GlassCardWhenFloating(floating: !open))
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text("斜杠命令"))
-    }
-}
-
-/// 收着对话时，斜杠命令是一张浮着的玻璃卡
-private struct GlassCardWhenFloating: ViewModifier {
-    let floating: Bool
-
-    func body(content: Content) -> some View {
-        if floating {
-            content.themeGlass(radius: Theme.Corner.card)
-        } else {
-            content
-        }
+        content.themeGlass(radius: Theme.Size.sayBar / 2, active: floating)
     }
 }

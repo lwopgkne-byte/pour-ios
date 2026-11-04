@@ -32,6 +32,8 @@ struct MoneyThingPage: View {
         .listSectionSpacing(Theme.Space.medium)
         .scrollContentBackground(.hidden)
         .background(Theme.Palette.background)
+        // 照原型：大标题就是那样东西的名字
+        .navigationTitle(page.map { Show.spaced($0.name) } ?? "一样东西")
         .refreshable { await load() }
         .task(id: "\(id)-\(model.dataVersion)") { await load() }
     }
@@ -39,6 +41,13 @@ struct MoneyThingPage: View {
     @ViewBuilder private func content(_ thing: API.MoneyThingPage) -> some View {
         let count = thing.uses.count
         let uses = Array(thing.uses.reversed())
+        // 名字下面一行（原型的小标题）：「¥899 · 10月7日买的 · 自己用」
+        Section {
+            Text(subtitle(thing)).font(Theme.Typeface.subheadline).monospacedDigit()
+                .foregroundStyle(Theme.Palette.secondaryLabel)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 0, leading: Theme.Space.tight, bottom: 0, trailing: Theme.Space.tight))
+        }
         Section { hero(thing, count: count) }
         if let verdict = thing.verdict {
             Section {
@@ -73,15 +82,17 @@ struct MoneyThingPage: View {
         }
     }
 
-    /// 第一屏：名字和价钱；每次多少钱（大字）+ 一句 + 台阶线；出去玩的、还没用的各写各的
-    private func hero(_ thing: API.MoneyThingPage, count: Int) -> some View {
+    /// 「¥899 · 10月7日买的 · 自己用」「¥259 · 11月2日买的 · 给儿子」
+    private func subtitle(_ thing: API.MoneyThingPage) -> String {
         let forWhom =
-            !thing.who.isEmpty && thing.who != "自己" ? (thing.who == "一家人" ? " · 一家人用" : " · 给\(thing.who)") : ""
-        return VStack(alignment: .leading, spacing: Theme.Space.small) {
-            Text(Show.spaced(thing.name)).font(Theme.Typeface.section).foregroundStyle(Theme.Palette.label)
-                .accessibilityAddTraits(.isHeader)
-            Text("\(Show.yuan(thing.amount, hide: hide)) · \(Show.monthDay(thing.day))买的\(forWhom)")
-                .font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
+            thing.who.isEmpty || thing.who == "自己"
+            ? " · 自己用" : (thing.who == "一家人" ? " · 一家人用" : " · 给\(thing.who)")
+        return "\(Show.yuan(thing.amount, hide: hide)) · \(Show.monthDay(thing.day))买的\(forWhom)"
+    }
+
+    /// 第一屏（名字是大标题）：每次多少钱（大字）+ 一句 + 台阶线；出去玩的、还没用的各写各的
+    private func hero(_ thing: API.MoneyThingPage, count: Int) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Space.small) {
             if thing.durable, let perUse = thing.perUse, count > 1 {
                 big("每次 \(Show.yuan(perUse, hide: hide))")
                 Text("用了 \(count) 次。每用一次，它就更划算一点。").font(Theme.Typeface.body)

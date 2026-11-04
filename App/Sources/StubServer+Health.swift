@@ -6,6 +6,7 @@
     /// 真的服务器还要和你说的比是不是同一次（shared/src/health-app.ts），这里不比
     extension StubServer.State {
         mutating func healthReply(_ method: String, _ path: String, _ body: [String: Any]) -> [String: Any]? {
+            if path == "/api/health/page" { return Self.healthPage }
             guard path == "/api/health" else { return nil }
             switch method {
             case "PUT":
@@ -17,6 +18,32 @@
             default:
                 return ["connected": health != nil, "syncedAt": health == nil ? NSNull() : "2026-10-26T08:00:00.000Z"]
             }
+        }
+
+        /// 健康一页（服务器 /api/health/page）：照 5288 演示数据拿的——昨天的步数（今天手机还没送来）、昨晚那一觉、四次锻炼
+        static var healthPage: [String: Any] {
+            [
+                "connected": true, "syncedAt": "2026-11-02T20:17:03.362Z", "today": "2026-11-03",
+                "steps": ["day": "2026-11-02", "count": 6039, "said": false, "goal": 8000],
+                "sleep": [
+                    "day": "2026-11-02", "label": "睡觉", "start": "2026-11-02T00:10", "end": "2026-11-02T07:00",
+                    "minutes": 410, "km": NSNull(), "said": true, "fromHealth": ["时长"],
+                ],
+                "workouts": [
+                    [
+                        "day": "2026-11-01", "label": "游泳", "start": "2026-11-01T15:00", "end": "2026-11-01T16:00",
+                        "minutes": 60, "km": NSNull(), "said": true, "fromHealth": [String](),
+                    ],
+                    [
+                        "day": "2026-10-31", "label": "跑步", "start": "2026-10-31T07:00", "end": "2026-10-31T07:50",
+                        "minutes": 50, "km": 8.4, "said": true, "fromHealth": ["距离"],
+                    ],
+                    [
+                        "day": "2026-10-30", "label": "走路", "start": "2026-10-30T20:16", "end": "2026-10-30T20:52",
+                        "minutes": 36, "km": 3.1, "said": false, "fromHealth": [String](),
+                    ],
+                ],
+            ]
         }
 
         /// 这一天健康来的记录和步数

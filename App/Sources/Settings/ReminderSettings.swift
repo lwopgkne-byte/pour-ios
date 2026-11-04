@@ -30,56 +30,59 @@ private struct ReminderRows: View {
 
     private var status: API.ReminderStatus { fresh ?? saved }
 
+    /// 照原型「提醒和通知」：提醒、目标的「如果就」、免打扰、推送渠道，一组一张白卡
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            SettingsHeading(title: "推送渠道")
-            channel(
-                "serverchan", label: "Server酱（微信）", key: status.keys.serverchan, enabled: status.channels.serverchan)
-            channel("bark", label: "Bark（iPhone）", key: status.keys.bark, enabled: status.channels.bark)
-            FieldMessage(text: "推送密钥在电脑上用「Pour 设置」填写。")
-            if status.keys.serverchan != nil || status.keys.bark != nil {
-                VStack(alignment: .leading, spacing: Theme.Space.small) {
-                    ThemeButton("发一条测试推送", loading: testing) { testPush() }
-                    if let testResult {
-                        Text(Show.spaced(testResult)).font(Theme.Typeface.footnote).foregroundStyle(
-                            Theme.Palette.secondaryLabel)
+        VStack(alignment: .leading, spacing: Theme.Space.large) {
+            SettingsGroup(title: "提醒") {
+                timed("morning", label: "每日回顾", hint: "早上把昨天整理成一页回顾，连同今天的安排一起推送", status.morning)
+                timed("evening", label: "晚上的倾倒提醒", hint: "今天还没记录时。好几天没记的时候会自己变少，一记就恢复", status.evening)
+                MoodEveningRow(evening: status.evening) { save($0) }
+                timed("warning", label: "预警", hint: "目标落后、状态变差", status.warning)
+                SettingRow(label: "目标入睡时间", hint: "连续 3 天晚于它会预警") {
+                    if let bedtime = status.bedtime {
+                        TimeEdit(label: "目标入睡时间", value: bedtime) { save(["bedtime": .string($0)]) }
+                        ThemeTextButton("不检查", font: Theme.Typeface.bodyMedium) { save(["bedtime": .null]) }
+                    } else {
+                        // 空着显示灰色的「不检查」，点一下选时间
+                        TimeEdit(label: "目标入睡时间", value: "00:00", display: "不检查", unset: true) {
+                            save(["bedtime": .string($0)])
+                        }
                     }
                 }
-                .padding(.vertical, Theme.Space.small)
+                report("weekly", label: "周报", hint: "每周一早上，总结上周", button: "看上周的", enabled: status.weekly.enabled)
+                report("monthly", label: "月报", hint: "每月 1 号早上，总结上个月", button: "看上个月的", enabled: status.monthly.enabled)
+                if let review = status.review { GoalReviewRow(review: review) { save(["review": $0]) } }
             }
-            FieldMessage(text: "提醒只在电脑开着、Pour 运行时发出；推送末尾附上手机能打开的地址。所有提醒也会出现在对话里。")
-
-            SettingsHeading(title: "提醒").padding(.top, Theme.Space.small)
-            timed("morning", label: "每日回顾", hint: "早上把昨天整理成一页回顾，连同今天的安排一起推送", status.morning)
-            timed("evening", label: "晚上的倾倒提醒", hint: "今天还没记录时。好几天没记的时候会自己变少，一记就恢复", status.evening)
-            MoodEveningRow(evening: status.evening) { save($0) }
-            timed("warning", label: "预警", hint: "目标落后、状态变差", status.warning)
-            SettingRow(label: "目标入睡时间", hint: "连续 3 天晚于它会预警") {
-                if let bedtime = status.bedtime {
-                    TimeEdit(label: "目标入睡时间", value: bedtime) { save(["bedtime": .string($0)]) }
-                    ThemeTextButton("不检查", font: Theme.Typeface.bodyMedium) { save(["bedtime": .null]) }
-                } else {
-                    // 空着显示灰色的「不检查」，点一下选时间
-                    TimeEdit(label: "目标入睡时间", value: "00:00", display: "不检查", unset: true) {
-                        save(["bedtime": .string($0)])
-                    }
-                }
-            }
-            report("weekly", label: "周报", hint: "每周一早上，总结上周", button: "看上周的", enabled: status.weekly.enabled)
-            report("monthly", label: "月报", hint: "每月 1 号早上，总结上个月", button: "看上个月的", enabled: status.monthly.enabled)
-            if let review = status.review { GoalReviewRow(review: review) { save(["review": $0]) } }
             GoalIfThenSettings()
-
-            SettingsHeading(title: "免打扰").padding(.top, Theme.Space.small)
-            SettingRow(label: "免打扰时段") {
-                if status.dnd.enabled {
-                    TimeEdit(label: "免打扰开始", value: status.dnd.from) { save(["dnd": dnd(from: $0)]) }
-                    Text("到").foregroundStyle(Theme.Palette.secondaryLabel)
-                    TimeEdit(label: "免打扰结束", value: status.dnd.to) { save(["dnd": dnd(to: $0)]) }
+            SettingsGroup(title: "免打扰", footer: "免打扰时段里不推送，提醒照常出现在对话里。") {
+                SettingRow(label: "免打扰时段") {
+                    if status.dnd.enabled {
+                        TimeEdit(label: "免打扰开始", value: status.dnd.from) { save(["dnd": dnd(from: $0)]) }
+                        Text("到").foregroundStyle(Theme.Palette.secondaryLabel)
+                        TimeEdit(label: "免打扰结束", value: status.dnd.to) { save(["dnd": dnd(to: $0)]) }
+                    }
+                    ThemeSwitch("免打扰", isOn: status.dnd.enabled) { save(["dnd": dnd(enabled: $0)]) }
                 }
-                ThemeSwitch("免打扰", isOn: status.dnd.enabled) { save(["dnd": dnd(enabled: $0)]) }
             }
-            FieldMessage(text: "免打扰时段里不推送，提醒照常出现在对话里。")
+            SettingsGroup(
+                title: "推送渠道",
+                footer: "推送密钥在电脑上用「Pour 设置」填写。提醒只在电脑开着、Pour 运行时发出；推送末尾附上手机能打开的地址。所有提醒也会出现在对话里。"
+            ) {
+                channel(
+                    "serverchan", label: "Server酱（微信）", key: status.keys.serverchan,
+                    enabled: status.channels.serverchan)
+                channel("bark", label: "Bark（iPhone）", key: status.keys.bark, enabled: status.channels.bark)
+                if status.keys.serverchan != nil || status.keys.bark != nil {
+                    VStack(alignment: .leading, spacing: Theme.Space.small) {
+                        ThemeButton("发一条测试推送", loading: testing) { testPush() }
+                        if let testResult {
+                            Text(Show.spaced(testResult)).font(Theme.Typeface.footnote).foregroundStyle(
+                                Theme.Palette.secondaryLabel)
+                        }
+                    }
+                    .padding(.vertical, Theme.Space.small)
+                }
+            }
         }
     }
 
@@ -100,19 +103,32 @@ private struct ReminderRows: View {
         }
     }
 
-    /// 有时间的提醒：开着才显示时间；「试一下」马上发一条
+    /// 有时间的提醒（照原型）：名字后面跟着时间「每日回顾 07:30」（开着才有，点了改），下面一句说明；
+    /// 右边「试一下」（马上发一条）和开关，一行放下
     private func timed(_ kind: String, label: String, hint: String, _ setting: API.ReminderStatus.Timed) -> some View {
-        SettingRow(label: label, hint: hint) {
-            if setting.enabled {
-                TimeEdit(label: "\(label)的时间", value: setting.time) { time in
-                    save([kind: .object(["enabled": .bool(true), "time": .string(time)])])
+        HStack(spacing: Theme.Space.medium) {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.snug) {
+                    Text(Show.spaced(label)).foregroundStyle(Theme.Palette.label)
+                    if setting.enabled {
+                        TimeEdit(label: "\(label)的时间", value: setting.time, inline: true) { time in
+                            save([kind: .object(["enabled": .bool(true), "time": .string(time)])])
+                        }
+                    }
                 }
+                .font(Theme.Typeface.body)
+                Text(Show.spaced(hint)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             tryButton(kind, title: "试一下")
             ThemeSwitch(label, isOn: setting.enabled) { value in
                 save([kind: .object(["enabled": .bool(value), "time": .string(setting.time)])])
             }
         }
+        .padding(.vertical, Theme.Space.small)
+        .frame(minHeight: Theme.Size.touch)
+        .accessibilityElement(children: .contain)
     }
 
     private func report(_ kind: String, label: String, hint: String, button: String, enabled: Bool) -> some View {
