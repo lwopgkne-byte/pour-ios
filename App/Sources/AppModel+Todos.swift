@@ -63,7 +63,8 @@ extension AppModel {
         write("PATCH", "/api/entries/\(id)", json: .object(["done": .bool(done)])) { apply(!done) }
         refreshWidgets()
         guard done else { return }
-        toast(title.map { "完成了：\($0)" } ?? "完成了", action: "撤销") { [weak self] in self?.setDone(id, false) }
+        // 待办 2.0：「已勾掉「喝水」」+ 撤销（约 4 秒）；划线留在原地，下次打开才收进「已完成」
+        toast(title.map { "已勾掉「\($0)」" } ?? "已勾掉", action: "撤销") { [weak self] in self?.setDone(id, false) }
     }
 
     /// 推迟（左滑「推迟」、按住的菜单、详情、通知上的按钮）：几个说好的选项，服务器算具体时刻；界面先挪过去

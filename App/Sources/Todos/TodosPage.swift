@@ -134,13 +134,10 @@ struct TodosPage: View {
         }
     }
 
-    private static let rowInsets = EdgeInsets(
-        top: 0, leading: Theme.Space.regular, bottom: 0, trailing: Theme.Space.regular)
-
     private func todoRow(_ row: API.TodoRow, group: String, today: String) -> some View {
         TodoRowView(row: row, today: today)
-            // 照原型：一行上下不再多留系统列表的空（行本身上下各 8，至少 44 高）
-            .listRowInsets(Self.rowInsets)
+            // 待办 2.0：一行自己留边（圈看得见的左边距 16、行高 52），列表不再多留
+            .listRowInsets(EdgeInsets())
             .listRowBackground(model.todoFlash == row.id ? Theme.Palette.bubble : Theme.Palette.card)
             .swipeActions(edge: .leading, allowsFullSwipe: true) {
                 if !row.done {

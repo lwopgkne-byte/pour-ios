@@ -128,6 +128,15 @@ public struct TodoTrailing: View {
         case late(String)
         case clash(String)
         case day(String)
+
+        /// 写着的字（读屏也念它）
+        public var text: String {
+            switch self {
+            case .clock(let text), .window(let text), .soon(let text), .late(let text), .clash(let text),
+                .day(let text):
+                text
+            }
+        }
     }
 
     let kind: Kind
@@ -184,21 +193,28 @@ public struct SandPill: View {
 }
 
 /// 一行待办（所有列表通用）：左边圈（看得见的左边距 16）、圈到标题 14、标题 17 号只占一行（长了省略）、右边时间或状态。
-/// 行高 52；勾掉的划线、变淡；放一放的标题用次文字色；分割线从标题左边开始（List 里）
+/// 行高 52；勾掉的划线、变淡；放一放的标题用次文字色；分割线从标题左边开始（List 里）。
+/// 给了 open：圈以外整行是一个按钮（点了打开详情；读屏念 spoken、界面测试认 identifier）
 public struct TodoLine<Ring: View, Trailing: View>: View {
     let title: String
     let done: Bool
     let dim: Bool
+    let spoken: String?
+    let identifier: String
+    let open: (() -> Void)?
     let ring: Ring
     let trailing: Trailing
 
     public init(
-        _ title: String, done: Bool, dim: Bool = false, @ViewBuilder ring: () -> Ring,
-        @ViewBuilder trailing: () -> Trailing
+        _ title: String, done: Bool, dim: Bool = false, spoken: String? = nil, identifier: String = "todo.row",
+        open: (() -> Void)? = nil, @ViewBuilder ring: () -> Ring, @ViewBuilder trailing: () -> Trailing
     ) {
         self.title = title
         self.done = done
         self.dim = dim
+        self.spoken = spoken
+        self.identifier = identifier
+        self.open = open
         self.ring = ring()
         self.trailing = trailing()
     }
@@ -210,19 +226,35 @@ public struct TodoLine<Ring: View, Trailing: View>: View {
     public var body: some View {
         HStack(spacing: Theme.Space.medium + Theme.Space.hairline - Self.ringInset) {
             ring
+            if let open {
+                Button(action: open) { words }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(Text(spoken ?? title))
+                    .accessibilityHint(Text("打开详情"))
+                    .accessibilityIdentifier(identifier)
+            } else {
+                words
+            }
+        }
+        .padding(.leading, Theme.Space.regular - Self.ringInset)
+        .padding(.trailing, Theme.Space.regular)
+        .frame(minHeight: Self.rowHeight)
+        .animation(Theme.Motion.spring, value: done)
+    }
+
+    private var words: some View {
+        HStack(spacing: Theme.Space.small) {
             Text(title).font(Theme.Typeface.body).lineLimit(1).truncationMode(.tail)
                 .foregroundStyle(
                     done ? Theme.Palette.tertiaryLabel : dim ? Theme.Palette.secondaryLabel : Theme.Palette.label
                 )
                 .strikethrough(done, color: Theme.Palette.tertiaryLabel)
                 .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
-            Spacer(minLength: Theme.Space.small)
+            Spacer(minLength: 0)
             if !done { trailing }
         }
-        .padding(.leading, Theme.Space.regular - Self.ringInset)
-        .padding(.trailing, Theme.Space.regular)
         .frame(minHeight: Self.rowHeight)
-        .animation(Theme.Motion.spring, value: done)
+        .contentShape(Rectangle())
     }
 }
 

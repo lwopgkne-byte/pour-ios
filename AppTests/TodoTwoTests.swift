@@ -63,4 +63,25 @@ struct TodoTwoTests {
         let mine = AppModel.edited(guessed, today: Self.today, quadrant: .schedule)
         #expect(mine.lane == .schedule && !mine.guessed)
     }
+
+    /// 一行右边只放时间或状态：过了沙色、半小时内蓝色写几分钟后、时段写「下午」、以前的写本来的日子、不定时不写
+    @Test func trailingStates() {
+        let now = "2026-10-27T11:35"
+        let past = API.TodoRow(id: 1, content: "喝水", day: Self.today, remindAt: "11:12")
+        #expect(TodoBoard.trailing(past, today: Self.today, now: now) == .late("11:12 过了"))
+        let soon = API.TodoRow(id: 2, content: "喝三瓶水", day: Self.today, remindAt: "11:43")
+        #expect(TodoBoard.trailing(soon, today: Self.today, now: now) == .soon("11:43 · 8 分钟后"))
+        let later = API.TodoRow(id: 3, content: "接小孩", day: Self.today, remindAt: "17:00")
+        #expect(TodoBoard.trailing(later, today: Self.today, now: now) == .clock("17:00"))
+        let window = API.TodoRow(id: 4, content: "回复客户电话", day: Self.today, window: .afternoon)
+        #expect(TodoBoard.trailing(window, today: Self.today, now: now) == .window("下午"))
+        let loose = API.TodoRow(id: 5, content: "吃午饭", day: Self.today)
+        #expect(TodoBoard.trailing(loose, today: Self.today, now: now) == nil)
+        let yesterday = API.TodoRow(id: 6, content: "修自行车", day: "2026-10-26", remindAt: "19:00", overdue: true)
+        #expect(TodoBoard.trailing(yesterday, today: Self.today, now: now) == .late("昨天 19:00"))
+        let friday = API.TodoRow(id: 7, content: "团建", day: "2026-10-30", window: .evening)
+        #expect(TodoBoard.trailing(friday, today: Self.today, now: now) == .day("周五 晚上"))
+        let someday = API.TodoRow(id: 8, content: "学吉他", day: Self.today, someday: true)
+        #expect(TodoBoard.trailing(someday, today: Self.today, now: now) == nil)
+    }
 }

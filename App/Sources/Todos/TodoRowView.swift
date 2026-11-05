@@ -4,39 +4,41 @@ import PourDesign
 import SwiftUI
 import UIKit
 
-/// 一行待办（待办页、画布的待办卡同一套，06 交互细节 2.1）：左边圆圈（点了勾上、划线留在原地），
-/// 点别处打开详情；右边时间。待办 2.0 第 2 步：认出来的词（和谁、东西、地方）不再显示（数据留着，搜索和 AI 照用）
+/// 一行待办（待办 2.0，所有列表同一套）：左边按象限画的圈（点了勾上：深灰实心 + 白勾，划线、变淡、留在原地），
+/// 圈以外点了打开详情；标题一行，右边只放时间或状态（每分钟跟着时间变：快到了变蓝、过了变沙色）。
+/// 认出来的词（和谁、东西、地方）不显示（数据留着，搜索和 AI 照用）
 struct TodoRowView: View {
     @Environment(AppModel.self) private var model
     let row: API.TodoRow
     let today: String
 
     var body: some View {
-        HStack(alignment: .center, spacing: 0) {
-            TodoCircle(done: row.done, label: row.content) { model.setDone(row.id, !row.done) }
-                .padding(.leading, -Theme.Space.medium + Theme.Space.hairline)
-            Button {
-                model.todoSheet = .detail(row)
-            } label: {
-                TodoLabel(Show.spaced(row.content), done: row.done, capsule: capsule)
-                    .contentShape(Rectangle())
+        TimelineView(.everyMinute) { context in
+            let trailing = TodoBoard.trailing(
+                row, today: today, now: PourDate.localDateTime(context.date, in: .current))
+            TodoLine(
+                Show.spaced(row.content), done: row.done, dim: row.lane == .later, spoken: spoken(trailing),
+                open: openDetail
+            ) {
+                QuadrantRing(quadrant: row.lane.rawValue, done: row.done, label: row.content) {
+                    model.setDone(row.id, !row.done)
+                }
+            } trailing: {
+                if let trailing { TodoTrailing(trailing) }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(spoken))
-            .accessibilityHint(Text("打开详情"))
-            .accessibilityIdentifier("todo.row")
         }
     }
 
-    private var capsule: (text: String, tone: TimeCapsule.Tone)? {
-        TodoBoard.capsule(row, today: today, now: PourDate.localDateTime(Date(), in: .current))
+    private func openDetail() {
+        model.todoSheet = .detail(row)
     }
 
-    /// 读屏念的：事、做完没有、什么时候、重复
-    private var spoken: String {
+    /// 读屏念的：事、哪一格（猜的写猜的）、做完没有、什么时候、重复
+    private func spoken(_ trailing: TodoTrailing.Kind?) -> String {
         var parts = [row.content]
+        if row.lane != .unsorted { parts.append(row.lane.title + (row.guessed ? "（猜的）" : "")) }
         if row.done { parts.append("已完成") }
-        if let capsule { parts.append(capsule.text) }
+        if let trailing { parts.append(trailing.text) }
         if let repeatText = row.repeatText { parts.append(repeatText) }
         return parts.joined(separator: "，")
     }

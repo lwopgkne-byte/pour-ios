@@ -128,7 +128,7 @@ final class TodoSheetsUITests: XCTestCase, TodoTesting {
         }
         shot("通知的按钮", of: XCUIScreen.main.screenshot())
         done.tap()
-        XCTAssertTrue(app.staticTexts["完成了：测提醒"].waitForExistence(timeout: 8), "点了「完成」App 里没变")
+        XCTAssertTrue(app.staticTexts["已勾掉「测提醒」"].waitForExistence(timeout: 8), "点了「完成」App 里没变")
     }
 
     /// 「今天还有 4 件 · 已完成 1 件 · 🔔 3 个提醒已排好」→ 3（没有这一段是 0）

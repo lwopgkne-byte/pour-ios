@@ -93,6 +93,32 @@ enum TodoBoard {
         return (text, clock == nil ? .plain : .remind)
     }
 
+    /// 待办 2.0 一行右边（只放时间或状态）：今天的——过了「11:12 过了」（沙色）、半小时内「12:30 · 8 分钟后」（蓝）、
+    /// 别的「🔔 12:30」，只说了时段写「下午」；以前没做完的写本来的日子（「昨天 19:00」「10月25日」，沙色）；
+    /// 明天的只写几点，再往后写哪天（「周五 10:00」「11月2日 下午」）；以后再说、不定时、做完的不写
+    static func trailing(_ row: API.TodoRow, today: String, now: String) -> TodoTrailing.Kind? {
+        guard !row.done, !row.isSomeday else { return nil }
+        let clock = row.remindAt
+        let when = clock ?? row.timeWindow?.title
+        if row.day < today {
+            let name = row.day == PourDate.addDays(today, -1) ? "昨天" : Show.monthDay(row.day)
+            return .late([name, when].compactMap { $0 }.joined(separator: " "))
+        }
+        if row.day == today {
+            guard let clock else { return row.timeWindow.map { .window($0.title) } }
+            // 按完整的时刻比（凌晨一点还算昨天：昨天 17:30 的照样算过了）
+            let at = "\(row.day)T\(clock)"
+            if at < now { return .late("\(clock) 过了") }
+            let left = PourDate.minutesBetween(now, at)
+            return left <= 30 ? .soon("\(clock) · \(max(1, left)) 分钟后") : .clock(clock)
+        }
+        if row.day == PourDate.addDays(today, 1) {
+            if let clock { return .clock(clock) }
+            return row.timeWindow.map { .window($0.title) }
+        }
+        return .day([dayName(row.day, today: today), when].compactMap { $0 }.joined(separator: " "))
+    }
+
     /// 这周的写「周五」，再往后写「11月2日」
     static func dayName(_ day: String, today: String) -> String {
         let sunday = PourDate.addDays(today, 6 - PourDate.weekdayMon0(today))

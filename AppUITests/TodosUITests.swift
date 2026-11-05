@@ -32,7 +32,7 @@ final class TodosUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(check.waitForExistence(timeout: 5))
         let before = row(app, "回邮件").frame.minY
         check.tap()
-        XCTAssertTrue(app.staticTexts["完成了：回邮件"].waitForExistence(timeout: 3), "没说完成了")
+        XCTAssertTrue(app.staticTexts["已勾掉「回邮件」"].waitForExistence(timeout: 3), "没说完成了")
         XCTAssertEqual(check.value as? String, "已完成")
         pause()
         XCTAssertEqual(row(app, "回邮件").frame.minY, before, accuracy: 2, "勾了以后跑走了")
