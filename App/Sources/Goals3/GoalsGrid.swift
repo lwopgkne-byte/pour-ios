@@ -66,8 +66,8 @@ struct GoalGroupLabel: View {
         }
         .font(Theme.Typeface.footnoteSemibold)
         .foregroundStyle(Theme.Palette.secondaryLabel)
-            .padding(.horizontal, Theme.Space.tight)
-            .accessibilityAddTraits(.isHeader)
+        .padding(.horizontal, Theme.Space.tight)
+        .accessibilityAddTraits(.isHeader)
     }
 }
 

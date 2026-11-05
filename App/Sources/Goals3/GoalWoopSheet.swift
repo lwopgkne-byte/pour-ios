@@ -124,9 +124,9 @@ struct GoalWoopSheet: View {
                 Text(text)
             }
             .font(Theme.Typeface.subheadline)
-                .foregroundStyle(selected ? Theme.Palette.onAccent : Theme.Palette.label)
-                .padding(.horizontal, Theme.Space.medium).padding(.vertical, Theme.Space.small)
-                .background(selected ? Theme.Palette.accentFill : Theme.Palette.fill, in: Capsule())
+            .foregroundStyle(selected ? Theme.Palette.onAccent : Theme.Palette.label)
+            .padding(.horizontal, Theme.Space.medium).padding(.vertical, Theme.Space.small)
+            .background(selected ? Theme.Palette.accentFill : Theme.Palette.fill, in: Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
