@@ -10,8 +10,10 @@ enum TodoBoard {
     static let order = ["overdue", "today", "tomorrow", "week", "later", "done"]
 
     /// 这一天的待办在哪一组（做完的在「已完成」）
-    static func key(day: String, done: Bool, today: String) -> String {
+    static func key(day: String, done: Bool, today: String, someday: Bool = false) -> String {
         if done { return "done" }
+        // 待办 2.0 以后再说：不定日子，放在「以后」最后
+        if someday { return "later" }
         let tomorrow = PourDate.addDays(today, 1)
         let sunday = PourDate.addDays(today, 6 - PourDate.weekdayMon0(today))
         if day < today { return "overdue" }
@@ -35,6 +37,9 @@ enum TodoBoard {
     /// 同一组里的先后：同一天有提醒的按钟点在前，没提醒的按说的先后；以前没做完的最近的在前；已完成的最近做完的在前
     static func before(_ lhs: API.TodoRow, _ rhs: API.TodoRow, in key: String) -> Bool {
         if key == "done" { return (lhs.doneAt ?? "") > (rhs.doneAt ?? "") }
+        // 以后再说的排在有日子的后面，新的在前
+        if lhs.isSomeday != rhs.isSomeday { return rhs.isSomeday }
+        if lhs.isSomeday { return lhs.id > rhs.id }
         let left = (lhs.day, lhs.remindAt ?? "99", lhs.id)
         let right = (rhs.day, rhs.remindAt ?? "99", rhs.id)
         return key == "overdue" ? left > right : left < right
@@ -138,7 +143,7 @@ extension API.TodoPage {
         change(id) { row in
             row.done = done
             row.doneAt = done ? moment : nil
-            row.overdue = !done && row.day < today
+            row.overdue = !done && !row.isSomeday && row.day < today
         }
     }
 
@@ -147,6 +152,9 @@ extension API.TodoPage {
         guard var row = take(id) else { return }
         row.day = day
         row.remindAt = time
+        // 有了日子就不再是以后再说；有了钟点就不再是时间段
+        row.someday = false
+        if time != nil { row.window = nil }
         row.overdue = !row.done && day < today
         put(row)
     }
@@ -155,7 +163,9 @@ extension API.TodoPage {
     mutating func put(_ row: API.TodoRow) {
         _ = take(row.id)
         TodoBoard.insert(
-            row, into: TodoBoard.key(day: row.day, done: row.done, today: today), groups: &groups, today: today)
+            row, into: TodoBoard.key(day: row.day, done: row.done, today: today, someday: row.isSomeday),
+            groups: &groups,
+            today: today)
         recount()
     }
 

@@ -102,20 +102,16 @@ extension AppModel {
         }
     }
 
-    /// 详情里改：事、哪天、几点提醒（.some(nil) 是不提醒）、重复（.some(nil) 是不重复）。改了马上生效，不用存
+    /// 详情里改：事、哪天、几点提醒（.some(nil) 是不提醒）、重复（.some(nil) 是不重复）；待办 2.0 加象限（你选的就不再是
+    /// 猜的）、时间段（.some(nil) 是不要）、以后再说。时间三选一：钟点、时间段、都没有；以后再说没有日子。先改界面再发
     func editTodo(
-        _ id: Int, content: String? = nil, day: String? = nil, time: String?? = nil, repeat rule: API.Repeat?? = nil
+        _ id: Int, content: String? = nil, day: String? = nil, time: String?? = nil, repeat rule: API.Repeat?? = nil,
+        quadrant: TodoQuadrant? = nil, window: TimeWindow?? = nil, someday: Bool? = nil
     ) {
         guard let old = todoPage?.row(id) ?? detailRow(id) else { return }
-        var row = old
-        if let content { row.content = content }
-        if let day { row.day = day }
-        if let time { row.remindAt = time }
-        if let rule {
-            row.repeat = rule
-            row.repeatText = rule?.text
-        }
-        row.overdue = !row.done && row.day < today
+        let row = Self.edited(
+            old, today: today, content: content, day: day, time: time, rule: rule, quadrant: quadrant, window: window,
+            someday: someday)
         todoPage?.put(row)
         if case .detail = todoSheet { todoSheet = .detail(row) }
         var body: [String: JSONValue] = [:]
@@ -123,7 +119,45 @@ extension AppModel {
         if let day { body["day"] = .string(day) }
         if let time { body["time"] = time.map(JSONValue.string) ?? .null }
         if let rule { body["repeat"] = rule?.json ?? .null }
+        if let quadrant { body["quadrant"] = .number(Double(quadrant.rawValue)) }
+        if let window { body["window"] = window.map { .string($0.rawValue) } ?? .null }
+        if let someday { body["someday"] = .bool(someday) }
         write("PATCH", "/api/todos/\(id)", json: .object(body)) { [weak self] in self?.todoPage?.put(old) }
+    }
+
+    /// 界面先改成什么样（和服务器 todo-page.ts edited 一样的规矩）
+    static func edited(
+        _ old: API.TodoRow, today: String, content: String? = nil, day: String? = nil, time: String?? = nil,
+        rule: API.Repeat?? = nil, quadrant: TodoQuadrant? = nil, window: TimeWindow?? = nil, someday: Bool? = nil
+    ) -> API.TodoRow {
+        var row = old
+        if let content { row.content = content }
+        if let quadrant {
+            row.quadrant = quadrant.rawValue
+            row.quadrantByAI = false
+        }
+        if let rule {
+            row.repeat = rule
+            row.repeatText = rule?.text
+        }
+        if someday == true {
+            row.someday = true
+            row.remindAt = nil
+            row.window = nil
+        } else {
+            if day != nil || someday == false { row.someday = false }
+            if let day { row.day = day }
+            if let time {
+                row.remindAt = time
+                if time != nil { row.window = nil }
+            }
+            if let window, time == nil || time == .some(nil) {
+                row.window = window?.rawValue
+                if window != nil { row.remindAt = nil }
+            }
+        }
+        row.overdue = !row.done && !row.isSomeday && row.day < today
+        return row
     }
 
     /// 详情里改和谁、东西、地方（和原来的记录详情一样发 PATCH /api/entries 的 fields）：先改界面再发

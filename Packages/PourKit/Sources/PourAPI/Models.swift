@@ -116,6 +116,15 @@ extension API {
         public var places: [String]?
         /// 重复（3.0 第 2 步）：每天、工作日、每周几、每月几号
         public var `repeat`: Repeat?
+        /// 待办 2.0：象限、AI 猜的、时间段、以后再说（旧数据没有）
+        public var quadrant: Int?
+        public var quadrantByAI: Bool?
+        public var window: String?
+        public var someday: Bool?
+
+        public var lane: TodoQuadrant { TodoQuadrant(rawValue: quadrant ?? 0) ?? .unsorted }
+        public var timeWindow: TimeWindow? { window.flatMap(TimeWindow.init(rawValue:)) }
+        public var isSomeday: Bool { someday == true }
     }
 
     public struct MoodData: Codable, Hashable, Sendable {

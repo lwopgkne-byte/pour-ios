@@ -1,5 +1,84 @@
 import Foundation
 
+/// 待办 2.0 四象限（docs/todo-2.0；服务器 shared/src/todos.ts TODO_QUADRANTS）：颜色永远配图标，不只靠颜色分
+public enum TodoQuadrant: Int, CaseIterable, Sendable, Hashable {
+    /// 还没分：AI 拿不准、旧数据，等你点一下
+    case unsorted = 0
+    /// 马上做：重要 · 紧急
+    case doNow = 1
+    /// 排时间：重要 · 不急
+    case schedule = 2
+    /// 快速办：紧急 · 不重要
+    case quick = 3
+    /// 放一放：不急 · 不重要
+    case later = 4
+
+    /// 四个能选的（还没分不算）：左上马上做、右上排时间、左下快速办、右下放一放
+    public static let sorted: [TodoQuadrant] = [.doNow, .schedule, .quick, .later]
+
+    public var title: String {
+        switch self {
+        case .unsorted: "还没分"
+        case .doNow: "马上做"
+        case .schedule: "排时间"
+        case .quick: "快速办"
+        case .later: "放一放"
+        }
+    }
+
+    public var subtitle: String {
+        switch self {
+        case .unsorted: "AI 拿不准"
+        case .doNow: "重要 · 紧急"
+        case .schedule: "重要 · 不急"
+        case .quick: "紧急 · 不重要"
+        case .later: "不急 · 不重要"
+        }
+    }
+
+    /// 圈里、标题旁的图标（SF Symbol）；还没分是空心圈，没有图标
+    public var symbol: String? {
+        switch self {
+        case .unsorted: nil
+        case .doNow: "flame.fill"
+        case .schedule: "star.fill"
+        case .quick: "bolt.fill"
+        case .later: "cloud.fill"
+        }
+    }
+}
+
+/// 待办 2.0 时间段：只说了上午、下午、晚上（和具体钟点二选一）；时段开头轻提醒一次
+public enum TimeWindow: String, CaseIterable, Sendable, Hashable {
+    case morning, afternoon, evening
+
+    public var title: String {
+        switch self {
+        case .morning: "上午"
+        case .afternoon: "下午"
+        case .evening: "晚上"
+        }
+    }
+
+    /// 时段开头轻提醒的钟点（服务器 WINDOW_NUDGES；之后做进设置）
+    public var nudge: String {
+        switch self {
+        case .morning: "09:00"
+        case .afternoon: "14:00"
+        case .evening: "19:00"
+        }
+    }
+
+    /// 这个时段从几点到几点（判断现在在不在这个时段、追问时给哪几个钟点）
+    public var hours: ClosedRange<Int> {
+        switch self {
+        case .morning: 6...11
+        case .afternoon: 12...17
+        case .evening: 18...23
+        }
+    }
+}
+
 /// 3.0 待办（docs/3.0/01-需求文档.md 第 4 章、06 交互细节第 2 节；服务器 2.10.0 的 `/api/todos`，
 /// 字段和 shared/src/todos.ts、when.ts 一字不差）
 extension API {
@@ -68,6 +147,19 @@ extension API {
         public var places: [String]
         /// 建它的那段原话
         public var source: Source?
+        /// 待办 2.0：象限（0 还没分）。旧服务器、旧缓存没有这几样，都是可选的，解码不会坏
+        public var quadrant: Int?
+        /// 象限是 AI 猜的
+        public var quadrantByAI: Bool?
+        /// 只说了上午、下午、晚上（morning · afternoon · evening）；认不出的当没有
+        public var window: String?
+        /// 以后再说：不定日子
+        public var someday: Bool?
+
+        public var lane: TodoQuadrant { TodoQuadrant(rawValue: quadrant ?? 0) ?? .unsorted }
+        public var guessed: Bool { quadrantByAI == true && lane != .unsorted }
+        public var timeWindow: TimeWindow? { window.flatMap(TimeWindow.init(rawValue:)) }
+        public var isSomeday: Bool { someday == true }
 
         public struct Source: Codable, Hashable, Sendable {
             public let noteId: Int
@@ -85,7 +177,8 @@ extension API {
         public init(
             id: Int, content: String, day: String, remindAt: String? = nil, done: Bool = false, doneAt: String? = nil,
             repeat rule: Repeat? = nil, repeatText: String? = nil, overdue: Bool = false, snoozedFrom: String? = nil,
-            people: [String] = [], things: [String] = [], places: [String] = [], source: Source? = nil
+            people: [String] = [], things: [String] = [], places: [String] = [], source: Source? = nil,
+            quadrant: TodoQuadrant = .unsorted, guessed: Bool = false, window: TimeWindow? = nil, someday: Bool = false
         ) {
             self.id = id
             self.content = content
@@ -101,6 +194,10 @@ extension API {
             self.things = things
             self.places = places
             self.source = source
+            self.quadrant = quadrant.rawValue
+            self.quadrantByAI = guessed
+            self.window = window?.rawValue
+            self.someday = someday
         }
     }
 
@@ -206,15 +303,19 @@ extension APIClient {
         return one.todo
     }
 
-    /// 详情里改：只改给了的；time、repeat 用 .some(nil) 表示「不提醒」「不重复」
+    /// 详情里改：只改给了的；time、repeat、window 用 .some(nil) 表示「不提醒」「不重复」「不要时间段」
     public func editTodo(
-        _ id: Int, content: String? = nil, day: String? = nil, time: String?? = nil, repeat rule: API.Repeat?? = nil
+        _ id: Int, content: String? = nil, day: String? = nil, time: String?? = nil, repeat rule: API.Repeat?? = nil,
+        quadrant: TodoQuadrant? = nil, window: TimeWindow?? = nil, someday: Bool? = nil
     ) async throws(APIError) -> API.TodoRow {
         var body: [String: JSONValue] = [:]
         if let content { body["content"] = .string(content) }
         if let day { body["day"] = .string(day) }
         if let time { body["time"] = time.map(JSONValue.string) ?? .null }
         if let rule { body["repeat"] = rule?.json ?? .null }
+        if let quadrant { body["quadrant"] = .number(Double(quadrant.rawValue)) }
+        if let window { body["window"] = window.map { .string($0.rawValue) } ?? .null }
+        if let someday { body["someday"] = .bool(someday) }
         let one: API.TodoOne = try await request("PATCH", "/api/todos/\(id)", json: .object(body))
         return one.todo
     }
