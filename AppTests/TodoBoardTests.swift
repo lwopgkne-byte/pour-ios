@@ -86,26 +86,6 @@ struct TodoBoardTests {
         #expect(page.groups.map(\.key) == ["today", "tomorrow", "later"])
     }
 
-    @Test func capsules() {
-        let now = "2026-10-27T16:10"
-        let capsule = { (row: API.TodoRow) -> String? in
-            TodoBoard.capsule(row, today: Self.today, now: now).map { "\($0.text) · \($0.tone)" }
-        }
-        #expect(capsule(row(1, "取快递", day: Self.today, at: "18:00")) == "18:00 · remind")
-        #expect(capsule(row(1, "回电话", day: Self.today, at: "10:00")) == "10:00 过了 · late")
-        #expect(capsule(row(1, "回邮件", day: Self.today)) == nil)
-        #expect(capsule(row(1, "交水费", day: "2026-10-26", at: "17:30")) == "昨天 17:30 · late")
-        #expect(capsule(row(1, "修车", day: "2026-10-25")) == "10月25日 · late")
-        #expect(capsule(row(1, "交周报", day: "2026-10-28", at: "09:00")) == "09:00 · remind")
-        #expect(capsule(row(1, "团建", day: "2026-10-30")) == "周五 · plain")
-        #expect(capsule(row(1, "续保险", day: "2027-03-05", at: "10:00")) == "3月5日 10:00 · remind")
-        #expect(capsule(row(1, "买牛奶", day: Self.today, at: "09:00", done: true)) == nil)
-        // 过了日界线（凌晨一点还算昨天）：昨天 23:00 的照样算过了
-        let late = TodoBoard.capsule(
-            row(1, "关灯", day: Self.today, at: "23:00"), today: Self.today, now: "2026-10-28T01:00")
-        #expect(late?.text == "23:00 过了")
-    }
-
     /// 和服务器 todos.test.ts 的推迟一样：2026-10-27 周二 16:10
     @Test func snoozeTargetsMatchTheServer() throws {
         let now = try #require(

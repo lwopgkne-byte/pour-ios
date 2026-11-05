@@ -275,7 +275,7 @@ struct CardRow<Content: View>: View {
 }
 
 /// 拿不准的：一句追问 +「对」「改一下」（「改一下」打开详情）
-private struct ConfirmBox: View {
+struct ConfirmBox: View {
     @Environment(AppModel.self) private var model
     let entry: API.Entry
 

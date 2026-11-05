@@ -73,26 +73,6 @@ enum TodoBoard {
         groups.insert(API.TodoGroup(key: key, title: title(key, today: today), rows: [row]), at: at)
     }
 
-    /// 页面上一行的时间胶囊（06 交互细节 2.1）：蓝 = 到点提醒；过了时间没做、以前没做完的用留意色写本来的日子；
-    /// 明天以后的写哪天；做完的不写
-    static func capsule(_ row: API.TodoRow, today: String, now: String) -> (text: String, tone: TimeCapsule.Tone)? {
-        guard !row.done else { return nil }
-        let clock = row.remindAt
-        if row.day < today {
-            let name = row.day == PourDate.addDays(today, -1) ? "昨天" : Show.monthDay(row.day)
-            return ([name, clock].compactMap { $0 }.joined(separator: " "), .late)
-        }
-        if row.day == today {
-            guard let clock else { return nil }
-            // 按完整的时刻比（凌晨一点还算昨天：昨天 17:30 的照样算过了）
-            return "\(row.day)T\(clock)" < now ? ("\(clock) 过了", .late) : (clock, .remind)
-        }
-        let name = row.day == PourDate.addDays(today, 1) ? nil : dayName(row.day, today: today)
-        let text = [name, clock].compactMap { $0 }.joined(separator: " ")
-        guard !text.isEmpty else { return nil }
-        return (text, clock == nil ? .plain : .remind)
-    }
-
     /// 待办 2.0 一行右边（只放时间或状态）：今天的——过了「11:12 过了」（沙色）、半小时内「12:30 · 8 分钟后」（蓝）、
     /// 别的「🔔 12:30」，只说了时段写「下午」；以前没做完的写本来的日子（「昨天 19:00」「10月25日」，沙色）；
     /// 明天的只写几点，再往后写哪天（「周五 10:00」「11月2日 下午」）；以后再说、不定时、做完的不写

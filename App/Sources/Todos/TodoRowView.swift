@@ -43,14 +43,17 @@ struct TodoRowView: View {
 }
 
 extension API.TodoRow {
-    /// 画布的待办卡（拿的是这一天的记录）：换成待办页的一行，打开同一个详情、同一套菜单
+    /// 画布的待办卡（拿的是这一天的记录）：换成待办页的一行，打开同一个详情、同一套菜单；
+    /// 格子、时间段、以后再说一起带上（待办 2.0）
     init?(entry: API.Entry, today: String) {
         guard case .todo(let todo) = entry.data else { return nil }
         let day = todo.due ?? entry.day
         self.init(
             id: entry.id, content: todo.content, day: day, remindAt: todo.remindAt.map { String($0.suffix(5)) },
-            done: todo.done, repeat: todo.repeat, repeatText: todo.repeat?.text, overdue: !todo.done && day < today,
+            done: todo.done, repeat: todo.repeat, repeatText: todo.repeat?.text,
+            overdue: !todo.done && !todo.isSomeday && day < today,
             people: todo.people ?? [], things: todo.things ?? [], places: todo.places ?? [],
-            source: entry.sources.first.map { Source(noteId: $0.noteId, text: $0.text, at: $0.createdAt) })
+            source: entry.sources.first.map { Source(noteId: $0.noteId, text: $0.text, at: $0.createdAt) },
+            quadrant: todo.lane, guessed: todo.quadrantByAI == true, window: todo.timeWindow, someday: todo.isSomeday)
     }
 }

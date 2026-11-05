@@ -14,14 +14,32 @@ struct MoodBody: View {
         let times = moods.map { Self.said($0).map(Self.clock) }
         let showTimes = Set(times.compactMap(\.self)).count > 1
         VStack(alignment: .leading, spacing: Theme.Space.small) {
-            if let word = Show.dayMood(levels) {
-                Text(word).font(Theme.Typeface.metric).foregroundStyle(Theme.Palette.label)
-            }
-            let points = Self.points(moods)
-            if points.count > 1 { LevelCurve(points: points, color: Theme.tag("pink").solid) }
-            ForEach(Array(moods.enumerated()), id: \.element.id) { index, entry in
-                if case .mood(let mood) = entry.data {
-                    CardRow(entry: entry) { MoodRow(mood: mood, quotes: quotes, time: showTimes ? times[index] : nil) }
+            // 只有一条（待办 2.0 第 9 步）：大字说法后面跟五个点、右边几点记的，下面那一行不再写一遍「一般」
+            if moods.count == 1, case .mood(let mood) = moods[0].data {
+                HStack(alignment: .center, spacing: Theme.Space.medium) {
+                    Text(Show.moodWords[MoodRow.level(mood) - 1]).font(Theme.Typeface.metric)
+                        .foregroundStyle(Theme.Palette.label)
+                    MoodDots(level: MoodRow.level(mood))
+                    Spacer(minLength: 0)
+                    if let time = times[0] {
+                        Text("\(time) 记的").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                            .monospacedDigit()
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                CardRow(entry: moods[0]) { MoodRow(mood: mood, quotes: quotes, time: nil, single: true) }
+            } else {
+                if let word = Show.dayMood(levels) {
+                    Text(word).font(Theme.Typeface.metric).foregroundStyle(Theme.Palette.label)
+                }
+                let points = Self.points(moods)
+                if points.count > 1 { LevelCurve(points: points, color: Theme.tag("pink").solid) }
+                ForEach(Array(moods.enumerated()), id: \.element.id) { index, entry in
+                    if case .mood(let mood) = entry.data {
+                        CardRow(entry: entry) {
+                            MoodRow(mood: mood, quotes: quotes, time: showTimes ? times[index] : nil)
+                        }
+                    }
                 }
             }
         }
@@ -57,25 +75,26 @@ private struct MoodRow: View {
     let mood: API.MoodData
     let quotes: [String]
     let time: String?
+    /// 这一天只有这一条：说法、点已经在上面大字里了，这一行只写情绪词、精力
+    var single = false
+
+    static func level(_ mood: API.MoodData) -> Int { min(5, max(1, Int(mood.mood.rounded()))) }
 
     var body: some View {
-        let level = min(5, max(1, Int(mood.mood.rounded())))
+        let level = Self.level(mood)
         VStack(alignment: .leading, spacing: Theme.Space.tight) {
             HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
                 if let time {
                     Text(time).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                         .monospacedDigit()
                 }
-                HStack(spacing: Theme.Space.tight) {
-                    ForEach(1...5, id: \.self) { dot in
-                        Circle().fill(dot <= level ? Theme.tag("pink").solid : Theme.Palette.fill)
-                            .frame(width: Theme.Size.dot, height: Theme.Size.dot)
-                    }
+                if !single {
+                    MoodDots(level: level)
+                    // 读屏：「挺好，五级里的第 4 级」（圆点不单独念，免得「挺好」念两遍）
+                    Text(Show.moodWords[level - 1]).font(Theme.Typeface.bodySemibold)
+                        .foregroundStyle(Theme.Palette.label)
+                        .accessibilityLabel(Text("\(Show.moodWords[level - 1])，五级里的第 \(level) 级"))
                 }
-                .accessibilityHidden(true)
-                // 读屏：「挺好，五级里的第 4 级」（圆点不单独念，免得「挺好」念两遍）
-                Text(Show.moodWords[level - 1]).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
-                    .accessibilityLabel(Text("\(Show.moodWords[level - 1])，五级里的第 \(level) 级"))
                 Text(details).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                     .accessibilityLabel(Text(Show.spoken(details)))
             }
@@ -132,45 +151,72 @@ struct InsightBody: View {
     }
 }
 
-/// 待办和提醒：圆圈勾选（勾掉有动画和触感）、提醒时间、已提醒；有提醒的按时间在前，其余按说的先后。
-/// 做完的变淡划掉，但留在原地（产品主人 2026-10-21：勾掉以后跑到下面去是毛病）
+/// 待办卡（待办 2.0 第 9 步，docs/todo-2.0 design/after-01-home）：和待办页同一套行（按象限画的圈、一行标题、右边时间或状态），
+/// 最多 4 行——过点的在前 → 马上做 → 其余按时间（日程穿插，同一个钟点开始的几场面试合成一行）；多了「还有 N 件 ›」进待办页。
+/// 勾掉的划线留在原地（这张卡出来以后见过没做完的）；早就做完的不占位置。点了打开编辑，按住出菜单（和待办页一样）；
+/// 拿不准的下面照旧追问
 struct TodoBody: View {
     @Environment(AppModel.self) private var model
     let entries: [API.Entry]
-    /// 日历里这一天的日程（docs/模块/产品优化.md R6；没接日历是空的）：全天的放最上面一行，别的和待办按时间排
+    /// 日历里这一天的日程（没接日历是空的）：和你说的待办是同一件的只显示待办
     var events: [CalendarItem] = []
+    /// 这张卡出来以后见过的、当时还没做完的（勾掉了留在原地）
+    @State private var seen: Set<Int> = []
 
     var body: some View {
-        let agenda = AgendaPlan.rows(todos: entries, events: events)
-        let todos = agenda.rows.compactMap { row -> API.Entry? in
-            if case .todo(let entry) = row { entry } else { nil }
-        }
+        let now = PourDate.localDateTime(Date(), in: .current)
+        let rows = entries.compactMap { API.TodoRow(entry: $0, today: model.today) }
+            .filter { !$0.done || seen.contains($0.id) }
+        let plan = CanvasTodoPlan.make(rows: rows, events: AgendaPlan.visible(events, todos: entries), now: now)
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(agenda.allDay) { AgendaEventRow(item: $0) }
-            ShowFirst(items: agenda.rows, first: 5) { row, _ in
-                switch row {
-                case .todo(let entry):
-                    // 和待办页同一套（3.0 第 2 步，01 需求文档 4.6）：同样的圆圈和胶囊、按住同样的菜单、点了同一个详情
-                    if let todo = API.TodoRow(entry: entry, today: model.today) {
-                        HStack(alignment: .top, spacing: Theme.Space.tight) {
-                            TodoCircle(done: todo.done, label: todo.content) { model.setDone(entry.id, !todo.done) }
-                                .padding(.leading, -Theme.Space.medium + Theme.Space.hairline)
-                            CardRow(
-                                entry: entry, quiet: repeatsQuestion(todos, todos.firstIndex(of: entry) ?? 0),
-                                todo: todo
-                            ) {
-                                TodoLabel(
-                                    Show.spaced(todo.content), done: todo.done,
-                                    capsule: TodoBoard.capsule(
-                                        todo, today: model.today, now: PourDate.localDateTime(Date(), in: .current)))
-                            }
-                        }
+            ForEach(Array(plan.shown.enumerated()), id: \.element.id) { index, item in
+                if index > 0 {
+                    Divider().overlay(Theme.Palette.separator).padding(.leading, Self.titleInset)
+                }
+                switch item {
+                case .todo(let row):
+                    TodoRowView(row: row, today: model.today, now: now).todoPress(row)
+                        .padding(.horizontal, -Theme.Space.regular)
+                    if let entry = entries.first(where: { $0.id == row.id }), entry.pending {
+                        ConfirmBox(entry: entry).padding(.bottom, Theme.Space.small)
                     }
-                case .event(let item):
-                    AgendaEventRow(item: item)
+                case .event(let line):
+                    CalendarLine(line.title, time: line.time)
+                        .padding(.horizontal, -Theme.Space.regular)
+                        .accessibilityIdentifier(line.time == "全天" ? "agenda.allDay" : "agenda.event")
                 }
             }
+            if plan.more > 0 {
+                Divider().overlay(Theme.Palette.separator)
+                Button {
+                    model.openLink("/todos")
+                } label: {
+                    HStack(spacing: Theme.Space.tight) {
+                        Text("还有 \(plan.more) 件")
+                        Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
+                    }
+                    .font(Theme.Typeface.subheadline.weight(.semibold)).foregroundStyle(Theme.Palette.accent)
+                    .frame(maxWidth: .infinity, minHeight: Theme.Size.touch)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("canvas.todos.more")
+            }
         }
+        .onAppear(perform: remember)
+        .onChange(of: entries) { remember() }
+    }
+
+    /// 分割线从标题开始（和待办页一样）：行往外挪了 16，圈的点按区 44，圈到标题 14
+    private static let titleInset =
+        Theme.Size.touch - (Theme.Size.touch - Theme.Size.check) + Theme.Space.medium + Theme.Space.hairline
+        - (Theme.Size.touch - Theme.Size.check) / 2
+
+    private func remember() {
+        seen.formUnion(
+            entries.compactMap { entry in
+                if case .todo(let todo) = entry.data, !todo.done { entry.id } else { nil }
+            })
     }
 }
 
@@ -212,5 +258,20 @@ private struct RelatedNotes: View {
                 }
             }
         }
+    }
+}
+
+/// 五个小圆点（心情的五级，填到第几个）
+private struct MoodDots: View {
+    let level: Int
+
+    var body: some View {
+        HStack(spacing: Theme.Space.tight) {
+            ForEach(1...5, id: \.self) { dot in
+                Circle().fill(dot <= level ? Theme.tag("pink").solid : Theme.Palette.fill)
+                    .frame(width: Theme.Size.dot, height: Theme.Size.dot)
+            }
+        }
+        .accessibilityHidden(true)
     }
 }
