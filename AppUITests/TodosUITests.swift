@@ -15,7 +15,8 @@ final class TodosUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(app.staticTexts["明天"].exists, "没有「明天」")
         XCTAssertTrue(row(app, "交周报").label.contains("每周一"), "重复的没写每周一：\(row(app, "交周报").label)")
         XCTAssertTrue(row(app, "修自行车").label.contains("昨天 19:00"), "以前没做完的没写本来的日子")
-        XCTAssertTrue(row(app, "给客户回电话").label.contains("王总"), "第二行没写和谁")
+        // 待办 2.0 第 2 步：认出来的词（和谁、东西、地方）不再写在行下面（数据留着，搜索和 AI 照用）
+        XCTAssertFalse(app.staticTexts["王总"].exists, "行下面还写着和谁")
         shot("待办页", of: app.screenshot())
         try AppAudit.run(app, name: "待办页")
         app.swipeUp(velocity: .slow)

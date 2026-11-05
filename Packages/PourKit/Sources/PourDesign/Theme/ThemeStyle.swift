@@ -167,6 +167,8 @@ extension Theme {
         /// 骨架灰条：一行字、一张卡
         public static let skeletonLine: CGFloat = 20
         public static let skeletonWidth: CGFloat = 240
+        /// 待办 2.0 三段的切换（清单 | 四象限 | 时间线）有多高
+        public static let segment: CGFloat = 38
         /// 记心情那一排表情的圆（原型 .face .c 50）；一行一刻心情前面的小表情（原型 faceDot 30）
         public static let moodFace: CGFloat = 50
         public static let moodDot: CGFloat = 30
@@ -195,6 +197,8 @@ extension Theme {
         /// 「我的」功能格子的彩色方块（3.0，01 需求文档 2.3）、快捷大按钮的浅底
         public static let hubTile: CGFloat = 12
         public static let quick: CGFloat = 17
+        /// 待办 2.0 三段的切换
+        public static let segment: CGFloat = 12
         /// 从下面拉上来的弹层上面两个角（照原型 .sheet 30）
         public static let sheet: CGFloat = 30
         /// 对话气泡贴着说话人那一角（原型 6）

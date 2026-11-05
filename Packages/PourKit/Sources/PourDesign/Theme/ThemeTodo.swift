@@ -143,79 +143,37 @@ public struct TodoLabel: View {
     }
 }
 
-/// 日历里的日程，穿插在今天里（只读）：左边一条日历颜色的竖条，右边「14:00–15:30」或「全天 · 日历」
+/// 日历里的日程，穿插在今天里（只读；待办 2.0）：左边日历图标（和待办的圈同一列），一行标题（长了省略），
+/// 右边「15:00–18:00」或「全天」。不再写「日历」小标签
 public struct CalendarLine: View {
     let title: String
     let time: String
-    let color: Color
-    let allDay: Bool
 
-    /// allDay：全天的，右边「全天 · 日历」是一个灰底小胶囊（照原型 .pill）；别的右边写几点到几点
-    public init(_ title: String, time: String, color: Color = Theme.Tile.blue, allDay: Bool = false) {
+    public init(_ title: String, time: String) {
         self.title = title
         self.time = time
-        self.color = color
-        self.allDay = allDay
     }
 
     public var body: some View {
-        HStack(spacing: Theme.Space.medium) {
-            CalendarBar(color: color)
-            Text(title).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label).lineLimit(2)
-            Spacer(minLength: Theme.Space.small)
-            CalendarTime(time, allDay: allDay)
+        TodoLine(title, done: false) {
+            CalendarGlyph()
+        } trailing: {
+            Text(time).font(Theme.Typeface.subheadline).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
+                .lineLimit(1).fixedSize()
         }
-        .padding(.vertical, Theme.Space.small)
-        .frame(minHeight: Theme.Size.touch)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("日历：\(title)，\(time)"))
     }
 }
 
-/// 日程前面那根竖条（照原型 .calbar：4 × 28、圆头），颜色是日历的颜色
-public struct CalendarBar: View {
-    let color: Color
-
-    public init(color: Color) {
-        self.color = color
-    }
+/// 日程前面的日历图标（和待办的圈同一列：点的范围那么宽、看得见的居中）
+public struct CalendarGlyph: View {
+    public init() {}
 
     public var body: some View {
-        Capsule().fill(color).frame(width: Theme.Space.tight, height: Theme.Size.capsule - Theme.Space.tight)
+        Image(systemName: "calendar").font(Theme.Typeface.body).foregroundStyle(Theme.Agenda.icon)
+            .frame(width: Theme.Size.touch, height: Theme.Size.check)
             .accessibilityHidden(true)
-    }
-}
-
-/// 日程右边：几点到几点；全天的是「全天 · 日历」灰底小胶囊（照原型 .pill：24 高、13 半粗）
-public struct CalendarTime: View {
-    let text: String
-    let allDay: Bool
-
-    public init(_ text: String, allDay: Bool) {
-        self.text = text
-        self.allDay = allDay
-    }
-
-    public var body: some View {
-        if allDay {
-            Text(text).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
-                .lineLimit(1).padding(.horizontal, Theme.Space.small)
-                .frame(minHeight: Theme.Size.badge + Theme.Space.hairline)
-                .background(Theme.Palette.fill, in: Capsule()).fixedSize()
-        } else {
-            Text(text).font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
-                .fixedSize()
-        }
-    }
-}
-
-extension Theme {
-    /// 日历的颜色：系统日历里设的；演示数据没有颜色，按日历的名字配（照原型：工作蓝、纪念日和生日粉，家里绿）
-    public static func calendarColor(_ rgb: UInt32?, calendar: String) -> Color {
-        if let rgb { return Tokens.one(rgb).color }
-        if calendar.contains("生日") || calendar.contains("纪念") { return Tile.pink }
-        if calendar.contains("家") { return Tile.green }
-        return Tile.blue
     }
 }
 
@@ -231,7 +189,7 @@ private struct TightLabel: LabelStyle {
 
 extension View {
     /// 勾上时成功的触感（取消打勾不震）
-    fileprivate func todoDoneFeedback(_ done: Bool) -> some View {
+    func todoDoneFeedback(_ done: Bool) -> some View {
         #if os(iOS)
             sensoryFeedback(Theme.Haptics.done, trigger: done) { _, now in now }
         #else
@@ -269,8 +227,8 @@ extension View {
             TodoLabel("买牛奶", done: true, capsule: ("18:00", .remind))
         }
         Divider()
-        CalendarLine("产品评审会", time: "14:00–15:30").padding(.leading, Theme.Space.regular)
-        CalendarLine("结婚纪念日", time: "全天 · 日历", color: Theme.Tile.pink).padding(.leading, Theme.Space.regular)
+        CalendarLine("产品评审会", time: "14:00–15:30")
+        CalendarLine("结婚纪念日", time: "全天")
     }
     .padding(.trailing, Theme.Space.regular)
     .background(Theme.Palette.card)

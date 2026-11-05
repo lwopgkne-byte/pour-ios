@@ -99,12 +99,6 @@ enum TodoBoard {
         return day <= sunday ? Show.weekday(day) : Show.monthDay(day)
     }
 
-    /// 第二行：和谁 · 东西 · 地方
-    static func detail(_ row: API.TodoRow) -> String? {
-        let words = row.people + row.things + row.places
-        return words.isEmpty ? nil : words.joined(separator: " · ")
-    }
-
     /// 原话什么时候说的：ISO 时刻 →「10月26日 21:40」（详情里原话下面那一行）
     static func saidAt(_ iso: String) -> String? {
         let formatter = ISO8601DateFormatter()

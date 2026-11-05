@@ -54,20 +54,15 @@ struct RootView: View {
         @Bindable var goals = model.goals
         @Bindable var review = model.review
         return NavigationStack(path: $model.stack) {
+            // 没网：导航下面一条胶囊（待办 2.0 第 2 步，整页只这一条，不压日期）
             CanvasView()
+                .offlinePill()
                 .hiddenWhenCovered()
                 .sayBarSpace(barHeight)
                 .navigationDestination(for: Route.self) { route in
-                    RouteView(route: route).hiddenWhenCovered().sayBarSpace(barHeight)
+                    RouteView(route: route).offlinePill().hiddenWhenCovered().sayBarSpace(barHeight)
                 }
         }
-        // 没连上、页面显示的是上次存的：顶上一条细条说是几点的（docs/3.0/01-需求文档.md 3.3）
-        .safeAreaInset(edge: .top, spacing: 0) {
-            if let since = model.staleSince {
-                StaleBar(since: since).transition(.move(edge: .top).combined(with: .opacity))
-            }
-        }
-        .animation(Theme.Motion.standard, value: model.staleSince)
         // 压暗后面的页面（原型 .backdrop）：铺满，弹层上面两个圆角外面露出来的也是暗的；底下的说一句画在它上面。
         // 一直在、只变透明度：收起的那一下就不挡手指了（不然刚点 × 马上点「我」，点在正在淡出的这一层上，2026-11-03 测出来的）
         .overlay {
@@ -192,28 +187,6 @@ private struct SayBarFollowsScroll: ViewModifier {
                 if model.sayBarHidden { model.sayBarHidden = false }
             }
         }
-    }
-}
-
-/// 没连上时顶上那一条：「没连上 · 显示的是 10:32 的」（不是今天存的写日子）
-private struct StaleBar: View {
-    let since: Date
-
-    var body: some View {
-        Text(Self.text(since, now: Date()))
-            .font(Theme.Typeface.footnoteMedium).foregroundStyle(Theme.Palette.secondaryLabel)
-            .padding(.horizontal, Theme.Space.medium).frame(minHeight: Theme.Size.badge)
-            .background(Theme.Palette.statFill, in: Capsule())
-            .frame(maxWidth: .infinity)
-            .padding(.bottom, Theme.Space.tight)
-            .accessibilityIdentifier("stale")
-    }
-
-    static func text(_ since: Date, now: Date) -> String {
-        let clock = since.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits))
-        guard !Calendar.current.isDate(since, inSameDayAs: now) else { return "没连上 · 显示的是 \(clock) 的" }
-        let day = since.formatted(.dateTime.month(.defaultDigits).day())
-        return "没连上 · 显示的是 \(day) \(clock) 的"
     }
 }
 

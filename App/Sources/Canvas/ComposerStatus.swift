@@ -12,7 +12,6 @@ struct ComposerStatus: View {
 
     /// 小条说什么。waiting：服务器说这段话在排队、还没开始（比如还没填大模型的密钥），不说「正在整理」
     enum Stage: Equatable {
-        case offline
         case processing(verb: String, text: String)
         case waiting(String)
         case failed(noteId: Int, reason: String)
@@ -33,10 +32,6 @@ struct ComposerStatus: View {
 
     @ViewBuilder private func content(_ state: Stage) -> some View {
         switch state {
-        case .offline:
-            row(symbol: "icloud.slash", text: "没网，先存在手机上 · 连上自动发", tint: Theme.Palette.secondaryLabel) {
-                retry { Task { await model.flushOutbox() } }
-            }
         case .processing(let verb, let text):
             Button {
                 withAnimation(Theme.Motion.pick(Theme.Motion.standard, reduceMotion: reduceMotion)) {
@@ -90,9 +85,8 @@ struct ComposerStatus: View {
         .font(Theme.Typeface.footnoteMedium)
     }
 
-    /// 现在该说什么：没网（手机上存着没发出去的）最要紧；然后看最后一段话（今天的）
+    /// 现在该说什么：看最后一段话（今天的）。没网不在这里说：导航下面那一条（OfflinePill）说，整页只一条（待办 2.0 第 2 步）
     private var state: Stage? {
-        if model.outbox.contains(where: { $0.failed != nil }) { return .offline }
         guard let last = model.chat.last, last.day == model.today else { return nil }
         // 「/问 这个月花了多少」：小条上不露「/问」，说成在找答案
         let asking = last.text.hasPrefix("/问")

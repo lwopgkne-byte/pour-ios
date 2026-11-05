@@ -5,7 +5,7 @@ import SwiftUI
 import UIKit
 
 /// 一行待办（待办页、画布的待办卡同一套，06 交互细节 2.1）：左边圆圈（点了勾上、划线留在原地），
-/// 点别处打开详情；时间胶囊、第二行（和谁 · 东西 · 地方、↻ 重复）
+/// 点别处打开详情；右边时间。待办 2.0 第 2 步：认出来的词（和谁、东西、地方）不再显示（数据留着，搜索和 AI 照用）
 struct TodoRowView: View {
     @Environment(AppModel.self) private var model
     let row: API.TodoRow
@@ -18,11 +18,8 @@ struct TodoRowView: View {
             Button {
                 model.todoSheet = .detail(row)
             } label: {
-                TodoLabel(
-                    Show.spaced(row.content), done: row.done, capsule: capsule, detail: TodoBoard.detail(row),
-                    repeatText: row.repeatText
-                )
-                .contentShape(Rectangle())
+                TodoLabel(Show.spaced(row.content), done: row.done, capsule: capsule)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel(Text(spoken))
@@ -41,7 +38,6 @@ struct TodoRowView: View {
         if row.done { parts.append("已完成") }
         if let capsule { parts.append(capsule.text) }
         if let repeatText = row.repeatText { parts.append(repeatText) }
-        if let detail = TodoBoard.detail(row) { parts.append(detail) }
         return parts.joined(separator: "，")
     }
 }

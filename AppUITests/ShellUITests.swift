@@ -227,8 +227,8 @@ final class ShellUITests: XCTestCase {
         if close.waitForExistence(timeout: 3) { close.tap() }
         app.buttons["today.me"].tap()
         XCTAssertTrue(days.waitForExistence(timeout: 5), "没网时「我的」没有用上次存的")
-        let stale = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '没连上 · 显示的是'")).firstMatch
-        XCTAssertTrue(stale.waitForExistence(timeout: 5), "顶上没有「没连上 · 显示的是……的」")
+        let stale = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '没网，先存在手机上 · 内容停在'")).firstMatch
+        XCTAssertTrue(stale.waitForExistence(timeout: 5), "导航下面没有「没网，先存在手机上 · 内容停在……」")
         settle()
         try AppAudit.run(app, name: "我的-没网")
     }

@@ -40,15 +40,8 @@ final class TodoSheetsUITests: XCTestCase, TodoTesting {
         // 弹层停在半屏，审计自己一滚弹层又变高，一直不静止（审计超时，2026-11-04）
         expandSheet(app, from: app.buttons["关闭"].firstMatch)
         try AppAudit.run(app, name: "待办详情")
-        // 和谁：原地改（原来的记录详情里就能改）
-        let people = app.buttons["改和谁"]
-        app.reveal(people)
-        people.tap()
-        let words = app.textFields["todoDetail.edit.people"]
-        XCTAssertTrue(words.waitForExistence(timeout: 3), "点「改」没出来输入框")
-        words.typeText("王总")
-        app.buttons["改好了"].tap()
-        XCTAssertTrue(app.staticTexts["王总"].waitForExistence(timeout: 3), "和谁没改上")
+        // 待办 2.0 第 2 步：和谁、东西、地方三行去掉了（数据留着，搜索和 AI 照用）
+        XCTAssertFalse(app.buttons["改和谁"].exists, "弹层里还有「和谁」")
         app.buttons["20:00"].tap()
         app.buttons["每天"].tap()
         XCTAssertTrue(app.buttons["每天"].isSelected, "重复没选上")
@@ -83,13 +76,16 @@ final class TodoSheetsUITests: XCTestCase, TodoTesting {
     }
 
     /// 提醒是红线（验收 4.8 第 1 条）：定了时间、没做完的都排上系统通知，不用先翻到那一天；
-    /// 加一件「明天上午9点交报告」，排上的马上多一条。待办页底下写着排好了几个
+    /// 加一件「明天上午9点交报告」，排上的马上多一条。标题下面那一行写着「🔔 3 个提醒已排好」（待办 2.0 第 2 步并进来的）
     @MainActor func testRemindersScheduled() throws {
         allowNotifications()
         let app = openTodos(["-remindersCheck"])
-        app.swipeUp(velocity: .slow)
-        let status = app.descendants(matching: .any).matching(identifier: "todos.reminders").firstMatch
-        XCTAssertTrue(status.waitForExistence(timeout: 10), "待办页底下没写排好了几个提醒")
+        let status = app.descendants(matching: .any).matching(identifier: "todos.summary").firstMatch
+        let deadline0 = Date().addingTimeInterval(10)
+        while Date() < deadline0, count(status.label) == 0 {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+        }
+        XCTAssertTrue(status.exists, "标题下面没有那一行")
         let before = count(status.label)
         XCTAssertGreaterThan(before, 0, "一个提醒都没排上：\(status.label)")
         app.buttons["todos.add"].tap()
@@ -135,8 +131,9 @@ final class TodoSheetsUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(app.staticTexts["完成了：测提醒"].waitForExistence(timeout: 8), "点了「完成」App 里没变")
     }
 
-    /// 「手机上排好了 3 个提醒，到点就响」→ 3
+    /// 「今天还有 4 件 · 已完成 1 件 · 🔔 3 个提醒已排好」→ 3（没有这一段是 0）
     private func count(_ label: String) -> Int {
-        Int(label.filter(\.isNumber)) ?? 0
+        guard let match = label.firstMatch(of: /(\d+) 个提醒已排好/) else { return 0 }
+        return Int(match.1) ?? 0
     }
 }

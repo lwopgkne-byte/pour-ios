@@ -150,7 +150,7 @@ struct TodoBoardTests {
             [row(2, "取快递", day: Self.today, at: "18:00"), row(3, "回邮件", day: Self.today)], events: events)
         #expect(items.map(\.id) == ["event.b", "event.a", "todo.2", "todo.3"])
         #expect(TodayItem.time(events[0]) == "14:00–15:30")
-        #expect(TodayItem.time(events[1]) == "全天 · 日历")
+        #expect(TodayItem.time(events[1]) == "全天")
         // 日历里那件和说过的待办是同一件（钟点差 15 分钟以内、名字像）：只显示待办
         let twin = CalendarItem(
             id: "c", title: "取快递", start: "2026-10-27T18:05", end: "2026-10-27T18:20", allDay: false, calendar: "生活")

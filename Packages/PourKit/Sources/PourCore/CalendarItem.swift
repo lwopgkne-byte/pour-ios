@@ -9,19 +9,13 @@ public struct CalendarItem: Sendable, Hashable, Identifiable {
     public let allDay: Bool
     /// 哪个日历（「工作」「生日」「中国节假日」）
     public let calendar: String
-    /// 那个日历的颜色（0xRRGGBB，系统日历里设的）；演示数据没有
-    public let color: UInt32?
 
-    public init(
-        id: String, title: String, start: LocalDateTime, end: LocalDateTime, allDay: Bool, calendar: String,
-        color: UInt32? = nil
-    ) {
+    public init(id: String, title: String, start: LocalDateTime, end: LocalDateTime, allDay: Bool, calendar: String) {
         self.id = id
         self.title = title
         self.start = start
         self.end = end
         self.allDay = allDay
         self.calendar = calendar
-        self.color = color
     }
 }

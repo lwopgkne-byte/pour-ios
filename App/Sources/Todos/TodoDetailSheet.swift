@@ -36,7 +36,6 @@ struct TodoDetailSheet: View {
                         repeatRow
                     }
                     .themeCard(padding: 0)
-                    TodoRelatedRows(row: row)
                     actions
                 }
                 .padding(.horizontal, Theme.Space.regular)

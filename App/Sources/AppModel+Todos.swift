@@ -160,26 +160,6 @@ extension AppModel {
         return row
     }
 
-    /// 详情里改和谁、东西、地方（和原来的记录详情一样发 PATCH /api/entries 的 fields）：先改界面再发
-    func editTodoRelated(_ id: Int, field: String, words: [String]) {
-        guard let old = todoPage?.row(id) ?? detailRow(id) else { return }
-        var row = old
-        switch field {
-        case "people": row.people = words
-        case "things": row.things = words
-        default: row.places = words
-        }
-        todoPage?.change(id) { $0 = row }
-        if case .detail = todoSheet { todoSheet = .detail(row) }
-        write(
-            "PATCH", "/api/entries/\(id)",
-            json: .object(["fields": .object([field: .array(words.map(JSONValue.string))])])
-        ) { [weak self] in
-            self?.todoPage?.change(id) { $0 = old }
-            if case .detail = self?.todoSheet { self?.todoSheet = .detail(old) }
-        }
-    }
-
     /// 删一件（左滑「删除」、菜单、详情）。重复的先问「只删这一次 / 以后都不要了」（todoDeleting）
     func deleteTodo(_ row: API.TodoRow, onlyThisTime: Bool? = nil) {
         if row.repeat != nil, onlyThisTime == nil {

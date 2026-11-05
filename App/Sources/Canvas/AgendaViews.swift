@@ -23,26 +23,15 @@ struct CalendarHint: View {
     }
 }
 
-/// 待办卡里的一件日程（照原型 TodoRow 的 cal 行）：和待办的圆圈同一列、正中一根日历颜色的竖条，名字和待办的字对齐；
-/// 右边几点到几点，全天的（节假日、生日，排在最上面）是「全天 · 日历」小胶囊。只读，点了没反应（改在日历里）
+/// 待办卡里的一件日程（待办 2.0）：日历图标和待办的圈同一列，一行标题（长了省略），右边几点到几点或「全天」。
+/// 只读，点了没反应（改在日历里）
 struct AgendaEventRow: View {
     let item: CalendarItem
 
     var body: some View {
-        HStack(spacing: Theme.Space.tight) {
-            // 和待办的圆圈一样：44 宽的一列，往左挪同样多
-            CalendarBar(color: Theme.calendarColor(item.color, calendar: item.calendar))
-                .frame(width: Theme.Size.touch)
-                .padding(.leading, -Theme.Space.medium + Theme.Space.hairline)
-            Text(Show.spaced(item.title)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
-                .lineLimit(2)
-            Spacer(minLength: Theme.Space.small)
-            CalendarTime(TodayItem.time(item), allDay: item.allDay)
-        }
-        .padding(.vertical, Theme.Space.tight)
-        .frame(minHeight: Theme.Size.touch)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("日历：\(item.title)，\(TodayItem.time(item))"))
-        .accessibilityIdentifier(item.allDay ? "agenda.allDay" : "agenda.event")
+        CalendarLine(event: item)
+            .padding(.leading, -Theme.Space.regular)
+            .padding(.trailing, -Theme.Space.regular)
+            .accessibilityIdentifier(item.allDay ? "agenda.allDay" : "agenda.event")
     }
 }

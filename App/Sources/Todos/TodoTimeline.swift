@@ -20,7 +20,7 @@ struct TodoTimelineSection: View {
         Section {
             let allDay = events.filter(\.allDay)
             if !allDay.isEmpty {
-                ForEach(allDay) { CalendarLine(event: $0) }
+                ForEach(allDay) { CalendarLine(event: $0).listRowInsets(EdgeInsets()) }
             }
             TimelineView(.everyMinute) { context in
                 grid(now: PourDate.localDateTime(context.date, in: .current))
