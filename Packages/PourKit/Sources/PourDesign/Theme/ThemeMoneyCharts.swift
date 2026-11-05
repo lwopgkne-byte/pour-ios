@@ -88,7 +88,8 @@ public struct PaceChart: View {
     private var chart: some View {
         Chart {
             if let previous {
-                ForEach(Array(previous.enumerated()), id: \.offset) { index, value in
+                // 上个月比这个月长（10 月 31 天、11 月 30 天）：只画到这个月的最后一天，不画到图外面
+                ForEach(Array(previous.prefix(max(2, days)).enumerated()), id: \.offset) { index, value in
                     LineMark(x: .value("几号", index + 1), y: .value("钱", value), series: .value("月", "上个月"))
                         .foregroundStyle(Self.dashed)
                         .lineStyle(StrokeStyle(lineWidth: 1.6, dash: [4, 4]))
@@ -113,13 +114,14 @@ public struct PaceChart: View {
             }
         }
         .chartXScale(domain: 1...max(2, days))
-        // 底下 1日、10日、20日、最后一天（照原型）
+        // 底下 1日、10日、20日、最后一天（照原型：头一个靠左、最后一个靠右，都写出来）
         .chartXAxis {
             AxisMarks(values: [1, 10, 20, max(2, days)]) { value in
-                AxisValueLabel {
-                    if let day = value.as(Int.self) {
-                        Text("\(day)日").font(Theme.Typeface.tick).foregroundStyle(Theme.Palette.tertiaryLabel)
-                    }
+                let day = value.as(Int.self) ?? 0
+                AxisValueLabel(
+                    anchor: day <= 1 ? .topLeading : day >= days ? .topTrailing : .top, collisionResolution: .disabled
+                ) {
+                    Text("\(day)日").font(Theme.Typeface.tick).foregroundStyle(Theme.Palette.tertiaryLabel)
                 }
             }
         }

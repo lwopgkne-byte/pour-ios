@@ -8,6 +8,7 @@ import SwiftUI
 /// 只是看：每件事在下面「做了什么」里能点开；读屏把整条读成一句（按时间列出每件事）
 struct ReviewDayBar: View {
     @Environment(AppModel.self) private var model
+    @ScaledMetric(relativeTo: .caption2) private var tickRow = Theme.Size.tickRow
     let day: String
     let items: [RibbonItem]
 
@@ -27,13 +28,18 @@ struct ReviewDayBar: View {
                 .clipShape(Capsule())
             }
             .frame(height: Self.height)
-            HStack(spacing: 0) {
-                ForEach(Array(Self.ticks.enumerated()), id: \.offset) { index, tick in
-                    if index > 0 { Spacer(minLength: 0) }
-                    Text(tick)
+            // 刻度画出来（和画布带子的刻度一样）：第三层字只给刻度（≥ 3:1）；读屏整条念一句，不单独念
+            Canvas { context, size in
+                for (index, tick) in Self.ticks.enumerated() {
+                    let place = Double(index) / Double(Self.ticks.count - 1)
+                    let anchor: UnitPoint = index == 0 ? .leading : index == Self.ticks.count - 1 ? .trailing : .center
+                    let text = Text(verbatim: tick).font(Theme.Typeface.tick).monospacedDigit()
+                        .foregroundStyle(Theme.Palette.tertiaryLabel)
+                    context.draw(text, at: CGPoint(x: size.width * place, y: size.height / 2), anchor: anchor)
                 }
             }
-            .font(Theme.Typeface.tick).monospacedDigit().foregroundStyle(Theme.Palette.tertiaryLabel)
+            .frame(height: tickRow)
+            .accessibilityHidden(true)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("一天的样子"))

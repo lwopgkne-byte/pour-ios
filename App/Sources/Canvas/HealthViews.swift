@@ -132,6 +132,7 @@ struct HealthPeek: View {
                         PeekRow(label: metric.name) { Text(Show.spaced("\(Show.amount(metric.value)) \(metric.unit)")) }
                     }
                 }
+                .peekCard()
             }
             Text(Show.spaced("健康 App 记的（手表或手机），你没说过。要改、要删，在健康 App 里；你说一句同一件事，就用你说的。"))
                 .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel).fixedSize(

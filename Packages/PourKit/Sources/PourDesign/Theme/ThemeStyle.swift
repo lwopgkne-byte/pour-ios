@@ -52,8 +52,8 @@ extension Theme {
         public static let quote = Font.custom("Songti SC", size: 17, relativeTo: .body)
         /// 对话里的话（原型 16）
         public static let message = Font.callout
-        /// 点开一条记录的大标题「上班」（原型 28 粗）
-        public static let recordTitle = Font.title.weight(.bold)
+        /// 点开一条记录的大标题「上班」（原型 24 粗，系统字号里最近的是 22）
+        public static let recordTitle = Font.title2.weight(.bold)
         /// 弹层的标题「说一句」（原型 18 粗）
         public static let sheetTitle = Font.headline.weight(.bold)
         /// 一页里一块的标题，在卡片外面（原型 .sh h3：18 粗）

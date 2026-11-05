@@ -159,3 +159,11 @@ struct Sparkline: View {
         .accessibilityLabel(Text("最近 7 天的\(trend.label)"))
     }
 }
+
+extension View {
+    /// 记录详情里的一块白卡（照原型 RecordSheet 的 .grp：暖灰底上的白色圆角卡）
+    func peekCard(vertical: CGFloat = 0) -> some View {
+        padding(.horizontal, Theme.Space.regular).padding(.vertical, vertical)
+            .background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.stat))
+    }
+}

@@ -14,6 +14,8 @@ struct EntryPeek: View {
     @State private var otherDay: API.DayView?
 
     @State private var trend: API.Trend?
+    /// 点了「改一下」：拿不准的那张卡收起来，直接改下面的
+    @State private var editing = false
 
     /// 详情里显示的总是最新的数据：原地修改后跟着刷新
     private var source: API.DayView? { day == nil ? model.day : otherDay }
@@ -29,8 +31,8 @@ struct EntryPeek: View {
                         .bottom, Theme.Space.xLarge)
                 } else if let entry {
                     VStack(alignment: .leading, spacing: Theme.Space.xLarge) {
-                        if entry.pending { confirmCard(entry) }
-                        PeekFields(entry: entry)
+                        if entry.pending, !editing { confirmCard(entry) }
+                        PeekFields(entry: entry).peekCard()
                         if let filled = entry.fromHealth, !filled.isEmpty {
                             Text(Show.spaced("\(filled.joined(separator: "、"))是健康 App 补上的（你没说）。改了就用你改的。"))
                                 .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
@@ -39,6 +41,7 @@ struct EntryPeek: View {
                             PeekSection(title: "最近 7 天") {
                                 Sparkline(trend: trend, color: color(entry), today: entry.day)
                             }
+                            .peekCard(vertical: Theme.Space.medium)
                         }
                         relatedGoals(entry)
                         if !entry.sources.isEmpty { sources(entry) }
@@ -56,7 +59,8 @@ struct EntryPeek: View {
             }
             .scrollDismissesKeyboard(.interactively)
         }
-        .background(Theme.Palette.card)
+        // 照原型：暖灰底，字段、最近 7 天、相关目标各是一张白卡
+        .background(Theme.Palette.background)
         .presentationDetents([.fraction(0.6), .large])
         .presentationCornerRadius(Theme.Corner.chip)
         .presentationDragIndicator(.visible)
@@ -101,27 +105,41 @@ struct EntryPeek: View {
         }
     }
 
+    /// 拿不准的先问一句（照原型）：浅蓝底「我理解得对吗？」、下面灰字是拿不准的地方；「对」就确认，「改一下」收起来直接改下面的
     private func confirmCard(_ entry: API.Entry) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Space.medium) {
-            Text(Show.spaced(entry.question ?? "我理解得对吗？")).font(Theme.Typeface.body).foregroundStyle(
-                Theme.Palette.label)
-            HStack(spacing: Theme.Space.medium) {
+        VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+            Text("我理解得对吗？").font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.label)
+            if let question = entry.question {
+                Text(Show.spaced("拿不准的地方：\(question)")).font(Theme.Typeface.footnote)
+                    .foregroundStyle(Theme.Palette.secondaryLabel).fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(spacing: Theme.Space.small) {
                 Button {
                     model.confirm(entry.id)
                 } label: {
-                    Text("确认").font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.onAccent)
-                        .padding(.horizontal, Theme.Space.regular)
-                        .frame(minHeight: Theme.Size.touch)
-                        .background(RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(Theme.Palette.accent))
+                    askPill("对", ink: Theme.Palette.onAccent, fill: Theme.Palette.accentFill)
                 }
-                .buttonStyle(.plain)
-                Text("不对的话，直接改下面的内容，或者在对话里说").font(Theme.Typeface.footnote).foregroundStyle(
-                    Theme.Palette.secondaryLabel)
+                .buttonStyle(PressScale())
+                Button {
+                    withAnimation(Theme.Motion.quick) { editing = true }
+                } label: {
+                    askPill("改一下", ink: Theme.Palette.label, fill: Theme.Palette.fill)
+                }
+                .buttonStyle(PressScale())
             }
+            .padding(.top, Theme.Space.tight)
         }
-        .padding(Theme.Space.regular)
+        .padding(.horizontal, Theme.Space.inset).padding(.vertical, Theme.Space.medium)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: Theme.Corner.tile).fill(Theme.Palette.fill))
+        .background(Theme.Palette.remindFill, in: Theme.rounded(Theme.Corner.stat))
+    }
+
+    /// 卡上的小胶囊：看得见的 32 高，点的地方 44
+    private func askPill(_ text: String, ink: Color, fill: Color) -> some View {
+        Text(text).font(Theme.Typeface.cardTitle).foregroundStyle(ink)
+            .padding(.horizontal, Theme.Space.regular).frame(minHeight: Theme.Size.capsule)
+            .background(fill, in: Capsule())
+            .frame(minHeight: Theme.Size.touch).contentShape(Rectangle())
     }
 
     /// 相关目标的完整进度：圆点、目标、推进了多少、细进度条、进度说明
@@ -144,6 +162,7 @@ struct EntryPeek: View {
                     }
                 }
             }
+            .peekCard(vertical: Theme.Space.medium)
         }
     }
 
