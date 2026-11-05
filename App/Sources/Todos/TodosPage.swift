@@ -26,17 +26,29 @@ struct TodosPage: View {
 
     var body: some View {
         Group {
-            if mode == .matrix, focus == nil, let page = model.todoPage {
-                // 四象限不放在 List 里：List 自己接拖放，格子收不到放下来的卡片（2026-11-05 测出来的）
-                ScrollView {
-                    VStack(alignment: .leading, spacing: Theme.Space.medium) {
-                        heading(now: now)
-                        TodoMatrixSection(page: page, now: now, mode: $mode, focus: $focus)
+            if mode != .list, focus == nil, let page = model.todoPage {
+                // 四象限、时间线不放在 List 里：List 自己接拖放，格子、时间线收不到放下来的卡片（2026-11-05 测出来的）
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+                            heading(now: now)
+                            if mode == .matrix {
+                                TodoMatrixSection(page: page, now: now, mode: $mode, focus: $focus)
+                            } else {
+                                TodoTimelineView(page: page, events: events(page.today), now: now).id("timeline")
+                            }
+                        }
+                        .padding(.horizontal, Theme.Space.regular)
+                        .padding(.bottom, Theme.Space.large)
                     }
-                    .padding(.horizontal, Theme.Space.regular)
-                    .padding(.bottom, Theme.Space.large)
+                    .refreshable { await model.loadTodos() }
+                    // 四象限「排进空档 ›」过来：滚到时间线（空档在上面标出来了）
+                    .task(id: mode) {
+                        guard mode == .timeline, model.todoGaps else { return }
+                        try? await Task.sleep(for: .milliseconds(300))
+                        withAnimation(Theme.Motion.standard) { proxy.scrollTo("timeline", anchor: .top) }
+                    }
                 }
-                .refreshable { await model.loadTodos() }
             } else {
                 list
             }
@@ -71,7 +83,7 @@ struct TodosPage: View {
                 switch mode {
                 case .list: listSections(page, now: now)
                 case .matrix: if let focus { focusSections(page, focus) }
-                case .timeline: TodoTimelineSection(page: page, events: events(page.today))
+                case .timeline: EmptyView()
                 }
             } else if let problem = model.todoProblem {
                 ErrorState(problem.contains("连不上") || problem.contains("没连上") ? .serverOff : .other) {
@@ -107,27 +119,6 @@ struct TodosPage: View {
                 .accessibilityIdentifier("todos.mode")
             if !guideSeen { guide }
         }
-    }
-
-    /// 「今天还有 5 件 · 完成 1 件 · 🔔 3 个提醒已排好」（铃铛是图标）
-    private func summary(_ page: API.TodoPage, now: String) -> some View {
-        let plan = TodoListPlan.make(page: page, held: model.todoHeld, events: events(page.today), now: now)
-        let counts = plan.counts(page: page)
-        let head =
-            counts.left == 0 ? "今天的都做完了 · 完成 \(counts.done) 件" : "今天还有 \(counts.left) 件 · 完成 \(counts.done) 件"
-        // 排好了几个提醒：这台手机上真排上的系统通知（断网也准）；演示数据不排通知，数还没到的
-        let reminders = model.demo ? TodoListPlan.reminders(page, now: now) : model.reminderState?.scheduled ?? 0
-        return Group {
-            if reminders > 0 {
-                Text("\(head) · \(Image(systemName: "bell")) \(reminders) 个提醒已排好")
-            } else {
-                Text(head)
-            }
-        }
-        .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit()
-        .contentTransition(.numericText())
-        .animation(Theme.Motion.standard, value: "\(head)\(reminders)")
-        .accessibilityIdentifier("todos.summary")
     }
 
     // MARK: - 清单
@@ -285,6 +276,27 @@ struct TodosPage: View {
 }
 
 extension TodosPage {
+    /// 「今天还有 5 件 · 完成 1 件 · 🔔 3 个提醒已排好」（铃铛是图标）
+    private func summary(_ page: API.TodoPage, now: String) -> some View {
+        let plan = TodoListPlan.make(page: page, held: model.todoHeld, events: events(page.today), now: now)
+        let counts = plan.counts(page: page)
+        let head =
+            counts.left == 0 ? "今天的都做完了 · 完成 \(counts.done) 件" : "今天还有 \(counts.left) 件 · 完成 \(counts.done) 件"
+        // 排好了几个提醒：这台手机上真排上的系统通知（断网也准）；演示数据不排通知，数还没到的
+        let reminders = model.demo ? TodoListPlan.reminders(page, now: now) : model.reminderState?.scheduled ?? 0
+        return Group {
+            if reminders > 0 {
+                Text("\(head) · \(Image(systemName: "bell")) \(reminders) 个提醒已排好")
+            } else {
+                Text(head)
+            }
+        }
+        .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit()
+        .contentTransition(.numericText())
+        .animation(Theme.Motion.standard, value: "\(head)\(reminders)")
+        .accessibilityIdentifier("todos.summary")
+    }
+
     /// 第一次来时的一次性引导（以前常驻在最下面）：看过点「知道了」就不再出
     private var guide: some View {
         HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {

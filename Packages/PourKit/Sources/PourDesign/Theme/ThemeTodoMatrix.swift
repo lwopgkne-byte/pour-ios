@@ -115,19 +115,26 @@ public struct MatrixCard<Ring: View>: View {
     }
 }
 
-/// 「还没分」托盘里的一件：白底描边胶囊，空心圈 + 名字（点了选一格、按住拖进格子）
+/// 托盘里的一件（四象限的「还没分」、时间线的「还没排时间」）：白底描边胶囊，象限的小圈 + 名字（+「 · 下午」）；
+/// 点了选一格或打开编辑，按住拖走
 public struct TrayChip: View {
     let title: String
+    let quadrant: Int
+    let note: String?
 
-    public init(_ title: String) {
+    public init(_ title: String, quadrant: Int = 0, note: String? = nil) {
         self.title = title
+        self.quadrant = quadrant
+        self.note = note
     }
 
     public var body: some View {
         HStack(spacing: Theme.Space.small) {
-            Circle().strokeBorder(Theme.Quadrant.ring(0), lineWidth: 1.5)
-                .frame(width: Theme.Size.check - Theme.Space.tight, height: Theme.Size.check - Theme.Space.tight)
+            QuadrantBadge(quadrant: quadrant, size: Theme.Size.check - Theme.Space.tight)
             Text(title).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label).lineLimit(1)
+            if let note {
+                Text("· \(note)").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.secondaryLabel).fixedSize()
+            }
         }
         .padding(.leading, Theme.Space.small + Theme.Space.hairline).padding(.trailing, Theme.Space.medium)
         .frame(minHeight: Theme.Size.touch)

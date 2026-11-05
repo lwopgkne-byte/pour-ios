@@ -142,15 +142,25 @@ final class TodosUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(row(app, "吃降压药").exists, "下一次没出来")
     }
 
-    /// 今天的时间线：分段换过去，有钟点的待办摆上去
+    /// 今天的时间线（待办 2.0 第 8 步）：定了钟点的待办是小标签；没定钟点的在上面「还没排时间」托盘里，
+    /// 按住拖到下面的时间上就定下钟点（说一声、能撤销）
     @MainActor func testTimeline() throws {
         let app = openTodos()
         app.buttons["时间线"].tap()
-        let block = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS '给客户回电话'"))
-            .firstMatch
-        XCTAssertTrue(block.waitForExistence(timeout: 3), "时间线上没有带钟点的待办")
+        let tag = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier == 'timeline.tag' AND label BEGINSWITH '给客户回电话'")).firstMatch
+        XCTAssertTrue(tag.waitForExistence(timeout: 3), "时间线上没有带钟点的待办")
+        let chip = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier == 'timeline.tray.chip' AND label CONTAINS '回邮件'")).firstMatch
+        XCTAssertTrue(chip.exists, "托盘里没有没定时间的回邮件")
         shot("今天的时间线", of: app.screenshot())
         try AppAudit.run(app, name: "今天的时间线")
+        let canvas = app.descendants(matching: .any)["timeline.canvas"]
+        chip.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(
+            forDuration: 1.2, thenDragTo: canvas.coordinate(withNormalizedOffset: CGVector(dx: 0.6, dy: 0.3)),
+            withVelocity: .slow, thenHoldForDuration: 0.5)
+        let said = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '「回邮件」排到'")).firstMatch
+        XCTAssertTrue(said.waitForExistence(timeout: 3), "拖到时间线上没定下钟点")
     }
 
     /// 几条路都通（01 需求文档 2.4、4.6）：画布待办卡的标题进待办页；卡片右上角「＋」、「我的」的「加待办」打开加待办；
