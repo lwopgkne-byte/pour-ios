@@ -174,11 +174,14 @@ struct TodosPage: View {
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 if many {
-                    Menu("全部挪到…") {
+                    Menu {
                         if let move { Button(move.title) { model.move(open, to: move) } }
                         Button(TodoMove.tomorrow.title) { model.move(open, to: .tomorrow) }
+                    } label: {
+                        // 点的地方 44 高（组标题那一行字小，按钮跟着字高只有 18，2026-11-06 审计）
+                        Text("全部挪到…").font(Theme.Typeface.subheadline.weight(.semibold))
+                            .frame(minHeight: Theme.Size.touch).contentShape(Rectangle())
                     }
-                    .font(Theme.Typeface.subheadline.weight(.semibold))
                     .accessibilityIdentifier("todos.moveAll")
                 }
             }

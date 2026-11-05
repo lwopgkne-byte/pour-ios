@@ -97,13 +97,21 @@ final class TodosUITests: XCTestCase, TodoTesting {
         let header = lateHeader(app)
         XCTAssertTrue(header.waitForExistence(timeout: 3), "没有「过点了」这一组")
         let before = header.label
-        let tomorrow = app.buttons["明天再说"].firstMatch
-        XCTAssertTrue(tomorrow.exists, "过点了的下面没有「明天再说」")
-        XCTAssertTrue(app.buttons["不做了"].firstMatch.exists, "过点了的下面没有「不做了」")
-        tomorrow.tap()
+        let moveAll = app.buttons["todos.moveAll"]
+        if moveAll.exists {
+            // 多于 3 件（半夜里今天的 23:50、23:55 也过了）：行下面不放小按钮，标题旁一个「全部挪到…」
+            XCTAssertFalse(app.buttons["不做了"].firstMatch.exists, "多于 3 件还在每件下面放小按钮")
+            moveAll.tap()
+            app.buttons["明天再说"].tap()
+        } else {
+            let tomorrow = app.buttons["明天再说"].firstMatch
+            XCTAssertTrue(tomorrow.exists, "过点了的下面没有「明天再说」")
+            XCTAssertTrue(app.buttons["不做了"].firstMatch.exists, "过点了的下面没有「不做了」")
+            tomorrow.tap()
+        }
         let said = app.staticTexts.matching(NSPredicate(format: "label ENDSWITH '挪到明天了'")).firstMatch
         XCTAssertTrue(said.waitForExistence(timeout: 3), "挪了没说")
-        XCTAssertTrue(header.label != before || !header.exists, "挪走了这一组还是 \(before)")
+        XCTAssertTrue(!header.exists || header.label != before, "挪走了这一组还是 \(before)")
         app.buttons["undoToast"].tap()
         XCTAssertTrue(waitFor(header, labelContains: before), "撤销以后没挪回来：\(header.label)")
     }
