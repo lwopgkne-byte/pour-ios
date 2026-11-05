@@ -52,6 +52,8 @@ extension Theme {
         public static let quote = Font.custom("Songti SC", size: 17, relativeTo: .body)
         /// 对话里的话（原型 16）
         public static let message = Font.callout
+        /// 待办 2.0 编辑弹框的名字（设计稿 26 粗，系统字号里最近的是 28）
+        public static let editTitle = Font.title.weight(.bold)
         /// 点开一条记录的大标题「上班」（原型 24 粗，系统字号里最近的是 22）
         public static let recordTitle = Font.title2.weight(.bold)
         /// 弹层的标题「说一句」（原型 18 粗）
@@ -167,8 +169,10 @@ extension Theme {
         /// 骨架灰条：一行字、一张卡
         public static let skeletonLine: CGFloat = 20
         public static let skeletonWidth: CGFloat = 240
-        /// 待办 2.0 三段的切换（清单 | 四象限 | 时间线）有多高
+        /// 待办 2.0 三段的切换（清单 | 四象限 | 时间线）有多高；「放进哪一格」一块多高；编辑弹框的芯片多高
         public static let segment: CGFloat = 38
+        public static let choiceBlock: CGFloat = 64
+        public static let editChip: CGFloat = 36
         /// 记心情那一排表情的圆（原型 .face .c 50）；一行一刻心情前面的小表情（原型 faceDot 30）
         public static let moodFace: CGFloat = 50
         public static let moodDot: CGFloat = 30
@@ -197,8 +201,9 @@ extension Theme {
         /// 「我的」功能格子的彩色方块（3.0，01 需求文档 2.3）、快捷大按钮的浅底
         public static let hubTile: CGFloat = 12
         public static let quick: CGFloat = 17
-        /// 待办 2.0 三段的切换
+        /// 待办 2.0 三段的切换；「放进哪一格」的一块
         public static let segment: CGFloat = 12
+        public static let choice: CGFloat = 14
         /// 从下面拉上来的弹层上面两个角（照原型 .sheet 30）
         public static let sheet: CGFloat = 30
         /// 对话气泡贴着说话人那一角（原型 6）

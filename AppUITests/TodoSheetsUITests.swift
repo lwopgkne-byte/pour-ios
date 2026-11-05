@@ -29,28 +29,42 @@ final class TodoSheetsUITests: XCTestCase, TodoTesting {
         XCTAssertGreaterThan(row(app, "取快递").frame.minY, app.staticTexts["明天"].frame.minY, "不在明天")
     }
 
-    /// 详情：和谁原地改；点提醒、点重复、点日子，单子里马上变
+    /// 编辑弹框（待办 2.0 第 5 步）：AI 猜的格子写「AI 猜的，点别的就改」；格子、日子、时间段、重复先改在弹框里，
+    /// 点「保存」一起改；没存就关先问一句（「不保存」就照旧。iOS 26 起这种问法没有取消按钮，点外面就是接着改）
     @MainActor func testDetail() throws {
         let app = openTodos()
         row(app, "回邮件").tap()
         let title = app.descendants(matching: .any).matching(identifier: "todoDetail.title").firstMatch
-        XCTAssertTrue(title.waitForExistence(timeout: 3), "详情没打开")
-        shot("待办详情", of: app.screenshot())
-        // 从右上角「关闭」往上拖（和别的弹层一样）：3.0.1 胶囊的字大了、内容变高，从「日期」拖成了滚动内容，
-        // 弹层停在半屏，审计自己一滚弹层又变高，一直不静止（审计超时，2026-11-04）
-        expandSheet(app, from: app.buttons["关闭"].firstMatch)
-        try AppAudit.run(app, name: "待办详情")
-        // 待办 2.0 第 2 步：和谁、东西、地方三行去掉了（数据留着，搜索和 AI 照用）
-        XCTAssertFalse(app.buttons["改和谁"].exists, "弹层里还有「和谁」")
-        app.buttons["20:00"].tap()
+        XCTAssertTrue(title.waitForExistence(timeout: 3), "编辑弹框没打开")
+        XCTAssertTrue(app.staticTexts["AI 猜的，点别的就改"].exists, "猜的格子没说")
+        shot("待办编辑", of: app.screenshot())
+        try AppAudit.run(app, name: "待办编辑")
+        app.buttons["todoDetail.quadrant.1"].tap()
+        XCTAssertTrue(app.buttons["todoDetail.quadrant.1"].isSelected, "格子没选上")
+        XCTAssertFalse(app.staticTexts["AI 猜的，点别的就改"].exists, "自己选了还说是猜的")
+        app.buttons["关闭"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["不保存"].waitForExistence(timeout: 3), "没存就关没问")
+        app.buttons["不保存"].tap()
+        XCTAssertTrue(title.waitForNonExistence(timeout: 3), "不保存没关上")
+        XCTAssertTrue(row(app, "回邮件").label.contains("快速办（猜的）"), "不保存也改了：\(row(app, "回邮件").label)")
+        // 再开：改格子、时间段、重复、日子，点「保存」一起改
+        row(app, "回邮件").tap()
+        XCTAssertTrue(title.waitForExistence(timeout: 3))
+        app.buttons["todoDetail.quadrant.1"].tap()
+        app.buttons["下午"].tap()
+        let hint = app.staticTexts["todoDetail.hint"]
+        XCTAssertTrue(waitFor(hint, labelContains: "下午 2 点轻提醒一次"), "时间段没说怎么提醒：\(hint.label)")
+        app.reveal(app.buttons["todoDetail.repeat"])
+        app.buttons["todoDetail.repeat"].tap()
         app.buttons["每天"].tap()
         XCTAssertTrue(app.buttons["每天"].isSelected, "重复没选上")
         app.buttons["明天"].firstMatch.tap()
-        pause()
-        app.buttons["关闭"].firstMatch.tap()
+        app.reveal(app.buttons["todoDetail.save"])
+        app.buttons["todoDetail.save"].tap()
         let mail = row(app, "回邮件")
         XCTAssertTrue(find(mail, in: app), "改了以后单子里找不到")
         XCTAssertTrue(waitFor(mail, labelContains: "每天"), "单子里没写每天：\(mail.label)")
+        XCTAssertTrue(mail.label.contains("马上做") && mail.label.contains("下午"), "格子、时间段没改上：\(mail.label)")
         XCTAssertGreaterThan(mail.frame.minY, app.staticTexts["明天"].frame.minY, "改了明天没挪过去")
     }
 

@@ -5,7 +5,8 @@ import Testing
 
 @testable import Pour
 
-/// 待办 2.0 第 4 步（docs/todo-2.0）：清单页怎么摆（过点了、今天、放一放）、过点了往哪挪
+/// 待办 2.0 第 4、5 步（docs/todo-2.0）：清单页怎么摆（过点了、今天、放一放）、过点了往哪挪；
+/// 编辑弹框只发改了的那几样
 @Suite("待办 2.0：清单和编辑")
 @MainActor
 struct TodoListTests {
@@ -43,5 +44,27 @@ struct TodoListTests {
         #expect(TodoListPlan.laterToday(now: "2026-10-27T11:35") == .afternoon)
         #expect(TodoListPlan.laterToday(now: "2026-10-27T15:00") == .evening)
         #expect(TodoListPlan.laterToday(now: "2026-10-27T21:03") == nil)
+    }
+
+    /// 编辑弹框：没改就不发；改成时间段把钟点去掉；以后再说只发 someday（日子、钟点由服务器去掉）
+    @Test func draftSendsOnlyChanges() {
+        var row = API.TodoRow(id: 7, content: "回复客户电话", day: Self.today, remindAt: "15:00")
+        row.quadrant = TodoQuadrant.quick.rawValue
+        row.quadrantByAI = true
+        var draft = TodoDraft(row)
+        #expect(!draft.change(from: row).any)
+        draft.title = "  回复客户电话  "
+        #expect(!draft.change(from: row).any)
+        draft.time = nil
+        draft.window = .afternoon
+        draft.quadrant = .doNow
+        let change = draft.change(from: row)
+        #expect(change.time == .some(nil) && change.window == .some(.afternoon) && change.quadrant == .doNow)
+        #expect(change.day == nil && change.someday == nil && change.content == nil)
+        draft.day = nil
+        let later = draft.change(from: row)
+        #expect(later.someday == true && later.day == nil && later.time == nil)
+        let back = TodoDraft(AppModel.edited(row, today: Self.today, someday: true))
+        #expect(back.day == nil && back.time == nil && back.window == nil)
     }
 }
