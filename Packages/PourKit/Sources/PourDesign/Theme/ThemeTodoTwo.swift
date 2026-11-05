@@ -140,9 +140,12 @@ public struct TodoTrailing: View {
     }
 
     let kind: Kind
+    /// 不带底色（四象限的小卡第二行：「⏱ 11:12 过了」沙色字）
+    let plain: Bool
 
-    public init(_ kind: Kind) {
+    public init(_ kind: Kind, plain: Bool = false) {
         self.kind = kind
+        self.plain = plain
     }
 
     public var body: some View {
@@ -162,11 +165,23 @@ public struct TodoTrailing: View {
                     Text(text)
                 }
                 .font(Theme.Typeface.subheadline.weight(.semibold)).foregroundStyle(Theme.Palette.accent)
-            case .late(let text): SandPill(text, symbol: "clock")
-            case .clash(let text): SandPill(text, symbol: "exclamationmark.triangle")
+            case .late(let text): sand(text, symbol: "clock")
+            case .clash(let text): sand(text, symbol: "exclamationmark.triangle")
             }
         }
         .monospacedDigit().lineLimit(1).fixedSize()
+    }
+
+    @ViewBuilder private func sand(_ text: String, symbol: String) -> some View {
+        if plain {
+            HStack(spacing: Theme.Space.hairline + 1) {
+                Image(systemName: symbol).font(Theme.Typeface.caption)
+                Text(text).font(Theme.Typeface.footnoteSemibold)
+            }
+            .foregroundStyle(Theme.Palette.warnInk)
+        } else {
+            SandPill(text, symbol: symbol)
+        }
     }
 }
 

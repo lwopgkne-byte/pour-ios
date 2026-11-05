@@ -8,13 +8,15 @@ import SwiftUI
 /// 今天（全天的日程最前、不定时的在上、别的按时间、日程穿插；放一放折成一行放最后）、明天、这周、以后；已完成收起。
 /// 右滑完成、左滑推迟或删除、按住出菜单（TodoPressMenu）；勾掉的划线留在原地，离开再回来才收进「已完成」
 struct TodosPage: View {
-    @Environment(AppModel.self) private var model
+    @Environment(AppModel.self) var model
     @State private var mode = Mode.list
-    @State private var showDone = false
+    @State var showDone = false
     @State private var showLater = false
-    @State private var byPerson = false
+    @State var byPerson = false
     /// 现在几点（到分钟）
-    @State private var now = TodosPage.clock()
+    @State var now = TodosPage.clock()
+    /// 四象限里点开的那一格（看这一格的全部）
+    @State var focus: TodoQuadrant?
     /// 一次性引导看过了（存在这台手机上）
     @AppStorage("todos.guideSeen") private var guideSeen = false
 
@@ -23,12 +25,52 @@ struct TodosPage: View {
     }
 
     var body: some View {
+        Group {
+            if mode == .matrix, focus == nil, let page = model.todoPage {
+                // 四象限不放在 List 里：List 自己接拖放，格子收不到放下来的卡片（2026-11-05 测出来的）
+                ScrollView {
+                    VStack(alignment: .leading, spacing: Theme.Space.medium) {
+                        heading(now: now)
+                        TodoMatrixSection(page: page, now: now, mode: $mode, focus: $focus)
+                    }
+                    .padding(.horizontal, Theme.Space.regular)
+                    .padding(.bottom, Theme.Space.large)
+                }
+                .refreshable { await model.loadTodos() }
+            } else {
+                list
+            }
+        }
+        .toolbar { toolbar }
+        .task(id: model.dataVersion) { await model.loadTodos() }
+        .task { model.loadTodayEvents() }
+        .task(id: model.todoFlash) {
+            // 新加的、刚挪过来的那一行亮一下（1.5 秒）再变回去
+            guard model.todoFlash != nil else { return }
+            try? await Task.sleep(for: .seconds(1.5))
+            withAnimation(Theme.Motion.standard) { model.todoFlash = nil }
+        }
+        .onDisappear { model.settleTodos() }
+        .onChange(of: mode) { focus = nil }
+        .task {
+            // 跟着钟走（过点了、快到了）：每到整分钟换一次。不用 TimelineView 包整个列表：和大标题的导航栏
+            // 互相触发布局，一直转（2026-11-05 界面测试里 CPU 跑满）
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60 - Calendar.current.component(.second, from: Date())))
+                now = Self.clock()
+            }
+        }
+    }
+
+    static func clock() -> String { PourDate.localDateTime(Date(), in: .current) }
+
+    private var list: some View {
         List {
             top(now: now)
             if let page = model.todoPage {
                 switch mode {
                 case .list: listSections(page, now: now)
-                case .matrix: TodoMatrixSection(page: page, now: now)
+                case .matrix: if let focus { focusSections(page, focus) }
                 case .timeline: TodoTimelineSection(page: page, events: events(page.today))
                 }
             } else if let problem = model.todoProblem {
@@ -45,40 +87,25 @@ struct TodosPage: View {
         .scrollContentBackground(.hidden)
         .environment(\.defaultMinListRowHeight, Theme.Size.touch)
         .refreshable { await model.loadTodos() }
-        .toolbar { toolbar }
-        .task(id: model.dataVersion) { await model.loadTodos() }
-        .task { model.loadTodayEvents() }
-        .task(id: model.todoFlash) {
-            // 新加的、刚挪过来的那一行亮一下（1.5 秒）再变回去
-            guard model.todoFlash != nil else { return }
-            try? await Task.sleep(for: .seconds(1.5))
-            withAnimation(Theme.Motion.standard) { model.todoFlash = nil }
-        }
-        .onDisappear { model.settleTodos() }
-        .task {
-            // 跟着钟走（过点了、快到了）：每到整分钟换一次。不用 TimelineView 包整个列表：和大标题的导航栏
-            // 互相触发布局，一直转（2026-11-05 界面测试里 CPU 跑满）
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(60 - Calendar.current.component(.second, from: Date())))
-                now = Self.clock()
-            }
-        }
     }
-
-    static func clock() -> String { PourDate.localDateTime(Date(), in: .current) }
 
     // MARK: - 顶上：一句话、清单 | 四象限 | 时间线
 
-    @ViewBuilder private func top(now: String) -> some View {
+    private func top(now: String) -> some View {
         Section {
-            VStack(alignment: .leading, spacing: Theme.Space.medium) {
-                if let page = model.todoPage { summary(page, now: now) }
-                PillSegments(selection: $mode, items: [(.list, "清单"), (.matrix, "四象限"), (.timeline, "时间线")])
-                    .accessibilityIdentifier("todos.mode")
-                if !guideSeen { guide }
-            }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 0, leading: Theme.Space.regular, bottom: 0, trailing: Theme.Space.regular))
+            heading(now: now)
+                .listRowBackground(Color.clear)
+                .listRowInsets(
+                    EdgeInsets(top: 0, leading: Theme.Space.regular, bottom: 0, trailing: Theme.Space.regular))
+        }
+    }
+
+    private func heading(now: String) -> some View {
+        VStack(alignment: .leading, spacing: Theme.Space.medium) {
+            if let page = model.todoPage { summary(page, now: now) }
+            PillSegments(selection: $mode, items: [(.list, "清单"), (.matrix, "四象限"), (.timeline, "时间线")])
+                .accessibilityIdentifier("todos.mode")
+            if !guideSeen { guide }
         }
     }
 
@@ -206,7 +233,7 @@ struct TodosPage: View {
 
     /// 一行（加上列表的边、左右滑、按住的菜单）；chips：过点了的那一行下面带小按钮（move 是今天往后挪到哪，
     /// 没有就只给「明天再说 · 不做了」）
-    private func todoRow(
+    func todoRow(
         _ row: API.TodoRow, group: String, today: String, chips: Bool = false, move: TodoMove? = nil
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -313,80 +340,5 @@ extension TodosPage {
         }
         .textCase(nil)
         .padding(.horizontal, -Theme.Space.tight)
-    }
-
-    /// 已完成：默认收起，一行「已完成 5 件 ›」，点了展开
-    private func doneSection(_ group: API.TodoGroup) -> some View {
-        Section {
-            Button {
-                withAnimation(Theme.Motion.standard) { showDone.toggle() }
-            } label: {
-                HStack {
-                    Text(showDone ? "收起已完成" : "已完成 \(group.rows.count) 件")
-                        .font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.accent)
-                    Spacer()
-                    Image(systemName: "chevron.right").font(Theme.Typeface.glyph)
-                        .foregroundStyle(Theme.Palette.tertiaryLabel)
-                        .rotationEffect(.degrees(showDone ? 90 : 0))
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("todos.done")
-            if showDone {
-                ForEach(group.rows) { todoRow($0, group: "done", today: model.todoPage?.today ?? model.today) }
-            }
-        }
-    }
-
-    // MARK: - 按人（「···」里换）：没做完的按和谁分，没写和谁的放最后
-
-    @ViewBuilder
-    private func personSections(_ sections: [API.TodoGroup]) -> some View {
-        let open = sections.filter { $0.key != "done" }.flatMap(\.rows)
-        let names = Array(Set(open.flatMap(\.people))).sorted()
-        let today = model.todoPage?.today ?? model.today
-        ForEach(names, id: \.self) { name in
-            Section {
-                ForEach(open.filter { $0.people.contains(name) }) { todoRow($0, group: "person", today: today) }
-            } header: {
-                Text(name).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label).textCase(nil)
-                    }
-        }
-        let alone = open.filter(\.people.isEmpty)
-        if !alone.isEmpty {
-            Section {
-                ForEach(alone) { todoRow($0, group: "person", today: today) }
-            } header: {
-                Text("没写和谁").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label).textCase(nil)
-                    }
-        }
-    }
-
-    // MARK: - 右上角：加待办、更多
-
-    @ToolbarContentBuilder private var toolbar: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Menu {
-                Toggle("显示已完成", isOn: $showDone)
-                Picker("怎么排", selection: $byPerson) {
-                    Text("按时间").tag(false)
-                    Text("按人").tag(true)
-                }
-            } label: {
-                Image(systemName: "ellipsis").font(Theme.Typeface.toolbarIcon)
-            }
-            .accessibilityLabel(Text("更多"))
-            .accessibilityIdentifier("todos.more")
-        }
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                model.todoSheet = .add("")
-            } label: {
-                Image(systemName: Theme.Symbol.add).font(Theme.Typeface.toolbarIcon)
-            }
-            .accessibilityLabel(Text("加待办"))
-            .accessibilityIdentifier("todos.add")
-        }
     }
 }

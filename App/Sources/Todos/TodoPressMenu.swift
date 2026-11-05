@@ -202,14 +202,7 @@ struct TodoPressMenu: View {
     /// 换一格：先改界面再发；轻提示能撤销
     private func choose(_ lane: TodoQuadrant) {
         close()
-        guard lane != row.lane else { return }
-        let old = row.lane
-        let id = row.id
-        let model = self.model
-        model.editTodo(id, quadrant: lane)
-        model.toast("「\(row.content)」放进\(lane.title)", action: "撤销") { [weak model] in
-            model?.editTodo(id, quadrant: old)
-        }
+        model.file([row], into: lane)
     }
 
     private func open(_ sheet: TodoSheet) {

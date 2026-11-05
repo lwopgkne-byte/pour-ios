@@ -54,6 +54,8 @@ extension Theme {
         public static let message = Font.callout
         /// 待办 2.0 编辑弹框的名字（设计稿 26 粗，系统字号里最近的是 28）
         public static let editTitle = Font.title.weight(.bold)
+        /// 四象限小卡的名字（待办 2.0 第 7 步：格子窄，比一行待办小一号，长了折成两行）
+        public static let cardItem = Font.callout
         /// 按住一行的菜单最上面四个格子的图标（待办 2.0 第 6 步）
         public static let quadrantIcon = Font.title3.weight(.medium)
         /// 点开一条记录的大标题「上班」（原型 24 粗，系统字号里最近的是 22）
@@ -327,6 +329,8 @@ extension Theme {
             public static let swipe = SensoryFeedback.impact(weight: .light)
             public static let delete = SensoryFeedback.warning
             public static let keypad = SensoryFeedback.impact(flexibility: .soft)
+            /// 待办 2.0：四象限里把卡片放进别的格子、时间线上放到一个钟点（松手轻震）
+            public static let drop = SensoryFeedback.impact(weight: .medium)
         }
     #endif
 }
