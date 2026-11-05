@@ -18,7 +18,9 @@ enum TodoNotifications {
     static func listen() {
         Reminders.listen(
             { action, id in await handle(action, id) }, mood: { answer in await MoodEvening.handle(answer) },
-            open: { path in await MainActor.run { QuickActions.shared.pendingPath = path } })
+            open: { path in await MainActor.run { QuickActions.shared.pendingPath = path } },
+            // 响了一条：往后补排一条（待办 2.0 第 11 步，只排最近的 56 条）
+            delivered: { await MainActor.run { model?.syncReminders() } })
     }
 
     static func handle(_ action: Reminders.Action, _ id: Int) async {
@@ -89,7 +91,9 @@ enum TodoNotifications {
         guard let list = try? await client.todoReminders() else { return }
         await Reminders.sync(
             list.map {
-                Reminder(id: String($0.id), content: $0.content, time: $0.at, said: $0.said.map(Show.monthDay))
+                Reminder(
+                    id: String($0.id), content: $0.content, time: $0.at, said: $0.said.map(Show.monthDay),
+                    window: $0.window.flatMap(TimeWindow.init(rawValue:))?.title)
             },
             reserved: reserved)
     }

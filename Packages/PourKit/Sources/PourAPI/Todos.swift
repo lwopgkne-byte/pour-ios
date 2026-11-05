@@ -239,6 +239,8 @@ extension API {
         public let at: String
         /// 哪天说的（通知正文「你 10月26日说的」）
         public let said: String?
+        /// 待办 2.0：只说了时间段的轻提醒（morning / afternoon / evening）；有钟点的、旧服务器是 nil
+        public let window: String?
     }
 
     /// 快加时边打边认的结果（服务器 parseWhen）

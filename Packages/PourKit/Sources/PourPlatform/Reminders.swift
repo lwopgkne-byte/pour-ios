@@ -12,8 +12,9 @@ public enum Reminders {
     static let prefix = "pour.todo."
     /// 通知的分类：带那四个按钮
     static let category = "pour.todo"
-    /// 最多排几条（系统最多 64 个，留几个给别的）
-    public static let limit = 60
+    /// 最多排几条（系统最多 64 个：待办和目标合起来 56 个，留 8 个给晚上问心情这些；只排最近的，
+    /// 到点响了一条、打开 App、后台刷新时往后补排——待办 2.0 第 11 步）
+    public static let limit = 56
 
     /// 通知上点了什么：四个按钮，或者点了通知本身（打开待办）
     public enum Action: String, CaseIterable, Sendable {
@@ -55,11 +56,17 @@ public enum Reminders {
         for (item, parts) in upcoming {
             let content = UNMutableNotificationContent()
             content.title = item.content
-            content.body = item.said.map { "你 \($0)说的" } ?? "你说过这时候提醒你"
             content.sound = .default
             content.categoryIdentifier = category
-            // 时间敏感：专注模式下也出来（要苹果开发者计划的权限；免费签名时系统当普通通知，见 docs/3.0/进度.md）
-            content.interruptionLevel = .timeSensitive
+            if let window = item.window {
+                // 待办 2.0：只说了时间段的，时段开头轻提醒一次——普通通知，不抢专注模式
+                content.body = "\(window)了，记得这件事" + (item.said.map { "（你 \($0)说的）" } ?? "")
+                content.interruptionLevel = .active
+            } else {
+                content.body = item.said.map { "你 \($0)说的" } ?? "你说过这时候提醒你"
+                // 时间敏感：专注模式下也出来（要苹果开发者计划的权限；免费签名时系统当普通通知，见 docs/3.0/进度.md）
+                content.interruptionLevel = .timeSensitive
+            }
             let trigger = UNCalendarNotificationTrigger(dateMatching: parts, repeats: false)
             try? await center.add(
                 UNNotificationRequest(identifier: prefix + item.id, content: content, trigger: trigger))
@@ -105,7 +112,8 @@ public enum Reminders {
     public static func listen(
         _ handler: @escaping @Sendable (Action, Int) async -> Void,
         mood: @escaping @Sendable (EveningMood.Answer) async -> Void = { _ in },
-        open: @escaping @Sendable (String) async -> Void = { _ in }
+        open: @escaping @Sendable (String) async -> Void = { _ in },
+        delivered: @escaping @Sendable () async -> Void = {}
     ) {
         let buttons = Action.allCases.compactMap { action in
             action.title.map { UNNotificationAction(identifier: action.rawValue, title: $0, options: []) }
@@ -118,6 +126,7 @@ public enum Reminders {
         NotificationDelegate.shared.handler.withLock { $0 = handler }
         NotificationDelegate.shared.mood.withLock { $0 = mood }
         NotificationDelegate.shared.open.withLock { $0 = open }
+        NotificationDelegate.shared.delivered.withLock { $0 = delivered }
         center.delegate = NotificationDelegate.shared
     }
 }
@@ -129,12 +138,17 @@ private final class NotificationDelegate: NSObject, UNUserNotificationCenterDele
     let handler = Mutex<(@Sendable (Reminders.Action, Int) async -> Void)?>(nil)
     let mood = Mutex<(@Sendable (EveningMood.Answer) async -> Void)?>(nil)
     let open = Mutex<(@Sendable (String) async -> Void)?>(nil)
+    /// App 开着时响了一条：空出一个位置，往后补排（只排最近的 56 条，滚着排）
+    let delivered = Mutex<(@Sendable () async -> Void)?>(nil)
 
     func userNotificationCenter(
         _ center: UNUserNotificationCenter, willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
         completionHandler([.banner, .sound, .list])
+        if notification.request.identifier.hasPrefix(Reminders.prefix), let delivered = delivered.withLock({ $0 }) {
+            Task { await delivered() }
+        }
     }
 
     func userNotificationCenter(
@@ -177,17 +191,20 @@ private final class NotificationDelegate: NSObject, UNUserNotificationCenterDele
     }
 }
 
-/// 一条要提醒的待办：哪条、提醒什么、几点（本地钟点）、哪天说的（「10月26日」）
+/// 一条要提醒的待办：哪条、提醒什么、几点（本地钟点）、哪天说的（「10月26日」）；
+/// window：只说了时间段的轻提醒（「下午」），有钟点的是 nil
 public struct Reminder: Hashable, Sendable {
     public var id: String
     public var content: String
     public var time: LocalDateTime
     public var said: String?
+    public var window: String?
 
-    public init(id: String, content: String, time: LocalDateTime, said: String? = nil) {
+    public init(id: String, content: String, time: LocalDateTime, said: String? = nil, window: String? = nil) {
         self.id = id
         self.content = content
         self.time = time
         self.said = said
+        self.window = window
     }
 }
