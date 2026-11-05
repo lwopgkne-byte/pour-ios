@@ -48,7 +48,7 @@ struct TodoTimelineTests {
         #expect(plan.tags.first { $0.row.id == 1 }?.clash == nil)
         // 13:00–15:00 空着，建议排「回复客户电话」（带下午的时间段）
         #expect(plan.gaps.first?.text == "13:00–15:00")
-        #expect(plan.suggestion?.row.id == 4)
+        #expect(plan.suggestion?.row.id == 4 && plan.suggestion?.at == 14 * 60)
         // 托盘：只说了时间段的、没说时间的
         #expect(Set(plan.tray.map(\.id)) == [4, 5])
         // 展开以后不收
@@ -73,8 +73,14 @@ struct TodoTimelineTests {
         schedule.quadrant = TodoQuadrant.schedule.rawValue
         let evening = API.TodoRow(id: 2, content: "收衣服", day: Self.today, window: .evening)
         #expect(TodoTimelinePlan.suggest(gaps: gaps, tray: [evening, schedule])?.row.id == 1)
-        // 晚上的只建议进晚上的空档
+        // 晚上的只建议进和晚上重叠的空档：12:00–15:00 不行，16:00–22:00 排在 19:00
         #expect(TodoTimelinePlan.suggest(gaps: [gaps[0]], tray: [evening]) == nil)
+        let night = TodoTimelinePlan.suggest(gaps: gaps, tray: [evening])
+        #expect(night?.gap == gaps[1] && night?.at == 19 * 60)
+        // 下午的放进一大段空档（10:30–17:30）：排在下午 14:00（以前只看空档开头是不是下午，排不进）
+        let afternoon = API.TodoRow(id: 3, content: "整理报销单", day: Self.today, window: .afternoon)
+        let long = TodoTimelinePlan.Gap(start: 10 * 60 + 30, end: 17 * 60 + 30)
+        #expect(TodoTimelinePlan.suggest(gaps: [long], tray: [afternoon])?.at == 14 * 60)
     }
 
     @Test func shortNames() {

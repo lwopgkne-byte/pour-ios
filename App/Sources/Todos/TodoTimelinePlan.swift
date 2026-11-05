@@ -47,7 +47,7 @@ struct TodoTimelinePlan {
     /// 还没排时间的（今天只有时间段的、不定时的）
     var tray: [API.TodoRow]
     /// 建议排进哪个空档的那一件
-    var suggestion: (gap: Gap, row: API.TodoRow)?
+    var suggestion: Suggestion?
     /// 现在是今天的第几分钟（不是今天是 nil）
     var now: Int?
 
@@ -169,13 +169,33 @@ struct TodoTimelinePlan {
         return out.filter { $0.end - $0.start >= 60 }
     }
 
-    /// 建议排进去的一件：先排时间那格的（时间段对得上或者没时间段），再是时间段对得上空档的；找第一个有得排的空档
-    static func suggest(gaps: [Gap], tray: [API.TodoRow]) -> (gap: Gap, row: API.TodoRow)? {
+    /// 建议：把哪一件排进哪个空档的哪一刻
+    struct Suggestion {
+        let gap: Gap
+        let row: API.TodoRow
+        let at: Int
+    }
+
+    /// 建议排进去的一件：先排时间那格的，再是带时间段的；找第一个排得进的空档
+    static func suggest(gaps: [Gap], tray: [API.TodoRow]) -> Suggestion? {
+        let ordered =
+            tray.filter { $0.lane == .schedule } + tray.filter { $0.lane != .schedule && $0.timeWindow != nil }
         for gap in gaps {
-            let fits = { (row: API.TodoRow) in row.timeWindow.map { $0.hours.contains(gap.start / 60) } }
-            if let row = tray.first(where: { $0.lane == .schedule && fits($0) != false }) { return (gap, row) }
-            if let row = tray.first(where: { fits($0) == true }) { return (gap, row) }
+            for row in ordered {
+                if let at = place(row, in: gap) { return Suggestion(gap: gap, row: row, at: at) }
+            }
         }
         return nil
+    }
+
+    /// 排进这个空档的哪一刻：没时间段的从空档开头；有时间段的，时间段和空档重叠的那一截要有 1 小时，
+    /// 排在时段开头的钟点（下午 14:00），钟点不在那一截里就排在那一截的开头
+    static func place(_ row: API.TodoRow, in gap: Gap) -> Int? {
+        guard let window = row.timeWindow else { return gap.start }
+        let from = max(gap.start, window.hours.lowerBound * 60)
+        let until = min(gap.end, (window.hours.upperBound + 1) * 60)
+        guard until - from >= 60 else { return nil }
+        let nudge = minute(window.nudge) ?? from
+        return nudge >= from && nudge + 60 <= until ? nudge : from
     }
 }

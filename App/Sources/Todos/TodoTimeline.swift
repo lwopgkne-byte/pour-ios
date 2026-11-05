@@ -152,12 +152,13 @@ struct TodoTimelineView: View {
 
     /// 空档：虚线框，第一个排得进的空档带一个建议
     private func gapView(_ gap: TodoTimelinePlan.Gap, plan: TodoTimelinePlan, width: CGFloat, from: Int) -> some View {
-        let suggested = plan.suggestion?.gap == gap ? plan.suggestion?.row : nil
+        let suggestion = plan.suggestion?.gap == gap ? plan.suggestion : nil
+        let suggested = suggestion?.row
         return GapBox(
             text: "\(gap.text) 空着", suggestion: suggested.map { "把「\(Show.spaced($0.content))」排进来" },
             lit: model.todoGaps
         ) {
-            if let suggested { model.schedule(suggested, at: gap.start) }
+            if let suggestion { model.schedule(suggestion.row, at: suggestion.at) }
         }
         .frame(width: width - Theme.Space.tight, height: y(gap.end, from: from) - y(gap.start, from: from) - 4)
         .offset(x: Self.gutter, y: y(gap.start, from: from) + 2)

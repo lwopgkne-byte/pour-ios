@@ -42,9 +42,9 @@ final class TodoShotsUITests: XCTestCase {
         row.press(forDuration: 1.0)
         sleep(2)
         shot("长按菜单")
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.06)).tap()
-        sleep(1)
-        row.tap()
+        // 菜单里点「编辑…」打开编辑弹框（点状态栏那一截关不掉菜单：那是系统的「滚到顶」，点不到 App 里）
+        let edit = app.buttons["todoPress.edit"]
+        if edit.waitForExistence(timeout: 3) { edit.tap() } else { row.tap() }
         sleep(2)
         shot("编辑")
     }
