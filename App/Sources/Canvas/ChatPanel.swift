@@ -47,6 +47,12 @@ struct ChatPanel: View {
                     .padding(.horizontal, Theme.Space.inset)
                     .padding(.top, Theme.Space.tight)
                     .padding(.bottom, Theme.Space.medium)
+                    // 最新的那段话（待办 2.0：只在它的结果下面问「下午几点提醒你？」）
+                    .environment(
+                        \.latestNote,
+                        rows.compactMap { row -> Int? in
+                            if case .note(let note) = row { note.id } else { nil }
+                        }.last)
                 }
                 // 一滑就收起键盘：边滑边收的话面板跟着键盘一帧一帧变高，下面会闪
                 .scrollDismissesKeyboard(.immediately)

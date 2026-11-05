@@ -85,15 +85,17 @@ extension AppModel {
 
     /// 详情里改：事、哪天、几点提醒（.some(nil) 是不提醒）、重复（.some(nil) 是不重复）；待办 2.0 加象限（你选的就不再是
     /// 猜的）、时间段（.some(nil) 是不要）、以后再说。时间三选一：钟点、时间段、都没有；以后再说没有日子。先改界面再发
+    /// base：单子上、弹框里都没有这一件时（说一句的结果卡片上改）拿它当原来的样子
     func editTodo(
         _ id: Int, content: String? = nil, day: String? = nil, time: String?? = nil, repeat rule: API.Repeat?? = nil,
-        quadrant: TodoQuadrant? = nil, window: TimeWindow?? = nil, someday: Bool? = nil
+        quadrant: TodoQuadrant? = nil, window: TimeWindow?? = nil, someday: Bool? = nil, base: API.TodoRow? = nil
     ) {
-        guard let old = todoPage?.row(id) ?? detailRow(id) else { return }
+        guard let old = todoPage?.row(id) ?? detailRow(id) ?? base else { return }
         let row = Self.edited(
             old, today: today, content: content, day: day, time: time, rule: rule, quadrant: quadrant, window: window,
             someday: someday)
         todoPage?.put(row)
+        todoLatest[id] = row
         if case .detail = todoSheet { todoSheet = .detail(row) }
         var body: [String: JSONValue] = [:]
         if let content { body["content"] = .string(content) }

@@ -288,6 +288,19 @@ extension API {
         public var entryId: Int
         public var text: String
         public var pending: Bool
+        /// 待办 2.0（服务器 shared/src/entries.ts ReceiptTodo）：建了、改了的待办现在的样子；旧服务器没有
+        public var todo: ReceiptTodo?
+
+        public init(
+            action: String, kind: String, entryId: Int, text: String, pending: Bool, todo: ReceiptTodo? = nil
+        ) {
+            self.action = action
+            self.kind = kind
+            self.entryId = entryId
+            self.text = text
+            self.pending = pending
+            self.todo = todo
+        }
     }
 
     /// 提问的回答（先只要文字；来源和图表以后搬）

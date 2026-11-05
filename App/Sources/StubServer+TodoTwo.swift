@@ -46,6 +46,35 @@
             ]
         }
 
+        /// 说一句「下午回复客户电话」（待办 2.0 第 10 步的结果卡片）：建一件待办——AI 猜放进马上做、只说了下午（时间段），
+        /// 收据带上它现在的样子
+        mutating func sayTodo(_ text: String, noteId: Int) -> [String: Any]? {
+            guard text.contains("回复客户电话") else { return nil }
+            let id = nextId
+            nextId += 1
+            let data: [String: Any] = [
+                "content": "回复客户电话", "done": false, "due": today, "window": "afternoon", "quadrant": 1,
+                "quadrantByAI": true,
+            ]
+            entries.append([
+                "id": id, "day": today, "kind": "todo", "category": "todo", "confidence": 0.9, "status": "ok",
+                "data": data,
+                "sources": [
+                    [
+                        "noteId": noteId, "span": text, "action": "created", "text": text,
+                        "createdAt": ISO8601DateFormatter().string(from: Date()),
+                    ]
+                ],
+            ])
+            return [
+                "action": "created", "kind": "todo", "entryId": id, "text": "📝 待办：回复客户电话", "pending": false,
+                "todo": [
+                    "content": "回复客户电话", "day": today, "time": NSNull(), "window": "afternoon", "quadrant": 1,
+                    "guessed": true,
+                ],
+            ]
+        }
+
         /// 一行多带的四样
         static func todoTwoRow(_ data: [String: Any]) -> [String: Any] {
             [

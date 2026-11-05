@@ -224,6 +224,7 @@
                         "action": "created", "kind": "event", "entryId": id, "text": "🍽 吃面 ¥32 · 和小王", "pending": true,
                     ])
                 }
+                if let todo = sayTodo(text, noteId: noteId) { receipt.append(todo) }
                 note["result"] = [
                     "receipt": receipt, "reply": receipt.isEmpty ? "好的，听到了。" : "", "questions": [String](),
                     "notices": [String](),

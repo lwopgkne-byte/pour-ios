@@ -64,6 +64,13 @@ struct TodosPage: View {
         }
         .onDisappear { model.settleTodos() }
         .onChange(of: mode) { focus = nil }
+        .onAppear {
+            // 结果卡片上点了「看时间线」：打开就是时间线
+            if let open = model.todoOpenMode {
+                mode = open
+                model.todoOpenMode = nil
+            }
+        }
         .task {
             // 跟着钟走（过点了、快到了）：每到整分钟换一次。不用 TimelineView 包整个列表：和大标题的导航栏
             // 互相触发布局，一直转（2026-11-05 界面测试里 CPU 跑满）

@@ -40,8 +40,9 @@ struct Bubble<Note: View>: View {
 }
 
 extension View {
-    /// Pour 说的（原型 .bub.pour）：左边白气泡，左下角小一点，一点点影子；最宽八成
-    func pourBubble(padding: CGFloat = Theme.Space.inset) -> some View {
+    /// Pour 说的（原型 .bub.pour）：左边白气泡，左下角小一点，一点点影子；最宽八成（trailing：右边至少空多少；
+    /// 待办的结果卡片空得少一点，三个小标签放得下一行，设计稿 after-07-voice）
+    func pourBubble(padding: CGFloat = Theme.Space.inset, trailing: CGFloat = Bubble<EmptyView>.inset) -> some View {
         self
             .padding(.vertical, Theme.Space.small + Theme.Space.hairline).padding(.horizontal, padding)
             .background(
@@ -53,7 +54,7 @@ extension View {
             )
             .shadow(color: Theme.Palette.shadowFar, radius: 1, y: 1)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.trailing, Bubble<EmptyView>.inset)
+            .padding(.trailing, trailing)
     }
 }
 
@@ -138,8 +139,11 @@ private struct NoteStatus: View {
 /// 整理的结果：收据一条一张（最后一张上「撤销」，撤的是这一整段话）、目标和画布的变化、回复、回答、追问、说明
 private struct Reply: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.latestNote) private var latestNote
     let note: API.Note
     let result: API.NoteResult
+    /// 「拿不准的时候先问你，不瞎猜」只在第一次问的那段话下面写（待办 2.0 第 10 步）：记着是哪一段
+    @AppStorage("chat.askExplained") private var askExplained = 0
 
     var body: some View {
         let undone = result.undone == true
@@ -150,6 +154,9 @@ private struct Reply: View {
                 ReceiptRow(
                     item: item, undone: undone, undo: last && changes.isEmpty ? { model.undo(note: note.id) } : nil,
                     extras: last ? extras(undone: undone) : [])
+                if let todo = item.todo, !undone, latestNote == note.id {
+                    TodoWindowAsk(entryId: item.entryId, todo: todo)
+                }
             }
             // 目标的变化、画布的变化（新卡片、改名字、不再显示）：一个白气泡，一样一行，撤销了划掉
             if !changes.isEmpty {
@@ -187,10 +194,13 @@ private struct Reply: View {
                 VStack(alignment: .leading, spacing: Theme.Space.snug) {
                     Text(Show.spaced(question)).font(Theme.Typeface.message).foregroundStyle(Theme.Palette.label)
                         .lineSpacing(Theme.Leading.body)
-                    Text("拿不准的时候先问你，不瞎猜").font(Theme.Typeface.footnote)
-                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                    if askExplained == 0 || askExplained == note.id {
+                        Text("拿不准的时候先问你，不瞎猜").font(Theme.Typeface.footnote)
+                            .foregroundStyle(Theme.Palette.secondaryLabel)
+                    }
                 }
                 .pourBubble()
+                .onAppear { if askExplained == 0 { askExplained = note.id } }
             }
             ForEach(result.notices, id: \.self) { notice in
                 Text(Show.spaced(notice)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
@@ -233,11 +243,20 @@ struct ReceiptRow: View {
                 .background(Self.color(item), in: Theme.rounded(Theme.Corner.tile))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Theme.Space.hairline) {
-                Text(Show.spaced(parts.title)).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.label)
-                    .strikethrough(undone)
-                    .fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
+                    Text(Show.spaced(item.todo?.content ?? parts.title)).font(Theme.Typeface.cardTitle)
+                        .foregroundStyle(Theme.Palette.label)
+                        .strikethrough(undone)
+                        .fixedSize(horizontal: false, vertical: true)
+                    // 待办 2.0：改了已有的待办写「已改」
+                    if item.todo != nil, item.action == "updated", !undone {
+                        Text("已改").font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
+                    }
+                }
                 if undone {
                     Text("已撤销，原话还在").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                } else if let todo = item.todo, item.kind == "todo" {
+                    TodoReceiptTags(entryId: item.entryId, snapshot: todo)
                 } else if !parts.sub.isEmpty {
                     Text(Show.spaced(parts.sub)).font(Theme.Typeface.footnote)
                         .foregroundStyle(Theme.Palette.secondaryLabel)
@@ -256,7 +275,8 @@ struct ReceiptRow: View {
                 ThemeTextButton("撤销", font: Theme.Typeface.subheadline, action: undo)
             }
         }
-        .pourBubble(padding: Theme.Space.medium)
+        .pourBubble(
+            padding: Theme.Space.medium, trailing: item.todo == nil ? Bubble<EmptyView>.inset : Theme.Space.section)
     }
 
     /// 「已记录」「已修改」「已完成」……（读屏念的、界面测试认的）

@@ -251,8 +251,37 @@ extension API {
         public let spans: [[Int]]
         /// 去掉时间以后要做的事
         public let title: String
-        /// 「明天 15:00」；什么都没认出是 nil
+        /// 「明天 15:00」「今天下午」；什么都没认出是 nil
         public let label: String?
+        /// 待办 2.0：只说了上午、下午、晚上（没说几点）；旧服务器没有
+        public let window: String?
+    }
+
+    /// 收据里一件待办现在的样子（说一句的结果卡片：哪一格 · 哪天 · 几点）
+    public struct ReceiptTodo: Codable, Hashable, Sendable {
+        public var content: String
+        /// 哪天；以后再说是 nil
+        public var day: String?
+        /// 几点（HH:MM）
+        public var time: String?
+        public var window: String?
+        public var quadrant: Int
+        /// 格子是 AI 猜的
+        public var guessed: Bool
+
+        public init(
+            content: String, day: String?, time: String?, window: String?, quadrant: Int, guessed: Bool
+        ) {
+            self.content = content
+            self.day = day
+            self.time = time
+            self.window = window
+            self.quadrant = quadrant
+            self.guessed = guessed
+        }
+
+        public var lane: TodoQuadrant { TodoQuadrant(rawValue: quadrant) ?? .unsorted }
+        public var timeWindow: TimeWindow? { window.flatMap(TimeWindow.init(rawValue:)) }
     }
 
     struct TodoReminders: Codable, Sendable { let reminders: [TodoReminder] }

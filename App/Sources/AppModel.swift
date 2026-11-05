@@ -102,6 +102,12 @@ final class AppModel {
     var todoPress: TodoPress?
     /// 四象限「排进空档 ›」过去的：时间线上把空档标出来（待办 2.0 第 7、8 步）
     var todoGaps = false
+    /// 待办页下次打开时先看哪一种（结果卡片上「看时间线」，待办 2.0 第 10 步）
+    var todoOpenMode: TodosPage.Mode?
+    /// 结果卡片上问过「下午几点提醒你？」、答了的待办（这次打开 App 里不再问）
+    var todoAsked: Set<Int> = []
+    /// 这次打开 App 里改过的待办最新的样子（单子不在手上时，结果卡片照它写）
+    var todoLatest: [Int: API.TodoRow] = [:]
     /// 记一笔的数字键盘开着没有（3.0 第 3 步，AppModel+Money）
     var keypadOpen = false
     /// 打开的那一笔钱（3.0 一笔的详情）
