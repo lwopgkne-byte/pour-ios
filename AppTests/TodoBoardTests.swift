@@ -136,7 +136,7 @@ struct TodoBoardTests {
         #expect(TodoBoard.when(day: "2026-11-02", time: "09:00", today: Self.today) == "11月2日 周一 09:00")
     }
 
-    /// 今天这一组：日程穿插在待办里，按钟点排，全天的最前，没时间的待办在后面
+    /// 今天这一组（待办 2.0）：全天的日程最前，不定时的待办在上，别的按钟点排、日程穿插
     @Test func todayMergesCalendar() {
         let events = [
             CalendarItem(
@@ -148,7 +148,7 @@ struct TodoBoardTests {
         ]
         let items = TodayItem.merge(
             [row(2, "取快递", day: Self.today, at: "18:00"), row(3, "回邮件", day: Self.today)], events: events)
-        #expect(items.map(\.id) == ["event.b", "event.a", "todo.2", "todo.3"])
+        #expect(items.map(\.id) == ["event.b", "todo.3", "event.a", "todo.2"])
         #expect(TodayItem.time(events[0]) == "14:00–15:30")
         #expect(TodayItem.time(events[1]) == "全天")
         // 日历里那件和说过的待办是同一件（钟点差 15 分钟以内、名字像）：只显示待办

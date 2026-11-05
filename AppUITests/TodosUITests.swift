@@ -1,7 +1,7 @@
 import XCTest
 
 /// 3.0 待办页（docs/3.0/01-需求文档.md 4.2、4.6、4.8；06 交互细节第 2 节）：像真用户一样用手指——
-/// 点圆圈、右滑完成、左滑推迟 / 删除 / 带到今天、按住出菜单、离开再回来进「已完成」、几条入口都通
+/// 点圆圈、右滑完成、左滑推迟 / 删除、过点了的挪一挪、按住出菜单、离开再回来进「已完成」、几条入口都通
 final class TodosUITests: XCTestCase, TodoTesting {
     override func setUp() {
         continueAfterFailure = false
@@ -45,7 +45,7 @@ final class TodosUITests: XCTestCase, TodoTesting {
         // 离开再回来：收进「已完成」
         app.goBack()
         app.openTile("todos")
-        XCTAssertTrue(app.staticTexts["以前没做完的"].waitForExistence(timeout: 5))
+        XCTAssertTrue(lateHeader(app).waitForExistence(timeout: 5))
         pause()
         XCTAssertFalse(row(app, "回邮件").exists, "回来以后还在今天里")
         app.reveal(app.buttons["todos.done"])
@@ -78,7 +78,7 @@ final class TodosUITests: XCTestCase, TodoTesting {
         pause()
         XCTAssertTrue(find(row(app, "回邮件"), in: app), "推迟以后找不到了")
         XCTAssertGreaterThan(row(app, "回邮件").frame.minY, app.staticTexts["明天"].frame.minY, "没挪到明天")
-        // 删除：轻提示能撤销（回到最上面「以前没做完的」）
+        // 删除：轻提示能撤销（回到最上面「过点了」）
         app.swipeDown(velocity: .fast)
         app.swipeDown(velocity: .fast)
         let fee = row(app, "交水费")
@@ -90,17 +90,22 @@ final class TodosUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(row(app, "交水费").waitForExistence(timeout: 3), "撤销没放回来")
     }
 
-    /// 以前没做完的：左滑「今天」、标题旁「全部带到今天」
-    @MainActor func testCarryToToday() throws {
+    /// 过点了（前几天没做完的、今天到点没做的）：每件下面「明天再说 · 不做了」（白天还有「挪到下午 / 晚上」），
+    /// 挪了说一声、能撤销（待办 2.0 第 4 步）
+    @MainActor func testLateMoves() throws {
         let app = openTodos()
-        row(app, "交水费").swipeLeft()
-        let today = app.buttons["今天"]
-        XCTAssertTrue(today.waitForExistence(timeout: 3), "以前没做完的左滑没有「今天」")
-        today.tap()
-        XCTAssertTrue(app.staticTexts["带到今天了"].waitForExistence(timeout: 3))
-        app.buttons["todos.carryAll"].tap()
-        XCTAssertTrue(app.staticTexts["以前没做完的"].waitForNonExistence(timeout: 3), "全部带到今天以后这一组还在")
-        XCTAssertFalse(row(app, "修自行车").label.contains("昨天"), "带到今天了还写昨天")
+        let header = lateHeader(app)
+        XCTAssertTrue(header.waitForExistence(timeout: 3), "没有「过点了」这一组")
+        let before = header.label
+        let tomorrow = app.buttons["明天再说"].firstMatch
+        XCTAssertTrue(tomorrow.exists, "过点了的下面没有「明天再说」")
+        XCTAssertTrue(app.buttons["不做了"].firstMatch.exists, "过点了的下面没有「不做了」")
+        tomorrow.tap()
+        let said = app.staticTexts.matching(NSPredicate(format: "label ENDSWITH '挪到明天了'")).firstMatch
+        XCTAssertTrue(said.waitForExistence(timeout: 3), "挪了没说")
+        XCTAssertTrue(header.label != before || !header.exists, "挪走了这一组还是 \(before)")
+        app.buttons["undoToast"].tap()
+        XCTAssertTrue(waitFor(header, labelContains: before), "撤销以后没挪回来：\(header.label)")
     }
 
     /// 按住一行：菜单里完成、推迟到…、改时间、复制、看原话、删除；重复的删的时候问只删这一次还是以后都不要
@@ -125,7 +130,7 @@ final class TodosUITests: XCTestCase, TodoTesting {
     /// 今天的时间线：分段换过去，有钟点的待办摆上去
     @MainActor func testTimeline() throws {
         let app = openTodos()
-        app.segmentedControls["todos.mode"].buttons["今天的时间线"].tap()
+        app.buttons["时间线"].tap()
         let block = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS '给客户回电话'"))
             .firstMatch
         XCTAssertTrue(block.waitForExistence(timeout: 3), "时间线上没有带钟点的待办")

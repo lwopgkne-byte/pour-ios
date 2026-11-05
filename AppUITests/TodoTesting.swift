@@ -11,9 +11,14 @@ extension TodoTesting {
         app.launchArguments += ["-uiTest", "-todoSample"] + extra
         app.launch()
         app.openTile("todos")
-        XCTAssertTrue(app.staticTexts["以前没做完的"].waitForExistence(timeout: 8), "待办页没打开")
+        XCTAssertTrue(lateHeader(app).waitForExistence(timeout: 8), "待办页没打开")
         pause()
         return app
+    }
+
+    /// 「过点了 · 2 件」（样例里前几天没做完的两件，待办 2.0 第 4 步）
+    func lateHeader(_ app: XCUIApplication) -> XCUIElement {
+        app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH '过点了 · '")).firstMatch
     }
 
     /// 一行待办（点了打开详情的那一块）

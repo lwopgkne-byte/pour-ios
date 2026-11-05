@@ -3,29 +3,32 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 待办页（docs/3.0/01-需求文档.md 4.2、06 交互细节第 2 节）：以前没做完的（全部带到今天）、今天（日历的日程穿插在里面）、
-/// 明天、这周、以后；已完成收起。右滑完成、左滑推迟或删除、按住更多；勾掉的划线留在原地，离开再回来才收进「已完成」
+/// 待办页（待办 2.0，docs/todo-2.0 第 4 步）：大标题「待办」，下面一行「今天还有 5 件 · 完成 1 件 · 🔔 3 个提醒已排好」，
+/// 清单 | 四象限 | 时间线。清单：过点了（沙色；行下面「挪到下午 · 明天再说 · 不做了」，多于 3 件改成标题旁「全部挪到…」）、
+/// 今天（全天的日程最前、不定时的在上、别的按时间、日程穿插；放一放折成一行放最后）、明天、这周、以后；已完成收起。
+/// 右滑完成、左滑推迟或删除、按住更多；勾掉的划线留在原地，离开再回来才收进「已完成」
 struct TodosPage: View {
     @Environment(AppModel.self) private var model
     @State private var mode = Mode.list
     @State private var showDone = false
+    @State private var showLater = false
     @State private var byPerson = false
+    /// 现在几点（到分钟）
+    @State private var now = TodosPage.clock()
     /// 一次性引导看过了（存在这台手机上）
     @AppStorage("todos.guideSeen") private var guideSeen = false
 
-    enum Mode: String, CaseIterable, Identifiable {
-        case list = "清单"
-        case timeline = "今天的时间线"
-
-        var id: String { rawValue }
+    enum Mode: Hashable {
+        case list, matrix, timeline
     }
 
     var body: some View {
         List {
-            top
+            top(now: now)
             if let page = model.todoPage {
                 switch mode {
-                case .list: listSections(page)
+                case .list: listSections(page, now: now)
+                case .matrix: TodoMatrixSection(page: page, now: now)
                 case .timeline: TodoTimelineSection(page: page, events: events(page.today))
                 }
             } else if let problem = model.todoProblem {
@@ -52,25 +55,26 @@ struct TodosPage: View {
             withAnimation(Theme.Motion.standard) { model.todoFlash = nil }
         }
         .onDisappear { model.settleTodos() }
+        .task {
+            // 跟着钟走（过点了、快到了）：每到整分钟换一次。不用 TimelineView 包整个列表：和大标题的导航栏
+            // 互相触发布局，一直转（2026-11-05 界面测试里 CPU 跑满）
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(60 - Calendar.current.component(.second, from: Date())))
+                now = Self.clock()
+            }
+        }
     }
 
-    // MARK: - 顶上：一句话、清单 | 今天的时间线
+    static func clock() -> String { PourDate.localDateTime(Date(), in: .current) }
 
-    @ViewBuilder private var top: some View {
+    // MARK: - 顶上：一句话、清单 | 四象限 | 时间线
+
+    @ViewBuilder private func top(now: String) -> some View {
         Section {
             VStack(alignment: .leading, spacing: Theme.Space.medium) {
-                if let page = model.todoPage {
-                    Text(summary(page)).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(Theme.Motion.standard, value: summary(page))
-                        .accessibilityIdentifier("todos.summary")
-                }
-                Picker("看哪样", selection: $mode) {
-                    ForEach(Mode.allCases) { Text($0.rawValue).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .accessibilityIdentifier("todos.mode")
+                if let page = model.todoPage { summary(page, now: now) }
+                PillSegments(selection: $mode, items: [(.list, "清单"), (.matrix, "四象限"), (.timeline, "时间线")])
+                    .accessibilityIdentifier("todos.mode")
                 if !guideSeen { guide }
             }
             .listRowBackground(Color.clear)
@@ -78,34 +82,48 @@ struct TodosPage: View {
         }
     }
 
-    /// 「今天还有 3 件 · 已完成 2 件 · 🔔 3 个提醒已排好」（提醒数待办 2.0 第 2 步并进来：以前单独在最下面一行）
-    private func summary(_ page: API.TodoPage) -> String {
-        let rows = page.groups.flatMap(\.rows)
-        let left = page.groups.first { $0.key == "today" }?.rows.filter { !$0.done }.count ?? 0
-        let finished = rows.filter(\.done).count
-        let head = left == 0 ? "今天的都做完了 · 已完成 \(finished) 件" : "今天还有 \(left) 件 · 已完成 \(finished) 件"
-        let scheduled = model.reminderState?.scheduled ?? 0
-        return scheduled > 0 ? "\(head) · 🔔 \(scheduled) 个提醒已排好" : head
+    /// 「今天还有 5 件 · 完成 1 件 · 🔔 3 个提醒已排好」（铃铛是图标）
+    private func summary(_ page: API.TodoPage, now: String) -> some View {
+        let plan = TodoListPlan.make(page: page, held: model.todoHeld, events: events(page.today), now: now)
+        let counts = plan.counts(page: page)
+        let head =
+            counts.left == 0 ? "今天的都做完了 · 完成 \(counts.done) 件" : "今天还有 \(counts.left) 件 · 完成 \(counts.done) 件"
+        // 排好了几个提醒：这台手机上真排上的系统通知（断网也准）；演示数据不排通知，数还没到的
+        let reminders = model.demo ? TodoListPlan.reminders(page, now: now) : model.reminderState?.scheduled ?? 0
+        return Group {
+            if reminders > 0 {
+                Text("\(head) · \(Image(systemName: "bell")) \(reminders) 个提醒已排好")
+            } else {
+                Text(head)
+            }
+        }
+        .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit()
+        .contentTransition(.numericText())
+        .animation(Theme.Motion.standard, value: "\(head)\(reminders)")
+        .accessibilityIdentifier("todos.summary")
     }
 
     // MARK: - 清单
 
     @ViewBuilder
-    private func listSections(_ page: API.TodoPage) -> some View {
+    private func listSections(_ page: API.TodoPage, now: String) -> some View {
         let sections = TodoBoard.sections(page, held: model.todoHeld)
         if byPerson {
             personSections(sections)
         } else {
-            ForEach(sections.filter { $0.key != "done" }) { group in
+            let plan = TodoListPlan.make(page: page, held: model.todoHeld, events: events(page.today), now: now)
+            if !plan.late.isEmpty { lateSection(plan.late, now: now, today: page.today) }
+            todaySection(plan, page: page)
+            ForEach(plan.ahead) { group in
                 Section {
-                    groupRows(group, page: page)
+                    ForEach(group.rows) { todoRow($0, group: group.key, today: page.today) }
                 } header: {
-                    header(group)
+                    header(group.title, count: group.rows.filter { !$0.done }.count)
                 }
             }
         }
         if let done = sections.first(where: { $0.key == "done" }) { doneSection(done) }
-        // 待办 2.0 第 2 步：底下不再常驻说明和「手机上排好了 N 个提醒」（提醒数并进标题下面那一行；说明是第一次来的一次性引导）
+        // 底下不再常驻说明和「手机上排好了 N 个提醒」（提醒数在标题下面；说明是第一次来的一次性引导）
         if model.reminderState?.permission == .denied {
             Section {
                 Label("通知关着：定了时间的待办到点不会响。在 iPhone 的「设置 → 通知 → Pour」里打开", systemImage: "bell.slash")
@@ -116,89 +134,125 @@ struct TodosPage: View {
         }
     }
 
-    @ViewBuilder
-    private func groupRows(_ group: API.TodoGroup, page: API.TodoPage) -> some View {
-        if group.key == "today" {
-            let items = TodayItem.merge(group.rows, events: events(page.today))
-            if items.isEmpty {
-                EmptyState("今天没有要做的", example: "加一件") { model.todoSheet = .add("") }
+    /// 过点了（沙色，不用红）：每件下面三个小按钮「挪到下午 · 明天再说 · 不做了」；多于 3 件改成标题旁一个「全部挪到…」
+    private func lateSection(_ rows: [API.TodoRow], now: String, today: String) -> some View {
+        let open = rows.filter { !$0.done }
+        let move = TodoListPlan.laterToday(now: now)
+        let many = open.count > 3
+        return Section {
+            ForEach(rows) { row in
+                todoRow(row, group: "late", today: today, chips: !many && !row.done, move: move)
             }
-            ForEach(items) { item in
+        } header: {
+            HStack(alignment: .firstTextBaseline) {
+                Text("过点了 · \(open.count) 件").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.warn)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                if many {
+                    Menu("全部挪到…") {
+                        if let move { Button(move.title) { model.move(open, to: move) } }
+                        Button(TodoMove.tomorrow.title) { model.move(open, to: .tomorrow) }
+                    }
+                    .font(Theme.Typeface.subheadline.weight(.semibold))
+                    .accessibilityIdentifier("todos.moveAll")
+                }
+            }
+            .textCase(nil)
+            .padding(.horizontal, -Theme.Space.tight)
+        }
+    }
+
+    /// 今天：全天的日程最前、不定时的在上、别的按时间（日程穿插）；放一放折成一行「放一放 · 3 件 ›」放最后
+    private func todaySection(_ plan: TodoListPlan, page: API.TodoPage) -> some View {
+        let title = page.groups.first { $0.key == "today" }?.title ?? "今天"
+        let open = plan.today.filter(\.isOpenTodo).count + plan.later.filter { !$0.done }.count
+        return Section {
+            if plan.today.isEmpty && plan.later.isEmpty { emptyToday }
+            ForEach(plan.today) { item in
                 switch item {
-                case .todo(let row): todoRow(row, group: group.key, today: page.today)
+                case .todo(let row): todoRow(row, group: "today", today: page.today)
                 case .event(let event): CalendarLine(event: event).listRowInsets(EdgeInsets())
                 }
             }
-        } else {
-            ForEach(group.rows) { todoRow($0, group: group.key, today: page.today) }
+            if !plan.later.isEmpty {
+                laterRow(plan.later.filter { !$0.done }.count)
+                if showLater {
+                    ForEach(plan.later) { todoRow($0, group: "today", today: page.today) }
+                }
+            }
+        } header: {
+            header(title, count: open)
         }
     }
 
-    private func todoRow(_ row: API.TodoRow, group: String, today: String) -> some View {
-        TodoRowView(row: row, today: today)
-            // 待办 2.0：一行自己留边（圈看得见的左边距 16、行高 52），列表不再多留
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(model.todoFlash == row.id ? Theme.Palette.bubble : Theme.Palette.card)
-            .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                if !row.done {
-                    Button {
-                        model.setDone(row.id, true)
-                    } label: {
-                        Label("完成", systemImage: Theme.Symbol.done)
-                    }
-                    .tint(Theme.Palette.good)
-                }
+    /// 「放一放 · 3 件 ›」：点了展开、再点收起
+    private func laterRow(_ count: Int) -> some View {
+        Button {
+            withAnimation(Theme.Motion.standard) { showLater.toggle() }
+        } label: {
+            TodoLine(showLater ? "收起放一放的" : "放一放 · \(count) 件", done: false, dim: true) {
+                QuadrantBadge(quadrant: TodoQuadrant.later.rawValue)
+                    .frame(width: Theme.Size.touch, height: Theme.Size.touch)
+            } trailing: {
+                Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
+                    .foregroundStyle(Theme.Palette.tertiaryLabel)
+                    .rotationEffect(.degrees(showLater ? 90 : 0))
             }
-            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                Button(role: .destructive) {
-                    model.deleteTodo(row)
+        }
+        .buttonStyle(.plain)
+        .listRowInsets(EdgeInsets())
+        .accessibilityIdentifier("todos.later")
+    }
+
+    /// 一行（加上列表的边、左右滑、按住的菜单）；chips：过点了的那一行下面带小按钮（move 是今天往后挪到哪，
+    /// 没有就只给「明天再说 · 不做了」）
+    private func todoRow(
+        _ row: API.TodoRow, group: String, today: String, chips: Bool = false, move: TodoMove? = nil
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            TodoRowView(row: row, today: today, now: now)
+            if chips {
+                HStack(spacing: Theme.Space.small) {
+                    if let move { MiniChip(move.title) { model.move([row], to: move) } }
+                    MiniChip(TodoMove.tomorrow.title) { model.move([row], to: .tomorrow) }
+                    MiniChip("不做了") { model.deleteTodo(row) }
+                }
+                .padding(.leading, Theme.Space.regular + Theme.Size.check + Theme.Space.medium + Theme.Space.hairline)
+                .padding(.top, -Theme.Space.medium).padding(.bottom, Theme.Space.tight)
+            }
+        }
+        // 待办 2.0：一行自己留边（圈看得见的左边距 16、行高 52），列表不再多留
+        .listRowInsets(EdgeInsets())
+        .listRowBackground(model.todoFlash == row.id ? Theme.Palette.bubble : Theme.Palette.card)
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            if !row.done {
+                Button {
+                    model.setDone(row.id, true)
                 } label: {
-                    Label("删除", systemImage: Theme.Symbol.delete)
+                    Label("完成", systemImage: Theme.Symbol.done)
                 }
-                // 删除是红的：不写的话跟着整页的强调色变蓝（2026-11-05 走一遍时看到的）
-                .tint(Theme.Palette.bad)
-                if !row.done {
-                    if group == "overdue" {
-                        Button {
-                            model.carryToToday([row])
-                        } label: {
-                            Label("今天", systemImage: "arrow.down.to.line")
-                        }
-                        .tint(Theme.Palette.accentFill)
-                    } else {
-                        Button {
-                            model.todoSheet = .snooze(row)
-                        } label: {
-                            Label("推迟", systemImage: Theme.Symbol.snooze)
-                        }
-                        .tint(Theme.Palette.warn)
-                    }
-                }
-            }
-            .contextMenu { TodoMenu(row: row) }
-            .sensoryFeedback(Theme.Haptics.swipe, trigger: model.todoFlash == row.id) { _, now in now }
-    }
-
-    /// 组的标题：以前没做完的用留意色、右边「全部带到今天」；别的右边写几件
-    private func header(_ group: API.TodoGroup) -> some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(group.title).font(Theme.Typeface.bodySemibold)
-                .foregroundStyle(group.key == "overdue" ? Theme.Palette.warn : Theme.Palette.label)
-                .accessibilityAddTraits(.isHeader)
-            Spacer()
-            if group.key == "overdue" {
-                ThemeTextButton("全部带到今天") { model.carryToToday(group.rows.filter { !$0.done }) }
-                    .accessibilityIdentifier("todos.carryAll")
-            } else {
-                let left = group.rows.filter { !$0.done }.count
-                if left > 0 {
-                    Text("\(left) 件").font(Theme.Typeface.footnote).monospacedDigit()
-                        .foregroundStyle(Theme.Palette.secondaryLabel)
-                }
+                .tint(Theme.Palette.good)
             }
         }
-        .textCase(nil)
-        .padding(.horizontal, -Theme.Space.tight)
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(role: .destructive) {
+                model.deleteTodo(row)
+            } label: {
+                Label("删除", systemImage: Theme.Symbol.delete)
+            }
+            // 删除是红的：不写的话跟着整页的强调色变蓝（2026-11-05 走一遍时看到的）
+            .tint(Theme.Palette.bad)
+            if !row.done {
+                Button {
+                    model.todoSheet = .snooze(row)
+                } label: {
+                    Label("推迟", systemImage: Theme.Symbol.snooze)
+                }
+                .tint(Theme.Palette.warn)
+            }
+        }
+        .contextMenu { TodoMenu(row: row) }
+        .sensoryFeedback(Theme.Haptics.swipe, trigger: model.todoFlash == row.id) { _, now in now }
     }
 
     private func events(_ today: String) -> [CalendarItem] { model.calendar.items[today] ?? [] }
@@ -220,6 +274,46 @@ extension TodosPage {
         .padding(.vertical, Theme.Space.tight)
         .background(Theme.Palette.remindFill, in: Theme.rounded(Theme.Corner.stat))
         .accessibilityElement(children: .contain)
+    }
+
+    /// 今天没有待办：说一句就能加
+    private var emptyToday: some View {
+        Button {
+            model.startSaying("")
+        } label: {
+            HStack(spacing: Theme.Space.medium) {
+                Image(systemName: Theme.Symbol.mic).font(Theme.Typeface.bodySemibold).foregroundStyle(
+                    Theme.Palette.accent
+                )
+                .frame(width: Theme.Size.micButton, height: Theme.Size.micButton)
+                .background(Theme.Palette.bubble, in: Circle())
+                VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+                    Text("今天没有待办").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                    Text("说一句就能加，比如「明天三点取快递」").font(Theme.Typeface.footnote)
+                        .foregroundStyle(Theme.Palette.secondaryLabel)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.vertical, Theme.Space.small)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("todos.empty")
+    }
+
+    /// 组的标题：名字、右边还有几件
+    private func header(_ title: String, count: Int) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                .accessibilityAddTraits(.isHeader)
+            Spacer()
+            if count > 0 {
+                Text("\(count) 件").font(Theme.Typeface.footnote).monospacedDigit()
+                    .foregroundStyle(Theme.Palette.secondaryLabel)
+            }
+        }
+        .textCase(nil)
+        .padding(.horizontal, -Theme.Space.tight)
     }
 
     /// 已完成：默认收起，一行「已完成 5 件 ›」，点了展开
@@ -295,53 +389,5 @@ extension TodosPage {
             .accessibilityLabel(Text("加待办"))
             .accessibilityIdentifier("todos.add")
         }
-    }
-}
-
-/// 今天这一组里的一样：待办，或者日历里的日程（只读）
-enum TodayItem: Identifiable {
-    case todo(API.TodoRow)
-    case event(CalendarItem)
-
-    var id: String {
-        switch self {
-        case .todo(let row): "todo.\(row.id)"
-        case .event(let event): "event.\(event.id)"
-        }
-    }
-
-    /// 按时间排：有钟点的在前（待办按提醒、日程按开始），全天的日程最前，没时间的待办在后面（服务器给的先后不变）；
-    /// 日程和你说的待办是同一件的只显示待办（和画布的待办卡一样，AgendaPlan.same）
-    static func merge(_ rows: [API.TodoRow], events: [CalendarItem]) -> [TodayItem] {
-        let timed = events.filter { event in
-            !event.allDay
-                && !rows.contains { row in
-                    AgendaPlan.same(event, title: row.content, remindAt: row.remindAt.map { "\(row.day)T\($0)" })
-                }
-        }
-        let allDay = events.filter(\.allDay).map(TodayItem.event)
-        let items = (rows.map(TodayItem.todo) + timed.map(TodayItem.event)).enumerated()
-            .sorted { ($0.element.clock ?? "99", $0.offset) < ($1.element.clock ?? "99", $1.offset) }
-            .map(\.element)
-        return allDay + items
-    }
-
-    private var clock: String? {
-        switch self {
-        case .todo(let row): row.remindAt
-        case .event(let event): String(event.start.suffix(5))
-        }
-    }
-
-    /// 「14:00–15:30」「全天」（待办 2.0 第 2 步：「日历」小标签去掉，只留左边的日历图标）
-    static func time(_ event: CalendarItem) -> String {
-        event.allDay ? "全天" : "\(event.start.suffix(5))–\(event.end.suffix(5))"
-    }
-}
-
-extension CalendarLine {
-    /// 日历里的一件（待办页、时间线）：日历图标、一行标题、右边几点到几点或「全天」
-    init(event: CalendarItem) {
-        self.init(Show.spaced(event.title), time: TodayItem.time(event))
     }
 }

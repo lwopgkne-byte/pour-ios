@@ -5,27 +5,26 @@ import SwiftUI
 import UIKit
 
 /// 一行待办（待办 2.0，所有列表同一套）：左边按象限画的圈（点了勾上：深灰实心 + 白勾，划线、变淡、留在原地），
-/// 圈以外点了打开详情；标题一行，右边只放时间或状态（每分钟跟着时间变：快到了变蓝、过了变沙色）。
+/// 圈以外点了打开详情；标题一行，右边只放时间或状态（跟着待办页的钟变：快到了变蓝、过了变沙色）。
 /// 认出来的词（和谁、东西、地方）不显示（数据留着，搜索和 AI 照用）
 struct TodoRowView: View {
     @Environment(AppModel.self) private var model
     let row: API.TodoRow
     let today: String
+    /// 现在几点（待办页每分钟换一次）
+    let now: String
 
     var body: some View {
-        TimelineView(.everyMinute) { context in
-            let trailing = TodoBoard.trailing(
-                row, today: today, now: PourDate.localDateTime(context.date, in: .current))
-            TodoLine(
-                Show.spaced(row.content), done: row.done, dim: row.lane == .later, spoken: spoken(trailing),
-                open: openDetail
-            ) {
-                QuadrantRing(quadrant: row.lane.rawValue, done: row.done, label: row.content) {
-                    model.setDone(row.id, !row.done)
-                }
-            } trailing: {
-                if let trailing { TodoTrailing(trailing) }
+        let trailing = TodoBoard.trailing(row, today: today, now: now)
+        TodoLine(
+            Show.spaced(row.content), done: row.done, dim: row.lane == .later, spoken: spoken(trailing),
+            open: openDetail
+        ) {
+            QuadrantRing(quadrant: row.lane.rawValue, done: row.done, label: row.content) {
+                model.setDone(row.id, !row.done)
             }
+        } trailing: {
+            if let trailing { TodoTrailing(trailing) }
         }
     }
 

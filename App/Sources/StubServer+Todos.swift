@@ -13,14 +13,16 @@
             var extra: [String: Any] = [:]
         }
 
-        /// 待办页的样例：以前没做完的两件、今天三件（一件要提醒、一件重复）、明天、以后、做完的
+        /// 待办页的样例：以前没做完的两件、今天三件（一件要提醒、一件重复；放进马上做、AI 猜的快速办）、明天、以后、做完的
         static func sampleTodos(today: String) -> [[String: Any]] {
             let day = { (offset: Int) in PourDate.addDays(today, offset) }
             let items = [
                 Sample(said: -3, content: "交水费", extra: ["due": day(-2)]),
                 Sample(said: -1, content: "修自行车", extra: ["remindAt": "\(day(-1))T19:00"]),
-                Sample(said: 0, content: "给客户回电话", extra: ["remindAt": "\(today)T23:50", "people": ["王总"]]),
-                Sample(said: 0, content: "回邮件"),
+                Sample(
+                    said: 0, content: "给客户回电话",
+                    extra: ["remindAt": "\(today)T23:50", "people": ["王总"], "quadrant": 1]),
+                Sample(said: 0, content: "回邮件", extra: ["quadrant": 3, "quadrantByAI": true]),
                 Sample(said: 0, content: "吃降压药", extra: ["remindAt": "\(today)T23:55", "repeat": ["kind": "daily"]]),
                 Sample(
                     said: 0, content: "交周报",
@@ -113,44 +115,6 @@
 
         // MARK: - 单子
 
-        private func todoPage() -> [String: Any] {
-            let rows = entries.filter { $0["kind"] as? String == "todo" }.map(row)
-            let tomorrow = PourDate.addDays(today, 1)
-            let sunday = PourDate.addDays(today, 6 - PourDate.weekdayMon0(today))
-            let open = { (row: [String: Any]) in row["done"] as? Bool != true }
-            let day = { (row: [String: Any]) in row["day"] as? String ?? "" }
-            let sorted = { (list: [[String: Any]], newestFirst: Bool) in
-                list.sorted { lhs, rhs in
-                    let left = "\(day(lhs))\(lhs["remindAt"] as? String ?? "99")\(lhs["id"] as? Int ?? 0)"
-                    let right = "\(day(rhs))\(rhs["remindAt"] as? String ?? "99")\(rhs["id"] as? Int ?? 0)"
-                    return newestFirst ? left > right : left < right
-                }
-            }
-            let groups = [
-                TodoGroupRows("overdue", "以前没做完的", sorted(rows.filter { open($0) && day($0) < today }, true)),
-                TodoGroupRows(
-                    "today", "今天 · \(Show.dayTitle(today, today: today))",
-                    sorted(rows.filter { open($0) && day($0) == today }, false)),
-                TodoGroupRows("tomorrow", "明天", sorted(rows.filter { open($0) && day($0) == tomorrow }, false)),
-                TodoGroupRows(
-                    "week", "这周", sorted(rows.filter { open($0) && day($0) > tomorrow && day($0) <= sunday }, false)),
-                TodoGroupRows(
-                    "later", "以后", sorted(rows.filter { open($0) && day($0) > max(sunday, tomorrow) }, false)),
-                TodoGroupRows(
-                    "done", "已完成",
-                    rows.filter { !open($0) }.sorted {
-                        ($0["doneAt"] as? String ?? "") > ($1["doneAt"] as? String ?? "")
-                    }),
-            ]
-            let count = groups.prefix(2).map(\.rows.count).reduce(0, +)
-            return [
-                "today": today, "open": count,
-                "groups": groups.filter { !$0.rows.isEmpty || $0.key == "today" }.map {
-                    ["key": $0.key, "title": $0.title, "rows": $0.rows] as [String: Any]
-                },
-            ]
-        }
-
         private func reminderList() -> [[String: Any]] {
             let now = PourDate.localDateTime(Date(), in: .current)
             return entries.compactMap { entry -> [String: Any]? in
@@ -165,7 +129,7 @@
         }
 
         /// 记录 → 待办页的一行（services/todo-page.ts todoRow）
-        private func row(_ entry: [String: Any]) -> [String: Any] {
+        func row(_ entry: [String: Any]) -> [String: Any] {
             let data = entry["data"] as? [String: Any] ?? [:]
             let day = data["due"] as? String ?? entry["day"] as? String ?? today
             let done = data["done"] as? Bool ?? false
@@ -175,7 +139,8 @@
                 "id": entry["id"] ?? 0, "content": data["content"] ?? "", "day": day,
                 "remindAt": Self.orNull((data["remindAt"] as? String).map { String($0.suffix(5)) }),
                 "done": done, "doneAt": Self.orNull(data["doneAt"]), "repeat": Self.orNull(rule),
-                "repeatText": Self.orNull(rule.flatMap(Self.repeatOf).map(\.text)), "overdue": !done && day < today,
+                "repeatText": Self.orNull(rule.flatMap(Self.repeatOf).map(\.text)),
+                "overdue": !done && day < today && data["someday"] == nil,
                 "snoozedFrom": data["snoozedFrom"] ?? NSNull(), "people": data["people"] ?? [String](),
                 "things": data["things"] ?? [String](), "places": data["places"] ?? [String](),
                 "source": Self.orNull(
@@ -184,6 +149,7 @@
                             as [String: Any]
                     }),
             ]
+            .merging(Self.todoTwoRow(data)) { old, _ in old }
         }
 
         // MARK: - 改
@@ -192,13 +158,24 @@
         private mutating func edit(_ index: Int, _ change: [String: Any]) {
             var data = entries[index]["data"] as? [String: Any] ?? [:]
             if let content = change["content"] as? String { data["content"] = content }
-            let day = change["day"] as? String ?? data["due"] as? String ?? entries[index]["day"] as? String ?? today
-            if change["day"] is String { data["due"] = day }
-            let clock: String? =
-                change.keys.contains("time")
-                ? change["time"] as? String : (data["remindAt"] as? String).map { String($0.suffix(5)) }
-            data["remindAt"] = clock.map { "\(day)T\($0)" }
             if change.keys.contains("repeat") { data["repeat"] = change["repeat"] as? [String: Any] }
+            if !Self.editTodoTwo(&data, change) {
+                let day =
+                    change["day"] as? String ?? data["due"] as? String ?? entries[index]["day"] as? String ?? today
+                if change["day"] is String { data["due"] = day }
+                // 只给时间段：原来的钟点去掉；定了钟点：时间段去掉
+                let window = change["window"] as? String
+                let clock: String? =
+                    change.keys.contains("time")
+                    ? change["time"] as? String
+                    : window == nil ? (data["remindAt"] as? String).map { String($0.suffix(5)) } : nil
+                data["remindAt"] = clock.map { "\(day)T\($0)" }
+                if clock != nil {
+                    data["window"] = nil
+                } else if change.keys.contains("window") {
+                    data["window"] = window
+                }
+            }
             entries[index]["data"] = data
         }
 
@@ -314,19 +291,6 @@
                 return (digits[String(text.prefix(1))] ?? 0) * 10 + (digits[String(text.suffix(1))] ?? 0)
             }
             return digits[text] ?? 0
-        }
-    }
-
-    /// 待办页的一组（假服务器拼单子用）
-    private struct TodoGroupRows {
-        let key: String
-        let title: String
-        let rows: [[String: Any]]
-
-        init(_ key: String, _ title: String, _ rows: [[String: Any]]) {
-            self.key = key
-            self.title = title
-            self.rows = rows
         }
     }
 
