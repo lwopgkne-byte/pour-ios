@@ -3,8 +3,9 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 一条心情（06 交互细节 10.1，点今天的一刻、月历那天的一刻、好时刻）：上面五个表情直接改档；「AI 推测 / 你改的」+ 依据；
-/// 精力；情绪词点 × 去掉、「＋ 添加」；那一刻直接改；原话和「在笔记库看 ›」；「改好了」（没改时是灰的）、「删除这条心情」，都带撤销
+/// 一条心情（06 交互细节 10.1，点今天的一刻、月历那天的一刻、好时刻；照原型 MoodEntrySheet）：头上「今天 08:20 的心情」、
+/// 五个表情直接改档；正中一行「AI 推测 / 你改的」+ 依据；一张白卡三行：精力、情绪词（点 × 去掉、「＋ 添加」）、那一刻；
+/// 一句说明；原话和「在笔记库看 ›」；「改好了」（心情色，没改时是灰的）、「删除这条心情」，都带撤销
 struct MoodDetailSheet: View {
     @Environment(AppModel.self) var model
     @Environment(\.dismiss) var dismiss
@@ -19,16 +20,22 @@ struct MoodDetailSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            SheetHeader("一条心情") { dismiss() }
+            LeadingSheetHeader(title) { SheetCloseButton { dismiss() } }.padding(.horizontal, Theme.Space.regular)
             ScrollView {
-                VStack(alignment: .leading, spacing: Theme.Space.regular) {
+                VStack(alignment: .leading, spacing: 0) {
+                    // 上面留 12：选中的放大、外面一圈，往上多出来约 10，别被滚动区的上沿切掉
                     MoodCheckinRow(selected: level, id: "moodDetail.level") { level = $0 }
-                    basisLine
-                    energyRow
-                    emotionsRow
-                    momentField
-                    if let source = entry?.sources.first { quote(source) }
-                    saveButton
+                        .padding(.horizontal, -Theme.Space.small).padding(.top, Theme.Space.medium)
+                    basisLine.frame(maxWidth: .infinity).padding(.top, Theme.Space.inset)
+                    fields.padding(.top, Theme.Space.regular)
+                    Text("这是 AI 从你的话里听出来的，不准就改；情绪词只写你说出来的，那一刻是你的原话。")
+                        .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, Theme.Space.small).padding(.top, Theme.Space.small)
+                    if let source = entry?.sources.first {
+                        quote(source).padding(.horizontal, Theme.Space.tight).padding(.top, Theme.Space.regular)
+                    }
+                    saveButton.padding(.top, Theme.Space.large)
                     Button(role: .destructive) {
                         dismiss()
                         model.delete(moment.entryId)
@@ -48,6 +55,12 @@ struct MoodDetailSheet: View {
         .presentationDragIndicator(.visible)
         .onAppear(perform: reset)
         .task { await load() }
+    }
+
+    /// 「今天 08:20 的心情」「10月26日 21:30 的心情」
+    var title: String {
+        let day = Show.relative(moment.day, today: model.today) ?? Show.monthDay(moment.day)
+        return [day, moment.time].compactMap { $0 }.joined(separator: " ") + " 的心情"
     }
 
     var mood: API.MoodData? {

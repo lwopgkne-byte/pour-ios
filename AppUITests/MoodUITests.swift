@@ -44,8 +44,8 @@ final class MoodUITests: XCTestCase, TodoTesting {
         app.buttons["mood.level.2"].tap()
         let save = app.buttons["moodCheckin.save"]
         XCTAssertTrue(save.waitForExistence(timeout: 3), "记心情没打开")
-        let bad = app.staticTexts["不好的感觉"].frame.minY
-        XCTAssertLessThan(bad, app.staticTexts["好的感觉"].frame.minY, "心情不好时不好的感觉要排前面")
+        let bad = app.staticTexts["不好的感觉（可以不选）"].frame.minY
+        XCTAssertLessThan(bad, app.staticTexts["好的感觉（可以不选）"].frame.minY, "心情不好时不好的感觉要排前面")
         app.buttons["烦躁"].tap()
         let because = app.descendants(matching: .any)["moodCheckin.because"]
         because.tap()

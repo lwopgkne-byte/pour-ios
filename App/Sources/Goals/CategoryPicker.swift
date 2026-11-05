@@ -18,7 +18,7 @@ struct CategoryPicker: View {
     var body: some View {
         let categories = model.categories
         if open {
-            PourFlowLayout(spacing: Theme.Space.tight, lineSpacing: Theme.Space.tight) {
+            ChipFlow {
                 ForEach(Self.ordered(categories), id: \.key) { category in
                     FilterChip(category.name, selected: category.key == value) {
                         if category.key != value { pick(category.key) }

@@ -100,7 +100,7 @@ enum SettingsPageKey: String, CaseIterable {
     }
 }
 
-/// 关于 Pour（照原型「关于 Pour」；「我的」最下面一行进来）：小组件和捷径、AI 表现点进去；版本；隐私一句话
+/// 关于 Pour（照原型「关于 Pour」；「我的」最下面一行进来）：小组件和捷径、AI 表现点进去；版本；隐私一句话；致谢（用到的图标的许可）
 struct AboutPourSettings: View {
     @Environment(AppModel.self) private var model
 
@@ -116,6 +116,7 @@ struct AboutPourSettings: View {
                 .font(Theme.Typeface.footnote)
             }
             SettingRow(label: "隐私", hint: "原话和整理结果都在你的电脑上；发给大模型的只有要整理的那段话") { EmptyView() }
+            SettingRow(label: "致谢", hint: "心情的五个表情来自 Google Material Symbols（Apache License 2.0）") { EmptyView() }
         }
         .settingsCard()
     }

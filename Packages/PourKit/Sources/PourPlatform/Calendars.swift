@@ -2,6 +2,7 @@ public import Foundation
 public import PourCore
 
 #if os(iOS)
+    import CoreGraphics
     import EventKit
 #endif
 
@@ -36,8 +37,18 @@ public protocol CalendarSource: Sendable {
                     id: event.calendarItemIdentifier, title: event.title ?? "",
                     start: PourDate.localDateTime(event.startDate, in: .current),
                     end: PourDate.localDateTime(event.endDate, in: .current), allDay: event.isAllDay,
-                    calendar: event.calendar?.title ?? "")
+                    calendar: event.calendar?.title ?? "", color: Self.rgb(event.calendar?.cgColor))
             }
+        }
+
+        /// 日历的颜色换成 0xRRGGBB（日程前面那根竖条用；读不出来是 nil）
+        static func rgb(_ color: CGColor?) -> UInt32? {
+            guard let color, let space = CGColorSpace(name: CGColorSpace.sRGB),
+                let parts = color.converted(to: space, intent: .defaultIntent, options: nil)?.components,
+                parts.count >= 3
+            else { return nil }
+            let byte = { (value: CGFloat) in UInt32(max(0, min(255, (value * 255).rounded()))) }
+            return byte(parts[0]) << 16 | byte(parts[1]) << 8 | byte(parts[2])
         }
     }
 #endif

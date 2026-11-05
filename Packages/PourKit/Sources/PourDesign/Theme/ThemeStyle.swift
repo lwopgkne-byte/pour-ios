@@ -36,6 +36,8 @@ extension Theme {
         public static let footnote = Font.footnote
         public static let footnoteMedium = Font.footnote.weight(.medium)
         public static let footnoteSemibold = Font.footnote.weight(.semibold)
+        /// 选中的那个表情下面的字（原型 700）
+        public static let footnoteBold = Font.footnote.weight(.bold)
         /// 小标签（12 半粗）
         public static let caption = Font.caption.weight(.semibold)
         /// 刻度、角标（11 中等圆体）
@@ -50,6 +52,8 @@ extension Theme {
         public static let quote = Font.custom("Songti SC", size: 17, relativeTo: .body)
         /// 对话里的话（原型 16）
         public static let message = Font.callout
+        /// 点开一条记录的大标题「上班」（原型 28 粗）
+        public static let recordTitle = Font.title.weight(.bold)
         /// 弹层的标题「说一句」（原型 18 粗）
         public static let sheetTitle = Font.headline.weight(.bold)
         /// 一页里一块的标题，在卡片外面（原型 .sh h3：18 粗）
@@ -163,6 +167,9 @@ extension Theme {
         /// 骨架灰条：一行字、一张卡
         public static let skeletonLine: CGFloat = 20
         public static let skeletonWidth: CGFloat = 240
+        /// 记心情那一排表情的圆（原型 .face .c 50）；一行一刻心情前面的小表情（原型 faceDot 30）
+        public static let moodFace: CGFloat = 50
+        public static let moodDot: CGFloat = 30
         /// 「我的」页头的头像（3.0）
         public static let avatar: CGFloat = 58
         /// 「我的」里功能格子的彩色方块、快捷大按钮的圆（3.0，01 需求文档 2.3：44×44、圆角 12）

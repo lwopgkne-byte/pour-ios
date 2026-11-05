@@ -45,8 +45,8 @@ struct MoodGoodRow: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
-            MoodBadge(level: moment.level, size: Theme.Size.badge)
-                .alignmentGuide(.firstTextBaseline) { $0.height * 0.75 }
+            MoodBadge(level: moment.level, size: Theme.Size.moodDot)
+                .alignmentGuide(.firstTextBaseline) { $0.height * 0.7 }
             VStack(alignment: .leading, spacing: Theme.Space.hairline) {
                 Text(moment.moment ?? moment.word).font(Theme.Typeface.quote).foregroundStyle(Theme.Palette.label)
                     .fixedSize(horizontal: false, vertical: true)

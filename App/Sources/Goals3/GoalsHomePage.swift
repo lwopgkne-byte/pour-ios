@@ -277,8 +277,8 @@ struct CareChips: View {
                                 GoalRing(
                                     state: chip.ringState, progress: chip.pct, label: "", size: Theme.Size.smallRing - 8
                                 )
-                                Image(systemName: CareIcon.symbol(chip.icon)).font(Theme.Typeface.tick)
-                                    .foregroundStyle(Theme.Palette.secondaryLabel)
+                                Image(systemName: CareIcon.symbol(chip.icon)).font(Theme.Typeface.glyph)
+                                    .foregroundStyle(Theme.careColor(chip.icon))
                             }
                             VStack(alignment: .leading, spacing: 0) {
                                 Text(chip.name).font(Theme.Typeface.footnoteSemibold).foregroundStyle(

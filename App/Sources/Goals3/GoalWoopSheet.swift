@@ -105,7 +105,7 @@ struct GoalWoopSheet: View {
             Text(page.remindQ).font(Theme.Typeface.bodySemibold)
             PourFlowLayout(spacing: Theme.Space.small) {
                 ForEach(page.reminds, id: \.text) { item in
-                    pick(item.kind == "place" ? "📍 \(item.text)" : "🔔 \(item.text)", selected: remind == .some(item)) {
+                    pick(item.text, symbol: item.kind == "place" ? "mappin" : "bell", selected: remind == .some(item)) {
                         remind = .some(item)
                     }
                 }
@@ -115,9 +115,15 @@ struct GoalWoopSheet: View {
         .themeCard()
     }
 
-    private func pick(_ text: String, selected: Bool, action: @escaping () -> Void) -> some View {
+    private func pick(
+        _ text: String, symbol: String? = nil, selected: Bool, action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
-            Text(text).font(Theme.Typeface.subheadline)
+            HStack(spacing: Theme.Space.tight) {
+                if let symbol { Image(systemName: symbol) }
+                Text(text)
+            }
+            .font(Theme.Typeface.subheadline)
                 .foregroundStyle(selected ? Theme.Palette.onAccent : Theme.Palette.label)
                 .padding(.horizontal, Theme.Space.medium).padding(.vertical, Theme.Space.small)
                 .background(selected ? Theme.Palette.accentFill : Theme.Palette.fill, in: Capsule())

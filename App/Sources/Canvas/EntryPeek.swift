@@ -3,7 +3,7 @@ import PourCore
 import PourDesign
 import SwiftUI
 
-/// 记录详情：从底部滑出的半屏，标题是图标和名称，右上角关闭。
+/// 记录详情：从底部滑出的半屏，照原型 RecordSheet：上面一行类别的彩色小方块和类别名、右上角灰圆的关闭，下面大字的名称。
 /// 拿不准的先问一句、能确认；所有字段原地修改（交给服务器改）；最近 7 天；相关目标；来源原话（对应的那一段标黄）；删除
 struct EntryPeek: View {
     @Environment(AppModel.self) private var model
@@ -70,34 +70,34 @@ struct EntryPeek: View {
     }
 
     private var header: some View {
-        HStack(spacing: Theme.Space.small) {
-            Text(Show.spaced(title)).font(Theme.Typeface.section.weight(.semibold)).foregroundStyle(Theme.Palette.label)
-                .lineLimit(2)
-                .accessibilityAddTraits(.isHeader)
-            Spacer(minLength: 0)
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark").font(Theme.Typeface.section).foregroundStyle(Theme.Palette.secondaryLabel)
-                    .frame(width: Theme.Size.touch, height: Theme.Size.touch).contentShape(Rectangle())
+        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+            HStack(spacing: Theme.Space.small) {
+                if let entry {
+                    let meta = Show.meta(entry.category, model.categories)
+                    IconTile(
+                        symbol: CategoryIcon.symbol(key: entry.category, name: meta.name), emoji: meta.emoji,
+                        color: Theme.tag(meta.color))
+                    Text(meta.name).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
+                }
+                Spacer(minLength: 0)
+                SheetCloseButton { dismiss() }
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text("关闭"))
+            Text(Show.spaced(title)).font(Theme.Typeface.recordTitle).foregroundStyle(Theme.Palette.label)
+                .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
         }
-        .padding(.leading, Theme.Space.regular)
-        .padding([.trailing, .vertical], Theme.Space.small)
-        .frame(minHeight: (Theme.Size.touch + Theme.Space.tight))
+        .padding(.horizontal, Theme.Space.regular)
+        .padding(.top, Theme.Space.medium).padding(.bottom, Theme.Space.small)
     }
 
-    /// 标题：类别的图标 + 名称（心情就是「心情」）
+    /// 大字的名称（心情就是「心情」）；类别在上面一行，不再写 emoji
     private var title: String {
         guard let entry else { return "" }
-        let emoji = Show.meta(entry.category, model.categories).emoji
         switch entry.data {
-        case .event(let event): return "\(emoji) \(event.label)"
-        case .todo(let todo): return "\(emoji) \(todo.content)"
-        case .insight(let insight): return "\(emoji) \(insight.title)"
-        case .mood: return "\(emoji) 心情"
+        case .event(let event): return event.label
+        case .todo(let todo): return todo.content
+        case .insight(let insight): return insight.title
+        case .mood: return "心情"
         }
     }
 

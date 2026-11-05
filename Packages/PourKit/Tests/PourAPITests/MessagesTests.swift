@@ -21,9 +21,9 @@ struct MessagesTests {
     }
 
     @Test func emoji() {
-        #expect(Show.messageEmoji("daily") == "📖")
-        #expect(Show.messageEmoji("todo") == "⏰")
-        #expect(Show.messageEmoji("monthly") == "📋")
+        #expect(Show.messageSymbol("daily") == "book.fill")
+        #expect(Show.messageSymbol("todo") == "alarm.fill")
+        #expect(Show.messageSymbol("monthly") == "list.clipboard.fill")
     }
 
     /// shared 的 learnedPhrase：「「小王」= 同事」里的「小王」

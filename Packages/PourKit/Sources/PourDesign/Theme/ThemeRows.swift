@@ -182,12 +182,18 @@ public struct FilterChip: View {
     let title: String
     let count: Int?
     let selected: Bool
+    let selectedFill: Color
     let action: () -> Void
 
-    public init(_ title: String, count: Int? = nil, selected: Bool, action: @escaping () -> Void) {
+    /// selectedFill：选中时的底（默认深色；记心情里是心情色，照原型）
+    public init(
+        _ title: String, count: Int? = nil, selected: Bool, selectedFill: Color = Theme.Palette.label,
+        action: @escaping () -> Void
+    ) {
         self.title = title
         self.count = count
         self.selected = selected
+        self.selectedFill = selectedFill
         self.action = action
     }
 
@@ -201,7 +207,7 @@ public struct FilterChip: View {
             .foregroundStyle(selected ? Theme.Palette.onAccent : Theme.Palette.label)
             .padding(.horizontal, Theme.Space.medium)
             .frame(minHeight: Theme.Size.capsule)
-            .background(selected ? Theme.Palette.label : Theme.Palette.fill, in: Capsule())
+            .background(selected ? selectedFill : Theme.Palette.fill, in: Capsule())
             .frame(minHeight: Theme.Size.touch)
             .contentShape(Rectangle())
         }
@@ -285,37 +291,6 @@ public struct ErrorState: View {
         case .tooOld: "这个 App 太旧了，装一下新的再看。"
         case .other: "这一页暂时打不开，已经记下了，我们会修。"
         }
-    }
-}
-
-/// 轻提示：一句话，右边可以有一个操作（「撤销」），4 秒后自己消失（AppModel 管时间）
-public struct ThemeToast: View {
-    let message: String
-    let action: String?
-    let perform: () -> Void
-
-    public init(_ message: String, action: String? = nil, perform: @escaping () -> Void = {}) {
-        self.message = message
-        self.action = action
-        self.perform = perform
-    }
-
-    public var body: some View {
-        HStack(spacing: Theme.Space.medium) {
-            Text(message).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
-            if let action {
-                // 点的地方撑在按钮里面（撑在外面读屏和审计还是按字的大小算）
-                Button(action: perform) {
-                    Text(action).font(Theme.Typeface.cardTitle).foregroundStyle(Theme.Palette.accent)
-                        .frame(minWidth: Theme.Size.touch, minHeight: Theme.Size.touch).contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("undoToast")
-            }
-        }
-        .padding(.horizontal, Theme.Space.regular)
-        .frame(minHeight: Theme.Size.touch)
-        .themeGlass(radius: Theme.Corner.composer)
     }
 }
 

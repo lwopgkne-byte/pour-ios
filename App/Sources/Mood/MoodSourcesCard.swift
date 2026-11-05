@@ -59,8 +59,15 @@ struct MoodSourcesCard: View {
         if !good.isEmpty || !bad.isEmpty {
             VStack(alignment: .leading, spacing: Theme.Space.tight) {
                 Text("常见的心情").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
-                if !good.isEmpty { Text("好的：\(good)").font(Theme.Typeface.subheadline) }
-                if !bad.isEmpty { Text("不好的：\(bad)").font(Theme.Typeface.subheadline) }
+                // 照原型：「好的」绿、「不好的」琥珀，加粗
+                if !good.isEmpty {
+                    Text("\(Text("好的").foregroundStyle(Theme.Palette.good).bold())：\(good)")
+                        .font(Theme.Typeface.subheadline)
+                }
+                if !bad.isEmpty {
+                    Text("\(Text("不好的").foregroundStyle(Theme.Palette.warn).bold())：\(bad)")
+                        .font(Theme.Typeface.subheadline)
+                }
             }
             .foregroundStyle(Theme.Palette.label)
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -107,7 +107,7 @@ struct PeriodReviewView: View {
         ReviewSection(title: "做了什么") {
             ForEach(review.groups, id: \.key) { group in
                 VStack(alignment: .leading, spacing: Theme.Space.hairline) {
-                    Text("\(group.emoji) \(group.name)").font(Theme.Typeface.footnote)
+                    Text(group.name).font(Theme.Typeface.footnote)
                         .foregroundStyle(Theme.Palette.secondaryLabel)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityLabel(Text(group.name))

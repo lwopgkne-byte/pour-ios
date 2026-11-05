@@ -154,7 +154,7 @@ struct AboutYearView: View {
     private func monthCell(_ number: Int, mood: Double?) -> some View {
         let level = mood.map { Int($0.rounded()) }
         return Text("\(number)月").font(Theme.Typeface.caption)
-            .foregroundStyle(level.map { Theme.Mood.ink($0) } ?? Theme.Palette.tertiaryLabel)
+            .foregroundStyle(level.map { Theme.Mood.label($0) } ?? Theme.Palette.tertiaryLabel)
             .frame(maxWidth: .infinity).frame(height: Theme.Size.monthCell + Theme.Space.tight)
             .background(level.map { Theme.Mood.fill($0) } ?? Theme.Palette.fill, in: Theme.rounded(Theme.Corner.chip))
             .accessibilityElement(children: .ignore)

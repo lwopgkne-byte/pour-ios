@@ -9,7 +9,8 @@ extension Theme {
 
         // 记录
         public static let todos = "checklist"
-        public static let money = "yensign.circle.fill"
+        /// 照原型（currency_yen）：一个 ¥，不套圈（套圈的在格子里显得挤）
+        public static let money = "yensign"
         public static let mood = "face.smiling.inverse"
         public static let insights = "lightbulb.fill"
         public static let health = "heart.text.square.fill"

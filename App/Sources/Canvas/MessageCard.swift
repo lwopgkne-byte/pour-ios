@@ -15,7 +15,8 @@ struct MessageCard: View {
                 model.openStory(path: link.path)
             } label: {
                 HStack(spacing: Theme.Space.small) {
-                    Text(Show.messageEmoji(message.kind)).accessibilityHidden(true)
+                    Image(systemName: Show.messageSymbol(message.kind)).foregroundStyle(Theme.Palette.accent)
+                        .accessibilityHidden(true)
                     Text(link.text).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
                     time
                     Image(systemName: "chevron.right").font(Theme.Typeface.caption)
@@ -29,7 +30,8 @@ struct MessageCard: View {
         } else {
             VStack(alignment: .leading, spacing: Theme.Space.tight) {
                 HStack(spacing: Theme.Space.small) {
-                    Text(Show.messageEmoji(message.kind)).accessibilityHidden(true)
+                    Image(systemName: Show.messageSymbol(message.kind)).foregroundStyle(Theme.Palette.accent)
+                        .accessibilityHidden(true)
                     Text(Show.spaced(message.title)).font(Theme.Typeface.cardTitle).foregroundStyle(
                         Theme.Palette.label)
                     Spacer(minLength: 0)

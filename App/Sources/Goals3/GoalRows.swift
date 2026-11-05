@@ -148,12 +148,12 @@ extension API.GoalCard {
     }
 }
 
-/// 「我在乎的」图标：服务器的名字 → SF Symbol
+/// 「我在乎的」图标：服务器的名字 → SF Symbol（照原型：健康心电图、钱 ¥、成长学士帽、关系几个人）；颜色是 Theme.careColor
 enum CareIcon {
     static func symbol(_ name: String) -> String {
         [
-            "heart": "heart.fill", "yen": "yensign.circle.fill", "book": "book.fill", "people": "person.2.fill",
-            "star": "star.fill",
+            "heart": "waveform.path.ecg.rectangle.fill", "yen": "yensign", "book": "graduationcap.fill",
+            "people": "person.3.fill", "star": "star.fill",
         ][name] ?? "circle.fill"
     }
 }

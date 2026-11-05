@@ -207,7 +207,7 @@ struct MoneyDetailSheet: View {
     private var supplement: some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             Text("补充").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-            PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) {
+            ChipFlow {
                 ForEach(missing, id: \.self) { fact in
                     FilterChip("＋ \(fact.title)", selected: editing == fact) { start(fact) }
                 }

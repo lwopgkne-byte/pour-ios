@@ -59,7 +59,7 @@ struct GoalForm: View {
     @ViewBuilder private var quantityFields: some View {
         field("周期") { ThemeSegmented("周期", options: Self.scopes, selected: scope) { scope = $0 } }
         field("类别（子类别的记录也算进上级）") {
-            PourFlowLayout(spacing: Theme.Space.tight, lineSpacing: Theme.Space.tight) {
+            ChipFlow {
                 ForEach(CategoryPicker.ordered(model.categories), id: \.key) { item in
                     FilterChip(item.name, selected: item.key == category) { pick(item) }
                 }

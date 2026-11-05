@@ -56,6 +56,19 @@ struct ThemeColorTests {
         #expect(contrast(Theme.Mood.fillToken(5), on: Theme.Tokens.card) >= 3, "点亮的小点")
     }
 
+    /// 一条心情里的情绪词：浅粉底上的粉字 ≥ 4.5
+    @Test func moodSoftChips() {
+        #expect(contrast(Theme.Mood.softInkToken, on: Theme.Mood.softToken, ink: Self.smallText) >= 4.5)
+    }
+
+    /// 写在心情底色上的字（「你的一年」每个月一格）：小字按画出来的样子 ≥ 4.5
+    @Test func moodLabels() {
+        for level in 1...5 {
+            let ratio = contrast(Theme.Mood.labelToken(level), on: Theme.Mood.fillToken(level), ink: Self.smallText)
+            #expect(ratio >= 4.5, "第 \(level) 档底上的字只有 \(ratio)")
+        }
+    }
+
     /// 3.0 感悟：纸（正面、背面）上的字 ≥ 4.5；标签浅黄底上的字 ≥ 4.5；收藏了的星在卡片、纸上 ≥ 3
     @Test func insightPaper() {
         for paper in [Theme.Idea.paperToken, Theme.Idea.paperBackToken] {

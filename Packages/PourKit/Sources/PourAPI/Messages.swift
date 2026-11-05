@@ -61,17 +61,16 @@ extension APIClient {
 }
 
 extension Show {
-    /// 系统消息左边的那个图标
-    public static func messageEmoji(_ kind: String) -> String {
+    /// 系统消息左边的那个图标（SF Symbol；照原型不用 emoji）
+    public static func messageSymbol(_ kind: String) -> String {
         switch kind {
-        case "morning": "☀️"
-        case "evening": "🌙"
-        case "warning": "📉"
-        case "weekly", "monthly": "📋"
-        case "test": "🔔"
-        case "todo": "⏰"
-        case "daily": "📖"
-        default: "🔔"
+        case "morning": "sun.max.fill"
+        case "evening": "moon.fill"
+        case "warning": "chart.line.downtrend.xyaxis"
+        case "weekly", "monthly": "list.clipboard.fill"
+        case "todo": "alarm.fill"
+        case "daily": "book.fill"
+        default: "bell.fill"
         }
     }
 

@@ -295,3 +295,18 @@ public enum Show {
         return groups.sorted { rank($0) < rank($1) }
     }
 }
+
+extension Show {
+    /// 服务器写的一句（「😴 0:10 → 7:00」「✅ 完成：吃维生素（⏰ 明天 17:30 提醒）」）去掉表情：照原型，界面上不用 emoji，
+    /// 类别、状态由旁边的图标和颜色说
+    public static func plain(_ text: String) -> String {
+        text.filter { !isEmoji($0) }.split(separator: " ", omittingEmptySubsequences: true).joined(separator: " ")
+            .replacingOccurrences(of: "（ ", with: "（")
+    }
+
+    /// 是不是表情（「🍽」不带变体符号也算；数字、井号、星号这些 ASCII 的不算）
+    public static func isEmoji(_ character: Character) -> Bool {
+        guard let first = character.unicodeScalars.first else { return false }
+        return first.properties.isEmoji && !first.isASCII
+    }
+}

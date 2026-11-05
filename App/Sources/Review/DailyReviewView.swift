@@ -42,12 +42,12 @@ struct DailyReviewView: View {
         DayLook(overview: review.overview, numbers: review.numbers + spent, levels: review.moods.map(\.mood))
         let items = review.entries.compactMap(RibbonItem.init)
         if !items.isEmpty {
-            // 照原型：和画布上「一天的时间」一样的带子（类别色的色块、下面刻度）；没说时间的是一个个小胶囊，
-            // 点了打开那一条（以前是一长串「·」隔开的字，2026-11-05 当成真的用户走一遍时看着费劲）
+            // 照原型：一根 0:00–24:00 的细条（类别色）、下面刻度；没说时间的是一个个小胶囊，点了打开那一条
+            // （以前是一长串「·」隔开的字，2026-11-05 当成真的用户走一遍时看着费劲；画布那条粗带子放这里显得笨重）
             ReviewSection(title: "一天的样子") {
                 let timed = items.filter { $0.span != nil }
                 let loose = items.filter { $0.span == nil }
-                if !timed.isEmpty { RibbonTrack(day: day, items: timed, fillGaps: false) }
+                if !timed.isEmpty { ReviewDayBar(day: day, items: timed) }
                 if !loose.isEmpty { UntimedRow(day: day, items: loose, wrap: true) }
             }
         }
@@ -129,7 +129,7 @@ struct DailyReviewView: View {
         ReviewSection(title: "做了什么") {
             ForEach(groups, id: \.key) { group in
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("\(group.emoji) \(group.name)").font(Theme.Typeface.footnote)
+                    Text(group.name).font(Theme.Typeface.footnote)
                         .foregroundStyle(Theme.Palette.secondaryLabel)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityLabel(Text(group.name))

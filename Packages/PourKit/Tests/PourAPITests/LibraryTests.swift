@@ -56,4 +56,13 @@ struct LibraryTests {
         #expect(API.LibraryFilter().isEmpty)
         #expect(!API.LibraryFilter(tag: "小王").isEmpty)
     }
+
+    /// 一段话下面的小标签不带表情（照原型）：服务器写的类别表情、⏰ 去掉，数字、箭头留着
+    @Test func plainChips() {
+        #expect(Show.plain("😴 0:10 → 7:00") == "0:10 → 7:00")
+        #expect(Show.plain("🍽️ 16:8 轻断食") == "16:8 轻断食")
+        #expect(Show.plain("✅ 完成：吃维生素") == "完成：吃维生素")
+        #expect(Show.plain("📝 待办：交房租（⏰ 明天 17:30 提醒）") == "待办：交房租（明天 17:30 提醒）")
+        #expect(Show.plain("跑步 30 分钟 #3") == "跑步 30 分钟 #3")
+    }
 }

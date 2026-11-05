@@ -24,8 +24,8 @@ struct KnownPeek: View {
         guard let about = store.about else { return "" }
         if key == "sleep" { return "作息" }
         if let habit = about.habits.first(where: { $0.key == key }) { return habit.name }
-        if let person = (about.people + about.former).first(where: { $0.key == key }) { return "👤 \(person.name)" }
-        if let place = about.places.first(where: { $0.key == key }) { return "📍 \(place.name)" }
+        if let person = (about.people + about.former).first(where: { $0.key == key }) { return person.name }
+        if let place = about.places.first(where: { $0.key == key }) { return place.name }
         if let saying = about.sayings.first(where: { $0.key == key }) { return "「\(saying.phrase)」" }
         return ""
     }

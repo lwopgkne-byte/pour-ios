@@ -69,7 +69,7 @@ struct InsightDetailSheet: View {
     private var tagsRow: some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             Text("标签").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-            PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) {
+            ChipFlow {
                 ForEach(tags, id: \.self) { tag in
                     FilterChip("\(tag) ✕", selected: false) { tags.removeAll { $0 == tag } }
                         .accessibilityLabel(Text("\(tag)，点了去掉"))
@@ -89,7 +89,7 @@ struct InsightDetailSheet: View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             let common = commonTags.filter { !tags.contains($0) }
             if !common.isEmpty {
-                PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) {
+                ChipFlow {
                     ForEach(common, id: \.self) { tag in FilterChip(tag, selected: false) { tags.append(tag) } }
                 }
             }

@@ -96,7 +96,7 @@ struct LibraryFilterSheet: View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             Text(title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
                 .accessibilityAddTraits(.isHeader)
-            PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) { content() }
+            ChipFlow { content() }
         }
     }
 

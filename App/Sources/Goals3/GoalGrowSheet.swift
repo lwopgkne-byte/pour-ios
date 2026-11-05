@@ -188,7 +188,7 @@ struct GoalGrowSheet: View {
                 Text("变成提醒，在这个时间叫你：").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                 HStack {
                     if let suggested = option.remind {
-                        Button("🔔 \(suggested.text)") { remind = .some(suggested) }
+                        Button(suggested.text, systemImage: "bell") { remind = .some(suggested) }
                             .buttonStyle(.bordered).tint(
                                 remind == .some(suggested) ? Theme.Palette.accent : Theme.Palette.secondaryLabel)
                     }

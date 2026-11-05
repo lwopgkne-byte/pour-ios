@@ -47,7 +47,7 @@ struct MoodMomentRow: View {
                         .foregroundStyle(Theme.Palette.secondaryLabel)
                         .frame(minWidth: Theme.Size.touch, alignment: .leading)
                 }
-                MoodBadge(level: moment.level, size: Theme.Size.tile)
+                MoodBadge(level: moment.level, size: Theme.Size.moodDot)
                 Text(moment.word).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
                 if let detail {
                     Text(detail).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
@@ -87,7 +87,7 @@ struct MoodPendingRow: View {
                 Text(pending.time).font(Theme.Typeface.footnote).monospacedDigit()
                     .foregroundStyle(Theme.Palette.secondaryLabel)
                     .frame(minWidth: Theme.Size.touch, alignment: .leading)
-                MoodBadge(level: pending.level, size: Theme.Size.tile)
+                MoodBadge(level: pending.level, size: Theme.Size.moodDot)
                 Text(MoodText.names[pending.level - 1]).font(Theme.Typeface.bodySemibold)
                     .foregroundStyle(Theme.Palette.label)
                 if !pending.emotions.isEmpty {

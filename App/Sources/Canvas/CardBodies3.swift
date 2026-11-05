@@ -146,7 +146,7 @@ struct TodoBody: View {
             if case .todo(let entry) = row { entry } else { nil }
         }
         VStack(alignment: .leading, spacing: 0) {
-            if !agenda.allDay.isEmpty { AllDayLine(items: agenda.allDay) }
+            ForEach(agenda.allDay) { AgendaEventRow(item: $0) }
             ShowFirst(items: agenda.rows, first: 5) { row, _ in
                 switch row {
                 case .todo(let entry):

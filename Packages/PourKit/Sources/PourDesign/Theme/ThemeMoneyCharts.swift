@@ -29,9 +29,8 @@ public struct PaceChart: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.snug) {
-            Text(caption).font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
-                .lineLimit(2).contentTransition(.numericText())
+        VStack(alignment: .leading, spacing: Theme.Space.tight) {
+            legend
             chart
                 .frame(height: Theme.Size.curve * 2)
         }
@@ -49,28 +48,81 @@ public struct PaceChart: View {
         }
     }
 
+    /// 上面一行（照原型）：左边「━ 这个月 10月27日 ¥7,176」，右边「┅ 上个月同日 ¥29,863」；平时写最后一天，按住拖时写那一天。
+    /// 放不下一行（字调大了）就上下两行
+    private var legend: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: Theme.Space.small) {
+                thisMonth
+                Spacer(minLength: 0)
+                lastMonth
+            }
+            VStack(alignment: .leading, spacing: Theme.Space.hairline) {
+                thisMonth
+                lastMonth
+            }
+        }
+        .font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
+        .contentTransition(.numericText())
+    }
+
+    @ViewBuilder private var thisMonth: some View {
+        if let index = shown, index < current.count {
+            Text("\(Text("━").foregroundStyle(Self.line).bold()) 这个月 \(dayName(index)) \(money(current[index]))")
+                .fixedSize()
+        } else {
+            Text("还没说到钱")
+        }
+    }
+
+    @ViewBuilder private var lastMonth: some View {
+        if let index = shown, let previous, index < previous.count {
+            Text("\(Text("┅").foregroundStyle(Self.dashed).bold()) 上个月同日 \(money(previous[index]))").fixedSize()
+        }
+    }
+
+    /// 照原型：这个月是钱的颜色（#C27E12，线下面一层 10% 的），上个月是浅灰虚线；那一天两个点都描白边
+    private static let line = Theme.Tile.amber
+    private static let dashed = Theme.Palette.tertiaryLabel
+
     private var chart: some View {
         Chart {
             if let previous {
                 ForEach(Array(previous.enumerated()), id: \.offset) { index, value in
                     LineMark(x: .value("几号", index + 1), y: .value("钱", value), series: .value("月", "上个月"))
-                        .foregroundStyle(Theme.Palette.tertiaryLabel)
-                        .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                        .foregroundStyle(Self.dashed)
+                        .lineStyle(StrokeStyle(lineWidth: 1.6, dash: [4, 4]))
                 }
             }
             ForEach(Array(current.enumerated()), id: \.offset) { index, value in
+                AreaMark(x: .value("几号", index + 1), y: .value("钱", value))
+                    .foregroundStyle(Self.line.opacity(0.1))
                 LineMark(x: .value("几号", index + 1), y: .value("钱", value), series: .value("月", "这个月"))
-                    .foregroundStyle(Theme.Palette.accentFill)
-                    .lineStyle(StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                    .foregroundStyle(Self.line)
+                    .lineStyle(StrokeStyle(lineWidth: 2.4, lineCap: .round, lineJoin: .round))
             }
+            RuleMark(y: .value("钱", 0)).foregroundStyle(Theme.Palette.separator)
             if let index = shown, index < current.count {
                 RuleMark(x: .value("几号", index + 1)).foregroundStyle(Theme.Palette.separator)
+                if let previous, index < previous.count {
+                    PointMark(x: .value("几号", index + 1), y: .value("钱", previous[index]))
+                        .symbol { Self.dot(Self.dashed, size: Theme.Space.snug + 1, edge: 1.5) }
+                }
                 PointMark(x: .value("几号", index + 1), y: .value("钱", current[index]))
-                    .foregroundStyle(Theme.Palette.accentFill)
+                    .symbol { Self.dot(Self.line, size: Theme.Space.small + 1, edge: Theme.Space.hairline) }
             }
         }
         .chartXScale(domain: 1...max(2, days))
-        .chartXAxis(.hidden)
+        // 底下 1日、10日、20日、最后一天（照原型）
+        .chartXAxis {
+            AxisMarks(values: [1, 10, 20, max(2, days)]) { value in
+                AxisValueLabel {
+                    if let day = value.as(Int.self) {
+                        Text("\(day)日").font(Theme.Typeface.tick).foregroundStyle(Theme.Palette.tertiaryLabel)
+                    }
+                }
+            }
+        }
         .chartYAxis(.hidden)
         .chartOverlay { proxy in
             GeometryReader { geometry in
@@ -92,14 +144,10 @@ public struct PaceChart: View {
         .themeSelectionFeedback(trigger: picked)
     }
 
-    /// 上面那一行：按住时写那一天，平时写最后一天和图例
-    private var caption: String {
-        // 图例：没有上个月的线（刚开始用、上个月没说到钱）就不写「上个月同日」
-        let legend = previous == nil ? "━ 这个月每天累计" : "━ 这个月每天累计 · ┅ 上个月同日"
-        guard let index = shown, index < current.count else { return legend }
-        var text = "\(dayName(index)) \(money(current[index]))"
-        if let previous, index < previous.count { text += " · 上个月同日 \(money(previous[index]))" }
-        return picked == nil ? legend : text
+    /// 那一天的点：实心、描一圈白边
+    private static func dot(_ color: Color, size: CGFloat, edge: CGFloat) -> some View {
+        Circle().fill(color).frame(width: size, height: size)
+            .overlay { Circle().stroke(Theme.Palette.card, lineWidth: edge) }
     }
 
     private var shown: Int? { picked ?? (current.isEmpty ? nil : current.count - 1) }

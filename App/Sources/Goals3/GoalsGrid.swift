@@ -59,8 +59,13 @@ struct GoalGroupLabel: View {
     let group: API.GoalGroup
 
     var body: some View {
-        Label(group.name, systemImage: CareIcon.symbol(group.icon)).font(Theme.Typeface.footnoteSemibold)
-            .foregroundStyle(Theme.Palette.secondaryLabel)
+        Label {
+            Text(group.name)
+        } icon: {
+            Image(systemName: CareIcon.symbol(group.icon)).foregroundStyle(Theme.careColor(group.icon))
+        }
+        .font(Theme.Typeface.footnoteSemibold)
+        .foregroundStyle(Theme.Palette.secondaryLabel)
             .padding(.horizontal, Theme.Space.tight)
             .accessibilityAddTraits(.isHeader)
     }

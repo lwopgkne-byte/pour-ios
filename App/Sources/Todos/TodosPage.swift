@@ -127,8 +127,7 @@ struct TodosPage: View {
             ForEach(items) { item in
                 switch item {
                 case .todo(let row): todoRow(row, group: group.key, today: page.today)
-                case .event(let event):
-                    CalendarLine(event.title, time: TodayItem.time(event)).listRowInsets(Self.rowInsets)
+                case .event(let event): CalendarLine(event: event).listRowInsets(Self.rowInsets)
                 }
             }
         } else {
@@ -322,5 +321,14 @@ enum TodayItem: Identifiable {
     /// 「14:00–15:30」「全天 · 日历」
     static func time(_ event: CalendarItem) -> String {
         event.allDay ? "全天 · 日历" : "\(event.start.suffix(5))–\(event.end.suffix(5))"
+    }
+}
+
+extension CalendarLine {
+    /// 日历里的一件（待办页、时间线）：日历自己的颜色；全天的右边是「全天 · 日历」小胶囊，别的写几点到几点
+    init(event: CalendarItem) {
+        self.init(
+            event.title, time: TodayItem.time(event), color: Theme.calendarColor(event.color, calendar: event.calendar),
+            allDay: event.allDay)
     }
 }

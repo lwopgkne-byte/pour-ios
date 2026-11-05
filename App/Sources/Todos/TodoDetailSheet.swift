@@ -205,7 +205,7 @@ struct TodoDetailSheet: View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             Label(name, systemImage: symbol).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.label)
                 .labelStyle(TintedIcon(tint: tint))
-            PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) { chips() }
+            ChipFlow { chips() }
             extra()
         }
         .frame(maxWidth: .infinity, alignment: .leading)

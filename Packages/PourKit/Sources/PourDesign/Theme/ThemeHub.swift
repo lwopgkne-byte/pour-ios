@@ -168,7 +168,7 @@ public struct QuickActionLabel: View {
     VStack(spacing: Theme.Space.xLarge) {
         HStack(spacing: Theme.Space.xLarge) {
             HubTileIcon(symbol: "checklist", color: Theme.Tile.blue)
-            HubTileIcon(symbol: "yensign.circle.fill", color: Theme.Tile.amber)
+            HubTileIcon(symbol: Theme.Symbol.money, color: Theme.Tile.amber)
                 .overlay(alignment: .topTrailing) { HubBadge("2").offset(x: 8, y: -6) }
             HubTileIcon(symbol: "book.fill", color: Theme.Tile.indigo).hubJiggle(true)
                 .overlay(alignment: .topLeading) { HubMark(adding: false).offset(x: -8, y: -8) }
@@ -177,7 +177,7 @@ public struct QuickActionLabel: View {
         }
         HStack {
             QuickActionLabel("记一笔", symbol: "yensign", color: Theme.Quick.money)
-            QuickActionLabel("记心情", symbol: "face.smiling", color: Theme.Quick.mood)
+            QuickActionLabel("记心情", symbol: Theme.Symbol.mood, color: Theme.Quick.mood)
             QuickActionLabel("记一句", symbol: "lightbulb.fill", color: Theme.Quick.idea)
             QuickActionLabel("加待办", symbol: "plus", color: Theme.Quick.todo)
         }

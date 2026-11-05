@@ -153,7 +153,7 @@ struct SearchPalette: View {
         ForEach(Self.questions, id: \.self) { question in askRow(question) { ask(question) } }
         if !recent.isEmpty {
             groupTitle("最近搜过")
-            PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) {
+            ChipFlow {
                 ForEach(recent, id: \.self) { word in
                     Button {
                         text = word

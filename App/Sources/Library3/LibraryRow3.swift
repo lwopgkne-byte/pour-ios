@@ -65,7 +65,9 @@ struct LibraryRow3: View {
                     Button {
                         model.openEntry(entry.id, day: note.day)
                     } label: {
-                        Text(Show.spaced(entry.text)).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.label)
+                        // 照原型：小标签不带表情（服务器写的类别表情去掉，类别看点开的那条）
+                        Text(Show.spaced(Show.plain(entry.text))).font(Theme.Typeface.footnote)
+                            .foregroundStyle(Theme.Palette.label)
                             .padding(.horizontal, Theme.Space.small).padding(.vertical, Theme.Space.tight)
                             .background(Theme.Palette.fill, in: Capsule())
                             .frame(minHeight: Theme.Size.touch).contentShape(Rectangle())

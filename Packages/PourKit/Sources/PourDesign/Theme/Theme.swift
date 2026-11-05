@@ -123,6 +123,8 @@ extension Theme {
         public static let dim = Color.black.opacity(0.18)
         /// 说一句弹层后面压暗的那一层、弹层往上的影子（照原型 .backdrop 0.28、.sheet 的影子 0.18）
         public static let backdrop = Color.black.opacity(0.28)
+        /// 轻提示的底（原型 .toast：rgba(34,33,30,.94)）
+        public static let toast = Tokens.one(0x22211E).color.opacity(0.94)
         public static let sheetShadow = Color.black.opacity(0.18)
         /// 说一句弹层最下面那一块（快捷、输入框）：九成的白（原型 rgba(255,255,255,.9)）
         public static let dock = Color.white.opacity(0.9)

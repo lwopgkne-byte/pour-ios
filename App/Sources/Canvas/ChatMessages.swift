@@ -318,7 +318,7 @@ struct ReceiptRow: View {
         switch kind(item) {
         case .todo: "checklist"
         case .money: "yensign"
-        case .mood: "face.smiling"
+        case .mood: Theme.Symbol.mood
         case .insight: "lightbulb"
         case .other: "checkmark"
         }

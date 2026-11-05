@@ -13,6 +13,14 @@ struct MoodMomentsPage: View {
     var body: some View {
         List {
             if let moments {
+                if !moments.isEmpty {
+                    // 照原型：大标题下面一句说这是什么
+                    Text("你说过觉得好的那一刻。心情是 AI 听出来的，点开可以改。")
+                        .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(
+                            EdgeInsets(top: 0, leading: Theme.Space.tight, bottom: 0, trailing: Theme.Space.tight))
+                }
                 if moments.isEmpty {
                     Text("还没有好时刻。心情不错的时候顺口说一句为什么（「晚上楼下飘上来烤红薯的香味」），这里就会有。")
                         .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)

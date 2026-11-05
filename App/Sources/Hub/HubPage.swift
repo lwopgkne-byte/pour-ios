@@ -89,6 +89,7 @@ struct HubPage: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .padding(.vertical, -(Theme.Size.touch - Theme.Size.badge) / 2)
                 .accessibilityIdentifier("hub.known")
             }
             Spacer(minLength: 0)
@@ -114,6 +115,8 @@ struct HubPage: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        // 排的时候只占标签那么高（两行字挨着，照原型），点的地方还是 44
+        .padding(.vertical, -(Theme.Size.touch - Theme.Size.badge) / 2)
         .accessibilityHint(Text("现在看的是演示数据。点一下可以回到真实数据"))
         .accessibilityIdentifier("hub.demo")
     }
@@ -134,7 +137,7 @@ struct HubPage: View {
     private var quickActions: some View {
         HStack(spacing: 0) {
             quick("记一笔", symbol: "yensign", color: Theme.Quick.money, start: "/记 ")
-            quick("记心情", symbol: "face.smiling", color: Theme.Quick.mood, start: "心情：")
+            quick("记心情", symbol: Theme.Symbol.mood, color: Theme.Quick.mood, start: "心情：")
             quick("记一句", symbol: "lightbulb.fill", color: Theme.Quick.idea, start: "记一句：")
             quick("加待办", symbol: "plus", color: Theme.Quick.todo, start: "待办：")
         }

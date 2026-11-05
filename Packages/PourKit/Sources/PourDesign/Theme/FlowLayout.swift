@@ -57,3 +57,22 @@ public struct PourFlowLayout: Layout {
         return rows
     }
 }
+
+/// 一组会换行的胶囊（FilterChip 这种：看得见的胶囊 32 高，点的地方 44）。排的时候按看得见的胶囊算：
+/// 行和行看上去隔 spacing（原型一组 .chip 是 gap 8），点的地方还是 44——上下多出来的那截叠进行缝里，
+/// 整组也往外多出那半截，和上下别的东西的距离按胶囊算（和「说一句」那排小胶囊一个办法）
+public struct ChipFlow<Content: View>: View {
+    let spacing: CGFloat
+    let content: Content
+
+    public init(spacing: CGFloat = Theme.Space.small, @ViewBuilder content: () -> Content) {
+        self.spacing = spacing
+        self.content = content()
+    }
+
+    public var body: some View {
+        let slack = Theme.Size.touch - Theme.Size.capsule
+        PourFlowLayout(spacing: spacing, lineSpacing: spacing - slack) { content }
+            .padding(.vertical, -slack / 2)
+    }
+}

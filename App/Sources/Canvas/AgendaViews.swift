@@ -23,56 +23,26 @@ struct CalendarHint: View {
     }
 }
 
-/// 待办卡最上面一行：全天的日程（节假日、生日）
-struct AllDayLine: View {
-    let items: [CalendarItem]
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
-            AgendaIcon()
-            TaggedLabel(tag: AgendaTag.text) {
-                Text(Show.spaced("全天：\(items.map(\.title).joined(separator: " · "))")).font(Theme.Typeface.body)
-                    .foregroundStyle(Theme.Palette.label)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.vertical, Theme.Space.tight)
-        .frame(minHeight: Theme.Size.touch)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("agenda.allDay")
-    }
-}
-
-/// 待办卡里的一件日程：和待办的圆圈对齐的日历图标、名字、几点到几点、「日历」。只读，点了没反应（改在日历里）
+/// 待办卡里的一件日程（照原型 TodoRow 的 cal 行）：和待办的圆圈同一列、正中一根日历颜色的竖条，名字和待办的字对齐；
+/// 右边几点到几点，全天的（节假日、生日，排在最上面）是「全天 · 日历」小胶囊。只读，点了没反应（改在日历里）
 struct AgendaEventRow: View {
     let item: CalendarItem
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Theme.Space.small) {
-            AgendaIcon()
-            TaggedLabel(tag: AgendaTag.text) {
-                Text(Show.spaced(item.title)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
-            }
-            Spacer(minLength: 0)
-            Text("\(Show.clock(item.start))–\(Show.clock(item.end))").font(Theme.Typeface.footnote)
-                .foregroundStyle(Theme.Palette.secondaryLabel).monospacedDigit().fixedSize()
+        HStack(spacing: Theme.Space.tight) {
+            // 和待办的圆圈一样：44 宽的一列，往左挪同样多
+            CalendarBar(color: Theme.calendarColor(item.color, calendar: item.calendar))
+                .frame(width: Theme.Size.touch)
+                .padding(.leading, -Theme.Space.medium + Theme.Space.hairline)
+            Text(Show.spaced(item.title)).font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+                .lineLimit(2)
+            Spacer(minLength: Theme.Space.small)
+            CalendarTime(TodayItem.time(item), allDay: item.allDay)
         }
         .padding(.vertical, Theme.Space.tight)
         .frame(minHeight: Theme.Size.touch)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("agenda.event")
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("日历：\(item.title)，\(TodayItem.time(item))"))
+        .accessibilityIdentifier(item.allDay ? "agenda.allDay" : "agenda.event")
     }
-}
-
-/// 日程前面的小日历：和待办的圆圈一样宽、对齐
-private struct AgendaIcon: View {
-    var body: some View {
-        Image(systemName: "calendar").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
-            .frame(width: Theme.Size.check).accessibilityHidden(true)
-    }
-}
-
-/// 日程的小标签
-enum AgendaTag {
-    static let text = "日历"
 }

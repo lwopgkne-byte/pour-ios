@@ -167,7 +167,7 @@ struct ReviewMoodRow: View {
             quotes.contains { squash($0).contains(squash(moment)) } ? nil : moment
         }
         HStack(alignment: .top, spacing: Theme.Space.medium) {
-            MoodBadge(level: Int(mood.mood.rounded()), size: Theme.Size.capsule)
+            MoodBadge(level: Int(mood.mood.rounded()), size: Theme.Size.moodDot)
             VStack(alignment: .leading, spacing: Theme.Space.hairline) {
                 let head = (showTime ? [mood.at].compactMap(\.self) : []) + [Show.moodWord(mood.mood)] + mood.emotions
                 Text(head.joined(separator: " · ")).font(Theme.Typeface.subheadline).monospacedDigit()

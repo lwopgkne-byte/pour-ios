@@ -4,26 +4,39 @@ public import SwiftUI
 // 带颜色的表情、五个小点、「现在心情怎么样」那一排、每格一个表情的月历、一周七根竖条
 
 extension Theme {
-    /// 五档心情的颜色（1 很差 … 5 很好）：底色从浅到深；浅的两三档脸用深粉色画，深的用白色（对比度 ThemeColorTests 量）
+    /// 五档心情的颜色（1 很差 … 5 很好），照原型 MOOD_BG / MOOD_FG：底色从浅到深；浅的三档脸是深的，深的两档是白的。
+    /// 和原型不一样的三处都是为了看得清（ThemeColorTests 量）：「一般」的脸原型是白的，在那个粉上只有 2:1，改成深的；
+    /// 「挺好」的底比原型 #CF7FA4 深一点点（白脸到 3:1）；「很好」的底比原型 #B54A7C 深一点点（上面写白字也够）
     public enum Mood {
-        static let fills: [UInt32] = [0xE9D1DC, 0xDDB0C5, 0xCF8DAD, 0xB45584, 0x96305F]
-        static let inks: [UInt32] = [0x7E2A52, 0x6E2147, 0x4F1631, 0xFFFFFF, 0xFFFFFF]
+        static let fills: [UInt32] = [0xEDE2E7, 0xE5CAD6, 0xDCA9BF, 0xCB7BA0, 0xAB4173]
+        static let inks: [UInt32] = [0x6D3352, 0x7A2E52, 0x7A2E52, 0xFFFFFF, 0xFFFFFF]
+        /// 写在这一档底色上的字（「你的一年」每个月一格）：比脸再深一些，小字也 ≥ 4.5
+        static let labels: [UInt32] = [0x6D3352, 0x5E2A46, 0x4F1631, 0x2B0A1B, 0xFFFFFF]
 
         static func index(_ level: Int) -> Int { min(5, max(1, level)) - 1 }
         public static func fillToken(_ level: Int) -> ColorToken { Tokens.one(fills[index(level)]) }
         public static func inkToken(_ level: Int) -> ColorToken { Tokens.one(inks[index(level)]) }
+        public static func labelToken(_ level: Int) -> ColorToken { Tokens.one(labels[index(level)]) }
         /// 这一档的底色
         public static func fill(_ level: Int) -> Color { fillToken(level).color }
         /// 画在这一档底色上的脸
         public static func ink(_ level: Int) -> Color { inkToken(level).color }
-        /// 五个小点里没点亮的
+        /// 写在这一档底色上的字
+        public static func label(_ level: Int) -> Color { labelToken(level).color }
+        /// 没点亮的小点
         public static let empty = Tokens.one(0xEADFE4).color
+        /// 一条心情里的情绪词胶囊：浅粉底（原型 --mood-soft，心情色 11%）、上面的粉字（原型 #BC4A7E 在这个底上只有 4.1:1，深一些）
+        public static let softToken = Tokens.one(0xF8EBF1)
+        public static let softInkToken = Tokens.one(0x963461)
+        public static let soft = softToken.color
+        public static let softInk = softInkToken.color
         /// 五档的说法
         public static let names = ["很差", "不太好", "一般", "挺好", "很好"]
     }
 }
 
-/// 带颜色的表情：这一档的粉色圆，上面画脸（很差皱眉、嘴往下弯；很好嘴往上弯）。选中的放大一点、外面一圈
+/// 带颜色的表情（照原型 Face / faceDot）：这一档的粉色圆，正中一张实心的脸（MoodGlyph，眼睛和嘴挖空）。
+/// 选中的放大 1.14 倍，外面先一圈白、再一圈心情色（原型 .face.sel：0 0 0 3px #fff, 0 0 0 5.5px var(--mood)）
 public struct MoodBadge: View {
     let level: Int
     let size: CGFloat
@@ -35,25 +48,34 @@ public struct MoodBadge: View {
         self.selected = selected
     }
 
+    /// 选中时：白圈多宽、外面心情色那圈多宽、放大多少
+    private static let gap: CGFloat = 3
+    private static let ring: CGFloat = 2.5
+    private static let grow: CGFloat = 1.14
+
+    /// 脸占圆的多少（照原型：50 的圆里 30 的脸；30 左右的圆 0.64；二十几的小圆 0.71）
+    private var glyph: CGFloat {
+        size >= Theme.Size.touch ? 0.6 : size >= Theme.Size.capsule - Theme.Space.hairline ? 0.64 : 0.71
+    }
+
     public var body: some View {
-        Canvas { context, canvas in
-            let side = min(canvas.width, canvas.height)
-            let face = CGRect(x: 0, y: 0, width: side, height: side).insetBy(dx: side * 0.2, dy: side * 0.2)
-            MoodFace.draw(
-                level: level, in: face, ink: Theme.Mood.ink(level), line: max(1.5, side / 16), context: context,
-                brows: false)
-        }
-        .frame(width: size, height: size)
-        .background(Theme.Mood.fill(level), in: Circle())
-        .padding(selected ? Theme.Space.hairline : 0)
-        .overlay {
-            if selected { Circle().stroke(Theme.Mood.fill(5), lineWidth: Theme.Space.hairline) }
-        }
-        .scaleEffect(selected ? 1.12 : 1)
-        .animation(Theme.Motion.quick, value: selected)
-        .accessibilityElement()
-        .accessibilityLabel(Text(Theme.Mood.names[level - 1]))
-        .accessibilityAddTraits(selected ? .isSelected : [])
+        MoodGlyph(level: level).fill(Theme.Mood.ink(level))
+            .frame(width: size * glyph, height: size * glyph)
+            .frame(width: size, height: size)
+            .background(Theme.Mood.fill(level), in: Circle())
+            .background {
+                if selected {
+                    ZStack {
+                        Circle().fill(Theme.Quick.moodButton).padding(-(Self.gap + Self.ring))
+                        Circle().fill(Theme.Palette.card).padding(-Self.gap)
+                    }
+                }
+            }
+            .scaleEffect(selected ? Self.grow : 1)
+            .animation(Theme.Motion.quick, value: selected)
+            .accessibilityElement()
+            .accessibilityLabel(Text(Theme.Mood.names[level - 1]))
+            .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
@@ -77,7 +99,7 @@ public struct MoodDots: View {
     }
 }
 
-/// 现在心情怎么样：五个表情，下面写说法；点一个就记（选中的放大）
+/// 现在心情怎么样：五个表情（照原型 50 的圆），下面写说法；点一个就记（选中的放大、外面一圈）
 public struct MoodCheckinRow: View {
     let selected: Int?
     /// 界面测试认的编号前缀（心情页「mood.level」、弹层里各自一个）
@@ -97,8 +119,10 @@ public struct MoodCheckinRow: View {
                     pick(level)
                 } label: {
                     VStack(spacing: Theme.Space.snug) {
-                        MoodBadge(level: level, size: Theme.Size.touch + Theme.Space.tight, selected: selected == level)
-                        Text(Theme.Mood.names[level - 1]).font(Theme.Typeface.footnote)
+                        MoodBadge(level: level, size: Theme.Size.moodFace, selected: selected == level)
+                        // 照原型：选中的那个字是深色、粗的
+                        Text(Theme.Mood.names[level - 1])
+                            .font(selected == level ? Theme.Typeface.footnoteBold : Theme.Typeface.footnote)
                             .foregroundStyle(selected == level ? Theme.Palette.label : Theme.Palette.secondaryLabel)
                     }
                     .frame(maxWidth: .infinity)

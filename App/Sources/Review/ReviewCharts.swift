@@ -165,7 +165,7 @@ struct MonthGrid: View {
                 }
             }
             if !weeklyReports.isEmpty {
-                PourFlowLayout(spacing: Theme.Space.small, lineSpacing: Theme.Space.small) {
+                ChipFlow {
                     Text("每一周的周报").font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                         .frame(minHeight: Theme.Size.touch)
                     ForEach(weeklyReports.sorted(), id: \.self) { monday in

@@ -361,3 +361,18 @@ private let previewMonth: [MonthCells.Cell] = (0..<31).map { index in
     .padding()
     .background(Theme.Palette.background)
 }
+
+extension Theme {
+    /// 「我在乎的」各块的颜色（照原型 CARE：健康绿、钱琥珀、成长青、关系粉；自己加的星星金色）：小环里的图标、
+    /// 每一组小标题前面的图标（服务器给的图标名 → 颜色）
+    public static func careColor(_ icon: String) -> Color {
+        switch icon {
+        case "heart": Tokens.one(0x2E9A6B).color
+        case "yen": Tile.amber
+        case "book": Tokens.one(0x3E8E7E).color
+        case "people": Tokens.one(0xCF5786).color
+        case "star": Tile.gold
+        default: Palette.secondaryLabel
+        }
+    }
+}
