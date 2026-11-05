@@ -98,6 +98,8 @@ final class AppModel {
     var todoSheet: TodoSheet?
     /// 要删的是重复的待办：先问「只删这一次 / 以后都不要了」
     var todoDeleting: API.TodoRow?
+    /// 按住的那一件待办：整页模糊、浮起这一行、出菜单（待办 2.0 第 6 步，TodoPressMenu）
+    var todoPress: TodoPress?
     /// 记一笔的数字键盘开着没有（3.0 第 3 步，AppModel+Money）
     var keypadOpen = false
     /// 打开的那一笔钱（3.0 一笔的详情）

@@ -83,26 +83,6 @@ extension AppModel {
             saying: "推迟到\(TodoBoard.when(day: day, time: time, today: today))")
     }
 
-    /// 以前没做完的带到今天（左滑「今天」、标题旁「全部带到今天」）：提醒的钟点照旧，挪到今天
-    func carryToToday(_ rows: [API.TodoRow]) {
-        guard !rows.isEmpty else { return }
-        let before = rows.map { ($0.id, $0.day, $0.remindAt) }
-        for row in rows { todoPage?.move(row.id, day: today, time: row.remindAt) }
-        todoFlash = rows.first?.id
-        let back: @MainActor @Sendable () -> Void = { [weak self] in
-            for (id, day, time) in before { self?.todoPage?.move(id, day: day, time: time) }
-        }
-        write(
-            "POST", "/api/todos/carry", json: .object(["ids": .array(rows.map { .number(Double($0.id)) })]),
-            revert: back)
-        toast(rows.count == 1 ? "带到今天了" : "\(rows.count) 件带到今天了", action: "撤销") { [weak self] in
-            back()
-            for (id, day, time) in before {
-                self?.write("PATCH", "/api/todos/\(id)", json: Self.dayAndTime(day, time)) {}
-            }
-        }
-    }
-
     /// 详情里改：事、哪天、几点提醒（.some(nil) 是不提醒）、重复（.some(nil) 是不重复）；待办 2.0 加象限（你选的就不再是
     /// 猜的）、时间段（.some(nil) 是不要）、以后再说。时间三选一：钟点、时间段、都没有；以后再说没有日子。先改界面再发
     func editTodo(

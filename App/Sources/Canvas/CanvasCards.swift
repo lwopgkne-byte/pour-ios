@@ -234,25 +234,15 @@ struct CardRow<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
             HStack(spacing: Theme.Space.small) {
-                content().frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if let todo { model.todoSheet = .detail(todo) } else { model.detail = .init(id: entry.id) }
-                    }
-                    .contextMenu {
-                        if let todo {
-                            TodoMenu(row: todo)
-                        } else if entry.fromHealthApp {
-                            // 健康 App 记的只能看（改、删在健康 App 里）
-                            Button("查看", systemImage: "heart.text.square") { model.detail = .init(id: entry.id) }
-                        } else {
-                            Button("修改", systemImage: "pencil") { model.detail = .init(id: entry.id) }
-                            Button("查看来源", systemImage: "text.quote") { model.detail = .init(id: entry.id) }
-                            Button("删除", systemImage: "trash", role: .destructive) { model.delete(entry.id) }
+                menu(
+                    content().frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if let todo { model.todoSheet = .detail(todo) } else { model.detail = .init(id: entry.id) }
                         }
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityAddTraits(.isButton)
+                )
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isButton)
                 if entry.pending, quiet {
                     Button("对") { model.confirm(entry.id) }
                         .font(Theme.Typeface.footnoteSemibold).buttonStyle(.bordered).buttonBorderShape(.capsule)
@@ -262,6 +252,24 @@ struct CardRow<Content: View>: View {
             }
             .frame(minHeight: Theme.Size.touch)
             if entry.pending, !quiet { ConfirmBox(entry: entry) }
+        }
+    }
+
+    /// 按住：待办是待办 2.0 的菜单（和待办页同一个）；别的记录是「修改 / 查看来源 / 删除」
+    @ViewBuilder private func menu(_ view: some View) -> some View {
+        if let todo {
+            view.todoPress(todo)
+        } else {
+            view.contextMenu {
+                if entry.fromHealthApp {
+                    // 健康 App 记的只能看（改、删在健康 App 里）
+                    Button("查看", systemImage: "heart.text.square") { model.detail = .init(id: entry.id) }
+                } else {
+                    Button("修改", systemImage: "pencil") { model.detail = .init(id: entry.id) }
+                    Button("查看来源", systemImage: "text.quote") { model.detail = .init(id: entry.id) }
+                    Button("删除", systemImage: "trash", role: .destructive) { model.delete(entry.id) }
+                }
+            }
         }
     }
 }

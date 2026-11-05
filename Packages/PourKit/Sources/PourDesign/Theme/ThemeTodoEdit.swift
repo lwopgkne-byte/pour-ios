@@ -100,3 +100,90 @@ public struct EditChip: View {
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
     }
 }
+
+/// 按住一行的菜单最上面一排四个格子里的一个（待办 2.0 第 6 步，design/after-05-menu）：线条图标（象限色）+ 名字；
+/// 现在在这一格：象限底色 + 2pt 象限色描边、圆角 14
+public struct QuadrantPick: View {
+    let quadrant: Int
+    let title: String
+    let selected: Bool
+    let action: () -> Void
+
+    public init(quadrant: Int, title: String, selected: Bool, action: @escaping () -> Void) {
+        self.quadrant = quadrant
+        self.title = title
+        self.selected = selected
+        self.action = action
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            VStack(spacing: Theme.Space.tight) {
+                if let symbol = Theme.Quadrant.symbol(quadrant) {
+                    Image(systemName: symbol.replacingOccurrences(of: ".fill", with: ""))
+                        .font(Theme.Typeface.quadrantIcon).foregroundStyle(Theme.Quadrant.ring(quadrant))
+                }
+                Text(title).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Quadrant.text(quadrant))
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.vertical, Theme.Space.small)
+            .frame(maxWidth: .infinity, minHeight: Theme.Size.choiceBlock)
+            .background(selected ? Theme.Quadrant.tint(quadrant) : .clear, in: Theme.rounded(Theme.Corner.choice))
+            .overlay {
+                if selected {
+                    Theme.rounded(Theme.Corner.choice).strokeBorder(Theme.Quadrant.ring(quadrant), lineWidth: 2)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressScale())
+        .accessibilityLabel(Text(selected ? "\(title)，现在在这一格" : "放进\(title)"))
+        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+    }
+}
+
+/// 菜单里的一行（按住一行的菜单）：图标 + 字，右边可以有一个 ›；删除是红的。按下去底色变灰
+public struct MenuLine: View {
+    let title: String
+    let symbol: String
+    let destructive: Bool
+    let more: Bool
+    let action: () -> Void
+
+    public init(
+        _ title: String, symbol: String, destructive: Bool = false, more: Bool = false, action: @escaping () -> Void
+    ) {
+        self.title = title
+        self.symbol = symbol
+        self.destructive = destructive
+        self.more = more
+        self.action = action
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            HStack(spacing: Theme.Space.medium) {
+                Image(systemName: symbol).font(Theme.Typeface.body)
+                    .frame(width: Theme.Size.check + Theme.Space.tight)
+                Text(title).font(Theme.Typeface.body)
+                Spacer(minLength: 0)
+                if more {
+                    Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
+                        .foregroundStyle(Theme.Palette.tertiaryLabel)
+                }
+            }
+            .foregroundStyle(destructive ? Theme.Palette.bad : Theme.Palette.label)
+            .padding(.horizontal, Theme.Space.regular + Theme.Space.tight)
+            .frame(minHeight: TodoLine<EmptyView, EmptyView>.rowHeight)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(MenuLineStyle())
+    }
+}
+
+/// 按下去：一层浅灰
+private struct MenuLineStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.background(configuration.isPressed ? Theme.Palette.fill : .clear)
+    }
+}

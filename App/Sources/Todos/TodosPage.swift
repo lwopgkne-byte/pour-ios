@@ -6,7 +6,7 @@ import SwiftUI
 /// 待办页（待办 2.0，docs/todo-2.0 第 4 步）：大标题「待办」，下面一行「今天还有 5 件 · 完成 1 件 · 🔔 3 个提醒已排好」，
 /// 清单 | 四象限 | 时间线。清单：过点了（沙色；行下面「挪到下午 · 明天再说 · 不做了」，多于 3 件改成标题旁「全部挪到…」）、
 /// 今天（全天的日程最前、不定时的在上、别的按时间、日程穿插；放一放折成一行放最后）、明天、这周、以后；已完成收起。
-/// 右滑完成、左滑推迟或删除、按住更多；勾掉的划线留在原地，离开再回来才收进「已完成」
+/// 右滑完成、左滑推迟或删除、按住出菜单（TodoPressMenu）；勾掉的划线留在原地，离开再回来才收进「已完成」
 struct TodosPage: View {
     @Environment(AppModel.self) private var model
     @State private var mode = Mode.list
@@ -210,7 +210,7 @@ struct TodosPage: View {
         _ row: API.TodoRow, group: String, today: String, chips: Bool = false, move: TodoMove? = nil
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            TodoRowView(row: row, today: today, now: now)
+            TodoRowView(row: row, today: today, now: now).todoPress(row)
             if chips {
                 HStack(spacing: Theme.Space.small) {
                     if let move { MiniChip(move.title) { model.move([row], to: move) } }
@@ -251,7 +251,6 @@ struct TodosPage: View {
                 .tint(Theme.Palette.warn)
             }
         }
-        .contextMenu { TodoMenu(row: row) }
         .sensoryFeedback(Theme.Haptics.swipe, trigger: model.todoFlash == row.id) { _, now in now }
     }
 
@@ -352,7 +351,7 @@ extension TodosPage {
                 ForEach(open.filter { $0.people.contains(name) }) { todoRow($0, group: "person", today: today) }
             } header: {
                 Text(name).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label).textCase(nil)
-            }
+                    }
         }
         let alone = open.filter(\.people.isEmpty)
         if !alone.isEmpty {
@@ -360,7 +359,7 @@ extension TodosPage {
                 ForEach(alone) { todoRow($0, group: "person", today: today) }
             } header: {
                 Text("没写和谁").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label).textCase(nil)
-            }
+                    }
         }
     }
 

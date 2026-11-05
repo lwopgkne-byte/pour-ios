@@ -84,6 +84,10 @@ enum AppAudit {
         place.strips = app.scrollViews.allElementsBoundByIndex.filter { $0.exists && $0.frame.height < 240 }.map(
             \.frame)
         if chatOpen { print("对话面板上沿：\(panelTop.map { "\($0)" } ?? "没找到")") }
+        // 按住一件待办的菜单开着（待办 2.0 第 6 步）：后面整页是模糊的（读屏只看菜单），只审菜单和浮起来的那一行
+        let press = ["todoPress.panel", "todoPress.row"].map { app.descendants(matching: .any)[$0] }
+            .compactMap(Self.frame(of:))
+        place.pressMenu = press.isEmpty ? nil : press
         // 审计自己偶尔超时（「Audit failed to complete in time」）：检查用的模拟器刚开机、电脑同时在忙别的时更常见
         // （设置页那么长的一页，推送前检查里连着超时三次）。等十秒再审，最多四次
         // 连着超时两次：一类一类分开审（一次审的少，就审得完）
@@ -189,6 +193,8 @@ enum AppAudit {
         var oneLine = false
         /// 横着滑的一排
         var strips: [CGRect] = []
+        /// 按住一件待办的菜单开着：菜单和浮起来的那一行在哪（别的都在模糊的后面）
+        var pressMenu: [CGRect]?
 
         func inside(_ frames: [CGRect], _ frame: CGRect) -> Bool {
             frames.contains { $0.insetBy(dx: -2, dy: -2).contains(frame) }
@@ -205,6 +211,11 @@ enum AppAudit {
         // 导航栏里系统自己的按钮（「完成」）：也是字号封顶、长按看大字；玻璃上量对比度不准
         if place.inside(place.navigation, frame), [.dynamicType, .textClipped, .contrast].contains(type) {
             return "系统的栏"
+        }
+        if let menu = place.pressMenu, !place.inside(menu, frame),
+            [.dynamicType, .textClipped, .contrast].contains(type)
+        {
+            return "按住的菜单后面，模糊的页面"
         }
         if let reason = edge(type: type, frame: frame, place: place) { return reason }
         // 只有一个表情（卡片标题前的 🏃）：是彩色的图，不是字，量对比度、量截断都没有意义

@@ -108,15 +108,30 @@ final class TodosUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(waitFor(header, labelContains: before), "撤销以后没挪回来：\(header.label)")
     }
 
-    /// 按住一行：菜单里完成、推迟到…、改时间、复制、看原话、删除；重复的删的时候问只删这一次还是以后都不要
+    /// 按住一行（待办 2.0 第 6 步）：整页模糊、这一行浮起来（不打开编辑）；菜单最上面四个格子，下面完成、推迟到…、编辑…、
+    /// 看原话、复制文字，单独一组删除。换一格说一声、能撤销；推迟到…展开五个选项；重复的删的时候问只删这一次还是以后都不要
     @MainActor func testLongPressAndRepeatDelete() throws {
         let app = openTodos()
         row(app, "吃降压药").press(forDuration: 1.0)
-        for item in ["完成", "推迟到…", "改时间", "复制", "看原话", "删除"] {
+        for item in ["完成", "推迟到…", "编辑…", "看原话", "复制文字", "删除"] {
             XCTAssertTrue(app.buttons[item].waitForExistence(timeout: 3), "菜单里没有「\(item)」")
         }
+        XCTAssertFalse(app.descendants(matching: .any)["todoDetail.title"].exists, "按住还打开了编辑")
         shot("按住一行", of: app.screenshot())
-        app.buttons["删除"].tap()
+        try AppAudit.run(app, name: "按住一行")
+        app.buttons["todoPress.snooze"].tap()
+        XCTAssertTrue(app.buttons["今晚 8 点"].waitForExistence(timeout: 3), "推迟到…没展开")
+        app.buttons["todoPress.back"].tap()
+        XCTAssertTrue(app.buttons["todoPress.quadrant.1"].waitForExistence(timeout: 3))
+        app.buttons["todoPress.quadrant.1"].tap()
+        XCTAssertTrue(app.staticTexts["「吃降压药」放进马上做"].waitForExistence(timeout: 3), "换格子没说")
+        XCTAssertTrue(waitFor(row(app, "吃降压药"), labelContains: "马上做"), "换格子没换上")
+        app.buttons["undoToast"].tap()
+        pause()
+        XCTAssertFalse(row(app, "吃降压药").label.contains("马上做"), "撤销没换回来")
+        row(app, "吃降压药").press(forDuration: 1.0)
+        XCTAssertTrue(app.buttons["todoPress.delete"].waitForExistence(timeout: 3))
+        app.buttons["todoPress.delete"].tap()
         let once = app.buttons["只删这一次"]
         XCTAssertTrue(once.waitForExistence(timeout: 3), "重复的没问只删这一次")
         XCTAssertTrue(app.buttons["以后都不要了"].exists)

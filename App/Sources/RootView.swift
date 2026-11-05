@@ -93,10 +93,17 @@ struct RootView: View {
             // 界面测试认底部这一整块（轻提示、整理到哪的小条、输入框）用：滚页面时别把要点的东西压在它下面
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("say.bar")
+            .accessibilityHidden(model.todoPress != nil)
             // 往下翻看内容时收起（不挡最后一行），往上翻、对话开着、正在输入时都在
             .offset(y: barHidden ? Theme.Size.composer * 2 : 0)
             .opacity(barHidden ? 0 : 1)
             .animation(Theme.Motion.standard, value: barHidden)
+        }
+        // 按住一件待办（待办 2.0 第 6 步）：整页模糊（导航栏、说一句也在下面），浮起这一行和菜单
+        .overlay {
+            if let press = model.todoPress {
+                TodoPressMenu(press: press).transition(.opacity)
+            }
         }
         .animation(Theme.Motion.standard, value: model.chatOpen)
         .animation(Theme.Motion.standard, value: model.notice)
@@ -202,7 +209,8 @@ private struct HiddenWhenCovered: ViewModifier {
     @Environment(AppModel.self) private var model
 
     func body(content: Content) -> some View {
-        content.accessibilityHidden(model.search != nil || model.chatOpen)
+        // 按住一件待办的菜单开着时也藏起来（后面整页是模糊的，读屏、审计只看菜单）
+        content.accessibilityHidden(model.search != nil || model.chatOpen || model.todoPress != nil)
     }
 }
 

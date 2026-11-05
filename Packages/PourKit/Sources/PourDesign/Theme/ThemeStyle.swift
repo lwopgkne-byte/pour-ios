@@ -54,6 +54,8 @@ extension Theme {
         public static let message = Font.callout
         /// 待办 2.0 编辑弹框的名字（设计稿 26 粗，系统字号里最近的是 28）
         public static let editTitle = Font.title.weight(.bold)
+        /// 按住一行的菜单最上面四个格子的图标（待办 2.0 第 6 步）
+        public static let quadrantIcon = Font.title3.weight(.medium)
         /// 点开一条记录的大标题「上班」（原型 24 粗，系统字号里最近的是 22）
         public static let recordTitle = Font.title2.weight(.bold)
         /// 弹层的标题「说一句」（原型 18 粗）
