@@ -5,7 +5,7 @@
 //   正式用 com.lwopgkne.pour     —— 加入苹果开发者计划时才注册，注册后永远不改
 POUR_BUNDLE_ID = com.lwopgkne.pour.dev
 
-MARKETING_VERSION = 3.0.1
+MARKETING_VERSION = 3.1.0
 // 构建号：本机默认 1；装到手机时由 scripts/install-device.sh 换成提交数，验收时对得上
 CURRENT_PROJECT_VERSION = 1
 
