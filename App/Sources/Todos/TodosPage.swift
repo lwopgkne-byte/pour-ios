@@ -157,7 +157,7 @@ struct TodosPage: View {
                 }
             }
         }
-        if let done = sections.first(where: { $0.key == "done" }) { doneSection(done) }
+        if showDone, let done = sections.first(where: { $0.key == "done" }) { doneSection(done) }
         // 底下不再常驻说明和「手机上排好了 N 个提醒」（提醒数在标题下面；说明是第一次来的一次性引导）
         if model.reminderState?.permission == .denied {
             Section {

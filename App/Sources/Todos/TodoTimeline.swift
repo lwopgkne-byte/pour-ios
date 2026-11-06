@@ -107,9 +107,13 @@ struct TodoTimelineView: View {
                 ForEach(plan.gaps.prefix(Self.gapsShown)) { gap in
                     let before = zip(rows, tops).filter { $0.0.minute < gap.start }.map { $0.1 + TimelineTag.height }
                     let top = max(y(gap.start, from: from) + Theme.Space.tight, (before.max() ?? 0) + Theme.Space.small)
-                    gapView(gap, plan: plan)
-                        .frame(width: width - Theme.Space.small)
-                        .offset(x: Self.gutter + Theme.Space.tight, y: top)
+                    // 到下一件（它的小标签上沿）为止还有多高：放不下就不标，绝不压到下一件上
+                    let room = y(gap.end, from: from) - TimelineTag.height / 2 - Theme.Space.tight - top
+                    if room >= Theme.Size.touch {
+                        gapView(gap, plan: plan, oneLine: room < Self.twoLines)
+                            .frame(width: width - Theme.Space.small)
+                            .offset(x: Self.gutter + Theme.Space.tight, y: top)
+                    }
                 }
                 ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
                     tagRow(row, width: width).offset(x: Self.gutter + Theme.Space.tight, y: tops[index])
@@ -128,6 +132,8 @@ struct TodoTimelineView: View {
 
     /// 最多标几个空档（多了也只是一样的虚线条）
     private static let gapsShown = 3
+    /// 两行的空档（一行字、一行建议）要多高
+    private static let twoLines: CGFloat = 72
 
     /// 每个整点一条线，左边写钟点（离「现在」的胶囊太近的钟点不写，不叠在一起；字用次文字色，小字也看得清）。
     /// 画在 Canvas 里：只是刻度，读屏不念；无障碍审计会去量藏起来的字和线（2026-11-05）
@@ -150,12 +156,12 @@ struct TodoTimelineView: View {
         .accessibilityHidden(true)
     }
 
-    /// 空档：一条细虚线框，第一个排得进的空档带一个建议
-    private func gapView(_ gap: TodoTimelinePlan.Gap, plan: TodoTimelinePlan) -> some View {
+    /// 空档：一条细虚线框，第一个排得进的空档带一个建议（放得下两行才分两行）
+    private func gapView(_ gap: TodoTimelinePlan.Gap, plan: TodoTimelinePlan, oneLine: Bool) -> some View {
         let suggestion = plan.suggestion?.gap == gap ? plan.suggestion : nil
         return GapBox(
             text: "\(gap.text) 空着", suggestion: suggestion.map { "把「\(Show.spaced($0.row.content))」排进来" },
-            lit: model.todoGaps, oneLine: gap.end - gap.start < 90
+            lit: model.todoGaps, oneLine: oneLine
         ) {
             if let suggestion { model.schedule(suggestion.row, at: suggestion.at) }
         }

@@ -83,6 +83,13 @@ struct TodoTimelineTests {
         #expect(TodoTimelinePlan.suggest(gaps: [long], tray: [afternoon])?.at == 14 * 60)
     }
 
+    /// 只空一个钟头的不标（「空着」那一条比一个钟头还高，压到下一件上；真机上 14:00 叫我起床上面压着「13:00–14:00 空着」）
+    @Test func oneHourIsNotAGap() {
+        // 12:23 现在；12:30 午休、14:00 叫我起床（各占半个钟头）
+        let gaps = TodoTimelinePlan.gaps(busy: [(750, 780), (840, 870)], from: 743, until: 22 * 60)
+        #expect(gaps.map(\.text) == ["14:30–22:00"])
+    }
+
     @Test func shortNames() {
         #expect(TodoTimelinePlan.shortName("潘志文 直播带货主播-男女不限 线下面试") == "面试")
         #expect(TodoTimelinePlan.shortName("产品评审会") == "评审")

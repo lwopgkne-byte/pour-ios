@@ -74,6 +74,8 @@ struct TodoTimelinePlan {
     }
 
     static let maxColumns = 3
+    /// 多长才算空档（分钟）
+    static let minimumGap = 90
     /// 一个标签占的时间（算空档用）
     static let tagMinutes = 30
 
@@ -176,17 +178,18 @@ struct TodoTimelinePlan {
 
     // MARK: - 空档
 
-    /// 1 小时以上的空档（从现在往后到 22 点）：开头取到下一个半点
+    /// 一个半钟头以上的空档（从现在往后到 22 点）：开头取到下一个半点。只空一个钟头的不标——一小时只有 46 高，
+    /// 「空着」那一条比它还高，压到下一件上，像下一件那个钟点也空着（2026-11-06 真机：14:00 叫我起床上面压着「13:00–14:00 空着」）
     static func gaps(busy: [(Int, Int)], from: Int, until: Int) -> [Gap] {
         var out: [Gap] = []
         var cursor = (from + 29) / 30 * 30
         for (start, end) in busy.sorted(by: { $0.0 < $1.0 }) {
-            if start - cursor >= 60 { out.append(Gap(start: cursor, end: min(start, until))) }
+            if start - cursor >= minimumGap { out.append(Gap(start: cursor, end: min(start, until))) }
             cursor = max(cursor, (end + 29) / 30 * 30)
             if cursor >= until { break }
         }
-        if until - cursor >= 60 { out.append(Gap(start: cursor, end: until)) }
-        return out.filter { $0.end - $0.start >= 60 }
+        if until - cursor >= minimumGap { out.append(Gap(start: cursor, end: until)) }
+        return out.filter { $0.end - $0.start >= minimumGap }
     }
 
     /// 建议：把哪一件排进哪个空档的哪一刻

@@ -37,27 +37,24 @@ extension TodosPage {
         }
     }
 
-    /// 已完成：默认收起，一行「已完成 5 件 ›」，点了展开
+    /// 已完成：平时不出（勾掉的在原地划线，底下再写一行「已完成 8 件」多余，产品主人 2026-11-06）；
+    /// 「···」里「显示已完成」打开才有这一组，标题旁「收起」
     func doneSection(_ group: API.TodoGroup) -> some View {
         Section {
-            Button {
-                withAnimation(Theme.Motion.standard) { showDone.toggle() }
-            } label: {
-                HStack {
-                    Text(showDone ? "收起已完成" : "已完成 \(group.rows.count) 件")
-                        .font(Theme.Typeface.bodyMedium).foregroundStyle(Theme.Palette.accent)
-                    Spacer()
-                    Image(systemName: "chevron.right").font(Theme.Typeface.glyph)
-                        .foregroundStyle(Theme.Palette.tertiaryLabel)
-                        .rotationEffect(.degrees(showDone ? 90 : 0))
+            ForEach(group.rows) { todoRow($0, group: "done", today: model.todoPage?.today ?? model.today) }
+        } header: {
+            HStack(alignment: .firstTextBaseline) {
+                Text("已完成 · \(group.rows.count) 件").font(Theme.Typeface.bodySemibold)
+                    .foregroundStyle(Theme.Palette.label)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                ThemeTextButton("收起", font: Theme.Typeface.subheadline) {
+                    withAnimation(Theme.Motion.standard) { showDone = false }
                 }
-                .contentShape(Rectangle())
+                .accessibilityIdentifier("todos.done")
             }
-            .buttonStyle(.plain)
-            .accessibilityIdentifier("todos.done")
-            if showDone {
-                ForEach(group.rows) { todoRow($0, group: "done", today: model.todoPage?.today ?? model.today) }
-            }
+            .textCase(nil)
+            .padding(.horizontal, -Theme.Space.tight)
         }
     }
 

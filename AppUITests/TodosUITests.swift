@@ -21,7 +21,8 @@ final class TodosUITests: XCTestCase, TodoTesting {
         try AppAudit.run(app, name: "待办页")
         app.swipeUp(velocity: .slow)
         pause()
-        XCTAssertTrue(app.buttons["todos.done"].exists, "没有「已完成 N 件」")
+        // 底下不再有「已完成 N 件」那一行（勾掉的在原地划线，再写一行多余，2026-11-06）
+        XCTAssertFalse(app.buttons["todos.done"].exists, "底下还有「已完成 N 件」那一行")
         try AppAudit.run(app, name: "待办页-下面")
     }
 
@@ -48,9 +49,13 @@ final class TodosUITests: XCTestCase, TodoTesting {
         XCTAssertTrue(lateHeader(app).waitForExistence(timeout: 5))
         pause()
         XCTAssertFalse(row(app, "回邮件").exists, "回来以后还在今天里")
+        // 以前做完的：「···」里「显示已完成」
+        app.buttons["todos.more"].tap()
+        app.buttons["显示已完成"].tap()
+        XCTAssertTrue(find(row(app, "回邮件"), in: app), "「已完成」里没有它")
         app.reveal(app.buttons["todos.done"])
         app.buttons["todos.done"].tap()
-        XCTAssertTrue(row(app, "回邮件").waitForExistence(timeout: 3), "「已完成」里没有它")
+        XCTAssertTrue(row(app, "回邮件").waitForNonExistence(timeout: 3), "「收起」没收起来")
     }
 
     /// 右滑完成；左滑「推迟」→ 推迟到明天早上，挪到「明天」；左滑「删除」能撤销

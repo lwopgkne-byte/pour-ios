@@ -33,9 +33,11 @@ public struct TimelineTag: View {
         Button(action: action) {
             HStack(spacing: Theme.Space.tight + Theme.Space.hairline) {
                 QuadrantBadge(quadrant: quadrant, size: Theme.Size.check - Theme.Space.tight)
+                // 一个标签只占一行，名字长了用省略号（点开看全名，读屏念整句）：webOneLine 告诉界面审计这是故意的
                 Text(title).font(Theme.Typeface.subheadline).lineLimit(1)
                     .foregroundStyle(done ? Theme.Palette.tertiaryLabel : Theme.Palette.label)
                     .strikethrough(done, color: Theme.Palette.tertiaryLabel)
+                    .accessibilityIdentifier("webOneLine")
                 if let when, !done { time(when) }
                 if let clash, !done { SandPill(clash, symbol: "exclamationmark.triangle") }
             }
