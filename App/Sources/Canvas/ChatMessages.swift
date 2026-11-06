@@ -236,7 +236,8 @@ struct ReceiptRow: View {
 
     var body: some View {
         let parts = Self.parts(item, categories: model.categories)
-        HStack(alignment: .center, spacing: Theme.Space.small) {
+        // 待办的结果卡片：小方块、名字、「撤销」顶上对齐（设计稿 after-07-voice；下面一排小标签）
+        HStack(alignment: item.todo == nil ? .center : .top, spacing: Theme.Space.small) {
             Image(systemName: Self.symbol(item)).font(Theme.Typeface.subheadline)
                 .foregroundStyle(Theme.Palette.onAccent)
                 .frame(width: Theme.Size.tile, height: Theme.Size.tile)

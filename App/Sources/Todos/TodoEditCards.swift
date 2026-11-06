@@ -24,7 +24,7 @@ struct TodoEditCards: View {
     private var quadrantCard: some View {
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
             HStack(alignment: .firstTextBaseline) {
-                Text("放进哪一格").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+                Text("放进哪一格").font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
                 Spacer()
                 if row.guessed && draft.quadrant == row.lane {
                     Label("AI 猜的，点别的就改", systemImage: "sparkles").font(Theme.Typeface.footnote)
@@ -58,11 +58,12 @@ struct TodoEditCards: View {
 
     private var whenCard: some View {
         VStack(alignment: .leading, spacing: Theme.Space.small) {
-            Label("日期", systemImage: "calendar").font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+            // 分组的小标题：小号灰字、不配图标（下面的选项才是要看的，2026-11-06 打磨）
+            Text("日期").font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
             chips { dayChips }
             if pickingDay { dayPicker }
-            Label("时间", systemImage: "clock")
-                .padding(.top, Theme.Space.small).font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Palette.label)
+            Text("时间").font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.secondaryLabel)
+                .padding(.top, Theme.Space.small)
             if draft.day != nil {
                 chips { timeChips }
                 if pickingTime { timePicker }
@@ -157,13 +158,16 @@ struct TodoEditCards: View {
 
     // MARK: - 帮手
 
-    /// 今天、明天、这个周六、下周一（和推迟到的规矩一样）
+    /// 今天、明天、这个周六、下周一（和推迟到的规矩一样）；撞上同一天的只留前面那个——周五的「周六」就是明天、
+    /// 周日的「下周一」就是明天，两个按钮一个日子会只显示一个、点错（2026-11-06 周五测出来的）
     static func dayChoices(today: String) -> [(title: String, day: String)] {
-        [
+        let all = [
             ("今天", today), ("明天", PourDate.addDays(today, 1)),
             ("周六", SnoozePreset.saturday.target(now: Date(), today: today).day),
             ("下周一", SnoozePreset.monday.target(now: Date(), today: today).day),
         ]
+        var seen = Set<String>()
+        return all.filter { seen.insert($0.1).inserted }.map { (title: $0.0, day: $0.1) }
     }
 
     /// 刚点「几点」时先给下一个整点

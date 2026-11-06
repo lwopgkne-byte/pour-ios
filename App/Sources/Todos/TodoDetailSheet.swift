@@ -91,8 +91,7 @@ struct TodoDetailSheet: View {
                 withAnimation(Theme.Motion.standard) { showRepeat.toggle() }
             } label: {
                 HStack {
-                    Label("重复", systemImage: Theme.Symbol.repeats).font(Theme.Typeface.bodySemibold)
-                        .foregroundStyle(Theme.Palette.label)
+                    Text("重复").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
                     Spacer()
                     Text(draft.rule?.text ?? "不重复").font(Theme.Typeface.subheadline)
                         .foregroundStyle(Theme.Palette.secondaryLabel)

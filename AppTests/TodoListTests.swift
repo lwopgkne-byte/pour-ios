@@ -39,6 +39,13 @@ struct TodoListTests {
         #expect(plan.counts(page: page([water, call, lunch, kid, guitar], overdue: [fee])).left == 6)
     }
 
+    /// 编辑弹框的日子按钮不重复：周五的「周六」就是明天、周日的「下周一」就是明天，只留「明天」
+    @Test func dayChoicesNeverRepeat() {
+        #expect(TodoEditCards.dayChoices(today: "2026-11-06").map(\.title) == ["今天", "明天", "下周一"])
+        #expect(TodoEditCards.dayChoices(today: "2026-11-08").map(\.title) == ["今天", "明天", "周六"])
+        #expect(TodoEditCards.dayChoices(today: "2026-11-04").map(\.title) == ["今天", "明天", "周六", "下周一"])
+    }
+
     /// 往后挪：中午以前挪到下午，傍晚以前挪到晚上，晚上只有明天再说
     @Test func laterTodayFollowsTheClock() {
         #expect(TodoListPlan.laterToday(now: "2026-10-27T11:35") == .afternoon)

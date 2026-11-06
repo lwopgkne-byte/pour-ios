@@ -23,16 +23,11 @@ public struct QuadrantChoice: View {
         Button(action: action) {
             HStack(spacing: Theme.Space.small + Theme.Space.hairline) {
                 if let symbol = Theme.Quadrant.symbol(quadrant) {
+                    // 图标不再套一个小方块（卡片里的块里再套方块，三层框，2026-11-06 打磨）
                     Image(systemName: symbol.replacingOccurrences(of: ".fill", with: ""))
                         .font(Theme.Typeface.bodySemibold)
                         .foregroundStyle(Theme.Quadrant.ring(quadrant))
-                        .frame(
-                            width: Theme.Size.smallRing - Theme.Space.tight,
-                            height: Theme.Size.smallRing - Theme.Space.tight
-                        )
-                        .background(
-                            selected ? Theme.Palette.card : Theme.Quadrant.tint(quadrant),
-                            in: Theme.rounded(Theme.Corner.tile + Theme.Space.hairline))
+                        .frame(width: Theme.Size.check)
                 }
                 // 字大了折行、块跟着变高（不缩字、不截：审计 2026-11-05）
                 VStack(alignment: .leading, spacing: 0) {
@@ -46,13 +41,15 @@ public struct QuadrantChoice: View {
             }
             .padding(.horizontal, Theme.Space.medium)
             .frame(maxWidth: .infinity, minHeight: Theme.Size.choiceBlock)
+            // 没选的：浅灰底、不描边；选中的：象限底色 + 2pt 象限色描边 + 对勾
             .background(
-                selected ? Theme.Quadrant.tint(quadrant) : Theme.Palette.card, in: Theme.rounded(Theme.Corner.choice)
+                selected ? Theme.Quadrant.tint(quadrant) : Theme.Palette.background,
+                in: Theme.rounded(Theme.Corner.choice)
             )
             .overlay {
-                Theme.rounded(Theme.Corner.choice)
-                    .strokeBorder(
-                        selected ? Theme.Quadrant.ring(quadrant) : Theme.Palette.separator, lineWidth: selected ? 2 : 1)
+                if selected {
+                    Theme.rounded(Theme.Corner.choice).strokeBorder(Theme.Quadrant.ring(quadrant), lineWidth: 2)
+                }
             }
             .overlay(alignment: .topTrailing) {
                 if selected {
