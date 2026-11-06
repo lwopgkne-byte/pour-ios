@@ -77,14 +77,19 @@ struct TodoReceiptTags: View {
                 Button(window.title) { edit(todo, time: .some(nil), window: .some(window)) }
             }
             Button("几点…", systemImage: "bell") { model.todoSheet = .detail(Self.row(entryId, todo)) }
+            // 定了钟点：到点像闹钟一样响，还是一条通知（「7点叫我起床」程序认成响铃，认错了在这改）
+            if todo.time != nil {
+                Toggle("响铃", systemImage: "alarm", isOn: Binding(get: { todo.rings }, set: { edit(todo, alarm: $0) }))
+            }
         } label: {
             if let time = todo.time {
-                ReceiptTag(time, symbol: "bell")
+                // 响铃的写出来（只换个图标太不显眼：说完要一眼看到「明早会像闹钟一样叫我」）
+                ReceiptTag(todo.rings ? "\(time) · 响铃" : time, symbol: todo.rings ? "alarm" : "bell")
             } else {
                 ReceiptTag(todo.timeWindow?.title ?? "不定时")
             }
         }
-        .accessibilityLabel(Text("几点：\(todo.time ?? todo.timeWindow?.title ?? "不定时")"))
+        .accessibilityLabel(Text("几点：\(todo.time ?? todo.timeWindow?.title ?? "不定时")\(todo.rings ? "，响铃" : "")"))
         .accessibilityIdentifier("receipt.time")
     }
 
@@ -92,10 +97,10 @@ struct TodoReceiptTags: View {
 
     private func edit(
         _ todo: API.ReceiptTodo, quadrant: TodoQuadrant? = nil, day: String? = nil, time: String?? = nil,
-        window: TimeWindow?? = nil, someday: Bool? = nil
+        window: TimeWindow?? = nil, someday: Bool? = nil, alarm: Bool? = nil
     ) {
         model.editTodo(
-            entryId, day: day, time: time, quadrant: quadrant, window: window, someday: someday,
+            entryId, day: day, time: time, quadrant: quadrant, window: window, someday: someday, alarm: alarm,
             base: Self.row(entryId, todo))
     }
 
@@ -103,14 +108,14 @@ struct TodoReceiptTags: View {
     static func row(_ id: Int, _ todo: API.ReceiptTodo) -> API.TodoRow {
         API.TodoRow(
             id: id, content: todo.content, day: todo.day ?? "", remindAt: todo.time, quadrant: todo.lane,
-            guessed: todo.guessed, window: todo.timeWindow, someday: todo.day == nil)
+            guessed: todo.guessed, window: todo.timeWindow, someday: todo.day == nil, alarm: todo.alarm == true)
     }
 
     /// 待办页的一行 → 收据的样子
     static func receipt(_ row: API.TodoRow) -> API.ReceiptTodo {
         API.ReceiptTodo(
             content: row.content, day: row.isSomeday ? nil : row.day, time: row.remindAt, window: row.window,
-            quadrant: row.lane.rawValue, guessed: row.guessed)
+            quadrant: row.lane.rawValue, guessed: row.guessed, alarm: row.alarm == true)
     }
 
     /// 钟点落在那天的哪个日程里：「和 15:00 的面试撞了」（日程的简称取不到写「和 15:00 的日程撞了」）

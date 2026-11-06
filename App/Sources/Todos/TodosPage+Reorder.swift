@@ -59,7 +59,7 @@ extension TodosPage {
                     } trailing: {
                         if let trailing = TodoBoard.trailing(row, today: model.todoPage?.today ?? model.today, now: now)
                         {
-                            TodoTrailing(trailing, compact: true)
+                            TodoTrailing(trailing, compact: true, alarm: row.rings)
                         }
                     }
                     .listRowInsets(EdgeInsets())

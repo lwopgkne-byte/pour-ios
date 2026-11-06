@@ -119,7 +119,8 @@ public struct QuadrantRing: View {
 }
 
 /// 一行右边的时间或状态（15 号）：铃铛 + 12:30（到点响）、「下午」（时间段）、半小时内变蓝「12:30 · 8 分钟后」、
-/// 过了是沙色胶囊「11:12 过了」、和日程撞了是沙色胶囊「撞上面试」、只写日子「明天」「10月30日」；不定时右边留空（不用这个）
+/// 过了是沙色胶囊「11:12 过了」、和日程撞了是沙色胶囊「撞上面试」、只写日子「明天」「10月30日」；不定时右边留空（不用这个）。
+/// 响铃的（像闹钟一样叫，alarm）铃铛换成闹钟
 public struct TodoTrailing: View {
     public enum Kind: Hashable, Sendable {
         case clock(String)
@@ -144,11 +145,14 @@ public struct TodoTrailing: View {
     let plain: Bool
     /// 窄的地方（四象限的小卡、时间线的小标签）：快到了只写钟点（不写「· 3 分钟后」），放不下就省略，不撑宽
     let compact: Bool
+    /// 到点响铃（像闹钟一样）：铃铛换成闹钟
+    let alarm: Bool
 
-    public init(_ kind: Kind, plain: Bool = false, compact: Bool = false) {
+    public init(_ kind: Kind, plain: Bool = false, compact: Bool = false, alarm: Bool = false) {
         self.kind = kind
         self.plain = plain
         self.compact = compact
+        self.alarm = alarm
     }
 
     public var body: some View {
@@ -156,7 +160,8 @@ public struct TodoTrailing: View {
             switch kind {
             case .clock(let text):
                 HStack(spacing: Theme.Space.hairline + 1) {
-                    Image(systemName: "bell").font(Theme.Typeface.footnote)
+                    Image(systemName: alarm ? "alarm" : "bell").font(Theme.Typeface.footnote)
+                        .accessibilityLabel(Text(alarm ? "响铃" : "提醒"))
                     Text(text)
                 }
                 .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
@@ -164,7 +169,8 @@ public struct TodoTrailing: View {
                 Text(text).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
             case .soon(let text):
                 HStack(spacing: Theme.Space.hairline + 1) {
-                    Image(systemName: "bell.fill").font(Theme.Typeface.footnote)
+                    Image(systemName: alarm ? "alarm.fill" : "bell.fill").font(Theme.Typeface.footnote)
+                        .accessibilityLabel(Text(alarm ? "响铃" : "提醒"))
                     Text(compact ? String(text.split(separator: " · ").first ?? Substring(text)) : text)
                 }
                 // 蓝色已经够显眼，字不再加粗（产品主人 2026-11-06：两行加粗的蓝字太吵）

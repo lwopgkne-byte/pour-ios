@@ -51,6 +51,7 @@
         /// 说一句「下午回复客户电话」（待办 2.0 第 10 步的结果卡片）：建一件待办——AI 猜放进马上做、只说了下午（时间段），
         /// 收据带上它现在的样子
         mutating func sayTodo(_ text: String, noteId: Int) -> [String: Any]? {
+            if text.contains("叫我起床") { return sayAlarm(text, noteId: noteId) }
             guard text.contains("回复客户电话") else { return nil }
             let id = nextId
             nextId += 1
@@ -73,6 +74,30 @@
                 "todo": [
                     "content": "回复客户电话", "day": today, "time": NSNull(), "window": "afternoon", "quadrant": 1,
                     "guessed": true,
+                ],
+            ]
+        }
+
+        /// 说一句「明天早上7点叫我起床」（响铃，产品主人 2026-11-06）：明天 07:00 的「起床」，到点像闹钟一样响
+        mutating func sayAlarm(_ text: String, noteId: Int) -> [String: Any] {
+            let id = nextId
+            nextId += 1
+            let day = PourDate.addDays(today, 1)
+            entries.append([
+                "id": id, "day": today, "kind": "todo", "category": "todo", "confidence": 0.95, "status": "ok",
+                "data": ["content": "起床", "done": false, "due": day, "remindAt": "\(day)T07:00", "alarm": true],
+                "sources": [
+                    [
+                        "noteId": noteId, "span": text, "action": "created", "text": text,
+                        "createdAt": ISO8601DateFormatter().string(from: Date()),
+                    ]
+                ],
+            ])
+            return [
+                "action": "created", "kind": "todo", "entryId": id, "text": "📝 待办：起床", "pending": false,
+                "todo": [
+                    "content": "起床", "day": day, "time": "07:00", "window": NSNull(), "quadrant": 0, "guessed": false,
+                    "alarm": true,
                 ],
             ]
         }
@@ -105,11 +130,12 @@
             }
         }
 
-        /// 一行多带的几样（待办 2.0：格子、时间段、以后再说、你排的顺序）
+        /// 一行多带的几样（待办 2.0：格子、时间段、以后再说、你排的顺序；响铃只对有钟点的是 true）
         static func todoTwoRow(_ data: [String: Any]) -> [String: Any] {
             [
                 "quadrant": orNull(data["quadrant"]), "quadrantByAI": orNull(data["quadrantByAI"]),
                 "window": orNull(data["window"]), "someday": orNull(data["someday"]), "order": orNull(data["order"]),
+                "alarm": data["alarm"] as? Bool == true && data["remindAt"] is String,
             ]
         }
 
@@ -128,6 +154,7 @@
         /// 改格子和以后再说（services/todo-page.ts edited）：自己选的格不再是猜的；以后再说去掉日子、钟点、时间段，
         /// 给了日子就不再是以后再说。回 true：放进了以后再说，日子钟点不用再改
         static func editTodoTwo(_ data: inout [String: Any], _ change: [String: Any]) -> Bool {
+            if let alarm = change["alarm"] as? Bool { data["alarm"] = alarm ? true : nil }
             if let quadrant = change["quadrant"] as? Int {
                 data["quadrant"] = quadrant == 0 ? nil : quadrant
                 data["quadrantByAI"] = nil

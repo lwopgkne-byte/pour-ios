@@ -95,4 +95,24 @@ struct TodoListTests {
         let back = TodoDraft(AppModel.edited(row, today: Self.today, someday: true))
         #expect(back.day == nil && back.time == nil && back.window == nil)
     }
+
+    /// 响铃（产品主人 2026-11-06）：有钟点才有开关；开关动了才发；改了钟点照开关的样子一起发（服务器记着的旧开关不悄悄生效）
+    @Test func draftSendsAlarm() {
+        var row = API.TodoRow(id: 8, content: "起床", day: Self.today, remindAt: "07:00", alarm: true)
+        #expect(row.rings)
+        var draft = TodoDraft(row)
+        #expect(draft.alarm && !draft.change(from: row).any)
+        draft.alarm = false
+        #expect(draft.change(from: row).alarm == false)
+        draft.alarm = true
+        draft.time = "07:30"
+        #expect(draft.change(from: row).alarm == true)
+        // 没钟点的没有响铃（开关不发）
+        row.remindAt = nil
+        #expect(!row.rings)
+        draft = TodoDraft(row)
+        #expect(!draft.alarm)
+        draft.window = .morning
+        #expect(draft.change(from: row).alarm == nil)
+    }
 }

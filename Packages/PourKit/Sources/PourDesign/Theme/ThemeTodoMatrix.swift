@@ -77,11 +77,13 @@ public struct MatrixCard<Ring: View>: View {
     let when: TodoTrailing.Kind?
     let note: String?
     let spoken: String
+    /// 到点响铃（像闹钟一样）：时间前面是闹钟
+    let alarm: Bool
     let open: () -> Void
     let ring: Ring
 
     public init(
-        _ title: String, done: Bool, when: TodoTrailing.Kind?, note: String? = nil, spoken: String,
+        _ title: String, done: Bool, when: TodoTrailing.Kind?, note: String? = nil, spoken: String, alarm: Bool = false,
         open: @escaping () -> Void, @ViewBuilder ring: () -> Ring
     ) {
         self.title = title
@@ -89,6 +91,7 @@ public struct MatrixCard<Ring: View>: View {
         self.when = when
         self.note = note
         self.spoken = spoken
+        self.alarm = alarm
         self.open = open
         self.ring = ring()
     }
@@ -107,7 +110,7 @@ public struct MatrixCard<Ring: View>: View {
                         Label(note, systemImage: "calendar").font(Theme.Typeface.footnoteSemibold)
                             .foregroundStyle(Theme.Palette.warnInk).labelStyle(TightIcon())
                     } else if let when, !done {
-                        TodoTrailing(when, plain: true, compact: true)
+                        TodoTrailing(when, plain: true, compact: true, alarm: alarm)
                     }
                 }
                 .padding(.top, Theme.Space.small + Theme.Space.hairline)

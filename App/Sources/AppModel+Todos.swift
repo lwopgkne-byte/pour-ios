@@ -85,27 +85,33 @@ extension AppModel {
 
     /// 详情里改：事、哪天、几点提醒（.some(nil) 是不提醒）、重复（.some(nil) 是不重复）；待办 2.0 加象限（你选的就不再是
     /// 猜的）、时间段（.some(nil) 是不要）、以后再说。时间三选一：钟点、时间段、都没有；以后再说没有日子。先改界面再发
-    /// base：单子上、弹框里都没有这一件时（说一句的结果卡片上改）拿它当原来的样子
+    /// base：单子上、弹框里都没有这一件时（说一句的结果卡片上改）拿它当原来的样子；alarm：到点响铃（像闹钟一样）开关
     func editTodo(
         _ id: Int, content: String? = nil, day: String? = nil, time: String?? = nil, repeat rule: API.Repeat?? = nil,
-        quadrant: TodoQuadrant? = nil, window: TimeWindow?? = nil, someday: Bool? = nil, base: API.TodoRow? = nil
+        quadrant: TodoQuadrant? = nil, window: TimeWindow?? = nil, someday: Bool? = nil, alarm: Bool? = nil,
+        base: API.TodoRow? = nil
     ) {
         guard let old = todoPage?.row(id) ?? detailRow(id) ?? base else { return }
-        let row = Self.edited(
+        var row = Self.edited(
             old, today: today, content: content, day: day, time: time, rule: rule, quadrant: quadrant, window: window,
             someday: someday)
+        if let alarm { row.alarm = alarm }
         todoPage?.put(row)
         todoLatest[id] = row
         if case .detail = todoSheet { todoSheet = .detail(row) }
+        // 只发给了的（.some(nil) 是清掉；字典里放 nil 等于不放）
         var body: [String: JSONValue] = [:]
-        if let content { body["content"] = .string(content) }
-        if let day { body["day"] = .string(day) }
-        if let time { body["time"] = time.map(JSONValue.string) ?? .null }
-        if let rule { body["repeat"] = rule?.json ?? .null }
-        if let quadrant { body["quadrant"] = .number(Double(quadrant.rawValue)) }
-        if let window { body["window"] = window.map { .string($0.rawValue) } ?? .null }
-        if let someday { body["someday"] = .bool(someday) }
+        body["content"] = content.map(JSONValue.string)
+        body["day"] = day.map(JSONValue.string)
+        body["time"] = time.map { $0.map(JSONValue.string) ?? .null }
+        body["repeat"] = rule.map { $0?.json ?? .null }
+        body["quadrant"] = quadrant.map { .number(Double($0.rawValue)) }
+        body["window"] = window.map { $0.map { .string($0.rawValue) } ?? .null }
+        body["someday"] = someday.map(JSONValue.bool)
+        body["alarm"] = alarm.map(JSONValue.bool)
         write("PATCH", "/api/todos/\(id)", json: .object(body)) { [weak self] in self?.todoPage?.put(old) }
+        // 开了、关了响铃：马上重排闹钟和通知（第一次开会问一次闹钟权限）
+        if alarm != nil || (time != nil && row.rings) { syncReminders() }
     }
 
     /// 界面先改成什么样（和服务器 todo-page.ts edited 一样的规矩）

@@ -159,14 +159,7 @@ struct TodosPage: View {
         }
         if showDone, let done = sections.first(where: { $0.key == "done" }) { doneSection(done) }
         // 底下不再常驻说明和「手机上排好了 N 个提醒」（提醒数在标题下面；说明是第一次来的一次性引导）
-        if model.reminderState?.permission == .denied {
-            Section {
-                Label("通知关着：定了时间的待办到点不会响。在 iPhone 的「设置 → 通知 → Pour」里打开", systemImage: "bell.slash")
-                    .font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.warn)
-                    .listRowBackground(Color.clear)
-                    .accessibilityIdentifier("todos.reminders")
-            }
-        }
+        reminderWarnings
     }
 
     /// 过点了（沙色，不用红）：每件下面三个小按钮「挪到下午 · 明天再说 · 不做了」；多于 3 件改成标题旁一个「全部挪到…」
@@ -305,7 +298,9 @@ extension TodosPage {
         let head =
             counts.left == 0 ? "今天的都做完了 · 完成 \(counts.done) 件" : "今天还有 \(counts.left) 件 · 完成 \(counts.done) 件"
         // 排好了几个提醒：这台手机上真排上的系统通知（断网也准）；演示数据不排通知，数还没到的
-        let reminders = model.demo ? TodoListPlan.reminders(page, now: now) : model.reminderState?.scheduled ?? 0
+        let state = model.reminderState
+        let reminders =
+            model.demo ? TodoListPlan.reminders(page, now: now) : (state?.scheduled ?? 0) + (state?.alarms ?? 0)
         return Group {
             if reminders > 0 {
                 Text("\(head) · \(Image(systemName: "bell")) \(reminders) 个提醒已排好")

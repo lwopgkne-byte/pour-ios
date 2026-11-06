@@ -155,7 +155,7 @@ struct TodoDetailSheet: View {
         if change.any {
             model.editTodo(
                 row.id, content: change.content, day: change.day, time: change.time, repeat: change.rule,
-                quadrant: change.quadrant, window: change.window, someday: change.someday)
+                quadrant: change.quadrant, window: change.window, someday: change.someday, alarm: change.alarm)
         }
         dismiss()
     }
@@ -170,6 +170,8 @@ struct TodoDraft: Equatable {
     var time: String?
     var window: TimeWindow?
     var rule: API.Repeat?
+    /// 到点响铃（定了钟点才有用）
+    var alarm: Bool
 
     init(_ row: API.TodoRow) {
         title = row.content
@@ -178,6 +180,7 @@ struct TodoDraft: Equatable {
         time = row.remindAt
         window = row.timeWindow
         rule = row.repeat
+        alarm = row.rings
     }
 
     struct Change {
@@ -188,10 +191,11 @@ struct TodoDraft: Equatable {
         var quadrant: TodoQuadrant?
         var window: TimeWindow??
         var someday: Bool?
+        var alarm: Bool?
 
         var any: Bool {
             content != nil || day != nil || time != nil || rule != nil || quadrant != nil || window != nil
-                || someday != nil
+                || someday != nil || alarm != nil
         }
     }
 
@@ -211,6 +215,8 @@ struct TodoDraft: Equatable {
             out.time = .some(time)
             out.window = .some(time == nil ? window : nil)
         }
+        // 响铃：看得见开关时（有钟点）照开关的样子发——改了钟点也一起发，不让服务器记着的旧开关悄悄生效
+        if time != nil, alarm != row.rings || out.time != nil { out.alarm = alarm }
         return out
     }
 }

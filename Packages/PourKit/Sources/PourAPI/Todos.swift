@@ -157,8 +157,12 @@ extension API {
         public var someday: Bool?
         /// 你排的顺序（同一天里第几个，清单里拖过才有；服务器 2.21 起有）
         public var order: Int?
+        /// 到点响铃：像闹钟一样叫（服务器 2.22 起有；只对有钟点的是 true）
+        public var alarm: Bool?
 
         public var lane: TodoQuadrant { TodoQuadrant(rawValue: quadrant ?? 0) ?? .unsorted }
+        /// 到点像闹钟一样响（有钟点、开了响铃）
+        public var rings: Bool { alarm == true && remindAt != nil }
         public var guessed: Bool { quadrantByAI == true && lane != .unsorted }
         public var timeWindow: TimeWindow? { window.flatMap(TimeWindow.init(rawValue:)) }
         public var isSomeday: Bool { someday == true }
@@ -180,7 +184,8 @@ extension API {
             id: Int, content: String, day: String, remindAt: String? = nil, done: Bool = false, doneAt: String? = nil,
             repeat rule: Repeat? = nil, repeatText: String? = nil, overdue: Bool = false, snoozedFrom: String? = nil,
             people: [String] = [], things: [String] = [], places: [String] = [], source: Source? = nil,
-            quadrant: TodoQuadrant = .unsorted, guessed: Bool = false, window: TimeWindow? = nil, someday: Bool = false
+            quadrant: TodoQuadrant = .unsorted, guessed: Bool = false, window: TimeWindow? = nil, someday: Bool = false,
+            alarm: Bool = false
         ) {
             self.id = id
             self.content = content
@@ -200,6 +205,7 @@ extension API {
             self.quadrantByAI = guessed
             self.window = window?.rawValue
             self.someday = someday
+            self.alarm = alarm
         }
     }
 
@@ -243,6 +249,8 @@ extension API {
         public let said: String?
         /// 待办 2.0：只说了时间段的轻提醒（morning / afternoon / evening）；有钟点的、旧服务器是 nil
         public let window: String?
+        /// 到点响铃：排成系统闹钟（服务器 2.22 起有）
+        public let alarm: Bool?
     }
 
     /// 快加时边打边认的结果（服务器 parseWhen）
@@ -272,9 +280,12 @@ extension API {
         public var quadrant: Int
         /// 格子是 AI 猜的
         public var guessed: Bool
+        /// 到点响铃（服务器 2.22 起有）
+        public var alarm: Bool?
 
         public init(
-            content: String, day: String?, time: String?, window: String?, quadrant: Int, guessed: Bool
+            content: String, day: String?, time: String?, window: String?, quadrant: Int, guessed: Bool,
+            alarm: Bool = false
         ) {
             self.content = content
             self.day = day
@@ -282,7 +293,11 @@ extension API {
             self.window = window
             self.quadrant = quadrant
             self.guessed = guessed
+            self.alarm = alarm
         }
+
+        /// 到点像闹钟一样响（有钟点、开了响铃）
+        public var rings: Bool { alarm == true && time != nil }
 
         public var lane: TodoQuadrant { TodoQuadrant(rawValue: quadrant) ?? .unsorted }
         public var timeWindow: TimeWindow? { window.flatMap(TimeWindow.init(rawValue:)) }

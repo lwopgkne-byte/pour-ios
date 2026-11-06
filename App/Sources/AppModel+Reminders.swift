@@ -16,10 +16,11 @@ extension AppModel {
         reminderSync = Task {
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else { return }
-            await TodoNotifications.sync(client)
+            let ringing = await TodoNotifications.sync(client, ask: true)
             await syncEveningMood()
             reminderState = ReminderState(
-                permission: await Reminders.permission(), scheduled: await Reminders.pending().count)
+                permission: await Reminders.permission(), scheduled: await Reminders.pending().count,
+                alarms: Alarms.waiting(), alarmsOff: ringing > 0 && Alarms.permission() == .denied)
         }
     }
 }
@@ -29,6 +30,10 @@ struct ReminderState: Equatable {
     let permission: Reminders.Permission
     /// 排上了几条
     let scheduled: Int
+    /// 排上了几个闹钟（响铃的待办）
+    var alarms = 0
+    /// 有要响铃的待办、闹钟却没打开（只能发通知，静音时叫不醒）
+    var alarmsOff = false
 
     /// 「手机上排好了 3 个提醒，到点就响」「通知关着：到点不会响……」；没什么要说的是 nil
     var text: String? {

@@ -2,6 +2,7 @@ import BackgroundTasks
 import Foundation
 import PourAPI
 import PourCore
+import PourDesign
 import PourPlatform
 
 /// 通知上的按钮和后台刷新（docs/3.0/06-交互细节.md 2.6、07 开发任务清单 2.15）：
@@ -80,22 +81,26 @@ enum TodoNotifications {
     }
 
     /// 照服务器的提醒单子重排（拿不到就不动已经排好的）：先排目标的（「如果就」、每周回顾、先停一个月回来的前一天，
-    /// 07 开发任务清单 7.6），待办让出目标占的那几个，合起来不超过系统的 64 个
-    static func sync(_ client: APIClient) async {
+    /// 07 开发任务清单 7.6），待办让出目标占的那几个，合起来不超过系统的 64 个。
+    /// 响铃的先排成系统闹钟（Alarms），排上了的不再发通知；没给闹钟权限、排不上的照旧发通知。
+    /// ask：App 在前台时第一次有响铃的才问闹钟权限（后台不问）。回有几件要响铃（待办页底下「闹钟没打开」用）
+    @discardableResult
+    static func sync(_ client: APIClient, ask: Bool = false) async -> Int {
         var reserved = 0
         if let goals = try? await client.goalReminders() {
             let notices = GoalReminders.notices(goals, home: HomePlace.saved)
             await GoalNotices.sync(notices)
             reserved = GoalNotices.slots(notices)
         }
-        guard let list = try? await client.todoReminders() else { return }
-        await Reminders.sync(
-            list.map {
-                Reminder(
-                    id: String($0.id), content: $0.content, time: $0.at, said: $0.said.map(Show.monthDay),
-                    window: $0.window.flatMap(TimeWindow.init(rawValue:))?.title)
-            },
-            reserved: reserved)
+        guard let list = try? await client.todoReminders() else { return 0 }
+        let reminders = list.map {
+            Reminder(
+                id: String($0.id), content: $0.content, time: $0.at, said: $0.said.map(Show.monthDay),
+                window: $0.window.flatMap(TimeWindow.init(rawValue:))?.title, alarm: $0.alarm == true)
+        }
+        let ringing = await Alarms.sync(reminders, ask: ask, tint: Theme.Palette.accent) { AlarmStopIntent(todo: $0) }
+        await Reminders.sync(reminders.filter { !ringing.contains($0.id) }, reserved: reserved)
+        return reminders.filter(\.alarm).count
     }
 
     /// 后台刷新（系统挑时候叫醒，大约一小时一次）：重排提醒，再约下一次

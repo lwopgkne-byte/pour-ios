@@ -25,7 +25,7 @@ struct TodoRowView: View {
                 model.setDone(row.id, !row.done)
             }
         } trailing: {
-            if let trailing { TodoTrailing(trailing, compact: compact) }
+            if let trailing { TodoTrailing(trailing, compact: compact, alarm: row.rings) }
         }
     }
 
@@ -39,6 +39,7 @@ struct TodoRowView: View {
         if row.lane != .unsorted { parts.append(row.lane.title + (row.guessed ? "（猜的）" : "")) }
         if row.done { parts.append("已完成") }
         if let trailing { parts.append(trailing.text) }
+        if row.rings, !row.done { parts.append("响铃") }
         if let repeatText = row.repeatText { parts.append(repeatText) }
         return parts.joined(separator: "，")
     }
@@ -56,7 +57,8 @@ extension API.TodoRow {
             overdue: !todo.done && !todo.isSomeday && day < today,
             people: todo.people ?? [], things: todo.things ?? [], places: todo.places ?? [],
             source: entry.sources.first.map { Source(noteId: $0.noteId, text: $0.text, at: $0.createdAt) },
-            quadrant: todo.lane, guessed: todo.quadrantByAI == true, window: todo.timeWindow, someday: todo.isSomeday)
+            quadrant: todo.lane, guessed: todo.quadrantByAI == true, window: todo.timeWindow, someday: todo.isSomeday,
+            alarm: todo.alarm == true)
         // 你在清单里排的顺序（首页的待办卡照它排）
         order = todo.order
     }

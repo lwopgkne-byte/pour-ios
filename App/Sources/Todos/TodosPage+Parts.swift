@@ -123,3 +123,32 @@ extension TodosPage {
         }
     }
 }
+
+extension TodosPage {
+    /// 提醒响不了的时候说一句（提醒是红线）：通知关着；有响铃的待办、闹钟却没打开（只能发一条通知，静音、睡眠模式下叫不醒）
+    @ViewBuilder var reminderWarnings: some View {
+        if model.reminderState?.permission == .denied {
+            warning("通知关着：定了时间的待办到点不会响。点这里去设置，在「通知」里打开", symbol: "bell.slash")
+                .accessibilityIdentifier("todos.reminders")
+        }
+        if model.reminderState?.alarmsOff == true {
+            warning("闹钟没打开：响铃的待办到点只发一条通知，静音时叫不醒你。点这里去设置，打开「闹钟」", symbol: "alarm")
+                .accessibilityIdentifier("todos.alarms")
+        }
+    }
+
+    /// 一行沙色的提示，点了直接打开 Pour 在「设置」里的那一页（通知、闹钟的开关都在那）
+    private func warning(_ text: String, symbol: String) -> some View {
+        Section {
+            Button {
+                if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+            } label: {
+                Label(text, systemImage: symbol).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.warn)
+                    .frame(maxWidth: .infinity, minHeight: Theme.Size.touch, alignment: .leading)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(Color.clear)
+        }
+    }
+}

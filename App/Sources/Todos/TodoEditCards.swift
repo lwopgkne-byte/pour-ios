@@ -67,6 +67,7 @@ struct TodoEditCards: View {
             if draft.day != nil {
                 chips { timeChips }
                 if pickingTime { timePicker }
+                if draft.time != nil { alarmToggle }
             }
             Text(hint).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
                 .fixedSize(horizontal: false, vertical: true)
@@ -130,12 +131,24 @@ struct TodoEditCards: View {
                 pickingTime = false
             }
         }
-        EditChip(draft.time ?? "几点", symbol: "bell", selected: draft.time != nil) {
+        EditChip(
+            draft.time ?? "几点", symbol: draft.time != nil && draft.alarm ? "alarm" : "bell", selected: draft.time != nil
+        ) {
             if draft.time == nil { draft.time = Self.nextHour() }
             draft.window = nil
             withAnimation(Theme.Motion.standard) { pickingTime = true }
         }
         .accessibilityIdentifier("todoDetail.clock")
+    }
+
+    /// 定了钟点才有：到点像闹钟一样响（静音、专注模式下也响），还是轻轻一条通知
+    private var alarmToggle: some View {
+        Toggle(isOn: $draft.alarm) {
+            Label("响铃", systemImage: "alarm").font(Theme.Typeface.body).foregroundStyle(Theme.Palette.label)
+        }
+        .tint(Theme.Palette.accentFill)
+        .frame(minHeight: Theme.Size.touch)
+        .accessibilityIdentifier("todoDetail.alarm")
     }
 
     private var timePicker: some View {
@@ -148,7 +161,9 @@ struct TodoEditCards: View {
     /// 下面一行：怎么提醒
     private var hint: String {
         guard draft.day != nil else { return "以后再说：不放进今天，也不提醒" }
-        if let time = draft.time { return "\(time) 准点提醒" }
+        if let time = draft.time {
+            return draft.alarm ? "\(time) 像闹钟一样响，静音、专注模式下也响" : "\(time) 准点提醒，发一条通知"
+        }
         if let window = draft.window {
             let hour = Int(window.nudge.prefix(2)) ?? 0
             return "\(window.title) \(hour > 12 ? hour - 12 : hour) 点轻提醒一次 · 要准点就点「几点」"

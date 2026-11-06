@@ -192,19 +192,24 @@ private final class NotificationDelegate: NSObject, UNUserNotificationCenterDele
 }
 
 /// 一条要提醒的待办：哪条、提醒什么、几点（本地钟点）、哪天说的（「10月26日」）；
-/// window：只说了时间段的轻提醒（「下午」），有钟点的是 nil
+/// window：只说了时间段的轻提醒（「下午」），有钟点的是 nil；alarm：到点响铃（排成系统闹钟，见 Alarms）
 public struct Reminder: Hashable, Sendable {
     public var id: String
     public var content: String
     public var time: LocalDateTime
     public var said: String?
     public var window: String?
+    public var alarm: Bool
 
-    public init(id: String, content: String, time: LocalDateTime, said: String? = nil, window: String? = nil) {
+    public init(
+        id: String, content: String, time: LocalDateTime, said: String? = nil, window: String? = nil,
+        alarm: Bool = false
+    ) {
         self.id = id
         self.content = content
         self.time = time
         self.said = said
         self.window = window
+        self.alarm = alarm
     }
 }

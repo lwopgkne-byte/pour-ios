@@ -124,6 +124,7 @@
                 else { return nil }
                 return [
                     "id": entry["id"] ?? 0, "content": data["content"] ?? "", "at": at, "said": entry["day"] ?? today,
+                    "alarm": data["alarm"] as? Bool == true,
                 ]
             }
             .sorted { ($0["at"] as? String ?? "") < ($1["at"] as? String ?? "") }
@@ -200,7 +201,11 @@
             nextId += 2
             let due = when["day"] as? String ?? today
             var data: [String: Any] = ["content": when["title"] ?? text, "done": false, "due": due]
-            if let time = when["time"] as? String { data["remindAt"] = "\(due)T\(time)" }
+            if let time = when["time"] as? String {
+                data["remindAt"] = "\(due)T\(time)"
+                // 「1分钟后叫我测闹钟」：响铃（服务器 shared/src/when.ts saysAlarm 的一小部分）
+                if text.range(of: "叫我|叫醒|闹钟|起床", options: .regularExpression) != nil { data["alarm"] = true }
+            }
             if let rule = when["repeat"] as? [String: Any] { data["repeat"] = rule }
             let now = ISO8601DateFormatter().string(from: Date())
             entries.append([
@@ -272,7 +277,8 @@
                 title = (title as NSString).replacingCharacters(
                     in: NSRange(location: span[0], length: span[1] - span[0]), with: "")
             }
-            title = title.replacingOccurrences(of: "提醒我", with: "").trimmingCharacters(in: .whitespaces)
+            for word in ["提醒我", "叫我"] { title = title.replacingOccurrences(of: word, with: "") }
+            title = title.trimmingCharacters(in: .whitespaces)
             return [
                 "day": orNull(heard.day), "time": orNull(heard.time), "repeat": orNull(heard.rule),
                 "repeatText": orNull(heard.rule.flatMap(repeatOf).map(\.text)),

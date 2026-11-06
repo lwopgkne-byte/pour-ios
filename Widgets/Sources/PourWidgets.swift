@@ -16,6 +16,8 @@ struct PourWidgets: WidgetBundle {
         MoneyWidget()
         SayControl()
         MoneyControl()
+        // 响铃的待办点了「稍后提醒」：锁屏、灵动岛上的倒计时
+        AlarmActivity()
     }
 }
 

@@ -109,8 +109,8 @@ struct TodoMatrixSection: View {
         let when = TodoBoard.trailing(row, today: page.today, now: now) ?? (row.isSomeday ? .day("以后再说") : nil)
         return MatrixCard(
             Show.spaced(row.content), done: row.done, when: when, note: due ? "今天到期" : nil,
-            spoken: [row.content, row.done ? "已完成" : nil, due ? "今天到期" : when?.text].compactMap { $0 }
-                .joined(separator: "，")
+            spoken: [row.content, row.done ? "已完成" : nil, due ? "今天到期" : when?.text, row.rings ? "响铃" : nil]
+                .compactMap { $0 }.joined(separator: "，"), alarm: row.rings
         ) {
             model.todoSheet = .detail(row)
         } ring: {

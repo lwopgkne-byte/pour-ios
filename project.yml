@@ -91,6 +91,10 @@ targets:
         NSCalendarsFullAccessUsageDescription: Pour 读今天的日程，放进待办那张卡里。只读，不改日历，不送到电脑上。
         # 目标「到家的时候」提醒你「如果就」（docs/3.0/07-开发任务清单.md 7.6）：只在点「用现在的位置」时定位一次
         NSLocationWhenInUseUsageDescription: 「到家的时候」提醒你目标的「如果就」，要知道家在哪。只在你点「用现在的位置」时定位一次，位置只存在这台手机上。
+        # 响铃的待办（产品主人 2026-11-06：「7点叫我起床」）：排成系统闹钟（AlarmKit），静音、专注模式下也响；系统第一次会问
+        NSAlarmKitUsageDescription: 说「7点叫我起床」这类要响铃的待办，到点像闹钟一样叫你，静音和专注模式下也会响。
+        # 闹钟点了「稍后提醒」：锁屏、灵动岛上倒计时（AlarmKit 用实时活动，样子在小组件扩展里）
+        NSSupportsLiveActivities: true
         # 打开钱要面容 ID（docs/3.0/01-需求文档.md 5.6，设置 → 隐私）
         NSFaceIDUsageDescription: 设置里开了「打开钱要面容 ID」时，进钱之前用面容 ID 确认是你。只在这台手机上验。
         # 感悟分享成图片（docs/3.0/01-需求文档.md 7.4）：存到相册只添加，不读相册

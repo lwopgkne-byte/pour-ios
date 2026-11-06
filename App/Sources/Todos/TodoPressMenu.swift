@@ -95,7 +95,7 @@ struct TodoPressMenu: View {
                     .allowsHitTesting(false)
                     .accessibilityHidden(true)
             } trailing: {
-                if let trailing { TodoTrailing(trailing) }
+                if let trailing { TodoTrailing(trailing, alarm: row.rings) }
             }
             .background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.card))
             .shadow(color: Theme.Palette.shadowFar, radius: shown ? 16 : 0, y: shown ? 6 : 0)
