@@ -12,6 +12,8 @@ struct TodoRowView: View {
     let today: String
     /// 现在几点（待办页每分钟换一次）
     let now: String
+    /// 首页的待办卡（扫一眼的地方）：快到点的只写钟点，不写「· 3 分钟后」（两行蓝字太吵，2026-11-06 打磨）
+    var compact = false
 
     var body: some View {
         let trailing = TodoBoard.trailing(row, today: today, now: now)
@@ -23,7 +25,7 @@ struct TodoRowView: View {
                 model.setDone(row.id, !row.done)
             }
         } trailing: {
-            if let trailing { TodoTrailing(trailing) }
+            if let trailing { TodoTrailing(trailing, compact: compact) }
         }
     }
 

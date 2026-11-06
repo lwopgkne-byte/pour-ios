@@ -165,8 +165,10 @@ struct TodoBody: View {
 
     var body: some View {
         let now = PourDate.localDateTime(Date(), in: .current)
-        let rows = entries.compactMap { API.TodoRow(entry: $0, today: model.today) }
-            .filter { !$0.done || seen.contains($0.id) }
+        let all = entries.compactMap { API.TodoRow(entry: $0, today: model.today) }
+        let open = all.filter { !$0.done || seen.contains($0.id) }
+        // 全做完了：把今天做完的划线列出来（卡里只剩一个标题像坏了，2026-11-06 打磨）
+        let rows = open.contains { !$0.done } ? open : all
         let plan = CanvasTodoPlan.make(rows: rows, events: AgendaPlan.visible(events, todos: entries), now: now)
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(plan.shown.enumerated()), id: \.element.id) { index, item in
@@ -175,7 +177,7 @@ struct TodoBody: View {
                 }
                 switch item {
                 case .todo(let row):
-                    TodoRowView(row: row, today: model.today, now: now).todoPress(row)
+                    TodoRowView(row: row, today: model.today, now: now, compact: true).todoPress(row)
                         .padding(.horizontal, -Theme.Space.regular)
                     if let entry = entries.first(where: { $0.id == row.id }), entry.pending {
                         ConfirmBox(entry: entry).padding(.bottom, Theme.Space.small)
@@ -192,7 +194,8 @@ struct TodoBody: View {
                     model.openLink("/todos")
                 } label: {
                     HStack(spacing: Theme.Space.tight) {
-                        Text("还有 \(plan.more) 件")
+                        // 「其余」：右上角已经写着「还有 17 件」，底下再写「还有 13 件」两个数看混（2026-11-06）
+                        Text("其余 \(plan.more) 件")
                         Image(systemName: "chevron.right").font(Theme.Typeface.footnoteSemibold)
                     }
                     .font(Theme.Typeface.subheadline.weight(.semibold)).foregroundStyle(Theme.Palette.accent)
