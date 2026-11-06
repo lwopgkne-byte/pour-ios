@@ -189,6 +189,7 @@ public struct TodoTrailing: View {
             }
         }
         .monospacedDigit().lineLimit(1).fixedSize(horizontal: !compact, vertical: false)
+        .modifier(OneLine(isOn: compact))
     }
 
     @ViewBuilder private func sand(_ text: String, symbol: String) -> some View {
@@ -350,5 +351,14 @@ public struct MiniChip: View {
                 .frame(minHeight: Theme.Size.touch).contentShape(Rectangle())
         }
         .buttonStyle(PressScale())
+    }
+}
+
+/// 窄的地方（四象限的小卡、首页卡）本来就只占一行、放不下用省略号：告诉界面审计这是故意的（webOneLine）
+private struct OneLine: ViewModifier {
+    let isOn: Bool
+
+    func body(content: Content) -> some View {
+        if isOn { content.accessibilityIdentifier("webOneLine") } else { content }
     }
 }

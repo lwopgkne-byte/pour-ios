@@ -105,4 +105,60 @@ struct TodoTimelineTests {
         #expect(TodoTimelinePlan.shortName("产品评审会") == "评审")
         #expect(TodoTimelinePlan.shortName("和小李喝咖啡").isEmpty)
     }
+
+    // MARK: - 作息、缩放（产品主人 2026-11-06）
+
+    private static let routine = API.Routine(
+        blocks: [
+            API.RoutineBlock(title: "睡觉", kind: .sleep, from: "23:30", to: "07:00", days: [0, 1, 2, 3, 4, 5, 6]),
+            API.RoutineBlock(title: "上班", kind: .work, from: "09:30", to: "18:30", days: [0, 1, 2, 3, 4]),
+            API.RoutineBlock(title: "午饭", kind: .busy, from: "12:00", to: "13:00", days: [0, 1, 2, 3, 4]),
+        ], custom: true)
+
+    /// 10/27 周二：跨过半夜的睡觉落在早上和今晚；从起床前半个钟头画到睡觉后半个钟头；空档不往睡觉、午饭里排
+    /// （上班照样找）；落在午饭里的写「撞上午饭」
+    @Test func routineShapesTheDay() {
+        let lunch = API.TodoRow(id: 1, content: "约同事吃饭", day: Self.today, remindAt: "12:30")
+        let plan = TodoTimelinePlan.make(
+            page: page([lunch]), held: [:], events: [], now: "\(Self.today)T08:00", expanded: true,
+            routine: Self.routine)
+        #expect(plan.bands.map(\.title) == ["睡觉", "上班", "午饭", "睡觉"])
+        #expect(plan.wake == 7 * 60 && plan.bed == 23 * 60 + 30)
+        #expect(plan.first == 6 && plan.last == 24)
+        #expect(plan.tags[0].clash == "午饭")
+        #expect(plan.gaps.map(\.text) == ["08:00–12:00", "13:00–23:30"])
+        // 周六：没有上班、午饭
+        let saturday = TodoTimelinePlan.bands(Self.routine, day: "2026-10-31")
+        #expect(saturday.map(\.title) == ["睡觉", "睡觉"])
+    }
+
+    /// 过了半夜才睡（00:30 到 07:30）：今天早上睡到 07:30，今晚画到 24 点；没设作息照旧 8 点到 22 点
+    @Test func lateSleeperAndNoRoutine() {
+        let late = API.Routine(
+            blocks: [
+                API.RoutineBlock(title: "睡觉", kind: .sleep, from: "00:30", to: "07:30", days: [0, 1, 2, 3, 4, 5, 6])
+            ],
+            custom: true)
+        let plan = TodoTimelinePlan.make(
+            page: page([]), held: [:], events: [], now: "\(Self.today)T09:00", expanded: true, routine: late)
+        #expect(plan.wake == 7 * 60 + 30 && plan.bed == 24 * 60)
+        #expect(plan.first == 7 && plan.last == 24)
+        let plain = TodoTimelinePlan.make(
+            page: page([]), held: [:], events: [], now: "\(Self.today)T09:00", expanded: true)
+        #expect(plain.first == 8 && plain.last == 22 && plain.bands.isEmpty && plain.wake == nil)
+    }
+
+    /// 缩放：越小越简略、越大越细；手指下面那一刻留在原地（它的高度变了多少就滚多少）；不出范围
+    @Test func zoomKeepsTheFingerSpot() {
+        #expect(TimelineZoom.density(24) == .compact && TimelineZoom.density(46) == .regular)
+        #expect(TimelineZoom.density(120) == .detailed)
+        #expect(TimelineZoom.clamp(500) == TimelineZoom.range.upperBound && TimelineZoom.clamp(1) == 24)
+        let pinch = TimelineZoom.Pinch(hour: 46, minute: 120, offset: 100)
+        #expect(TimelineZoom.offset(pinch, hour: 92) == 192)
+        #expect(TimelineZoom.offset(TimelineZoom.Pinch(hour: 92, minute: 60, offset: 10), hour: 24) == 0)
+        #expect(RoutineText.days([0, 1, 2, 3, 4]) == "工作日" && RoutineText.days([0, 2, 4]) == "周一、三、五")
+        #expect(
+            RoutineText.summary(API.Routine(blocks: Self.routine.blocks.prefix(1).map { $0 }, custom: false))
+                == "还没设，睡觉先按 23:30–07:00 算")
+    }
 }

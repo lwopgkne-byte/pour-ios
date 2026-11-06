@@ -18,6 +18,8 @@ extension AppModel {
             UserDefaults.standard.removeObject(forKey: MoneyLock.key)
             UserDefaults.standard.removeObject(forKey: MoodEvening.key)
             UserDefaults.standard.removeObject(forKey: MoodEvening.mergedKey)
+            // 上一个测试缩放过的时间线不带过来（时间线的测试按没缩放过的大小量位置）
+            UserDefaults.standard.removeObject(forKey: TimelineZoom.key)
         }
         let model = AppModel(
             client: ServerConfiguration.client(arguments: arguments),

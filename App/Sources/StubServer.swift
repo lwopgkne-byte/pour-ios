@@ -70,6 +70,8 @@
             var messages: [[String: Any]] = [Self.dailyReview]
             /// 提醒和推送的设置：改了的那几项盖上去（服务器 PUT /api/reminders）
             var reminders = Self.defaultReminders
+            /// 作息（服务器 GET / PUT /api/routine）：没设过是一段睡觉；「-routineSet」是设好了的（睡觉、上班、午饭，每天）
+            var routine = Self.defaultRoutine
             /// 名字表：「说到的」里改了名字、不再显示的（StubServer+Names）
             var names: [[String: Any]] = []
             /// 我的卡片、不要了的卡片、我的语录（StubServer+Cards）

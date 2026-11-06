@@ -12,8 +12,30 @@
             case ("PUT", "/api/reminders"):
                 reminders.merge(body) { _, new in new }
                 return reminders
+            case ("GET", "/api/routine"): return routine
+            case ("PUT", "/api/routine"):
+                routine = ["blocks": body["blocks"] ?? [], "custom": true]
+                return routine
             default: return Self.settings(method, path)
             }
+        }
+
+        /// 作息：没设过是按睡前、免打扰算的一段睡觉（和服务器一样）；「-routineSet」设好了睡觉、上班、午饭（每天，截图稳定）
+        static var defaultRoutine: [String: Any] {
+            let everyDay = [0, 1, 2, 3, 4, 5, 6]
+            let sleep: [String: Any] = [
+                "title": "睡觉", "kind": "sleep", "from": "23:30", "to": "07:00", "days": everyDay,
+            ]
+            guard ProcessInfo.processInfo.arguments.contains("-routineSet") else {
+                return ["blocks": [sleep], "custom": false]
+            }
+            return [
+                "blocks": [
+                    sleep, ["title": "上班", "kind": "work", "from": "09:30", "to": "18:30", "days": everyDay],
+                    ["title": "午饭", "kind": "busy", "from": "12:00", "to": "13:00", "days": everyDay],
+                ],
+                "custom": true,
+            ]
         }
 
         /// 设置页的接口：都是刚装好、什么都还没设置过的样子（照服务器回的样子）

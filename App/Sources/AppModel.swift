@@ -123,6 +123,7 @@ final class AppModel {
     let goals = GoalsState()
     /// 回顾的故事（3.0 第 6 步，AppModel+Review）
     let review = ReviewState()
+    let timeline = TimelineState()  // 待办的时间线（AppModel+Routine）：作息、作息弹框
     /// 打开钱要面容 ID（MoneyLock）：这次打开 App 以后验过了没有；退到后台就作废
     var moneyUnlocked = false
     /// 排提醒（AppModel+Reminders）：一会儿内连着变了几次只排最后一次

@@ -5,7 +5,9 @@ import PourCore
 /// 今天的时间线怎么摆（待办 2.0 第 8 步，docs/todo-2.0 design/after-04-timeline）：
 /// 定了钟点的待办是小标签，日程是块（同一时段撞在一起的并排，最多 3 列，多了「+N」）；只有时间段或没时间的在上面的托盘里；
 /// 现在以前没安排的钟点收成一条；1 小时以上的空档标出来，建议排一件进去（先排时间那格的，再是带时段的）；
-/// 待办的钟点落在日程里写「撞上面试」。钟点都按一天里的第几分钟算
+/// 待办的钟点落在日程里写「撞上面试」。钟点都按一天里的第几分钟算。
+/// 作息（2026-11-06）：有睡觉的从起床画到睡觉（更早、更晚的事照样放得下，那一截是夜里的底色）；上班、忙着画成底色；
+/// 空档不往睡觉、忙着里排；待办落在忙着里写「撞上午饭」
 struct TodoTimelinePlan {
     struct Tag: Identifiable {
         let row: API.TodoRow
@@ -34,9 +36,14 @@ struct TodoTimelinePlan {
         static func clock(_ minute: Int) -> String { String(format: "%02d:%02d", minute / 60, minute % 60) }
     }
 
-    /// 时间线从几点到几点（整点；默认 8 点到 22 点，有更早、更晚的跟着放大）
+    /// 时间线从几点到几点（整点；默认 8 点到 22 点，有作息的从起床到睡觉；有更早、更晚的跟着放大）
     var first: Int
     var last: Int
+    /// 今天的作息落在时间线上的几段（画底色）
+    var bands: [Band] = []
+    /// 睡到几点、几点睡（时间线上下那两条「睡到 07:00」「23:30 睡觉」）；没设睡觉是 nil
+    var wake: Int?
+    var bed: Int?
     /// 现在以前没安排、收起来的那几个钟头（first..<collapsedUntil）；没收是 nil
     var collapsedUntil: Int?
     var tags: [Tag]
@@ -79,9 +86,10 @@ struct TodoTimelinePlan {
     /// 一个标签占的时间（算空档用）
     static let tagMinutes = 30
 
-    static func make(page: API.TodoPage, held: [Int: String], events: [CalendarItem], now: String, expanded: Bool)
-        -> TodoTimelinePlan
-    {
+    static func make(
+        page: API.TodoPage, held: [Int: String], events: [CalendarItem], now: String, expanded: Bool,
+        routine: API.Routine? = nil
+    ) -> TodoTimelinePlan {
         let today = page.today
         let rows = TodoBoard.sections(page, held: held).first { $0.key == "today" }?.rows ?? []
         // 日历里和一件待办是同一件的（10:00「给客户回电话」）：只画待办的小标签，不再画一块日程、也不算撞上
@@ -92,16 +100,23 @@ struct TodoTimelinePlan {
                 }
         }
         let placed = Self.columns(timed, day: today)
+        let bands = Self.bands(routine, day: today)
+        let busyBands = bands.filter { $0.kind == .busy }
         let tags = rows.compactMap { row -> Tag? in
             guard let clock = row.remindAt, let minute = Self.minute(clock) else { return nil }
-            let hit = placed.events.first { minute >= $0.start && minute < $0.end }
-            return Tag(row: row, minute: minute, clash: hit.map { Self.shortName($0.item.title) })
+            let hit = placed.events.first { minute >= $0.start && minute < $0.end }.map {
+                Self.shortName($0.item.title)
+            }
+            let busy = busyBands.first { minute >= $0.start && minute < $0.end }?.title
+            return Tag(row: row, minute: minute, clash: hit ?? busy)
         }
         .sorted { $0.minute < $1.minute }
         let starts = placed.events.map(\.start) + tags.map(\.minute)
         let ends = placed.events.map(\.end) + tags.map { $0.minute + Self.tagMinutes }
-        let first = min(8, (starts.min() ?? 8 * 60) / 60)
-        let last = min(24, max(22, ((ends.max() ?? 0) + 59) / 60))
+        // 有睡觉的：起床前、睡觉后各多画至少半个钟头的夜色（一天夹在两段夜里，看得出几点起、几点睡）
+        let sleep = Self.sleep(bands)
+        let first = min(sleep.wake.map { max(0, $0 - 30) / 60 } ?? 8, (starts.min() ?? 24 * 60) / 60)
+        let last = min(24, max(sleep.bed.map { ($0 + 30 + 59) / 60 } ?? 22, ((ends.max() ?? 0) + 59) / 60))
         let nowMinute = now.hasPrefix(today) ? PourDate.minutesOfDay(now) : nil
         var collapsed: Int?
         if let nowMinute, !expanded {
@@ -110,12 +125,17 @@ struct TodoTimelinePlan {
             if until - first >= 2 { collapsed = until }
         }
         let tray = rows.filter { !$0.done && $0.remindAt == nil && !$0.isSomeday }
-        let busy = placed.events.map { ($0.start, $0.end) } + tags.map { ($0.minute, $0.minute + Self.tagMinutes) }
-        let gaps = Self.gaps(busy: busy, from: max(first * 60, nowMinute ?? 0), until: min(last, 22) * 60)
+        // 睡觉、忙着的时候不算空着；醒着的时间里找（没设睡觉的到 22 点）
+        let busy =
+            placed.events.map { ($0.start, $0.end) } + tags.map { ($0.minute, $0.minute + Self.tagMinutes) }
+            + bands.filter { $0.kind != .work }.map { ($0.start, $0.end) }
+        let awake = (from: max(first * 60, sleep.wake ?? 0, nowMinute ?? 0), until: sleep.bed ?? min(last, 22) * 60)
+        let gaps = Self.gaps(busy: busy, from: awake.from, until: awake.until)
+        let shown = bands.filter { $0.end > first * 60 && $0.start < last * 60 }
         return TodoTimelinePlan(
-            first: first, last: last, collapsedUntil: collapsed, tags: tags, events: placed.events,
-            more: placed.more, gaps: gaps, tray: tray, suggestion: Self.suggest(gaps: gaps, tray: tray),
-            now: nowMinute)
+            first: first, last: last, bands: shown, wake: sleep.wake, bed: sleep.bed, collapsedUntil: collapsed,
+            tags: tags, events: placed.events, more: placed.more, gaps: gaps, tray: tray,
+            suggestion: Self.suggest(gaps: gaps, tray: tray), now: nowMinute)
     }
 
     /// 「15:00」→ 900
@@ -123,6 +143,47 @@ struct TodoTimelinePlan {
         let parts = clock.split(separator: ":").compactMap { Int($0) }
         guard parts.count == 2 else { return nil }
         return parts[0] * 60 + parts[1]
+    }
+
+    // MARK: - 作息
+
+    /// 作息落在今天的一段（第几分钟到第几分钟，0–1440）
+    struct Band: Identifiable, Equatable {
+        let title: String
+        let kind: API.RoutineBlock.Kind
+        let start: Int
+        let end: Int
+        var id: String { "\(title)-\(start)" }
+        var text: String { "\(Gap.clock(start))–\(Gap.clock(end % (24 * 60)))" }
+    }
+
+    /// 今天的作息：今天是周几的那几段；跨过半夜的，昨天开始的落在今天早上（0 点到结束），今天开始的落到今晚 24 点
+    static func bands(_ routine: API.Routine?, day: String) -> [Band] {
+        guard let routine else { return [] }
+        let weekday = PourDate.weekdayMon0(day)
+        let yesterday = (weekday + 6) % 7
+        var out: [Band] = []
+        for block in routine.blocks {
+            guard let from = minute(block.from), let to = minute(block.to), from != to else { continue }
+            let crosses = to < from
+            if block.days.contains(weekday) {
+                out.append(Band(title: block.title, kind: block.sort, start: from, end: crosses ? 24 * 60 : to))
+            }
+            if crosses, block.days.contains(yesterday) {
+                out.append(Band(title: block.title, kind: block.sort, start: 0, end: to))
+            }
+        }
+        return out.sorted { ($0.start, $0.end) < ($1.start, $1.end) }
+    }
+
+    /// 起床、睡觉的那一刻：早上那段睡觉到几点；晚上那段睡觉几点开始（过了半夜才睡的算 24 点）
+    static func sleep(_ bands: [Band]) -> (wake: Int?, bed: Int?) {
+        let sleeps = bands.filter { $0.kind == .sleep }
+        let morning = sleeps.filter { $0.start < 12 * 60 }
+        let night = sleeps.filter { $0.start >= 12 * 60 }
+        let wake = morning.map(\.end).max()
+        let bed = night.map(\.start).min() ?? (morning.contains { $0.start > 0 } ? 24 * 60 : nil)
+        return (wake, bed)
     }
 
     // MARK: - 日程并排

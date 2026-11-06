@@ -4,7 +4,7 @@ public import SwiftUI
 // 日程块、「现在」线（品牌蓝 2pt，画在卡片下面一层，左边时间胶囊）、空档虚线框、收起来的钟点。只管样子
 
 /// 时间线上的一件待办：白底胶囊、轻阴影；小圈 + 名字 + 右边时间或状态，撞上日程再加沙色「撞上面试」。
-/// 看得见的高 28，点的地方 44
+/// 看得见的高 28，点的地方 44。缩得很小时（compact，一屏看完一整天）：22 高、小一号的字，只留名字和一个撞了的小三角
 public struct TimelineTag: View {
     let quadrant: Int
     let title: String
@@ -12,11 +12,12 @@ public struct TimelineTag: View {
     let when: TodoTrailing.Kind?
     let clash: String?
     let spoken: String
+    let compact: Bool
     let action: () -> Void
 
     public init(
         quadrant: Int, title: String, done: Bool, when: TodoTrailing.Kind?, clash: String?, spoken: String,
-        action: @escaping () -> Void
+        compact: Bool = false, action: @escaping () -> Void
     ) {
         self.quadrant = quadrant
         self.title = title
@@ -24,26 +25,41 @@ public struct TimelineTag: View {
         self.when = when
         self.clash = clash
         self.spoken = spoken
+        self.compact = compact
         self.action = action
     }
 
     public static let height: CGFloat = 28
+    /// 缩得很小时的高
+    public static let compactHeight: CGFloat = 22
+
+    public static func height(compact: Bool) -> CGFloat { compact ? compactHeight : height }
 
     public var body: some View {
         Button(action: action) {
-            HStack(spacing: Theme.Space.tight + Theme.Space.hairline) {
-                QuadrantBadge(quadrant: quadrant, size: Theme.Size.check - Theme.Space.tight)
+            HStack(spacing: compact ? Theme.Space.tight : Theme.Space.tight + Theme.Space.hairline) {
+                QuadrantBadge(
+                    quadrant: quadrant,
+                    size: compact ? Theme.Size.check - Theme.Space.small : Theme.Size.check - Theme.Space.tight)
                 // 一个标签只占一行，名字长了用省略号（点开看全名，读屏念整句）：webOneLine 告诉界面审计这是故意的
-                Text(title).font(Theme.Typeface.subheadline).lineLimit(1)
+                Text(title).font(compact ? Theme.Typeface.footnote : Theme.Typeface.subheadline).lineLimit(1)
                     .foregroundStyle(done ? Theme.Palette.tertiaryLabel : Theme.Palette.label)
                     .strikethrough(done, color: Theme.Palette.tertiaryLabel)
                     .accessibilityIdentifier("webOneLine")
-                if let when, !done { time(when) }
-                if let clash, !done { SandPill(clash, symbol: "exclamationmark.triangle") }
+                if compact {
+                    if clash != nil, !done {
+                        Image(systemName: "exclamationmark.triangle.fill").font(Theme.Typeface.caption)
+                            .foregroundStyle(Theme.Palette.warnInk)
+                    }
+                } else {
+                    // 钟点、撞上什么永远写全（挤的时候省略名字）
+                    if let when, !done { time(when).fixedSize() }
+                    if let clash, !done { SandPill(clash, symbol: "exclamationmark.triangle").fixedSize() }
+                }
             }
             .padding(.leading, Theme.Space.tight)
-            .padding(.trailing, Theme.Space.small + Theme.Space.hairline)
-            .frame(minHeight: Self.height)
+            .padding(.trailing, compact ? Theme.Space.small : Theme.Space.small + Theme.Space.hairline)
+            .frame(minHeight: Self.height(compact: compact))
             .background(Theme.Palette.card, in: Capsule())
             // 只留一层淡淡的影子（细边 + 影子画的是同一条边，多余）
             .shadow(color: Theme.Palette.shadowFar, radius: 3, y: 1)
@@ -69,24 +85,33 @@ public struct TimelineTag: View {
     }
 }
 
-/// 时间线上的一个日程：浅蓝块，几点到几点（粗）+ 名字（两行）；只看
+/// 时间线上的一个日程：浅蓝块，几点到几点（粗）+ 名字（两行）；只看。
+/// 缩得很小时（compact）：只写一行名字；放大了（lines 多）名字能写更多行
 public struct EventBlock: View {
     let time: String
     let title: String
+    let compact: Bool
+    let lines: Int
 
-    public init(time: String, title: String) {
+    public init(time: String, title: String, compact: Bool = false, lines: Int = 2) {
         self.time = time
         self.title = title
+        self.compact = compact
+        self.lines = lines
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.hairline) {
-            Text(time).font(Theme.Typeface.footnoteSemibold).monospacedDigit()
-            Text(title).font(Theme.Typeface.footnote).lineLimit(2)
+            if compact {
+                Text(title).font(Theme.Typeface.caption).lineLimit(1)
+            } else {
+                Text(time).font(Theme.Typeface.footnoteSemibold).monospacedDigit()
+                Text(title).font(Theme.Typeface.footnote).lineLimit(lines)
+            }
         }
         .foregroundStyle(Theme.Agenda.ink)
-        .padding(.horizontal, Theme.Space.small + Theme.Space.hairline)
-        .padding(.vertical, Theme.Space.small - Theme.Space.hairline)
+        .padding(.horizontal, compact ? Theme.Space.small : Theme.Space.small + Theme.Space.hairline)
+        .padding(.vertical, compact ? Theme.Space.hairline : Theme.Space.small - Theme.Space.hairline)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Theme.Agenda.fill, in: Theme.rounded(Theme.Corner.tile + Theme.Space.tight))
         .accessibilityElement(children: .combine)

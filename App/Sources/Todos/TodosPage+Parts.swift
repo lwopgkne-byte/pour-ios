@@ -101,6 +101,9 @@ extension TodosPage {
             Menu {
                 Button("调整顺序", systemImage: "arrow.up.arrow.down") { startReorder() }
                     .accessibilityIdentifier("todos.reorder")
+                // 作息：几点睡、几点上班（时间线上的底色）
+                Button("作息…", systemImage: "moon.zzz") { model.timeline.editing = true }
+                    .accessibilityIdentifier("todos.routine")
                 Toggle("显示已完成", isOn: $showDone)
                 Picker("怎么排", selection: $byPerson) {
                     Text("按时间").tag(false)

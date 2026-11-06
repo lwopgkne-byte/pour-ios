@@ -19,6 +19,9 @@ struct TodosPage: View {
     @State var now = TodosPage.clock()
     /// 四象限里点开的那一格（看这一格的全部）
     @State var focus: TodoQuadrant?
+    /// 四象限、时间线那一页滚到哪（时间线缩放用）
+    @State var scroll = ScrollPosition()
+    @State var scrollOffset = ScrollOffset()
     /// 一次性引导看过了（存在这台手机上）
     @AppStorage("todos.guideSeen") private var guideSeen = false
 
@@ -29,28 +32,7 @@ struct TodosPage: View {
     var body: some View {
         Group {
             if mode != .list, focus == nil, let page = model.todoPage {
-                // 四象限、时间线不放在 List 里：List 自己接拖放，格子、时间线收不到放下来的卡片（2026-11-05 测出来的）
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: Theme.Space.medium) {
-                            heading(now: now)
-                            if mode == .matrix {
-                                TodoMatrixSection(page: page, now: now, mode: $mode, focus: $focus)
-                            } else {
-                                TodoTimelineView(page: page, events: events(page.today), now: now).id("timeline")
-                            }
-                        }
-                        .padding(.horizontal, Theme.Space.regular)
-                        .padding(.bottom, Theme.Space.large)
-                    }
-                    .refreshable { await model.loadTodos() }
-                    // 四象限「排进空档 ›」过来：滚到时间线（空档在上面标出来了）
-                    .task(id: mode) {
-                        guard mode == .timeline, model.todoGaps else { return }
-                        try? await Task.sleep(for: .milliseconds(300))
-                        withAnimation(Theme.Motion.standard) { proxy.scrollTo("timeline", anchor: .top) }
-                    }
-                }
+                board(page)
             } else {
                 list
             }
@@ -58,6 +40,8 @@ struct TodosPage: View {
         .toolbar { toolbar }
         .task(id: model.dataVersion) { await model.loadTodos() }
         .task { model.loadTodayEvents() }
+        .task { await model.loadRoutine() }
+        .routineSheet(model)
         .task(id: model.todoFlash) {
             // 新加的、刚挪过来的那一行亮一下（1.5 秒）再变回去
             guard model.todoFlash != nil else { return }
@@ -129,7 +113,7 @@ struct TodosPage: View {
         }
     }
 
-    private func heading(now: String) -> some View {
+    func heading(now: String) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
             if let page = model.todoPage { summary(page, now: now) }
             PillSegments(selection: $mode, items: [(.list, "清单"), (.matrix, "四象限"), (.timeline, "时间线")])
