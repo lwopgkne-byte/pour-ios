@@ -44,7 +44,7 @@ struct CanvasTodoTests {
         #expect(line.title == "2 场面试：潘志文、陈宏远" && line.time == "15:00 起")
     }
 
-    /// 名字不一样、开头不是人名的不合；全天的在其余的最前
+    /// 名字不一样、开头不是人名的不合；全天的不进待办卡，写在顶上的日子后面
     @Test func onlySameTitlesMerge() {
         let events = [
             CalendarItem(
@@ -56,7 +56,10 @@ struct CanvasTodoTests {
                 calendar: "生日"),
         ]
         let lines = CanvasTodoPlan.lines(events)
-        #expect(lines.map(\.title) == ["结婚纪念日", "产品评审会", "陈宏远 直播带货主播-男女不限 线下面试"])
+        #expect(lines.map(\.title) == ["产品评审会", "陈宏远 直播带货主播-男女不限 线下面试"])
+        #expect(CanvasTopBar.withAllDay("今天 · 11月5日", events: events) == "今天 · 11月5日 · 结婚纪念日")
+        #expect(CanvasTopBar.withAllDay("今天 · 11月5日", events: events + events) == "今天 · 11月5日 · 结婚纪念日 等")
+        #expect(CanvasTopBar.withAllDay("今天 · 11月5日", events: []) == "今天 · 11月5日")
         #expect(CanvasTodoPlan.split(events[1]).name == "陈宏远")
         #expect(CanvasTodoPlan.split(events[0]).name == nil)
     }

@@ -36,21 +36,34 @@ public struct TimelineTag: View {
                 Text(title).font(Theme.Typeface.subheadline).lineLimit(1)
                     .foregroundStyle(done ? Theme.Palette.tertiaryLabel : Theme.Palette.label)
                     .strikethrough(done, color: Theme.Palette.tertiaryLabel)
-                if let when, !done { TodoTrailing(when) }
+                if let when, !done { time(when) }
                 if let clash, !done { SandPill(clash, symbol: "exclamationmark.triangle") }
             }
             .padding(.leading, Theme.Space.tight)
             .padding(.trailing, Theme.Space.small + Theme.Space.hairline)
             .frame(minHeight: Self.height)
             .background(Theme.Palette.card, in: Capsule())
-            .overlay { Capsule().strokeBorder(Theme.Palette.separator, lineWidth: 0.5) }
-            .shadow(color: Theme.Palette.shadowFar, radius: 4, y: 1)
+            // 只留一层淡淡的影子（细边 + 影子画的是同一条边，多余）
+            .shadow(color: Theme.Palette.shadowFar, radius: 3, y: 1)
             .frame(minHeight: Theme.Size.touch)
             .contentShape(Rectangle())
         }
         .buttonStyle(PressScale())
         .accessibilityLabel(Text(spoken))
         .accessibilityHint(Text("打开编辑"))
+    }
+
+    /// 标签上的钟点只写小字（它摆在哪就是几点，不再加铃铛；快到了蓝、过了沙色）：并排两件也放得下一行
+    @ViewBuilder private func time(_ kind: TodoTrailing.Kind) -> some View {
+        switch kind {
+        case .soon(let text):
+            Text(String(text.split(separator: " · ").first ?? Substring(text)))
+                .font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.accent)
+        case .late(let text):
+            Text(text).font(Theme.Typeface.footnoteSemibold).foregroundStyle(Theme.Palette.warnInk)
+        case .clock(let text), .window(let text), .day(let text), .clash(let text):
+            Text(text).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+        }
     }
 }
 
@@ -79,7 +92,8 @@ public struct EventBlock: View {
     }
 }
 
-/// 「现在」：左边蓝色时间胶囊 + 横过去一条 2pt 品牌蓝的线（画在标签、日程下面一层）
+/// 「现在」：左边那一列写现在几点（蓝字），线头一个小圆点，横过去一条细的品牌蓝线（画在标签、日程下面一层）。
+/// 和系统日历一样，不用实心胶囊
 public struct NowMarker: View {
     let clock: String
     let gutter: CGFloat
@@ -89,61 +103,84 @@ public struct NowMarker: View {
         self.gutter = gutter
     }
 
+    public static let height: CGFloat = 16
+
     public var body: some View {
         HStack(spacing: 0) {
-            Text(clock).font(Theme.Typeface.footnoteBold).monospacedDigit()
-                .foregroundStyle(Theme.Palette.onAccent)
-                .padding(.horizontal, Theme.Space.small - Theme.Space.hairline)
-                .frame(minHeight: Theme.Size.badge + Theme.Space.tight)
-                .background(Theme.Palette.accentFill, in: Capsule())
-                .frame(width: gutter, alignment: .leading)
-            Rectangle().fill(Theme.Palette.accentFill).frame(height: 2)
+            Text(clock).font(Theme.Typeface.tick.weight(.bold)).monospacedDigit()
+                .foregroundStyle(Theme.Palette.accent)
+                .frame(width: gutter - Theme.Space.tight, alignment: .leading)
+            Circle().fill(Theme.Palette.accentFill)
+                .frame(width: Theme.Space.small - 1, height: Theme.Space.small - 1)
+            Rectangle().fill(Theme.Palette.accentFill).frame(height: 1.5)
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("现在 \(clock)"))
+        // 只是一条线：不接手指（下面的拖放、小标签照样点得到），读屏不单独念（状态栏上就有现在几点）
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
-/// 1 小时以上的空档：虚线框「13:00–15:00 空着」，下面可以有一个建议按钮「＋ 把「回复客户电话」排进来」；
-/// 从四象限「排进空档」过来时框描成品牌蓝
+/// 1 小时以上的空档：在空档开头放一条细虚线框「10:30–22:00 空着」，右边一个建议「＋ 把「喝茶」排进来」；
+/// 不再画一个从开头到结尾的大框（几个钟头的空档一大块虚线，乱，2026-11-06）。从四象限「排进空档」过来时描成品牌蓝
 public struct GapBox: View {
     let text: String
     let suggestion: String?
     let lit: Bool
+    /// 空档不到一个半钟头：写成一行（两行的话比空档还高，压到下一件）
+    let oneLine: Bool
     let action: () -> Void
 
-    public init(text: String, suggestion: String?, lit: Bool, action: @escaping () -> Void) {
+    public init(
+        text: String, suggestion: String?, lit: Bool, oneLine: Bool = false, action: @escaping () -> Void
+    ) {
         self.text = text
         self.suggestion = suggestion
         self.lit = lit
+        self.oneLine = oneLine
         self.action = action
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.small) {
-            Text(text).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
-            if let suggestion {
-                Button(action: action) {
-                    Label(suggestion, systemImage: "plus").font(Theme.Typeface.subheadline.weight(.semibold))
-                        .lineLimit(1)
-                        .foregroundStyle(Theme.Palette.accent)
-                        .padding(.horizontal, Theme.Space.medium)
-                        .frame(minHeight: Theme.Size.touch - Theme.Space.tight)
-                        .background(Theme.Palette.bubble, in: Capsule())
-                        .contentShape(Capsule())
+        Group {
+            if oneLine || suggestion == nil {
+                HStack(spacing: Theme.Space.small) {
+                    words.layoutPriority(1)
+                    Spacer(minLength: 0)
+                    if let suggestion { button(suggestion) }
                 }
-                .buttonStyle(PressScale())
+                .frame(minHeight: Theme.Size.touch)
+            } else {
+                VStack(alignment: .leading, spacing: 0) {
+                    words.frame(minHeight: Theme.Size.badge + Theme.Space.small)
+                    button(suggestion ?? "")
+                }
+                .padding(.vertical, Theme.Space.tight)
             }
         }
-        .padding(Theme.Space.medium)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.horizontal, Theme.Space.medium)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .overlay {
-            Theme.rounded(Theme.Corner.choice)
+            Theme.rounded(Theme.Corner.choice - 2)
                 .strokeBorder(
-                    lit ? Theme.Palette.accentFill : Theme.Palette.tertiaryLabel,
-                    style: StrokeStyle(lineWidth: lit ? 1.5 : 1, dash: [5, 4]))
+                    lit ? Theme.Palette.accentFill : Theme.Palette.separator,
+                    style: StrokeStyle(lineWidth: lit ? 1.5 : 1, dash: [4, 3]))
         }
         .accessibilityElement(children: .contain)
+    }
+
+    private var words: some View {
+        Text(text).font(Theme.Typeface.footnote).monospacedDigit().foregroundStyle(Theme.Palette.secondaryLabel)
+            .lineLimit(1)
+    }
+
+    private func button(_ title: String) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: "plus").font(Theme.Typeface.footnoteSemibold).lineLimit(1)
+                .foregroundStyle(Theme.Palette.accent)
+                .frame(minHeight: Theme.Size.touch - Theme.Space.small, alignment: .leading)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

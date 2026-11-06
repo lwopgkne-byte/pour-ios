@@ -46,8 +46,8 @@ struct TodoMatrixSection: View {
         let open = plan.open(lane).count
         let crowded = lane == .doNow && open > TodoMatrixPlan.crowd
         return MatrixCell(
-            quadrant: lane.rawValue, title: lane.title, subtitle: lane.subtitle,
-            count: crowded ? "\(open) · 有点多" : "\(open)", targeted: target == lane
+            quadrant: lane.rawValue, title: lane.title, subtitle: lane.subtitle, count: open, crowded: crowded,
+            targeted: target == lane
         ) {
             withAnimation(Theme.Motion.standard) { focus = lane }
         } content: {
@@ -81,6 +81,10 @@ struct TodoMatrixSection: View {
             }
         }
         .frame(minHeight: Theme.Size.choiceBlock * 3, alignment: .top)
+        // 两格各占一半宽，里面的字再长也不把格子撑宽（2026-11-06：「09:53 · 3 分钟后」把整页撑出了屏幕）
+        .containerRelativeFrame(.horizontal) { length, _ in
+            max(0, (length - Theme.Space.regular * 2 - Theme.Space.medium) / 2)
+        }
         .dropDestination(for: String.self) { items, _ in
             drop(items, into: lane)
         } isTargeted: { over in

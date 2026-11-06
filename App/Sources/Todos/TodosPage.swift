@@ -192,7 +192,9 @@ struct TodosPage: View {
 
     /// 今天：全天的日程最前、不定时的在上、别的按时间（日程穿插）；放一放折成一行「放一放 · 3 件 ›」放最后
     private func todaySection(_ plan: TodoListPlan, page: API.TodoPage) -> some View {
-        let title = page.groups.first { $0.key == "today" }?.title ?? "今天"
+        // 全天的事（节气、生日）写在标题后面，不占一行：「今天 · 11月6日 周五 · 立冬」
+        let title = CanvasTopBar.withAllDay(
+            page.groups.first { $0.key == "today" }?.title ?? "今天", events: events(page.today))
         let open = plan.today.filter(\.isOpenTodo).count + plan.later.filter { !$0.done }.count
         return Section {
             if plan.today.isEmpty && plan.later.isEmpty { emptyToday }

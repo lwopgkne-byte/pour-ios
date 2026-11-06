@@ -86,7 +86,9 @@ struct CanvasView: View {
         // 顶上那一行（「我」、日子、搜索）在系统的导航栏里；推进来的页返回按钮写「今天」（看别的日子时写那天）
         .toolbar {
             CanvasTopBar(
-                weekOpen: $weekOpen, title: CanvasTopBar.short(model.shownDay, today: model.today),
+                weekOpen: $weekOpen,
+                title: CanvasTopBar.withAllDay(
+                    CanvasTopBar.short(model.shownDay, today: model.today), events: model.shownEvents),
                 reduceMotion: reduceMotion, openMe: { model.open("/me") }, search: { model.search = "" })
         }
         .navigationBarTitleDisplayMode(.inline)

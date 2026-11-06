@@ -27,13 +27,6 @@ struct TodoTimelineView: View {
             page: page, held: model.todoHeld, events: events, now: now, expanded: expanded)
         VStack(alignment: .leading, spacing: Theme.Space.medium) {
             if !plan.tray.isEmpty { tray(plan.tray) }
-            let allDay = events.filter(\.allDay)
-            if !allDay.isEmpty {
-                VStack(spacing: 0) {
-                    ForEach(allDay) { CalendarLine(event: $0) }
-                }
-                .background(Theme.Palette.card, in: Theme.rounded(Theme.Corner.smallCard))
-            }
             if let until = plan.collapsedUntil {
                 CollapsedHours("\(Self.hh(plan.first)):00–\(Self.hh(until)):00 没安排，已收起") {
                     withAnimation(Theme.Motion.standard) { expanded = true }
@@ -56,8 +49,8 @@ struct TodoTimelineView: View {
                 Text("还没排时间 · \(rows.count)").font(Theme.Typeface.footnoteSemibold)
                     .foregroundStyle(Theme.Palette.secondaryLabel)
                 Spacer()
-                Label("按住拖到下面的时间上", systemImage: "hand.draw").font(Theme.Typeface.footnote)
-                    .foregroundStyle(Theme.Palette.secondaryLabel)
+                Text("按住拖到时间上").font(Theme.Typeface.footnote)
+                    .foregroundStyle(Theme.Palette.tertiaryLabel)
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Theme.Space.small) {
@@ -89,18 +82,16 @@ struct TodoTimelineView: View {
     private func canvas(_ plan: TodoTimelinePlan) -> some View {
         let from = plan.shownFrom
         let height = CGFloat(plan.last - from) * Self.hour + Self.top * 2
-        let tops = Self.stack(plan.tags.map { y($0.minute, from: from) })
+        let rows = plan.tagRows
+        let tops = Self.stack(rows.map { y($0.minute, from: from) - TimelineTag.height / 2 })
         return GeometryReader { proxy in
             let width = proxy.size.width - Self.gutter
             ZStack(alignment: .topLeading) {
                 hourLines(from: from, last: plan.last, now: plan.now)
                 if let minute = plan.now, minute >= from * 60, minute <= plan.last * 60 {
                     NowMarker(clock: TodoTimelinePlan.Gap.clock(minute), gutter: Self.gutter)
-                        .offset(y: y(minute, from: from) - (Theme.Size.badge + Theme.Space.tight) / 2)
+                        .offset(y: y(minute, from: from) - NowMarker.height / 2)
                         .accessibilityIdentifier("timeline.now")
-                }
-                ForEach(plan.gaps) { gap in
-                    gapView(gap, plan: plan, width: width, from: from)
                 }
                 ForEach(plan.events) { event in
                     eventView(event, width: width, from: from)
@@ -112,10 +103,16 @@ struct TodoTimelineView: View {
                         .offset(x: proxy.size.width - Theme.Size.touch, y: y(more.minute, from: from) + 4)
                         .accessibilityLabel(Text("还有 \(more.count) 个日程"))
                 }
-                ForEach(Array(plan.tags.enumerated()), id: \.element.id) { index, tag in
-                    tagView(tag)
-                        .frame(maxWidth: width - Theme.Space.tight, alignment: .leading)
-                        .offset(x: Self.gutter + Theme.Space.tight, y: tops[index] - Theme.Size.touch / 2)
+                // 空档放在它开头的地方；前面的小标签往下错开了的话，跟在小标签后面（不叠在一起）
+                ForEach(plan.gaps.prefix(Self.gapsShown)) { gap in
+                    let before = zip(rows, tops).filter { $0.0.minute < gap.start }.map { $0.1 + TimelineTag.height }
+                    let top = max(y(gap.start, from: from) + Theme.Space.tight, (before.max() ?? 0) + Theme.Space.small)
+                    gapView(gap, plan: plan)
+                        .frame(width: width - Theme.Space.small)
+                        .offset(x: Self.gutter + Theme.Space.tight, y: top)
+                }
+                ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                    tagRow(row, width: width).offset(x: Self.gutter + Theme.Space.tight, y: tops[index])
                 }
             }
             .frame(width: proxy.size.width, height: height, alignment: .topLeading)
@@ -128,6 +125,9 @@ struct TodoTimelineView: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("timeline.canvas")
     }
+
+    /// 最多标几个空档（多了也只是一样的虚线条）
+    private static let gapsShown = 3
 
     /// 每个整点一条线，左边写钟点（离「现在」的胶囊太近的钟点不写，不叠在一起；字用次文字色，小字也看得清）。
     /// 画在 Canvas 里：只是刻度，读屏不念；无障碍审计会去量藏起来的字和线（2026-11-05）
@@ -150,18 +150,15 @@ struct TodoTimelineView: View {
         .accessibilityHidden(true)
     }
 
-    /// 空档：虚线框，第一个排得进的空档带一个建议
-    private func gapView(_ gap: TodoTimelinePlan.Gap, plan: TodoTimelinePlan, width: CGFloat, from: Int) -> some View {
+    /// 空档：一条细虚线框，第一个排得进的空档带一个建议
+    private func gapView(_ gap: TodoTimelinePlan.Gap, plan: TodoTimelinePlan) -> some View {
         let suggestion = plan.suggestion?.gap == gap ? plan.suggestion : nil
-        let suggested = suggestion?.row
         return GapBox(
-            text: "\(gap.text) 空着", suggestion: suggested.map { "把「\(Show.spaced($0.content))」排进来" },
-            lit: model.todoGaps
+            text: "\(gap.text) 空着", suggestion: suggestion.map { "把「\(Show.spaced($0.row.content))」排进来" },
+            lit: model.todoGaps, oneLine: gap.end - gap.start < 90
         ) {
             if let suggestion { model.schedule(suggestion.row, at: suggestion.at) }
         }
-        .frame(width: width - Theme.Space.tight, height: y(gap.end, from: from) - y(gap.start, from: from) - 4)
-        .offset(x: Self.gutter, y: y(gap.start, from: from) + 2)
         .accessibilityIdentifier("timeline.gap")
     }
 
@@ -179,6 +176,20 @@ struct TodoTimelineView: View {
             x: Self.gutter + CGFloat(event.column) * (column + Theme.Space.tight), y: y(event.start, from: from) + 1)
     }
 
+    /// 一行小标签：放得下就照原来的长短一个挨一个；放不下才一起缩（名字省略）
+    private func tagRow(_ row: TodoTimelinePlan.TagRow, width: CGFloat) -> some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: Theme.Space.small - 2) {
+                ForEach(row.tags) { tagView($0).fixedSize() }
+            }
+            HStack(spacing: Theme.Space.small - 2) {
+                ForEach(row.tags) { tagView($0) }
+            }
+        }
+        .frame(maxWidth: width - Theme.Space.small, alignment: .leading)
+        .frame(height: TimelineTag.height)
+    }
+
     private func tagView(_ tag: TodoTimelinePlan.Tag) -> some View {
         let row = tag.row
         let when = TodoBoard.trailing(row, today: page.today, now: now)
@@ -192,10 +203,10 @@ struct TodoTimelineView: View {
         .accessibilityIdentifier("timeline.tag")
     }
 
-    /// 标签挨得太近就往下错开一点（一个标签高），不叠在一起
+    /// 一行一行的小标签挨得太近就往下错开一点（一个标签高），不叠在一起
     static func stack(_ ideal: [CGFloat]) -> [CGFloat] {
         var out: [CGFloat] = []
-        for value in ideal { out.append(max(value, (out.last ?? -.infinity) + TimelineTag.height + 2)) }
+        for value in ideal { out.append(max(value, (out.last ?? -.infinity) + TimelineTag.height + Theme.Space.tight)) }
         return out
     }
 

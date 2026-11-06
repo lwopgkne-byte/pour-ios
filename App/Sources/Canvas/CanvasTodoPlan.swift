@@ -3,7 +3,7 @@ import PourAPI
 import PourCore
 
 /// 画布上的待办卡怎么摆（待办 2.0 第 9 步，docs/todo-2.0 design/after-01-home）：最多 4 行，多了「还有 N 件 ›」；
-/// 过点的在前 → 马上做（按时间）→ 日程（全天的在前）→ 其余的待办按时间（不定时的最后）。日程排在其余的待办前面：
+/// 过点的在前 → 马上做（按时间）→ 日程 → 其余的待办按时间（不定时的最后）；全天的不在卡里。日程排在其余的待办前面：
 /// 设计稿那天 15:00 的面试排在 12:30 的喝三瓶水前面（约好的事比自己排的事要紧）；
 /// 开始时间一样、去掉开头的人名后名字一样的日程合成一行「2 场面试：潘志文、陈宏远」，右边「15:00 起」
 struct CanvasTodoPlan {
@@ -68,9 +68,8 @@ struct CanvasTodoPlan {
 
     /// 日程排成几行：全天的一件一行；同一个钟点开始、去掉人名后一样的合成一行
     static func lines(_ events: [CalendarItem]) -> [EventLine] {
-        var out = events.filter(\.allDay).map {
-            EventLine(id: $0.id, title: Show.spaced($0.title), time: "全天", start: "00:00")
-        }
+        // 全天的不进待办卡（写在顶上的日子后面，CanvasTopBar.withAllDay）
+        var out: [EventLine] = []
         let timed = Dictionary(grouping: events.filter { !$0.allDay }) { String($0.start.suffix(5)) }
         for (start, group) in timed.sorted(by: { $0.key < $1.key }) {
             let parts = group.map(split)

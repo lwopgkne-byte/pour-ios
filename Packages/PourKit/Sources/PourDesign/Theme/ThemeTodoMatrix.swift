@@ -9,19 +9,22 @@ public struct MatrixCell<Content: View>: View {
     let quadrant: Int
     let title: String
     let subtitle: String
-    let count: String
+    let count: Int
+    /// 马上做多了：数字后面写「· 有点多」
+    let crowded: Bool
     let targeted: Bool
     let open: () -> Void
     let content: Content
 
     public init(
-        quadrant: Int, title: String, subtitle: String, count: String, targeted: Bool, open: @escaping () -> Void,
-        @ViewBuilder content: () -> Content
+        quadrant: Int, title: String, subtitle: String, count: Int, crowded: Bool = false, targeted: Bool,
+        open: @escaping () -> Void, @ViewBuilder content: () -> Content
     ) {
         self.quadrant = quadrant
         self.title = title
         self.subtitle = subtitle
         self.count = count
+        self.crowded = crowded
         self.targeted = targeted
         self.open = open
         self.content = content()
@@ -37,16 +40,21 @@ public struct MatrixCell<Content: View>: View {
                                 .font(Theme.Typeface.bodySemibold).foregroundStyle(Theme.Quadrant.ring(quadrant))
                         }
                         Text(title).font(Theme.Typeface.pageSection).foregroundStyle(Theme.Quadrant.text(quadrant))
+                            .lineLimit(1)
                         Spacer(minLength: Theme.Space.tight)
-                        Text(count).font(Theme.Typeface.bodySemibold).monospacedDigit()
+                        Text("\(count)").font(Theme.Typeface.subheadline.weight(.semibold)).monospacedDigit()
                             .foregroundStyle(Theme.Quadrant.text(quadrant))
+                            .fixedSize()
                     }
-                    Text(subtitle).font(Theme.Typeface.footnote).foregroundStyle(Theme.Palette.secondaryLabel)
+                    // 多了：「有点多」写在副标题后面（格子窄，和名字、数字挤一行会把名字挤成「马…」，2026-11-06）
+                    (Text(subtitle).foregroundStyle(Theme.Palette.secondaryLabel)
+                        + Text(crowded ? " · 有点多" : "").foregroundStyle(Theme.Quadrant.text(quadrant)).bold())
+                        .font(Theme.Typeface.footnote)
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(Text("\(title)，\(subtitle)，\(count) 件"))
+            .accessibilityLabel(Text("\(title)，\(subtitle)，\(count) 件\(crowded ? "，有点多" : "")"))
             .accessibilityHint(Text("打开这一格的全部"))
             content
         }
@@ -95,9 +103,11 @@ public struct MatrixCard<Ring: View>: View {
                         .foregroundStyle(done ? Theme.Palette.tertiaryLabel : Theme.Palette.label)
                         .strikethrough(done, color: Theme.Palette.tertiaryLabel)
                     if let note, !done {
-                        SandPill(note, symbol: "calendar")
+                        // 和「⏱ 昨天 11:12」一样只是沙色的字，不再套一个胶囊
+                        Label(note, systemImage: "calendar").font(Theme.Typeface.footnoteSemibold)
+                            .foregroundStyle(Theme.Palette.warnInk).labelStyle(TightIcon())
                     } else if let when, !done {
-                        TodoTrailing(when, plain: true)
+                        TodoTrailing(when, plain: true, compact: true)
                     }
                 }
                 .padding(.top, Theme.Space.small + Theme.Space.hairline)
@@ -115,7 +125,17 @@ public struct MatrixCard<Ring: View>: View {
     }
 }
 
-/// 托盘里的一件（四象限的「还没分」、时间线的「还没排时间」）：白底描边胶囊，象限的小圈 + 名字（+「 · 下午」）；
+/// 图标和字挨得紧一点（「📅 今天到期」）
+private struct TightIcon: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: Theme.Space.hairline + 1) {
+            configuration.icon.font(Theme.Typeface.caption)
+            configuration.title
+        }
+    }
+}
+
+/// 托盘里的一件（四象限的「还没分」、时间线的「还没排时间」）：浅灰胶囊，象限的小圈 + 名字（+「 · 下午」）；
 /// 点了选一格或打开编辑，按住拖走
 public struct TrayChip: View {
     let title: String
@@ -138,8 +158,8 @@ public struct TrayChip: View {
         }
         .padding(.leading, Theme.Space.small + Theme.Space.hairline).padding(.trailing, Theme.Space.medium)
         .frame(minHeight: Theme.Size.touch)
-        .background(Theme.Palette.card, in: Capsule())
-        .overlay { Capsule().strokeBorder(Theme.Palette.separator, lineWidth: 1) }
+        // 浅灰底、不描边：托盘本身是白卡片，里面再白底描边就是框套框（2026-11-06 打磨）
+        .background(Theme.Palette.fill, in: Capsule())
         .contentShape(Capsule())
     }
 }

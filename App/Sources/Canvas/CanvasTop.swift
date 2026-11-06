@@ -63,6 +63,14 @@ struct CanvasTopBar: ToolbarContent {
         if let relative { return "\(relative) · \(Show.monthDay(day))" }
         return "\(Show.monthDay(day)) \(Show.weekday(day))"
     }
+
+    /// 这一天全天的事（节气、节日、生日）跟在日子后面：「今天 · 11月6日 · 立冬」，几件的写第一件「等」；
+    /// 不再占待办卡的一行（产品主人 2026-11-06：「立冬 全天」在待办里太突兀）
+    static func withAllDay(_ title: String, events: [CalendarItem]) -> String {
+        let names = events.filter(\.allDay).map(\.title)
+        guard let first = names.first else { return title }
+        return "\(title) · \(first)\(names.count > 1 ? " 等" : "")"
+    }
 }
 
 /// 画布最上面一行（日子写在顶上的玻璃胶囊里，这里不再写大标题）：小胶囊（画布样张、演示数据、昨天的回顾好了），

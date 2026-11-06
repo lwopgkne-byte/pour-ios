@@ -75,6 +75,34 @@
             ]
         }
 
+        /// 挤满了的一天（「-todoCrowded」，四象限、时间线的边界情况，2026-11-06 产品主人看到四象限被撑变形）：
+        /// 马上做 6 件（名字长的、快到点的、同一分钟两件）、排时间 5 件、快速办 1 件、放一放 1 件、还没分 3 件、下午的 1 件
+        static func crowdedTodos(today: String) -> [[String: Any]] {
+            let now = Calendar.current.dateComponents([.hour, .minute], from: Date())
+            let soon = String(format: "%02d:%02d", now.hour ?? 9, min(59, (now.minute ?? 0) + 2))
+            // 名字 · 哪一格 · 别的字段（钟点、时间段）
+            let items: [[String: Any]] = [
+                ["content": "发内测版本", "quadrant": 1, "remindAt": "\(today)T\(soon)"],
+                ["content": "喝水", "quadrant": 1, "remindAt": "\(today)T\(soon)"],
+                ["content": "把会员改版的 PRD 发给研发，顺便约周五评审", "quadrant": 1, "remindAt": "\(today)T17:30"],
+                ["content": "给客户回电话", "quadrant": 1, "window": "afternoon"],
+                ["content": "接孩子", "quadrant": 1, "remindAt": "\(today)T17:00"], ["content": "交周报", "quadrant": 1],
+                ["content": "写季度总结", "quadrant": 2], ["content": "去医院复查", "quadrant": 2, "remindAt": "\(today)T15:00"],
+                ["content": "看完那本书", "quadrant": 2, "window": "evening"], ["content": "整理照片", "quadrant": 2],
+                ["content": "学吉他", "quadrant": 2], ["content": "交水费", "quadrant": 3],
+                ["content": "整理衣柜", "quadrant": 4],
+                ["content": "买牛奶"], ["content": "寄快递"], ["content": "订机票"], ["content": "喝茶", "window": "afternoon"],
+            ]
+            return items.enumerated().map { index, item in
+                var data: [String: Any] = ["done": false, "due": today]
+                data.merge(item) { _, new in new }
+                return [
+                    "id": 800 + index, "day": today, "kind": "todo", "category": "todo", "confidence": 1,
+                    "status": "ok", "data": data, "sources": [[String: Any]](),
+                ]
+            }
+        }
+
         /// 一行多带的四样
         static func todoTwoRow(_ data: [String: Any]) -> [String: Any] {
             [

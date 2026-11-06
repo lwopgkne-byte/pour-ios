@@ -62,6 +62,8 @@
                 Self.sampleEntries(today: PourDate.logicalDay(Date(), in: .current))
                 + (ProcessInfo.processInfo.arguments.contains("-todoSample")
                     ? Self.sampleTodos(today: PourDate.logicalDay(Date(), in: .current)) : [])
+                + (ProcessInfo.processInfo.arguments.contains("-todoCrowded")
+                    ? Self.crowdedTodos(today: PourDate.logicalDay(Date(), in: .current)) : [])
             var trash: [[String: Any]] = []
             var nextId = 1
             /// 对话里的系统消息：今天早上来的「昨天的回顾好了」

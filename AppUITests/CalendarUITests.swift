@@ -21,11 +21,12 @@ final class CalendarUITests: XCTestCase {
         // 先滚到它整个露出来：在最下面时点到的是浮在底部的「说一句」（2026-10-31）
         app.reveal(connect)
         connect.tap()
-        let allDay = app.descendants(matching: .any)["agenda.allDay"]
-        if !allDay.waitForExistence(timeout: 5) { keep(app, "日历-接上以后") }
-        XCTAssertTrue(allDay.exists, "待办卡上没有全天的日程")
-        XCTAssertTrue(allDay.label.contains("小李生日"), "全天的不对：\(allDay.label)")
+        // 全天的（待办 2.0）：写在顶上的日子后面「今天 · 11月5日 · 小李生日」，不占待办卡的一行
+        let header = app.descendants(matching: .any)["today.header"]
         let event = app.descendants(matching: .any)["agenda.event"]
+        if !event.waitForExistence(timeout: 5) { keep(app, "日历-接上以后") }
+        XCTAssertTrue(header.label.contains("小李生日"), "全天的没写在日子后面：\(header.label)")
+        XCTAssertFalse(app.descendants(matching: .any)["agenda.allDay"].exists, "全天的还占着待办卡的一行")
         XCTAssertTrue(event.waitForExistence(timeout: 3), "待办卡里没有日程")
         XCTAssertTrue(event.label.contains("看牙医") && event.label.contains("日历"), "日程不对：\(event.label)")
         XCTAssertFalse(app.buttons["calendar.connect"].exists, "接上了小卡还在")
@@ -41,7 +42,7 @@ final class CalendarUITests: XCTestCase {
             XCTAssertLessThan(event.frame.minY, todo.frame.minY, "日程没排在其余的待办前面")
         }
         // 待办卡在最上面：滚回去再截图
-        for _ in 0..<6 where !allDay.isHittable { app.swipeDown() }
+        for _ in 0..<6 where !event.isHittable { app.swipeDown() }
         attach(app, "接上日历-待办卡")
     }
 

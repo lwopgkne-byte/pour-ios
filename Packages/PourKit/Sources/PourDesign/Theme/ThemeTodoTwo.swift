@@ -142,10 +142,13 @@ public struct TodoTrailing: View {
     let kind: Kind
     /// 不带底色（四象限的小卡第二行：「⏱ 11:12 过了」沙色字）
     let plain: Bool
+    /// 窄的地方（四象限的小卡、时间线的小标签）：快到了只写钟点（不写「· 3 分钟后」），放不下就省略，不撑宽
+    let compact: Bool
 
-    public init(_ kind: Kind, plain: Bool = false) {
+    public init(_ kind: Kind, plain: Bool = false, compact: Bool = false) {
         self.kind = kind
         self.plain = plain
+        self.compact = compact
     }
 
     public var body: some View {
@@ -162,14 +165,15 @@ public struct TodoTrailing: View {
             case .soon(let text):
                 HStack(spacing: Theme.Space.hairline + 1) {
                     Image(systemName: "bell.fill").font(Theme.Typeface.footnote)
-                    Text(text)
+                    Text(compact ? String(text.split(separator: " · ").first ?? Substring(text)) : text)
                 }
-                .font(Theme.Typeface.subheadline.weight(.semibold)).foregroundStyle(Theme.Palette.accent)
+                // 蓝色已经够显眼，字不再加粗（产品主人 2026-11-06：两行加粗的蓝字太吵）
+                .font(Theme.Typeface.subheadline.weight(.medium)).foregroundStyle(Theme.Palette.accent)
             case .late(let text): sand(text, symbol: "clock")
             case .clash(let text): sand(text, symbol: "exclamationmark.triangle")
             }
         }
-        .monospacedDigit().lineLimit(1).fixedSize()
+        .monospacedDigit().lineLimit(1).fixedSize(horizontal: !compact, vertical: false)
     }
 
     @ViewBuilder private func sand(_ text: String, symbol: String) -> some View {

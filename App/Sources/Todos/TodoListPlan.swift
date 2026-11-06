@@ -132,7 +132,7 @@ enum TodayItem: Identifiable {
         }
     }
 
-    /// 待办 2.0：全天的日程最前，不定时的待办在上，别的按时间排（待办按钟点、时间段按开头的钟点，日程按开始）；
+    /// 待办 2.0：不定时的待办在上，别的按时间排（待办按钟点、时间段按开头的钟点，日程按开始）；全天的不在这里；
     /// 日程和你说的待办是同一件的只显示待办（和画布的待办卡一样，AgendaPlan.same）
     static func merge(_ rows: [API.TodoRow], events: [CalendarItem]) -> [TodayItem] {
         let timed = events.filter { event in
@@ -141,11 +141,10 @@ enum TodayItem: Identifiable {
                     AgendaPlan.same(event, title: row.content, remindAt: row.remindAt.map { "\(row.day)T\($0)" })
                 }
         }
-        let allDay = events.filter(\.allDay).map(TodayItem.event)
-        let items = (rows.map(TodayItem.todo) + timed.map(TodayItem.event)).enumerated()
+        // 全天的不进单子（写在「今天」那一组的标题后面）
+        return (rows.map(TodayItem.todo) + timed.map(TodayItem.event)).enumerated()
             .sorted { ($0.element.clock ?? "", $0.offset) < ($1.element.clock ?? "", $1.offset) }
             .map(\.element)
-        return allDay + items
     }
 
     private var clock: String? {

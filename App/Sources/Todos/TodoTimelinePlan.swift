@@ -54,6 +54,25 @@ struct TodoTimelinePlan {
     /// 显示出来的第一个钟头（收起来的不算）
     var shownFrom: Int { collapsedUntil ?? first }
 
+    /// 时间线上的一行小标签：20 分钟以内的几件并排放在一行（同一时刻的两件不再上下叠着，2026-11-06）
+    struct TagRow: Identifiable {
+        let tags: [Tag]
+        var id: Int { tags[0].id }
+        var minute: Int { tags[0].minute }
+    }
+
+    var tagRows: [TagRow] {
+        var rows: [[Tag]] = []
+        for tag in tags {
+            if let first = rows.last?.first, tag.minute - first.minute <= 20 {
+                rows[rows.count - 1].append(tag)
+            } else {
+                rows.append([tag])
+            }
+        }
+        return rows.map(TagRow.init)
+    }
+
     static let maxColumns = 3
     /// 一个标签占的时间（算空档用）
     static let tagMinutes = 30
@@ -79,7 +98,8 @@ struct TodoTimelinePlan {
         var collapsed: Int?
         if let nowMinute, !expanded {
             let until = min((nowMinute - 30) / 60, (starts.min() ?? Int.max) / 60, last - 1)
-            if until > first { collapsed = until }
+            // 至少省下 2 个钟头才收（只空一个钟头的收起来，那一条比省下的还占地方）
+            if until - first >= 2 { collapsed = until }
         }
         let tray = rows.filter { !$0.done && $0.remindAt == nil && !$0.isSomeday }
         let busy = placed.events.map { ($0.start, $0.end) } + tags.map { ($0.minute, $0.minute + Self.tagMinutes) }
