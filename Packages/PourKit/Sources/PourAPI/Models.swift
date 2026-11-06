@@ -121,6 +121,8 @@ extension API {
         public var quadrantByAI: Bool?
         public var window: String?
         public var someday: Bool?
+        /// 你排的顺序（同一天里第几个）
+        public var order: Int?
 
         public var lane: TodoQuadrant { TodoQuadrant(rawValue: quadrant ?? 0) ?? .unsorted }
         public var timeWindow: TimeWindow? { window.flatMap(TimeWindow.init(rawValue:)) }

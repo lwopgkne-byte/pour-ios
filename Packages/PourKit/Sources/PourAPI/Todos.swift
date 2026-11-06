@@ -155,6 +155,8 @@ extension API {
         public var window: String?
         /// 以后再说：不定日子
         public var someday: Bool?
+        /// 你排的顺序（同一天里第几个，清单里拖过才有；服务器 2.21 起有）
+        public var order: Int?
 
         public var lane: TodoQuadrant { TodoQuadrant(rawValue: quadrant ?? 0) ?? .unsorted }
         public var guessed: Bool { quadrantByAI == true && lane != .unsorted }

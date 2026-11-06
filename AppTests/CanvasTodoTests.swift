@@ -44,6 +44,21 @@ struct CanvasTodoTests {
         #expect(line.title == "2 场面试：潘志文、陈宏远" && line.time == "15:00 起")
     }
 
+    /// 在清单里排过顺序：过点的照旧最前，后面照你排的（不再是马上做在前）；日程照时间插在中间
+    @Test func yourOrderAfterTheLateOnes() {
+        let water = row(1, "喝水", .schedule, at: "11:12")
+        var call = row(2, "回复客户电话", .doNow)
+        call.order = 1
+        var tea = row(3, "喝茶", .unsorted)
+        tea.order = 0
+        var kid = row(4, "接小孩", .doNow, at: "17:00")
+        kid.order = 2
+        let events = [interview("a", "潘志文", end: "18:00")]
+        let plan = CanvasTodoPlan.make(rows: [water, call, tea, kid], events: events, now: "\(Self.today)T11:35")
+        #expect(plan.shown.map(\.id) == ["todo.1", "todo.3", "todo.2", "event.a"])
+        #expect(plan.more == 1)
+    }
+
     /// 名字不一样、开头不是人名的不合；全天的不进待办卡，写在顶上的日子后面
     @Test func onlySameTitlesMerge() {
         let events = [

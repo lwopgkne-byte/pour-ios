@@ -39,6 +39,27 @@ struct TodoListTests {
         #expect(plan.counts(page: page([water, call, lunch, kid, guitar], overdue: [fee])).left == 6)
     }
 
+    /// 调整顺序：排过的照你排的（没排过的、新加的在前面），日程插在第一件比它晚的待办前面；挪到别的日子就不算了
+    @Test func yourOrderWins() {
+        var pickup = API.TodoRow(id: 1, content: "接孩子", day: Self.today, remindAt: "17:00")
+        pickup.order = 1
+        var report = API.TodoRow(id: 2, content: "交周报", day: Self.today)
+        report.order = 0
+        let milk = API.TodoRow(id: 3, content: "买牛奶", day: Self.today, remindAt: "10:00")
+        let review = CalendarItem(
+            id: "e", title: "评审", start: "\(Self.today)T15:00", end: "\(Self.today)T16:00", allDay: false,
+            calendar: "工作")
+        let items = TodayItem.merge([pickup, report, milk], events: [review])
+        #expect(items.map(\.id) == ["todo.3", "todo.2", "event.e", "todo.1"])
+        #expect(AppModel.edited(pickup, today: Self.today, day: "2026-10-28").order == nil)
+        #expect(AppModel.edited(pickup, today: Self.today, quadrant: .doNow).order == 1)
+        var page = API.TodoPage(
+            today: Self.today, groups: [API.TodoGroup(key: "today", title: "今天", rows: [pickup, report, milk])],
+            open: 3)
+        page.reorder([1, 3, 2])
+        #expect(page.groups[0].rows.map(\.id) == [1, 3, 2])
+    }
+
     /// 编辑弹框的日子按钮不重复：周五的「周六」就是明天、周日的「下周一」就是明天，只留「明天」
     @Test func dayChoicesNeverRepeat() {
         #expect(TodoEditCards.dayChoices(today: "2026-11-06").map(\.title) == ["今天", "明天", "下周一"])

@@ -57,5 +57,7 @@ extension API.TodoRow {
             people: todo.people ?? [], things: todo.things ?? [], places: todo.places ?? [],
             source: entry.sources.first.map { Source(noteId: $0.noteId, text: $0.text, at: $0.createdAt) },
             quadrant: todo.lane, guessed: todo.quadrantByAI == true, window: todo.timeWindow, someday: todo.isSomeday)
+        // 你在清单里排的顺序（首页的待办卡照它排）
+        order = todo.order
     }
 }

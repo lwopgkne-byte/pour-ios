@@ -153,6 +153,16 @@ struct TodoPressMenu: View {
         Divider()
         MenuLine("编辑…", symbol: "pencil") { open(.detail(row)) }
             .accessibilityIdentifier("todoPress.edit")
+        if !row.done {
+            Divider()
+            // 调整顺序（待办 2.0）：在待办页上排；从首页按住的也去待办页
+            MenuLine("调整顺序", symbol: "arrow.up.arrow.down") {
+                close()
+                model.todoReorder = true
+                if model.stack.last != .todos { model.openLink("/todos") }
+            }
+            .accessibilityIdentifier("todoPress.reorder")
+        }
         if let source = row.source {
             Divider()
             MenuLine("看原话", symbol: "quote.closing") {

@@ -65,6 +65,7 @@
                 return when
             case ("POST", ""): return quickAdd(body["text"] as? String ?? "")
             case ("POST", "carry"): return carry(body["ids"] as? [Int])
+            case ("POST", "order"): return order(body["ids"] as? [Int] ?? [])
             default: return nil
             }
         }

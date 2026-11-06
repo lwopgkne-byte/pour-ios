@@ -12,10 +12,12 @@
             let sunday = PourDate.addDays(today, 6 - PourDate.weekdayMon0(today))
             let open = { (row: [String: Any]) in row["done"] as? Bool != true && row["someday"] as? Bool != true }
             let day = { (row: [String: Any]) in row["day"] as? String ?? "" }
+            // 同一天里你排过的按你排的（没排过的在前），别的按日子、钟点（服务器 byDayThenClock）
+            let rank = { (row: [String: Any]) in (row["order"] as? Int).map { String(format: "1%05d", $0) } ?? "0" }
             let sorted = { (list: [[String: Any]], newestFirst: Bool) in
                 list.sorted { lhs, rhs in
-                    let left = "\(day(lhs))\(lhs["remindAt"] as? String ?? "99")\(lhs["id"] as? Int ?? 0)"
-                    let right = "\(day(rhs))\(rhs["remindAt"] as? String ?? "99")\(rhs["id"] as? Int ?? 0)"
+                    let left = "\(day(lhs))\(rank(lhs))\(lhs["remindAt"] as? String ?? "99")\(lhs["id"] as? Int ?? 0)"
+                    let right = "\(day(rhs))\(rank(rhs))\(rhs["remindAt"] as? String ?? "99")\(rhs["id"] as? Int ?? 0)"
                     return newestFirst ? left > right : left < right
                 }
             }
@@ -103,12 +105,24 @@
             }
         }
 
-        /// 一行多带的四样
+        /// 一行多带的几样（待办 2.0：格子、时间段、以后再说、你排的顺序）
         static func todoTwoRow(_ data: [String: Any]) -> [String: Any] {
             [
                 "quadrant": orNull(data["quadrant"]), "quadrantByAI": orNull(data["quadrantByAI"]),
-                "window": orNull(data["window"]), "someday": orNull(data["someday"]),
+                "window": orNull(data["window"]), "someday": orNull(data["someday"]), "order": orNull(data["order"]),
             ]
+        }
+
+        /// 调整顺序：这几件按给的先后记成 0、1、2……
+        mutating func order(_ ids: [Int]) -> [String: Any] {
+            for (index, id) in ids.enumerated() {
+                guard let at = entries.firstIndex(where: { $0["id"] as? Int == id && $0["kind"] as? String == "todo" })
+                else { continue }
+                var data = entries[at]["data"] as? [String: Any] ?? [:]
+                data["order"] = index
+                entries[at]["data"] = data
+            }
+            return ["ok": true]
         }
 
         /// 改格子和以后再说（services/todo-page.ts edited）：自己选的格不再是猜的；以后再说去掉日子、钟点、时间段，

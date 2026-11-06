@@ -123,6 +123,7 @@ extension AppModel {
             row.repeat = rule
             row.repeatText = rule?.text
         }
+        Self.forgetOrder(&row, from: old, day: day, someday: someday)
         if someday == true {
             row.someday = true
             row.remindAt = nil
@@ -141,6 +142,11 @@ extension AppModel {
         }
         row.overdue = !row.done && !row.isSomeday && row.day < today
         return row
+    }
+
+    /// 挪到别的日子、以后再说：在原来那天排的顺序不算了（和服务器一样）
+    private static func forgetOrder(_ row: inout API.TodoRow, from old: API.TodoRow, day: String?, someday: Bool?) {
+        if someday == true || (day != nil && day != old.day) { row.order = nil }
     }
 
     /// 删一件（左滑「删除」、菜单、详情）。重复的先问「只删这一次 / 以后都不要了」（todoDeleting）

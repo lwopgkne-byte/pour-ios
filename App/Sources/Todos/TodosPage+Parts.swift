@@ -88,8 +88,22 @@ extension TodosPage {
     // MARK: - 右上角：加待办、更多
 
     @ToolbarContentBuilder var toolbar: some ToolbarContent {
+        if reordering {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("完成") { withAnimation(Theme.Motion.standard) { reordering = false } }
+                    .fontWeight(.semibold)
+                    .accessibilityIdentifier("todos.reorder.done")
+            }
+        } else {
+            standardToolbar
+        }
+    }
+
+    @ToolbarContentBuilder private var standardToolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
+                Button("调整顺序", systemImage: "arrow.up.arrow.down") { startReorder() }
+                    .accessibilityIdentifier("todos.reorder")
                 Toggle("显示已完成", isOn: $showDone)
                 Picker("怎么排", selection: $byPerson) {
                     Text("按时间").tag(false)

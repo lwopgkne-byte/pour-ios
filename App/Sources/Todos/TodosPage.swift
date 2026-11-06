@@ -9,7 +9,9 @@ import SwiftUI
 /// 右滑完成、左滑推迟或删除、按住出菜单（TodoPressMenu）；勾掉的划线留在原地，离开再回来才收进「已完成」
 struct TodosPage: View {
     @Environment(AppModel.self) var model
-    @State private var mode = Mode.list
+    @State var mode = Mode.list
+    /// 调整顺序（待办 2.0）：每行右边一个拖动的把手，拖完马上存；右上角「完成」回来
+    @State var reordering = false
     @State var showDone = false
     @State private var showLater = false
     @State var byPerson = false
@@ -63,7 +65,14 @@ struct TodosPage: View {
             withAnimation(Theme.Motion.standard) { model.todoFlash = nil }
         }
         .onDisappear { model.settleTodos() }
-        .onChange(of: mode) { focus = nil }
+        .onChange(of: mode) {
+            focus = nil
+            reordering = false
+        }
+        // 按住的菜单点了「调整顺序」（这一页上的，或者从首页过来的）
+        .onChange(of: model.todoReorder, initial: true) { startReorderIfAsked() }
+        // 排顺序的时候：系统的编辑状态（每行右边一个把手）
+        .environment(\.editMode, .constant(reordering ? .active : .inactive))
         .onAppear {
             // 结果卡片上点了「看时间线」：打开就是时间线
             if let open = model.todoOpenMode {
@@ -88,7 +97,8 @@ struct TodosPage: View {
             top(now: now)
             if let page = model.todoPage {
                 switch mode {
-                case .list: listSections(page, now: now)
+                case .list:
+                    if reordering { reorderSections(page) } else { listSections(page, now: now) }
                 case .matrix: if let focus { focusSections(page, focus) }
                 case .timeline: EmptyView()
                 }
@@ -284,7 +294,7 @@ struct TodosPage: View {
         .sensoryFeedback(Theme.Haptics.swipe, trigger: model.todoFlash == row.id) { _, now in now }
     }
 
-    private func events(_ today: String) -> [CalendarItem] { model.calendar.items[today] ?? [] }
+    func events(_ today: String) -> [CalendarItem] { model.calendar.items[today] ?? [] }
 }
 
 extension TodosPage {

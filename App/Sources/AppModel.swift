@@ -108,6 +108,8 @@ final class AppModel {
     var todoAsked: Set<Int> = []
     /// 这次打开 App 里改过的待办最新的样子（单子不在手上时，结果卡片照它写）
     var todoLatest: [Int: API.TodoRow] = [:]
+    /// 按住的菜单点了「调整顺序」：待办页打开就进调整顺序（待办 2.0）
+    var todoReorder = false
     /// 记一笔的数字键盘开着没有（3.0 第 3 步，AppModel+Money）
     var keypadOpen = false
     /// 打开的那一笔钱（3.0 一笔的详情）

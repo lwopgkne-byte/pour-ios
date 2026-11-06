@@ -3,7 +3,8 @@ import PourAPI
 import PourCore
 
 /// 画布上的待办卡怎么摆（待办 2.0 第 9 步，docs/todo-2.0 design/after-01-home）：最多 4 行，多了「还有 N 件 ›」；
-/// 过点的在前 → 马上做（按时间）→ 日程 → 其余的待办按时间（不定时的最后）；全天的不在卡里。日程排在其余的待办前面：
+/// 过点的在前 → 马上做（按时间）→ 日程 → 其余的待办按时间（不定时的最后）；全天的不在卡里；在清单里排过顺序的，
+/// 过点的以后照你排的。日程排在其余的待办前面：
 /// 设计稿那天 15:00 的面试排在 12:30 的喝三瓶水前面（约好的事比自己排的事要紧）；
 /// 开始时间一样、去掉开头的人名后名字一样的日程合成一行「2 场面试：潘志文、陈宏远」，右边「15:00 起」
 struct CanvasTodoPlan {
@@ -42,15 +43,30 @@ struct CanvasTodoPlan {
     }
 
     static func make(rows: [API.TodoRow], events: [CalendarItem], now: String) -> CanvasTodoPlan {
-        var keyed = rows.map { row in
-            let key = Self.key(row, now: now)
-            return Keyed(group: key.group, clock: key.clock, item: .todo(row))
+        let late = rows.filter { key($0, now: now).group == 0 }
+        let rest = rows.filter { key($0, now: now).group != 0 }
+        let sorted: [Item]
+        if TodoOrder.manual(rest) {
+            // 你在清单里排过：过点的照旧最前，后面照你排的（日程照时间插在第一件比它晚的待办前面）
+            let first = late.sorted { key($0, now: now).clock < key($1, now: now).clock }.map(Item.todo)
+            sorted =
+                first
+                + TodoOrder.insert(lines(events), into: TodoOrder.sorted(rest).map(Item.todo), start: \.start) {
+                    Item.event($0)
+                } clock: { item in
+                    if case .todo(let row) = item { row.clock } else { nil }
+                }
+        } else {
+            var keyed = rows.map { row in
+                let key = Self.key(row, now: now)
+                return Keyed(group: key.group, clock: key.clock, item: .todo(row))
+            }
+            keyed += lines(events).map { Keyed(group: 2, clock: $0.start, item: .event($0)) }  // 日程
+            sorted = keyed.enumerated().sorted { lhs, rhs in
+                (lhs.element.group, lhs.element.clock, lhs.offset) < (rhs.element.group, rhs.element.clock, rhs.offset)
+            }
+            .map(\.element.item)
         }
-        keyed += lines(events).map { Keyed(group: 2, clock: $0.start, item: .event($0)) }  // 日程
-        let sorted = keyed.enumerated().sorted { lhs, rhs in
-            (lhs.element.group, lhs.element.clock, lhs.offset) < (rhs.element.group, rhs.element.clock, rhs.offset)
-        }
-        .map(\.element.item)
         let shown = Array(sorted.prefix(limit))
         let ids = Set(
             shown.compactMap { item -> Int? in

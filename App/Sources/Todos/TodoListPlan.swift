@@ -71,6 +71,38 @@ struct TodoListPlan {
     }
 }
 
+/// 你排的顺序（待办 2.0：清单里「调整顺序」拖过的，服务器存着 order）：没排过的（新加的）在前面、照原来的先后，
+/// 排过的按你排的；日程照时间插在第一件比它晚的待办前面
+enum TodoOrder {
+    /// 有没有排过（一组里有一件排过就照你排的）
+    static func manual(_ rows: [API.TodoRow]) -> Bool { rows.contains { $0.order != nil } }
+
+    static func sorted(_ rows: [API.TodoRow]) -> [API.TodoRow] {
+        let placed = rows.enumerated().filter { $0.element.order != nil }
+            .sorted { ($0.element.order ?? 0, $0.offset) < ($1.element.order ?? 0, $1.offset) }.map(\.element)
+        return rows.filter { $0.order == nil } + placed
+    }
+
+    /// 把日程（按开始排好）插进去：插在第一件钟点比它晚的前面，没有就放最后
+    static func insert<Event, Item>(
+        _ events: [Event], into items: [Item], start: (Event) -> String, make: (Event) -> Item,
+        clock: (Item) -> String?
+    ) -> [Item] {
+        var out = items
+        for event in events.sorted(by: { start($0) < start($1) }) {
+            let begins = start(event)
+            let at = out.firstIndex { clock($0).map { $0 > begins } ?? false } ?? out.endIndex
+            out.insert(make(event), at: at)
+        }
+        return out
+    }
+}
+
+extension API.TodoRow {
+    /// 排的时候按的钟点：定了钟点的钟点，只说了时间段的时段开头
+    var clock: String? { remindAt ?? timeWindow?.nudge }
+}
+
 /// 过点了往哪挪（行下面的小按钮、组标题旁的「全部挪到…」）
 enum TodoMove: Equatable {
     case afternoon, evening, tomorrow
@@ -93,6 +125,13 @@ extension TodayItem {
 }
 
 extension AppModel {
+    /// 调整顺序（待办 2.0，清单里拖过的）：先改界面再发，没网排在手机上，连上再发
+    func reorderTodos(_ ids: [Int]) {
+        guard !ids.isEmpty else { return }
+        todoPage?.reorder(ids)
+        write("POST", "/api/todos/order", json: .object(["ids": .array(ids.map { .number(Double($0)) })])) {}
+    }
+
     /// 过点了的挪一挪：挪到今天下午 / 晚上（记成时间段，到时段开头轻提醒），或者明天再说（钟点照旧挪到明天）。
     /// 先改界面再发；轻提示能撤销（挪回原来的日子、钟点、时间段）
     func move(_ rows: [API.TodoRow], to target: TodoMove) {
@@ -141,16 +180,19 @@ enum TodayItem: Identifiable {
                     AgendaPlan.same(event, title: row.content, remindAt: row.remindAt.map { "\(row.day)T\($0)" })
                 }
         }
-        // 全天的不进单子（写在「今天」那一组的标题后面）
-        return (rows.map(TodayItem.todo) + timed.map(TodayItem.event)).enumerated()
-            .sorted { ($0.element.clock ?? "", $0.offset) < ($1.element.clock ?? "", $1.offset) }
-            .map(\.element)
-    }
-
-    private var clock: String? {
-        switch self {
-        case .todo(let row): row.remindAt ?? row.timeWindow?.nudge
-        case .event(let event): String(event.start.suffix(5))
+        // 全天的不进单子（写在「今天」那一组的标题后面）。待办：排过的照你排的（没排过的、新加的在前面），
+        // 没排过就是不定时的在上、别的按时间；日程插在第一件比它晚的待办前面（没有就放最后）
+        let todos =
+            TodoOrder.manual(rows)
+            ? TodoOrder.sorted(rows)
+            : rows.enumerated().sorted { ($0.element.clock ?? "", $0.offset) < ($1.element.clock ?? "", $1.offset) }
+                .map(\.element)
+        return TodoOrder.insert(timed, into: todos.map(TodayItem.todo)) {
+            String($0.start.suffix(5))
+        } make: {
+            TodayItem.event($0)
+        } clock: { item in
+            if case .todo(let row) = item { row.clock } else { nil }
         }
     }
 

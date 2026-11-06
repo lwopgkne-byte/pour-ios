@@ -39,6 +39,11 @@ enum TodoBoard {
         if key == "done" { return (lhs.doneAt ?? "") > (rhs.doneAt ?? "") }
         // 以后再说的排在有日子的后面，新的在前
         if lhs.isSomeday != rhs.isSomeday { return rhs.isSomeday }
+        // 你排的顺序（待办 2.0，和服务器一样）：同一天里没排过的（新加的）在前，排过的按你排的
+        if key != "overdue", lhs.isSomeday || lhs.day == rhs.day {
+            if (lhs.order == nil) != (rhs.order == nil) { return lhs.order == nil }
+            if let left = lhs.order, let right = rhs.order, left != right { return left < right }
+        }
         if lhs.isSomeday { return lhs.id > rhs.id }
         let left = (lhs.day, lhs.remindAt ?? "99", lhs.id)
         let right = (rhs.day, rhs.remindAt ?? "99", rhs.id)
@@ -150,6 +155,8 @@ extension API.TodoPage {
     /// 改了哪天、几点（推迟、带到今天、详情里改）：挪到对的组
     mutating func move(_ id: Int, day: String, time: String?) {
         guard var row = take(id) else { return }
+        // 挪到别的日子：在原来那天排的顺序不算了
+        if day != row.day { row.order = nil }
         row.day = day
         row.remindAt = time
         // 有了日子就不再是以后再说；有了钟点就不再是时间段
@@ -181,6 +188,15 @@ extension API.TodoPage {
             }
         }
         return nil
+    }
+
+    /// 调整顺序：这几件按给的先后记成 0、1、2……，各组照新的顺序重新排
+    mutating func reorder(_ ids: [Int]) {
+        for (index, id) in ids.enumerated() { change(id) { $0.order = index } }
+        for index in groups.indices where groups[index].key != "done" {
+            let key = groups[index].key
+            groups[index].rows.sort { TodoBoard.before($0, $1, in: key) }
+        }
     }
 
     /// 离开待办页：做完的收进「已完成」（最近做完的在最上面），下次打开不跳一下
