@@ -44,7 +44,7 @@ struct TodoMatrixTests {
         #expect(plan.overflow().map(\.id) == [2, 5])
     }
 
-    /// 排时间里今天的、没定钟点也没定时间段的：今天到期（问要不要升，不自动挪）
+    /// 排时间里今天的、没定钟点也没定时间段的：卡片上写今天到期（不问要不要升，不自动挪）
     @Test func dueTodayOnlyForUntimedScheduleRows() {
         var window = row(3, .schedule)
         window.window = TimeWindow.afternoon.rawValue

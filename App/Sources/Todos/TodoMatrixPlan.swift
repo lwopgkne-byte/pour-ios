@@ -8,7 +8,7 @@ struct TodoMatrixPlan {
     var cells: [TodoQuadrant: [API.TodoRow]]
     /// 还没分（格子下面的托盘）
     var unsorted: [API.TodoRow]
-    /// 排时间里到了日子还没定时间的：卡片上写「今天到期」，格头问要不要升到马上做（不自动挪）
+    /// 排时间里到了日子还没定时间的：卡片上写「今天到期」（不问要不要升，也不自动挪）
     var dueToday: [API.TodoRow]
 
     /// 每格最多摆几件（多了「还有 N 件」）

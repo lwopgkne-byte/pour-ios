@@ -6,8 +6,8 @@ import SwiftUI
 /// 四象限（待办 2.0 第 7 步，docs/todo-2.0 design/after-03-matrix）：2×2 等高四格（左上马上做、右上排时间、左下快速办、
 /// 右下放一放），每格最多 4 张小卡（过点的在前，再按时间），多了「还有 N 件」，点格头进这一格的全部；按住卡片拖到别的格子
 /// 就换一格（松手轻震，不再是猜的）。排时间下面「排进空档 ›」去时间线；格子下面「还没分 · N」托盘（拖进格子或点一下选）。
-/// 马上做多于 3 件：格头「5 · 有点多」，问要不要只留 3 件；排时间里到了日子没定时间的写「今天到期」，格头问要不要升到马上做
-/// （不自动挪）。范围：今天的、过点了的、没定日子的；日程不进来
+/// 马上做多于 3 件：格头「5 · 有点多」，问要不要只留 3 件；排时间里到了日子没定时间的卡片上写「今天到期」（不再问要不要升到
+/// 马上做——产品主人 2026-11-06：太突兀；想升就拖过去或按住选一格）。范围：今天的、过点了的、没定日子的；日程不进来
 struct TodoMatrixSection: View {
     @Environment(AppModel.self) private var model
     let page: API.TodoPage
@@ -52,7 +52,6 @@ struct TodoMatrixSection: View {
             withAnimation(Theme.Motion.standard) { focus = lane }
         } content: {
             if crowded && crowdSkipped != page.today { crowdAsk(plan) }
-            if lane == .schedule && !plan.dueToday.isEmpty { upgradeAsk(plan.dueToday) }
             if rows.isEmpty {
                 Text(Self.empty(lane)).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
                     .multilineTextAlignment(.center)
@@ -135,14 +134,6 @@ struct TodoMatrixSection: View {
         }
     }
 
-    /// 排时间里今天到期的：升到马上做？（一点就升，不自动挪）
-    private func upgradeAsk(_ due: [API.TodoRow]) -> some View {
-        MatrixAsk("\(due.count) 件今天到期，升到马上做？", yes: "升", later: nil) {
-            model.file(due, into: .doNow)
-        } skip: {
-        }
-    }
-
     // MARK: - 还没分
 
     /// 「还没分 · 1」：一件一个胶囊，点了选一格，按住拖进格子。放得下一行就一行（设计稿），放不下胶囊另起一行横着滑
@@ -212,11 +203,11 @@ struct TodoMatrixSection: View {
 private struct MatrixAsk: View {
     let text: String
     let yes: String
-    let later: String?
+    let later: String
     let accept: () -> Void
     let skip: () -> Void
 
-    init(_ text: String, yes: String, later: String?, accept: @escaping () -> Void, skip: @escaping () -> Void) {
+    init(_ text: String, yes: String, later: String, accept: @escaping () -> Void, skip: @escaping () -> Void) {
         self.text = text
         self.yes = yes
         self.later = later
@@ -230,7 +221,7 @@ private struct MatrixAsk: View {
                 .fixedSize(horizontal: false, vertical: true)
             HStack(spacing: Theme.Space.small) {
                 MiniChip(yes, action: accept)
-                if let later { MiniChip(later, action: skip) }
+                MiniChip(later, action: skip)
             }
         }
         .accessibilityElement(children: .contain)
