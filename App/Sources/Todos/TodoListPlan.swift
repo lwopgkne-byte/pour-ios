@@ -25,7 +25,7 @@ struct TodoListPlan {
         let rest = todayRows.filter { !Self.passed($0, now: now) }
         return TodoListPlan(
             late: due + overdue,
-            today: TodayItem.merge(rest.filter { $0.lane != .later }, events: events),
+            today: TodayItem.merge(rest.filter { $0.lane != .later }, events: events, twins: todayRows),
             later: rest.filter { $0.lane == .later },
             ahead: sections.filter { ["tomorrow", "week", "later"].contains($0.key) },
             done: sections.first { $0.key == "done" })
@@ -173,10 +173,12 @@ enum TodayItem: Identifiable {
 
     /// 待办 2.0：不定时的待办在上，别的按时间排（待办按钟点、时间段按开头的钟点，日程按开始）；全天的不在这里；
     /// 日程和你说的待办是同一件的只显示待办（和画布的待办卡一样，AgendaPlan.same）
-    static func merge(_ rows: [API.TodoRow], events: [CalendarItem]) -> [TodayItem] {
+    /// twins：日历里和它是同一件的不再列出来的那些待办（默认就是 rows）——过了点挪进「过点了」的那件也算，
+    /// 不然 10:00 的客户电话过了点，今天里又冒出同名的日程（2026-11-06 演示数据看到的）
+    static func merge(_ rows: [API.TodoRow], events: [CalendarItem], twins: [API.TodoRow]? = nil) -> [TodayItem] {
         let timed = events.filter { event in
             !event.allDay
-                && !rows.contains { row in
+                && !(twins ?? rows).contains { row in
                     AgendaPlan.same(event, title: row.content, remindAt: row.remindAt.map { "\(row.day)T\($0)" })
                 }
         }

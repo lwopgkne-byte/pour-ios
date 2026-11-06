@@ -35,6 +35,14 @@ struct TodoListTests {
             now: "2026-10-27T11:35")
         #expect(plan.late.map(\.id) == [2, 1, 6])
         #expect(plan.today.map(\.id) == ["todo.3", "todo.4"])
+        // 日历里同一件（09:30 回复客户电话）：那件过了点挪进「过点了」，今天里也不再冒出同名的日程
+        let twin = CalendarItem(
+            id: "twin", title: "回复客户电话", start: "\(Self.today)T09:30", end: "\(Self.today)T09:45", allDay: false,
+            calendar: "工作")
+        let withTwin = TodoListPlan.make(
+            page: page([water, call, lunch, kid, guitar], overdue: [fee]), held: [:], events: [twin],
+            now: "2026-10-27T11:35")
+        #expect(withTwin.today.map(\.id) == ["todo.3", "todo.4"])
         #expect(plan.later.map(\.id) == [5])
         #expect(plan.counts(page: page([water, call, lunch, kid, guitar], overdue: [fee])).left == 6)
     }

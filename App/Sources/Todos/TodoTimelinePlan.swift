@@ -84,7 +84,13 @@ struct TodoTimelinePlan {
     {
         let today = page.today
         let rows = TodoBoard.sections(page, held: held).first { $0.key == "today" }?.rows ?? []
-        let timed = events.filter { !$0.allDay && $0.start.hasPrefix(today) }
+        // 日历里和一件待办是同一件的（10:00「给客户回电话」）：只画待办的小标签，不再画一块日程、也不算撞上
+        let timed = events.filter { event in
+            !event.allDay && event.start.hasPrefix(today)
+                && !rows.contains { row in
+                    AgendaPlan.same(event, title: row.content, remindAt: row.remindAt.map { "\(today)T\($0)" })
+                }
+        }
         let placed = Self.columns(timed, day: today)
         let tags = rows.compactMap { row -> Tag? in
             guard let clock = row.remindAt, let minute = Self.minute(clock) else { return nil }

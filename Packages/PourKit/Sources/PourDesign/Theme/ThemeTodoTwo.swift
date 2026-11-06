@@ -165,8 +165,17 @@ public struct TodoTrailing: View {
                     Text(text)
                 }
                 .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
-            case .window(let text), .day(let text):
+            case .window(let text):
                 Text(text).font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
+            case .day(let text):
+                // 别的日子只写日子（「11月9日 07:00」不带铃铛）；响铃的带上闹钟，一眼看出那天会响
+                HStack(spacing: Theme.Space.hairline + 1) {
+                    if alarm {
+                        Image(systemName: "alarm").font(Theme.Typeface.footnote).accessibilityLabel(Text("响铃"))
+                    }
+                    Text(text)
+                }
+                .font(Theme.Typeface.subheadline).foregroundStyle(Theme.Palette.secondaryLabel)
             case .soon(let text):
                 HStack(spacing: Theme.Space.hairline + 1) {
                     Image(systemName: alarm ? "alarm.fill" : "bell.fill").font(Theme.Typeface.footnote)

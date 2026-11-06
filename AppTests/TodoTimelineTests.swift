@@ -66,6 +66,16 @@ struct TodoTimelineTests {
     }
 
     /// 空档：现在以后、1 小时以上，开头取到下一个半点；建议先排「排时间」那格的
+    /// 日历里和待办是同一件的（10:00 给客户回电话）：只画待办的小标签，不画日程、不算撞上
+    @Test func twinIsOneTag() {
+        let call = API.TodoRow(id: 1, content: "给客户回电话", day: Self.today, remindAt: "10:00")
+        let plan = TodoTimelinePlan.make(
+            page: page([call]), held: [:], events: [event("twin", "给客户回电话", "10:00", "10:15")],
+            now: "\(Self.today)T09:00", expanded: false)
+        #expect(plan.events.isEmpty)
+        #expect(plan.tags.map(\.row.id) == [1] && plan.tags[0].clash == nil)
+    }
+
     @Test func gapsAndSuggestion() {
         let gaps = TodoTimelinePlan.gaps(busy: [(15 * 60, 16 * 60)], from: 11 * 60 + 35, until: 22 * 60)
         #expect(gaps.map(\.text) == ["12:00–15:00", "16:00–22:00"])
